@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">BusTO</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="search">Search</string>
+    <string name="insert_bus_stop_number">Please insert the number of the bus stop.</string>
+    <string name="network_error">Network Error. Is network available?</string>
+
+</resources>
