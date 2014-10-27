@@ -1,28 +1,32 @@
 package it.reyboz.bustorino;
 
+import it.reyboz.bustorino.GTTSiteSucker.ArrivalsAtBusStop;
+import it.reyboz.bustorino.GTTSiteSucker.TimePassage;
+
 import android.support.v7.app.ActionBarActivity;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity {
-	
-	public EditText bus_stop_number;
+
+	private EditText bus_stop_number_editText;
+	private TextView result_textView;
+	private ProgressBar annoyingFedbackProgressBar;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
-		if (savedInstanceState == null) {
-			getSupportFragmentManager().beginTransaction()
-					.add(R.id.container, new PlaceholderFragment()).commit();
-		}
+		setContentView(R.layout.main_activity);
+		bus_stop_number_editText = (EditText)findViewById(R.id.bus_stop_number_editText);
+		result_textView = (TextView)findViewById(R.id.result_textView);
+		annoyingFedbackProgressBar = (ProgressBar)findViewById(R.id.annoyingFedbackProgress);
+		annoyingFedbackProgressBar.setVisibility(View.INVISIBLE);
 	}
 
 	@Override
@@ -43,32 +47,38 @@ public class MainActivity extends ActionBarActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
+	
 	/**
-	 * A placeholder fragment containing a simple view.
+	 * Catch the Async action!
+	 * @author boz
 	 */
-	public static class PlaceholderFragment extends Fragment {
-
-		public PlaceholderFragment() {
-		}
-
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_main, container,
-					false);
-			return rootView;
+	public class MyAsyncWget extends AsyncWget {
+		protected void onPostExecute(String result) {
+			ArrivalsAtBusStop[] arrivalsAtBusStop = GTTSiteSucker.arrivalTimesBylineHTMLSucker(result);
+			boolean done = false;
+			String out = "";
+			for(ArrivalsAtBusStop arrivalAtBusStop:arrivalsAtBusStop) {
+				out += String.format(getResources().getString(R.string.passages), arrivalAtBusStop.getLineaGTT()) + "\n";
+				for(TimePassage timePassage:arrivalAtBusStop.getTimePassages()) {
+					out += "-\t" + timePassage.getTime() + (timePassage.isInRealTime() ? "*" : "") + "\n";
+				}
+				out += "\n";
+				done = true;
+			}
+			annoyingFedbackProgressBar.setVisibility(View.INVISIBLE);
+			result_textView.setText(out);
+			if(!done) {
+				Toast.makeText(getApplicationContext(), R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
+			}
 		}
 	}
 
 	public void searchClick(View v) {
 		if (!NetworkTools.isConnected(this)) {
 			NetworkTools.showNetworkError(this);
-			return;
+		} else {
+			annoyingFedbackProgressBar.setVisibility(View.VISIBLE);
+			new MyAsyncWget().execute(GTTSiteSucker.arrivalTimesByLineQuery(bus_stop_number_editText.getText().toString()));
 		}
-		bus_stop_number = (EditText)findViewById(R.id.bus_stop_number_editText);
-		String value = bus_stop_number.getText().toString();
-		Log.d("miao", "clicked " + value);
-		new AsyncWget().execute("http://www.5t.torino.it/5t/trasporto/StopPointCtrl.js.jsp?action=search&shortName=" + value);
 	}
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">BusTO</string>
+    <string name="hello_world">Ciao mondo!</string>
+    <string name="action_settings">Impostazioni</string>
+    <string name="search">Cerca</string>
+    <string name="insert_bus_stop_number">Inserisci il numero della fermata.</string>
+    <string name="network_error">Errore di rete. Verifica l\'accesso ad Internet</string>
+    <string name="no_arrival_times">Nessun arrivo previsto per questa fermata :(</string>
+    <string name="passages">Passaggi linea %1$s:</string>
+
+</resources>
