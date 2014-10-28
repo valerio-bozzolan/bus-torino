@@ -9,18 +9,18 @@
     tools:context="it.reyboz.bustorino.MainActivity2" >
 
    <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/searchTitleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/insert_bus_stop_number" />
 
     <EditText
-        android:id="@+id/bus_stop_number_editText"
+        android:id="@+id/busStopNumberEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView1"
+        android:layout_alignLeft="@+id/searchTitleTextView"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/textView1"
+        android:layout_below="@+id/searchTitleTextView"
         android:ems="10"
         android:inputType="number"
         android:singleLine="true" >
@@ -29,11 +29,11 @@
     </EditText>
 
     <Button
-        android:id="@+id/button1"
+        android:id="@+id/searchButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/bus_stop_number_editText"
+        android:layout_below="@+id/busStopNumberEditText"
         android:text="@string/search"
         android:onClick="searchClick" />
 
@@ -41,16 +41,17 @@
         android:id="@+id/result_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/bus_stop_number_editText"
+        android:layout_alignLeft="@+id/busStopNumberEditText"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/button1" />
+        android:layout_below="@+id/searchButton"
+        android:scrollbars="horizontal" />
 
     <ProgressBar
         android:id="@+id/annoyingFedbackProgress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/bus_stop_number_editText"
-        android:layout_toLeftOf="@+id/button1" />
+        android:layout_below="@+id/busStopNumberEditText"
+        android:layout_toLeftOf="@+id/searchButton" />
 
 </RelativeLayout>

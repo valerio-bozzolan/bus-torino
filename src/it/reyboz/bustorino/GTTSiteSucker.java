@@ -32,7 +32,7 @@ public class GTTSiteSucker {
 
 	public static class ArrivalsAtBusStop {
 		private int codLineaGTT;
-		private int lineaGTT;
+		private String lineaGTT;
 		private ArrayList<TimePassage> timesPassages;
 
 		public ArrivalsAtBusStop() {
@@ -43,7 +43,7 @@ public class GTTSiteSucker {
 			this.codLineaGTT = codLineaGTT;
 		}
 
-		public void setLineaGTT(int lineaGTT) {
+		public void setLineaGTT(String lineaGTT) {
 			this.lineaGTT = lineaGTT;
 		}
 
@@ -55,7 +55,7 @@ public class GTTSiteSucker {
 			return codLineaGTT;
 		}
 
-		public int getLineaGTT() {
+		public String getLineaGTT() {
 			return lineaGTT;
 		}
 
@@ -100,7 +100,7 @@ public class GTTSiteSucker {
 					if (matcher.find()) {
 						codLineaGTT = matcher.group();
 					}
-					arrivalAtBusStop.setLineaGTT(Integer.parseInt(lineaGTT));
+					arrivalAtBusStop.setLineaGTT(lineaGTT);
 					arrivalAtBusStop.setCodLineaGTT(Integer
 							.parseInt(codLineaGTT));
 					codLineaGTTfound = true;

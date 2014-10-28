@@ -5,6 +5,7 @@ import it.reyboz.bustorino.GTTSiteSucker.TimePassage;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,7 +24,7 @@ public class MainActivity extends ActionBarActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_activity);
-		bus_stop_number_editText = (EditText)findViewById(R.id.bus_stop_number_editText);
+		bus_stop_number_editText = (EditText)findViewById(R.id.busStopNumberEditText);
 		result_textView = (TextView)findViewById(R.id.result_textView);
 		annoyingFedbackProgressBar = (ProgressBar)findViewById(R.id.annoyingFedbackProgress);
 		annoyingFedbackProgressBar.setVisibility(View.INVISIBLE);
@@ -55,21 +56,26 @@ public class MainActivity extends ActionBarActivity {
 	public class MyAsyncWget extends AsyncWget {
 		protected void onPostExecute(String result) {
 			ArrivalsAtBusStop[] arrivalsAtBusStop = GTTSiteSucker.arrivalTimesBylineHTMLSucker(result);
-			boolean done = false;
 			String out = "";
 			for(ArrivalsAtBusStop arrivalAtBusStop:arrivalsAtBusStop) {
 				out += String.format(getResources().getString(R.string.passages), arrivalAtBusStop.getLineaGTT()) + "\n";
 				for(TimePassage timePassage:arrivalAtBusStop.getTimePassages()) {
 					out += "-\t" + timePassage.getTime() + (timePassage.isInRealTime() ? "*" : "") + "\n";
 				}
+				
+				if(arrivalAtBusStop.getTimePassages().size() == 0) {
+					out += "\t :( \n";
+				}
+
 				out += "\n";
-				done = true;
 			}
-			annoyingFedbackProgressBar.setVisibility(View.INVISIBLE);
-			result_textView.setText(out);
-			if(!done) {
+
+			if(arrivalsAtBusStop.length == 0) {
 				Toast.makeText(getApplicationContext(), R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
 			}
+
+			annoyingFedbackProgressBar.setVisibility(View.INVISIBLE);
+			result_textView.setText(out);
 		}
 	}
 
