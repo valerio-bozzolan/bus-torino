@@ -12,6 +12,14 @@ import android.util.Log;
 
 public class GTTSiteSucker {
 
+	public static String arrivalTimesByLineQuery(String busStop) {
+		return "http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + busStop;
+	}
+
+	/**
+	 * A time passage is a time with the answer of: Is this in real time?
+	 * @author boz
+	 */
 	public static class TimePassage {
 		private String time;
 		private boolean isInRealTime;
@@ -30,6 +38,10 @@ public class GTTSiteSucker {
 		}
 	}
 
+	/**
+	 * An ArrivalsAtBusStop has informations of the buses that pass through it (like line numbers)
+	 * @author boz
+	 */
 	public static class ArrivalsAtBusStop {
 		private int codLineaGTT;
 		private String lineaGTT;
@@ -66,25 +78,60 @@ public class GTTSiteSucker {
 		public String toString() {
 			return codLineaGTT + " " + lineaGTT;
 		}
+		
+		public String getTimePassagesString() {
+			String out = "";
+			for(TimePassage timePassage:timesPassages) {
+				out += timePassage.getTime() + (timePassage.isInRealTime() ? "*" : "") + " ";
+			}
+			if(timesPassages.size() == 0) {
+				out = ":(";
+			}
+			return out;
+		}
 	}
 
-	public static String arrivalTimesByLineQuery(String busStop) {
-		return "http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + busStop;
+	/**
+	 * A BusStop has information on the bus stop (bus stop name) and of all the buses that pass through it
+	 * @author boz
+	 */
+	public static class BusStop {
+		private String stationName;
+		private ArrivalsAtBusStop[] arrivalsAtBusStop;
+		
+		BusStop(String stationName, ArrivalsAtBusStop[] arrivalsAtBusStop) {
+			this.stationName = stationName;
+			this.arrivalsAtBusStop = arrivalsAtBusStop;
+		}
+
+		public void setNomeUmano(String stationName) {
+			this.stationName = stationName;
+		}
+
+		public String getStationName() {
+			return stationName;
+		}
+
+		public ArrivalsAtBusStop[] getArrivalsAtBusStop() {
+			return arrivalsAtBusStop;
+		}
 	}
 	
 	/**
-	 * Workaround to get all informations from the 5T website
+	 * API/Workaround to get all informations from the 5T website
 	 * 
 	 * @param html
 	 * @author Valerio Bozzolan
+	 * @return BusStop
 	 */
-	public static ArrivalsAtBusStop[] arrivalTimesBylineHTMLSucker(String html) {
+	public static BusStop arrivalTimesBylineHTMLSucker(String html) {
 		ArrayList<ArrivalsAtBusStop> arrivalsAtBusStop = new ArrayList<ArrivalsAtBusStop>();
 		Document doc = Jsoup.parse(html);
 		for (Element tr : doc.getElementsByTag("tr")) {
 			ArrivalsAtBusStop arrivalAtBusStop = new ArrivalsAtBusStop();
 
 			boolean codLineaGTTfound = false;
+
 			for (Element td : tr.children()) {
 				String tdContent = td.html();
 				if (tdContent.isEmpty()) {
@@ -107,21 +154,31 @@ public class GTTSiteSucker {
 					continue;
 				}
 				
-				// Look for "<i>*</i>"
+				// Look for "<i>*</i>" (aka "prodotto surgelato")
 				boolean frozenProduct = !td.select("i").isEmpty();
 				if(frozenProduct) {
 					td.select("i").remove();
 					tdContent = td.html();
 				}
-
-				Log.d("miao", "Prodotto surgelato: " + ((frozenProduct) ? "Yeppa" : "Nopely nope"));
 				
 				arrivalAtBusStop.addTimePassage(tdContent, frozenProduct);
-				Log.d("miao td", "td: " + tdContent);
 			}
 			arrivalsAtBusStop.add(arrivalAtBusStop);
 		}
-		return (ArrivalsAtBusStop[]) arrivalsAtBusStop
-				.toArray(new ArrivalsAtBusStop[] {});
+
+		// Sucking bus station name (e.g.: POZZO STRADA)
+		String nomeUmano = "";
+		Element tagNomeUmano = doc.select("span").first();
+		if(tagNomeUmano != null) {
+			nomeUmano = tagNomeUmano.html();
+		}
+		Matcher matcher = Pattern.compile("nbsp;(.*)").matcher(
+				nomeUmano);
+		if (matcher.find()) {
+			nomeUmano = matcher.group(1);
+			Log.d("miao", "nome umano:" + nomeUmano);
+		}
+
+		return new BusStop(nomeUmano, (ArrivalsAtBusStop[]) arrivalsAtBusStop.toArray(new ArrivalsAtBusStop[] {}));
 	}
 }

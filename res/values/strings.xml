@@ -8,6 +8,6 @@
     <string name="insert_bus_stop_number">Please insert the number of the bus stop.</string>
     <string name="network_error">Network Error. Is network available?</string>
     <string name="no_arrival_times">No arrival times for this station :(</string>
-    <string name="passages">Passages line %1$s:</string>
+    <string name="passages">Passages bus stop %1$s:</string>
 
 </resources>

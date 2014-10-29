@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="60dip"
+    android:padding="5dip" >
+
+    <TextView
+        android:id="@+id/busLineIcon"
+        android:layout_width="50dip"
+        android:layout_height="50dip"
+        android:background="#FF8800"
+        android:gravity="center"
+        android:text="685"
+        android:textColor="#FFF6DF"
+        android:textSize="21sp" >
+
+    </TextView>
+
+    <TextView
+        android:id="@+id/busLine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/busLineIcon"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/busLineIcon"
+        android:layout_marginLeft="5dip"
+        android:layout_toRightOf="@id/busLineIcon"
+        android:gravity="center_vertical"
+        android:text="Bus Line"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="#0099CC" >
+
+    </TextView>
+
+</RelativeLayout>

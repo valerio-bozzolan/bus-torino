@@ -1,32 +1,36 @@
 package it.reyboz.bustorino;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import it.reyboz.bustorino.GTTSiteSucker.ArrivalsAtBusStop;
-import it.reyboz.bustorino.GTTSiteSucker.TimePassage;
+import it.reyboz.bustorino.GTTSiteSucker.BusStop;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity {
 
+	private TextView busStationName;
 	private EditText bus_stop_number_editText;
-	private TextView result_textView;
 	private ProgressBar annoyingFedbackProgressBar;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_activity);
-		bus_stop_number_editText = (EditText)findViewById(R.id.busStopNumberEditText);
-		result_textView = (TextView)findViewById(R.id.result_textView);
-		annoyingFedbackProgressBar = (ProgressBar)findViewById(R.id.annoyingFedbackProgress);
+		busStationName = (TextView) findViewById(R.id.busStationName);
+		bus_stop_number_editText = (EditText) findViewById(R.id.busStopNumberEditText);
+		annoyingFedbackProgressBar = (ProgressBar) findViewById(R.id.annoyingFedbackProgress);
 		annoyingFedbackProgressBar.setVisibility(View.INVISIBLE);
 	}
 
@@ -48,34 +52,45 @@ public class MainActivity extends ActionBarActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
+
 	/**
 	 * Catch the Async action!
+	 * 
 	 * @author boz
 	 */
 	public class MyAsyncWget extends AsyncWget {
 		protected void onPostExecute(String result) {
-			ArrivalsAtBusStop[] arrivalsAtBusStop = GTTSiteSucker.arrivalTimesBylineHTMLSucker(result);
-			String out = "";
-			for(ArrivalsAtBusStop arrivalAtBusStop:arrivalsAtBusStop) {
-				out += String.format(getResources().getString(R.string.passages), arrivalAtBusStop.getLineaGTT()) + "\n";
-				for(TimePassage timePassage:arrivalAtBusStop.getTimePassages()) {
-					out += "-\t" + timePassage.getTime() + (timePassage.isInRealTime() ? "*" : "") + "\n";
-				}
-				
-				if(arrivalAtBusStop.getTimePassages().size() == 0) {
-					out += "\t :( \n";
-				}
+			ArrayList<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
 
-				out += "\n";
+			BusStop busStop = GTTSiteSucker.arrivalTimesBylineHTMLSucker(result);
+			
+			ArrivalsAtBusStop[] arrivalsAtBusStop = busStop.getArrivalsAtBusStop();
+
+			for (ArrivalsAtBusStop arrivalAtBusStop : arrivalsAtBusStop) {
+				HashMap<String, Object> personMap = new HashMap<String, Object>();
+				personMap.put("icon", arrivalAtBusStop.getLineaGTT());
+				personMap.put("line-name", arrivalAtBusStop.getTimePassagesString());
+				data.add(personMap);
 			}
 
-			if(arrivalsAtBusStop.length == 0) {
-				Toast.makeText(getApplicationContext(), R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
+			if (arrivalsAtBusStop.length == 0) {
+				Toast.makeText(getApplicationContext(),
+						R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
+			} else {
+				busStationName.setText(String.format(getResources().getString(R.string.passages), busStop.getStationName()));
 			}
+
+			String[] from = { "icon", "line-name" };
+			int[] to = { R.id.busLineIcon, R.id.busLine };
+			SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
+					data,
+					R.layout.bus_stop_entry,
+					from, to);
+
+			ListView tpm = ((ListView) findViewById(R.id.listView1));
+			tpm.setAdapter(adapter);
 
 			annoyingFedbackProgressBar.setVisibility(View.INVISIBLE);
-			result_textView.setText(out);
 		}
 	}
 
@@ -84,7 +99,9 @@ public class MainActivity extends ActionBarActivity {
 			NetworkTools.showNetworkError(this);
 		} else {
 			annoyingFedbackProgressBar.setVisibility(View.VISIBLE);
-			new MyAsyncWget().execute(GTTSiteSucker.arrivalTimesByLineQuery(bus_stop_number_editText.getText().toString()));
+			new MyAsyncWget().execute(GTTSiteSucker
+					.arrivalTimesByLineQuery(bus_stop_number_editText.getText()
+							.toString()));
 		}
 	}
 }

@@ -8,6 +8,6 @@
     <string name="insert_bus_stop_number">Inserisci il numero della fermata.</string>
     <string name="network_error">Errore di rete. Verifica l\'accesso ad Internet</string>
     <string name="no_arrival_times">Nessun arrivo previsto per questa fermata :(</string>
-    <string name="passages">Passaggi linea %1$s:</string>
+    <string name="passages">Passaggi fermata %1$s:</string>
 
 </resources>

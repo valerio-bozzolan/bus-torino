@@ -19,8 +19,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/searchTitleTextView"
-        android:layout_alignParentRight="true"
         android:layout_below="@+id/searchTitleTextView"
+        android:layout_toLeftOf="@+id/searchButton"
         android:ems="10"
         android:inputType="number"
         android:singleLine="true" >
@@ -32,26 +32,38 @@
         android:id="@+id/searchButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/busStopNumberEditText"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/busStopNumberEditText"
-        android:text="@string/search"
-        android:onClick="searchClick" />
+        android:layout_below="@+id/searchTitleTextView"
+        android:onClick="searchClick"
+        android:text="@string/search" />
 
-    <TextView
-        android:id="@+id/result_textView"
-        android:layout_width="wrap_content"
+    <ListView
+        android:id="@+id/listView1"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/busStopNumberEditText"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/searchButton"
-        android:scrollbars="horizontal" />
+        android:layout_below="@+id/busStationName" >
+
+    </ListView>
 
     <ProgressBar
         android:id="@+id/annoyingFedbackProgress"
+        style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
         android:layout_below="@+id/busStopNumberEditText"
-        android:layout_toLeftOf="@+id/searchButton" />
+        android:indeterminate="true" />
+
+    <TextView
+        android:id="@+id/busStationName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/annoyingFedbackProgress"/>
 
 </RelativeLayout>
