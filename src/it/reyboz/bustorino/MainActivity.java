@@ -7,6 +7,7 @@ import it.reyboz.bustorino.GTTSiteSucker.ArrivalsAtBusStop;
 import it.reyboz.bustorino.GTTSiteSucker.BusStop;
 
 import android.support.v7.app.ActionBarActivity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,7 +22,7 @@ import android.widget.Toast;
 public class MainActivity extends ActionBarActivity {
 
 	private TextView busStationName;
-	private EditText bus_stop_number_editText;
+	private EditText busStopNumberEditText;
 	private ProgressBar annoyingFedbackProgressBar;
 
 	@Override
@@ -29,7 +30,7 @@ public class MainActivity extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_activity);
 		busStationName = (TextView) findViewById(R.id.busStationName);
-		bus_stop_number_editText = (EditText) findViewById(R.id.busStopNumberEditText);
+		busStopNumberEditText = (EditText) findViewById(R.id.busStopNumberEditText);
 		annoyingFedbackProgressBar = (ProgressBar) findViewById(R.id.annoyingFedbackProgress);
 		annoyingFedbackProgressBar.setVisibility(View.INVISIBLE);
 	}
@@ -46,9 +47,15 @@ public class MainActivity extends ActionBarActivity {
 		// Handle action bar item clicks here. The action bar will
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
+		switch(item.getItemId()) {
+			/*case R.id.action_settings:
+				Intent intentSettings = new Intent(MainActivity.this,AboutActivity.class);
+				startActivity(intentSettings);
+				return true;*/
+			case R.id.action_about:
+				Intent intentAbout = new Intent(MainActivity.this,AboutActivity.class);
+				startActivity(intentAbout);
+				return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -100,7 +107,7 @@ public class MainActivity extends ActionBarActivity {
 		} else {
 			annoyingFedbackProgressBar.setVisibility(View.VISIBLE);
 			new MyAsyncWget().execute(GTTSiteSucker
-					.arrivalTimesByLineQuery(bus_stop_number_editText.getText()
+					.arrivalTimesByLineQuery(busStopNumberEditText.getText()
 							.toString()));
 		}
 	}

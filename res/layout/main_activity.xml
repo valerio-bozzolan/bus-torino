@@ -9,10 +9,12 @@
     tools:context="it.reyboz.bustorino.MainActivity2" >
 
    <TextView
-        android:id="@+id/searchTitleTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/insert_bus_stop_number" />
+       android:id="@+id/searchTitleTextView"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_alignLeft="@+id/annoyingFedbackProgress"
+       android:layout_alignRight="@+id/searchButton"
+       android:text="@string/insert_bus_stop_number" />
 
     <EditText
         android:id="@+id/busStopNumberEditText"
