@@ -13,7 +13,6 @@
         android:text="685"
         android:textColor="#FFF6DF"
         android:textSize="21sp" >
-
     </TextView>
 
     <TextView
@@ -29,7 +28,6 @@
         android:text="Bus Line"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="#0099CC" >
-
     </TextView>
 
 </RelativeLayout>

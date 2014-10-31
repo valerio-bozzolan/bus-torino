@@ -10,8 +10,9 @@
     <string name="passages">Passaggi fermata %1$s:</string>
     <string name="action_about">Info</string>
     <string name="about">Informazioni</string>
-    <string name="about_history"><![CDATA[
-        <h1>BENVENUTO!</h1>
+    <string name="about_history">
+<![CDATA[
+        <h1>Benvenuto!</h1>
 
         <p>Grazie per usare BusTO, un\'app <b>indipendente</b> nata dalla necessità di spostarsi a Torino attraverso <b>software libero</b>.</p>
 
@@ -35,5 +36,7 @@
 		<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza alcuna garanzia (nè garanzie di commerciabilità). Se ti accorgi di qualche difetto o se hai idee, <a href="https://bugs.launchpad.net/bus-torino">riportale</a>.</p>
 
 		<p>Codice sorgente: <a href="https://code.launchpad.net/bus-torino">lp:bus-torino</a>.</p>	
-    ]]></string>
+    ]]>
+    </string>
+
 </resources>

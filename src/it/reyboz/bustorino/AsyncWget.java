@@ -19,8 +19,10 @@ public class AsyncWget extends AsyncTask<String, String, String> {
 		try {
 			URL url = new URL(uri[0]);
 			urlConnection = (HttpURLConnection) url.openConnection();
-			InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-			BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+			InputStream in = new BufferedInputStream(
+					urlConnection.getInputStream());
+			BufferedReader reader = new BufferedReader(
+					new InputStreamReader(in));
 			result = new StringBuilder();
 			String line;
 			while ((line = reader.readLine()) != null) {

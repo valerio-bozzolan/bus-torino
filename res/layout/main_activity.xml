@@ -8,13 +8,13 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="it.reyboz.bustorino.MainActivity2" >
 
-   <TextView
-       android:id="@+id/searchTitleTextView"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_alignLeft="@+id/annoyingFedbackProgress"
-       android:layout_alignRight="@+id/searchButton"
-       android:text="@string/insert_bus_stop_number" />
+    <TextView
+        android:id="@+id/searchTitleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/annoyingFedbackProgress"
+        android:layout_alignRight="@+id/searchButton"
+        android:text="@string/insert_bus_stop_number" />
 
     <EditText
         android:id="@+id/busStopNumberEditText"
@@ -47,7 +47,6 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/busStationName" >
-
     </ListView>
 
     <ProgressBar
@@ -66,6 +65,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/annoyingFedbackProgress"/>
+        android:layout_below="@+id/annoyingFedbackProgress" />
 
 </RelativeLayout>

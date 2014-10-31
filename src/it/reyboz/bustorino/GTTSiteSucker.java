@@ -13,11 +13,13 @@ import android.util.Log;
 public class GTTSiteSucker {
 
 	public static String arrivalTimesByLineQuery(String busStop) {
-		return "http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + busStop;
+		return "http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName="
+				+ busStop;
 	}
 
 	/**
 	 * A time passage is a time with the answer of: Is this in real time?
+	 * 
 	 * @author boz
 	 */
 	public static class TimePassage {
@@ -39,7 +41,9 @@ public class GTTSiteSucker {
 	}
 
 	/**
-	 * An ArrivalsAtBusStop has informations of the buses that pass through it (like line numbers)
+	 * An ArrivalsAtBusStop has informations of the buses that pass through it
+	 * (like line numbers)
+	 * 
 	 * @author boz
 	 */
 	public static class ArrivalsAtBusStop {
@@ -78,13 +82,14 @@ public class GTTSiteSucker {
 		public String toString() {
 			return codLineaGTT + " " + lineaGTT;
 		}
-		
+
 		public String getTimePassagesString() {
 			String out = "";
-			for(TimePassage timePassage:timesPassages) {
-				out += timePassage.getTime() + (timePassage.isInRealTime() ? "*" : "") + " ";
+			for (TimePassage timePassage : timesPassages) {
+				out += timePassage.getTime()
+						+ (timePassage.isInRealTime() ? "*" : "") + " ";
 			}
-			if(timesPassages.size() == 0) {
+			if (timesPassages.size() == 0) {
 				out = ":(";
 			}
 			return out;
@@ -92,20 +97,29 @@ public class GTTSiteSucker {
 	}
 
 	/**
-	 * A BusStop has information on the bus stop (bus stop name) and of all the buses that pass through it
+	 * A BusStop has information on the bus stop (bus stop name) and of all the
+	 * buses that pass through it
+	 * 
 	 * @author boz
 	 */
 	public static class BusStop {
+		private Integer stationNumber; // Es: 1254 (always Integer)
 		private String stationName;
 		private ArrivalsAtBusStop[] arrivalsAtBusStop;
-		
-		BusStop(String stationName, ArrivalsAtBusStop[] arrivalsAtBusStop) {
+
+		BusStop(Integer stationNumber, String stationName,
+				ArrivalsAtBusStop[] arrivalsAtBusStop) {
+			this.stationNumber = stationNumber;
 			this.stationName = stationName;
 			this.arrivalsAtBusStop = arrivalsAtBusStop;
 		}
 
 		public void setNomeUmano(String stationName) {
 			this.stationName = stationName;
+		}
+
+		public Integer getStationNumber() {
+			return stationNumber;
 		}
 
 		public String getStationName() {
@@ -116,7 +130,7 @@ public class GTTSiteSucker {
 			return arrivalsAtBusStop;
 		}
 	}
-	
+
 	/**
 	 * API/Workaround to get all informations from the 5T website
 	 * 
@@ -153,32 +167,47 @@ public class GTTSiteSucker {
 					codLineaGTTfound = true;
 					continue;
 				}
-				
+
 				// Look for "<i>*</i>" (aka "prodotto surgelato")
 				boolean frozenProduct = !td.select("i").isEmpty();
-				if(frozenProduct) {
+				if (frozenProduct) {
 					td.select("i").remove();
 					tdContent = td.html();
 				}
-				
+
 				arrivalAtBusStop.addTimePassage(tdContent, frozenProduct);
 			}
 			arrivalsAtBusStop.add(arrivalAtBusStop);
 		}
 
-		// Sucking bus station name (e.g.: POZZO STRADA)
-		String nomeUmano = "";
-		Element tagNomeUmano = doc.select("span").first();
-		if(tagNomeUmano != null) {
-			nomeUmano = tagNomeUmano.html();
-		}
-		Matcher matcher = Pattern.compile("nbsp;(.*)").matcher(
-				nomeUmano);
-		if (matcher.find()) {
-			nomeUmano = matcher.group(1);
-			Log.d("miao", "nome umano:" + nomeUmano);
+		// Sucking station info
+		String stationInfo = null;
+		String stationName = null;
+		Integer intStationNumber = null;
+		Element tagStationInfo = doc.select("span").first();
+		if (tagStationInfo != null) {
+			stationInfo = tagStationInfo.html();
+			Log.d("it.reyboz", "stationInfo:" + stationInfo);
+
+			// Sucking station number (e.g.: 1254)
+			Matcher matcherStationNumber = Pattern.compile("([0-9]+)").matcher(
+					stationInfo);
+			if (matcherStationNumber.find()) {
+				intStationNumber = Integer.parseInt(matcherStationNumber.group(1));
+			}
+			Log.d("it.reyboz", "stationNumber:" + intStationNumber);
+
+			// Sucking station name (e.g.: POZZO STRADA)
+			Matcher matcherStationName = Pattern.compile("&nbsp;(.+)").matcher(
+					stationInfo);
+			if (matcherStationName.find()) {
+				stationName = matcherStationName.group(1);
+			}
+			Log.d("it.reyboz", "stationName:" + stationName);
 		}
 
-		return new BusStop(nomeUmano, (ArrivalsAtBusStop[]) arrivalsAtBusStop.toArray(new ArrivalsAtBusStop[] {}));
+		return new BusStop(intStationNumber, stationName,
+				(ArrivalsAtBusStop[]) arrivalsAtBusStop
+						.toArray(new ArrivalsAtBusStop[] {}));
 	}
 }

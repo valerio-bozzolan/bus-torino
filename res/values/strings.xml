@@ -10,8 +10,9 @@
     <string name="passages">Arrivals at this stop %1$s:</string>
     <string name="action_about">About</string>
     <string name="about">About</string>
-    <string name="about_history"><![CDATA[
-        <h1>WELCOME!</h1>
+    <string name="about_history">
+<![CDATA[
+        <h1>Welcome!</h1>
 
         <p>Thanks for using BusTO, an <b>indipendent</b> app useful to move around Torino using a <b>Free/Libre and Open Source software</b>.</p>
 
@@ -20,7 +21,7 @@
         - You\'ll never be <b>tracked</b><br>
         - You\'ll never see boring <b>ads</b><br>
         - We\'ll always respect your <b>privacy</b><br>
-        - Moreover, it's lightweight!<br>
+        - Moreover, it\'s lightweight!<br>
         </p>
 
         <h2>How does it work?</h2>
@@ -36,5 +37,7 @@
 		<p>Source code: <a href="https://code.launchpad.net/bus-torino">lp:bus-torino</a>.</p>
 
 		<p>This translation is kindly provided by Riccardo Caniato.</p>
-    ]]></string>
+    ]]>
+    </string>
+
 </resources>
