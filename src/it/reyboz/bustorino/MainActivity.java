@@ -3,25 +3,27 @@ package it.reyboz.bustorino;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import it.reyboz.bustorino.GTTSiteSucker.ArrivalsAtBusStop;
+import it.reyboz.bustorino.GTTSiteSucker.PassagesBusLine;
 import it.reyboz.bustorino.GTTSiteSucker.BusStop;
 
-import android.support.v7.app.ActionBarActivity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.KeyEvent;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -39,10 +41,25 @@ public class MainActivity extends ActionBarActivity {
 		busStopNumberEditText = (EditText) findViewById(R.id.busStopNumberEditText);
 		annoyingFedbackProgressBar = (ProgressBar) findViewById(R.id.annoyingFedbackProgress);
 		annoyingFedbackProgressBar.setVisibility(View.INVISIBLE);
+		
+		busStopNumberEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+		    @Override
+		    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+		        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+		        	searchClick(v);
+		            return true;
+		        }
+		        return false;
+		    }
+		});
 
 		// Gets the data repository in write mode
-		mDbHelper = new DBBusTo(MainActivity.this);
-		db = mDbHelper.getWritableDatabase();
+		mDbHelper = new DBBusTo(this);
+		try {
+			db = mDbHelper.getWritableDatabase();
+		} catch(Exception e) {
+			Log.e("bustorino", "bustorinoDB: " + e);
+		}
 	}
 
 	@Override
@@ -84,51 +101,39 @@ public class MainActivity extends ActionBarActivity {
 			BusStop busStop = GTTSiteSucker
 					.arrivalTimesBylineHTMLSucker(result);
 
-			ArrivalsAtBusStop[] arrivalsAtBusStop = busStop
-					.getArrivalsAtBusStop();
+			PassagesBusLine[] passagesBusLine = busStop
+					.getPassagesBusLine();
 
-			for (ArrivalsAtBusStop arrivalAtBusStop : arrivalsAtBusStop) {
+			for (PassagesBusLine passageBusLine : passagesBusLine) {
 				HashMap<String, Object> personMap = new HashMap<String, Object>();
-				personMap.put("icon", arrivalAtBusStop.getLineaGTT());
+				personMap.put("icon", passageBusLine.getBusLineName());
 				personMap.put("line-name",
-						arrivalAtBusStop.getTimePassagesString());
+						passageBusLine.getTimePassagesString());
 				data.add(personMap);
 			}
 
-			if (arrivalsAtBusStop.length != 0) {
-				Integer stationNumber = busStop.getStationNumber();
+			if (passagesBusLine.length != 0) {
+				Integer busStopID = busStop.getBusStopID();
 
-				String stationName = busStop.getStationName();
-				String stationNameTxt = "---";
-				if (stationName == null && stationNumber != null) {
-					stationNameTxt = String.valueOf((stationNumber));
+				String busStopName = busStop.getBusStopName();
+				String busStopNameDisplay = "---";
+				if (busStopName == null && busStopID != null) {
+					busStopNameDisplay = String.valueOf((busStopID));
 				} else {
-					stationNameTxt = stationName;
+					busStopNameDisplay = busStopName;
 				}
 				busStationName.setText(String.format(
 						getResources().getString(R.string.passages),
-						stationNameTxt));
+						busStopNameDisplay));
 
-				// Insert the busStop in the DB
-				if (stationNumber != null) {
+				// Insert the GTTBusStop in the DB
+				if (busStopID != null) {
 					ContentValues values = new ContentValues();
-					values.put(DBBusTo.BusStop.COLUMN_ID, stationNumber);
-					values.put(DBBusTo.BusStop.COLUMN_NAME, stationName);
-					values.put(DBBusTo.BusStop.COLUMN_COUNT, 1);
-					long newRowId = db.insertWithOnConflict(DBBusTo.BusStop.TABLE_NAME,
+					values.put(DBBusTo.BusStop.COLUMN_NAME_BUSSTOP_ID, busStopID);
+					values.put(DBBusTo.BusStop.COLUMN_NAME_BUSSTOP_NAME, busStopName);
+					long lastInserted = db.insertWithOnConflict(DBBusTo.BusStop.TABLE_NAME,
 						null, values, SQLiteDatabase.CONFLICT_IGNORE);
-					if(newRowId == -1) {
-						db.execSQL("UPDATE " + DBBusTo.BusStop.TABLE_NAME + " SET " + DBBusTo.BusStop.COLUMN_COUNT + "=" + DBBusTo.BusStop.COLUMN_COUNT + "+1 WHERE " + DBBusTo.BusStop.COLUMN_ID + "=?", new Integer[] {stationNumber});
-					}
-
-				    Cursor cursor = db.query(DBBusTo.BusStop.TABLE_NAME, new String[] { DBBusTo.BusStop.COLUMN_COUNT }, DBBusTo.BusStop.COLUMN_ID + "=?", new String[] {String.valueOf(stationNumber)}, null, null, null);
-				    if (cursor != null){
-				    	cursor.moveToFirst();
-				    	Log.d("it.reyboz", "count: "+ cursor.getInt(0));
-				    }
-				    cursor.close();
-
-					Log.d("it.reyboz", "inserted: " + newRowId);
+					Log.d("bus-torino", "bustorinoDB last inserted: " + lastInserted);
 				}
 
 				// Show results
@@ -138,7 +143,7 @@ public class MainActivity extends ActionBarActivity {
 						getApplicationContext(), data, R.layout.bus_stop_entry,
 						from, to);
 
-				ListView tpm = ((ListView) findViewById(R.id.listView1));
+				ListView tpm = ((ListView) findViewById(R.id.resultsListView));
 				tpm.setAdapter(adapter);
 			} else {
 				Toast.makeText(getApplicationContext(),

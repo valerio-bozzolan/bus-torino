@@ -14,11 +14,11 @@
 <![CDATA[
         <h1>Benvenuto!</h1>
 
-        <p>Grazie per usare BusTO, un\'app <b>indipendente</b> nata dalla necessità di spostarsi a Torino attraverso <b>software libero</b>.</p>
+        <p>Grazie per aver scelto BusTO, un\'app <b>indipendente</b> nata dalla necessità di spostarsi a Torino attraverso <b>software libero</b>.</p>
 
         <p>Perchè amare quest\'app?</p>
 
-	<p>
+		<p>
         - Non verrai mai <b>monitorato</b><br>
         - Non vedrai mai noiose <b>pubblicità</b><br>
         - La tua <b>privacy</b> sarà sempre al sicuro<br>
@@ -26,16 +26,19 @@
         </p>
 
         <h2>Come funziona</h2>
-        <p>Quest\'app ottiene i passaggi dei bus attraverso i dati forniti pubblicamente dal sito <i><a href="http://www.5t.torino.it">http://www.5t.torino.it</a></i>.</p>
+        <p>Quest\'app ottiene i passaggi dei bus filtrando i dati forniti pubblicamente sul sito <i>http://www.5t.torino.it</i>.</p>
 
-		<h2>Crediti e note</h2>
-		<p>L\'app e il relativo codice sorgente sono distribuiti da <a href="mailto:valerio.bozzolan@studenti.polito.it?subject=BusTO">Valerio Bozzolan</a> attraverso doppia licenza:
-		la <i>Gnu General Public License v3+</i> (<a href="http://www.gnu.org/licenses/gpl.html">GNU GPLv3+</a>) e la <i>Creative Commons Attribuzione - Condividi allo stesso modo 4.0 Internazionale</i> (<a href="http://creativecommons.org/licenses/by-sa/4.0/deed.it">CC 4.0 By-Sa</a>).
-		Ciò è per permettere a chiunque di usare, studiare, migliorare e ricondividere quest\'app in <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: A patto di mantenere sempre questi diritti e attribuendo sempre a Valerio Bozzolan il codice sorgente originario.</p>
+		<h2>Licenze</h2>
+		<p>L\'app e il relativo codice sorgente sono distribuiti da <b>Valerio Bozzolan</b> attraverso doppia licenza:
+		la <i>GNU GPLv3+</i> e la <i>CC 4.0 By-Sa</i>.
+		Ciò significa che puoi usare, studiare, migliorare e ricondividere quest\'app con <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: a patto di mantenere sempre questi diritti a tua volta, attribuendo sempre a Valerio Bozzolan il codice sorgente originario.</p>
 
-		<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza alcuna garanzia (nè garanzie di commerciabilità). Se ti accorgi di qualche difetto o se hai idee, <a href="https://bugs.launchpad.net/bus-torino">riportale</a>.</p>
+		<h2>Note</h2>
+		<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza alcuna garanzia (nè garanzie di commerciabilità). Tuttavia, se ti accorgi di difetti o se hai idee, <a href="https://bugs.launchpad.net/bus-torino">riportale qui</a>.</p>
 
-		<p>Codice sorgente: <a href="https://code.launchpad.net/bus-torino">lp:bus-torino</a>.</p>	
+		<p>Codice sorgente: <a href="https://code.launchpad.net/bus-torino">lp:bus-torino</a>.</p>
+
+		<p>Buon utilizzo!</p>
     ]]>
     </string>
 

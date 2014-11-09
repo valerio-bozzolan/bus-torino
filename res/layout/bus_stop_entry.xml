@@ -10,7 +10,7 @@
         android:layout_height="50dip"
         android:background="#FF8800"
         android:gravity="center"
-        android:text="685"
+        android:text="666"
         android:textColor="#FFF6DF"
         android:textSize="21sp" >
     </TextView>
@@ -20,12 +20,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/busLineIcon"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_alignTop="@+id/busLineIcon"
         android:layout_marginLeft="5dip"
+        android:layout_marginStart="5dip"
+        android:layout_toEndOf="@id/busLineIcon"
         android:layout_toRightOf="@id/busLineIcon"
         android:gravity="center_vertical"
-        android:text="Bus Line"
+        android:text="Timelines"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="#0099CC" >
     </TextView>

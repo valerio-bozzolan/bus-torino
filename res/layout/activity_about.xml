@@ -12,7 +12,6 @@
         android:id="@+id/aboutTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/about_history"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
 </RelativeLayout>

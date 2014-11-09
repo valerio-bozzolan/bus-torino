@@ -41,46 +41,28 @@ public class GTTSiteSucker {
 	}
 
 	/**
-	 * An ArrivalsAtBusStop has informations of the buses that pass through it
+	 * Passages (at a bus line)
 	 * (like line numbers)
 	 * 
 	 * @author boz
 	 */
-	public static class ArrivalsAtBusStop {
-		private int codLineaGTT;
-		private String lineaGTT;
+	public static class PassagesBusLine {
+
+		private int busLineID;
+		private String busLineName;
+
 		private ArrayList<TimePassage> timesPassages;
 
-		public ArrivalsAtBusStop() {
+		public PassagesBusLine() {
 			timesPassages = new ArrayList<TimePassage>();
-		}
-
-		public void setCodLineaGTT(int codLineaGTT) {
-			this.codLineaGTT = codLineaGTT;
-		}
-
-		public void setLineaGTT(String lineaGTT) {
-			this.lineaGTT = lineaGTT;
 		}
 
 		public void addTimePassage(String time, boolean isInRealTime) {
 			timesPassages.add(new TimePassage(time, isInRealTime));
 		}
 
-		public int getCodLineaGTT() {
-			return codLineaGTT;
-		}
-
-		public String getLineaGTT() {
-			return lineaGTT;
-		}
-
 		public ArrayList<TimePassage> getTimePassages() {
 			return timesPassages;
-		}
-
-		public String toString() {
-			return codLineaGTT + " " + lineaGTT;
 		}
 
 		public String getTimePassagesString() {
@@ -94,6 +76,26 @@ public class GTTSiteSucker {
 			}
 			return out;
 		}
+
+		public String getBusLineName() {
+			return busLineName;
+		}
+
+		public void setBusLineName(String busLineName) {
+			this.busLineName = busLineName;
+		}
+
+		public int getLineID() {
+			return busLineID;
+		}
+
+		public void setBusLineID(int busLineID) {
+			this.busLineID = busLineID;
+		}
+
+		public String toString() {
+			return getTimePassagesString();
+		}
 	}
 
 	/**
@@ -103,30 +105,34 @@ public class GTTSiteSucker {
 	 * @author boz
 	 */
 	public static class BusStop {
-		private Integer stationNumber; // Es: 1254 (always Integer)
-		private String stationName;
-		private ArrivalsAtBusStop[] arrivalsAtBusStop;
+		private Integer busStopID; // Es: 1254 (always Integer)
+		private String busStopName; // Es: MARCONI
+		private PassagesBusLine[] arrivalsAtBusStop;
 
-		BusStop(Integer stationNumber, String stationName,
-				ArrivalsAtBusStop[] arrivalsAtBusStop) {
-			this.stationNumber = stationNumber;
-			this.stationName = stationName;
+		BusStop(Integer busStopID, String busStopName,
+				PassagesBusLine[] arrivalsAtBusStop) {
+			this.busStopID = busStopID;
+			this.busStopName = busStopName;
 			this.arrivalsAtBusStop = arrivalsAtBusStop;
 		}
 
-		public void setNomeUmano(String stationName) {
-			this.stationName = stationName;
+		public void setGTTBusStopName(String busStopName) {
+			this.busStopName = busStopName;
 		}
 
-		public Integer getStationNumber() {
-			return stationNumber;
+		public String getBusStopName() {
+			return busStopName;
 		}
 
-		public String getStationName() {
-			return stationName;
+		public Integer getBusStopID() {
+			return busStopID;
 		}
 
-		public ArrivalsAtBusStop[] getArrivalsAtBusStop() {
+		public void setBusStopName(String busStopName) {
+			this.busStopName = busStopName;
+		}
+
+		public PassagesBusLine[] getPassagesBusLine() {
 			return arrivalsAtBusStop;
 		}
 	}
@@ -139,10 +145,10 @@ public class GTTSiteSucker {
 	 * @return BusStop
 	 */
 	public static BusStop arrivalTimesBylineHTMLSucker(String html) {
-		ArrayList<ArrivalsAtBusStop> arrivalsAtBusStop = new ArrayList<ArrivalsAtBusStop>();
+		ArrayList<PassagesBusLine> arrivalsAtBusStop = new ArrayList<PassagesBusLine>();
 		Document doc = Jsoup.parse(html);
 		for (Element tr : doc.getElementsByTag("tr")) {
-			ArrivalsAtBusStop arrivalAtBusStop = new ArrivalsAtBusStop();
+			PassagesBusLine passagesBusLine = new PassagesBusLine();
 
 			boolean codLineaGTTfound = false;
 
@@ -154,16 +160,16 @@ public class GTTSiteSucker {
 
 				if (!codLineaGTTfound) {
 					Element tdURL = td.select("a").first();
-					String lineaGTT = tdURL.html();
-					String codLineaGTT = "";
+					String busLineName = tdURL.html();
+					String busLineID = "";
 					Matcher matcher = Pattern.compile("([0-9])+").matcher(
 							tdURL.attr("href"));
 					if (matcher.find()) {
-						codLineaGTT = matcher.group();
+						busLineID = matcher.group();
 					}
-					arrivalAtBusStop.setLineaGTT(lineaGTT);
-					arrivalAtBusStop.setCodLineaGTT(Integer
-							.parseInt(codLineaGTT));
+					passagesBusLine.setBusLineID(Integer
+							.parseInt(busLineID));
+					passagesBusLine.setBusLineName(busLineName);
 					codLineaGTTfound = true;
 					continue;
 				}
@@ -175,39 +181,39 @@ public class GTTSiteSucker {
 					tdContent = td.html();
 				}
 
-				arrivalAtBusStop.addTimePassage(tdContent, frozenProduct);
+				passagesBusLine.addTimePassage(tdContent, frozenProduct);
 			}
-			arrivalsAtBusStop.add(arrivalAtBusStop);
+			arrivalsAtBusStop.add(passagesBusLine);
 		}
 
-		// Sucking station info
-		String stationInfo = null;
-		String stationName = null;
-		Integer intStationNumber = null;
+		// Sucking bus stop info
+		String busStopInfo = null;
+		String busStopName = null;
+		Integer busStopID = null;
 		Element tagStationInfo = doc.select("span").first();
 		if (tagStationInfo != null) {
-			stationInfo = tagStationInfo.html();
-			Log.d("it.reyboz", "stationInfo:" + stationInfo);
+			busStopInfo = tagStationInfo.html();
+			Log.d("it.reyboz", "stationInfo:" + busStopInfo);
 
 			// Sucking station number (e.g.: 1254)
 			Matcher matcherStationNumber = Pattern.compile("([0-9]+)").matcher(
-					stationInfo);
+					busStopInfo);
 			if (matcherStationNumber.find()) {
-				intStationNumber = Integer.parseInt(matcherStationNumber.group(1));
+				busStopID = Integer.parseInt(matcherStationNumber.group(1));
 			}
-			Log.d("it.reyboz", "stationNumber:" + intStationNumber);
+			Log.d("it.reyboz", "stationNumber:" + busStopID);
 
 			// Sucking station name (e.g.: POZZO STRADA)
 			Matcher matcherStationName = Pattern.compile("&nbsp;(.+)").matcher(
-					stationInfo);
+					busStopInfo);
 			if (matcherStationName.find()) {
-				stationName = matcherStationName.group(1);
+				busStopName = matcherStationName.group(1);
 			}
-			Log.d("it.reyboz", "stationName:" + stationName);
+			Log.d("it.reyboz", "stationName:" + busStopName);
 		}
 
-		return new BusStop(intStationNumber, stationName,
-				(ArrivalsAtBusStop[]) arrivalsAtBusStop
-						.toArray(new ArrivalsAtBusStop[] {}));
+		return new BusStop(busStopID, busStopName,
+				(PassagesBusLine[]) arrivalsAtBusStop
+						.toArray(new PassagesBusLine[] {}));
 	}
 }
