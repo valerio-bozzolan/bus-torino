@@ -1,44 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">BusTO</string>
-    <string name="action_settings">Impostazioni</string>
     <string name="search">Cerca</string>
     <string name="insert_bus_stop_number">Inserisci il numero della fermata.</string>
     <string name="network_error">Errore di rete. Verifica l\'accesso ad Internet</string>
     <string name="no_arrival_times">Nessun arrivo previsto per questa fermata :(</string>
-    <string name="passages">Passaggi fermata %1$s:</string>
+    <string name="passages">Passaggi %1$s:</string>
     <string name="action_about">Info</string>
+    <string name="action_favorites">Preferiti</string>
+    <string name="added_in_favorites">Fermata nei preferiti</string>
+    <string name="title_activity_favorites">Preferiti</string>
+    <string name="tip_add_favorite">Premi sul nome di una fermata per inserirla in questa lista :)</string>
     <string name="about">Informazioni</string>
     <string name="about_history">
 <![CDATA[
         <h1>Benvenuto!</h1>
-
-        <p>Grazie per aver scelto BusTO, un\'app <b>indipendente</b> nata dalla necessità di spostarsi a Torino attraverso <b>software libero</b>.</p>
-
-        <p>Perchè amare quest\'app?</p>
-
+        <p>Grazie per aver scelto BusTO, un\'app <b>indipendente</b> nata dalla necessità di spostarsi a Torino attraverso <b>software libero</b>:</p>
 		<p>
-        - Non verrai mai <b>monitorato</b><br>
-        - Non vedrai mai noiose <b>pubblicità</b><br>
-        - La tua <b>privacy</b> sarà sempre al sicuro<br>
-        - Inoltre, è molto leggera!<br>
+        - Non sei <b>monitorato</b><br>
+        - Non ci sono <b>pubblicità</b><br>
+        - La tua <b>privacy</b> è al sicuro<br>
+        - Inoltre l\'app è molto leggera!<br>
         </p>
 
-        <h2>Come funziona</h2>
-        <p>Quest\'app ottiene i passaggi dei bus filtrando i dati forniti pubblicamente sul sito <i>http://www.5t.torino.it</i>.</p>
+        <h2>Informazioni</h2>
+        <p>Quest\'app ottiene i passaggi dei bus in tempo reale filtrando i dati forniti pubblicamente sul sito <i>www.5t.torino.it</i> «per uso personale».</p>
+
+		<p>Ingredienti:<br>
+		- <b>Valerio Bozzolan</b> come sviluppatore principale.<br>
+		- <b>Marco Gagino</b> come intenso collaboratore.<br>
+		- <b>Paolo Alloatti</b> per l\'icona originale.<br>
+		- <b>JSoup</b> libreria per "<i>web scaping</i>"<br>
+		E tutti i contributori!
+		</p>
 
 		<h2>Licenze</h2>
-		<p>L\'app e il relativo codice sorgente sono distribuiti da <b>Valerio Bozzolan</b> attraverso doppia licenza:
-		la <i>GNU GPLv3+</i> e la <i>CC 4.0 By-Sa</i>.
-		Ciò significa che puoi usare, studiare, migliorare e ricondividere quest\'app con <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: a patto di mantenere sempre questi diritti a tua volta, attribuendo sempre a Valerio Bozzolan il codice sorgente originario.</p>
+		<p>L\'app e il relativo codice sorgente sono distribuiti sotto doppia licenza:
+		<i>GNU GPL</i> e <i>CC By-Sa</i>.
+		Ciò <b>significa</b> che puoi usare, studiare, migliorare e ricondividere quest\'app con <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: a patto di mantenere sempre questi diritti a tua volta e di attribuire sempre a Valerio Bozzolan gli \"sforzi\" per il codice sorgente.
+		</p>
+		
+		<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza alcuna garanzia.</p>
 
 		<h2>Note</h2>
-		<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza alcuna garanzia (nè garanzie di commerciabilità). Tuttavia, se ti accorgi di difetti o se hai idee, <a href="https://bugs.launchpad.net/bus-torino">riportale qui</a>.</p>
-
+		
+		<p>Invio di bugs/idee: <a href="https://bugs.launchpad.net/bus-torino">lamentati qui</a>.</p>
 		<p>Codice sorgente: <a href="https://code.launchpad.net/bus-torino">lp:bus-torino</a>.</p>
+		<p>Contatta l\'autore: <a href="mailto:valerio.bozzolan@studenti.polito.it?subject=BusTO">Valerio Bozzolan</a>.</p>
 
-		<p>Buon utilizzo!</p>
+		<p>Buon utilizzo! :)</p>
     ]]>
     </string>
 

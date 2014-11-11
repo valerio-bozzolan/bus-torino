@@ -44,4 +44,8 @@ public class AsyncWget extends AsyncTask<String, String, String> {
 	protected void onPostExecute(String result) {
 		super.onPostExecute(result);
 	}
+
+	protected void onCancelled() {
+		this.cancel(true);
+	}
 }

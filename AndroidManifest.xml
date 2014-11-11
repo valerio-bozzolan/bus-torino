@@ -34,6 +34,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="it.reyboz.bustorino.MainActivity" />
         </activity>
+        <activity
+            android:name=".FavoritesActivity"
+            android:label="@string/title_activity_favorites"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="it.reyboz.bustorino.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

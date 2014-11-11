@@ -6,8 +6,8 @@
 
     <TextView
         android:id="@+id/busLineIcon"
-        android:layout_width="50dip"
-        android:layout_height="50dip"
+        android:layout_width="54dip"
+        android:layout_height="54dip"
         android:background="#FF8800"
         android:gravity="center"
         android:text="666"
@@ -28,7 +28,7 @@
         android:layout_toEndOf="@id/busLineIcon"
         android:layout_toRightOf="@id/busLineIcon"
         android:gravity="center_vertical"
-        android:text="Timelines"
+        android:text="Timelines example"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="#0099CC" >
     </TextView>

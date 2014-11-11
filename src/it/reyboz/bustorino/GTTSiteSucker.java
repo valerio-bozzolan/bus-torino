@@ -41,8 +41,7 @@ public class GTTSiteSucker {
 	}
 
 	/**
-	 * Passages (at a bus line)
-	 * (like line numbers)
+	 * Passages (at a bus line) (like line numbers)
 	 * 
 	 * @author boz
 	 */
@@ -167,8 +166,7 @@ public class GTTSiteSucker {
 					if (matcher.find()) {
 						busLineID = matcher.group();
 					}
-					passagesBusLine.setBusLineID(Integer
-							.parseInt(busLineID));
+					passagesBusLine.setBusLineID(Integer.parseInt(busLineID));
 					passagesBusLine.setBusLineName(busLineName);
 					codLineaGTTfound = true;
 					continue;

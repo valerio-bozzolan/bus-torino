@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="clip_horizontal"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
@@ -13,9 +14,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignEnd="@+id/searchButton"
-        android:layout_alignLeft="@+id/annoyingFedbackProgress"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
         android:layout_alignRight="@+id/searchButton"
-        android:layout_alignStart="@+id/annoyingFedbackProgress"
         android:text="@string/insert_bus_stop_number" />
 
     <EditText
@@ -40,19 +43,9 @@
         android:layout_alignBottom="@+id/busStopNumberEditText"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/searchTitleTextView"
+        android:layout_alignTop="@+id/busStopNumberEditText"
         android:onClick="searchClick"
         android:text="@string/search" />
-
-    <ListView
-        android:id="@+id/resultsListView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/busStationName" >
-    </ListView>
 
     <ProgressBar
         android:id="@+id/annoyingFedbackProgress"
@@ -64,16 +57,31 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/busStopNumberEditText"
+        android:clickable="true"
         android:indeterminate="true" />
 
     <TextView
         android:id="@+id/busStationName"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="45dip"
         android:layout_alignParentEnd="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/annoyingFedbackProgress" />
+        android:layout_below="@+id/annoyingFedbackProgress"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:gravity="center_vertical"
+        android:onClick="addInFavorites"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <ListView
+        android:id="@+id/resultsListView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/busStationName" >
+    </ListView>
 
 </RelativeLayout>
