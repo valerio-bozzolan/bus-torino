@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -45,8 +48,8 @@ public class FavoritesActivity extends ActionBarActivity {
 			int busStopID = cursor.getInt(busStopIDIndex);
 			String busStopName = cursor.getString(busStopNameIndex);
 
-			singleEntry.put("icon", busStopID);
-			singleEntry.put("line-name", busStopName);
+			singleEntry.put("bus-stop-ID", busStopID);
+			singleEntry.put("bus-stop-name", busStopName);
 			data.add(singleEntry);
 		}
 		cursor.close();
@@ -61,11 +64,37 @@ public class FavoritesActivity extends ActionBarActivity {
 		}
 
 		// Show results
-		String[] from = { "icon", "line-name" };
-		int[] to = { R.id.busLineIcon, R.id.busLine };
+		String[] from = { "bus-stop-ID", "bus-stop-name" };
+		int[] to = { R.id.busStopID, R.id.busStopName };
 		SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
 				data, R.layout.bus_stop_entry, from, to);
 		favoriteListView.setAdapter(adapter);
+		favoriteListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			public void onItemClick(AdapterView<?> av, View view,
+					int i, long l) {
+				View child = av.getChildAt(i);
+				TextView busStopIDTextView = (TextView) child
+						.findViewById(R.id.busStopID);
+				String busStopID = busStopIDTextView.getText().toString();
+				Log.d("bus-torino", "bustorino tapped on busstop: " + busStopID);
+				Intent intent = new Intent(FavoritesActivity.this, MainActivity.class);
+				Bundle b = new Bundle();
+				b.putString("busStopID", busStopID);
+				intent.putExtras(b);
+				startActivity(intent);
+				finish();
+			}
+		});
+		favoriteListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+			@Override
+			public boolean onItemLongClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+		});
 
 		// Close DB connection
 		db.close();

@@ -16,7 +16,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -41,7 +40,7 @@ public class MainActivity extends ActionBarActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main_activity);
+		setContentView(R.layout.activity_main);
 		busStationName = (TextView) findViewById(R.id.busStationName);
 		busStopNumberEditText = (EditText) findViewById(R.id.busStopNumberEditText);
 		annoyingFedbackProgressBar = (ProgressBar) findViewById(R.id.annoyingFedbackProgress);
@@ -64,6 +63,16 @@ public class MainActivity extends ActionBarActivity {
 		// Gets the data repository in write mode
 		mDbHelper = new DBBusTo(this);
 		db = mDbHelper.getWritableDatabase();
+
+		// Intercept calls from other part of the apps
+		Bundle b = getIntent().getExtras();
+		if(b != null) {
+			String busStopID = b.getString("busStopID");
+			if(busStopID != null) {
+				launchSearchAction(busStopID);
+				busStopNumberEditText.setText(busStopID);
+			}
+		}
 	}
 
 	@Override
@@ -158,7 +167,7 @@ public class MainActivity extends ActionBarActivity {
 				String[] from = { "icon", "line-name" };
 				int[] to = { R.id.busLineIcon, R.id.busLine };
 				SimpleAdapter adapter = new SimpleAdapter(
-						getApplicationContext(), data, R.layout.bus_stop_entry,
+						getApplicationContext(), data, R.layout.bus_line_passage_entry,
 						from, to);
 
 				ListView tpm = (ListView) findViewById(R.id.resultsListView);
@@ -169,6 +178,8 @@ public class MainActivity extends ActionBarActivity {
 						View child = av.getChildAt(i);
 						TextView busLineIcon = (TextView) child
 								.findViewById(R.id.busLineIcon);
+						String busLine = busLineIcon.getText().toString();
+						Log.d("bus-torino", "bustorino tapped on busline: " + busLine);
 						//Toast.makeText(MainActivity.this,
 						//		"myPos " + i + " " + busLineIcon.getText(),
 						//		Toast.LENGTH_LONG).show();
@@ -184,8 +195,12 @@ public class MainActivity extends ActionBarActivity {
 	}
 
 	public void searchClick(View v) {
-		String query = busStopNumberEditText.getText().toString();
-		if (query.isEmpty()) {
+		String busStopID = busStopNumberEditText.getText().toString();
+		launchSearchAction(busStopID);
+	}
+
+	public void launchSearchAction(String busStopID) {
+		if (busStopID.isEmpty()) {
 			Toast.makeText(getApplicationContext(),
 					R.string.insert_bus_stop_number, Toast.LENGTH_SHORT).show();
 		} else if (!NetworkTools.isConnected(this)) {
@@ -194,7 +209,7 @@ public class MainActivity extends ActionBarActivity {
 			annoyingFedbackProgressBar.setVisibility(View.VISIBLE);
 			myAsyncWget.cancel(true);
 			myAsyncWget = new MyAsyncWget();
-			myAsyncWget.execute(GTTSiteSucker.arrivalTimesByLineQuery(query));
+			myAsyncWget.execute(GTTSiteSucker.arrivalTimesByLineQuery(busStopID));
 		}
 	}
 

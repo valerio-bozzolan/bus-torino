@@ -19,7 +19,7 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name" android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,19 +28,11 @@
         </activity>
         <activity
             android:name=".AboutActivity"
-            android:label="@string/about"
-            android:parentActivityName=".MainActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="it.reyboz.bustorino.MainActivity" />
+            android:label="@string/about" >
         </activity>
         <activity
             android:name=".FavoritesActivity"
-            android:label="@string/title_activity_favorites"
-            android:parentActivityName=".MainActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="it.reyboz.bustorino.MainActivity" />
+            android:label="@string/title_activity_favorites" >
         </activity>
     </application>
 

@@ -5,32 +5,26 @@
     android:padding="5dip" >
 
     <TextView
-        android:id="@+id/busLineIcon"
-        android:layout_width="54dip"
-        android:layout_height="54dip"
-        android:background="#FF8800"
-        android:gravity="center"
-        android:text="666"
-        android:textColor="#FFF6DF"
-        android:textSize="21sp" >
+        android:id="@+id/busStopName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/busStopID"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/busStopID"
+        android:gravity="center_vertical"
+        android:text="Timelines example"
+        android:textAppearance="?android:attr/textAppearanceMedium" >
+
     </TextView>
 
     <TextView
-        android:id="@+id/busLine"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/busLineIcon"
-        android:layout_alignParentEnd="true"
+        android:id="@+id/busStopID"
+        android:layout_width="54dip"
+        android:layout_height="54dip"
         android:layout_alignParentRight="true"
-        android:layout_alignTop="@+id/busLineIcon"
-        android:layout_marginLeft="5dip"
-        android:layout_marginStart="5dip"
-        android:layout_toEndOf="@id/busLineIcon"
-        android:layout_toRightOf="@id/busLineIcon"
+        android:layout_centerVertical="true"
         android:gravity="center_vertical"
-        android:text="Timelines example"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="#0099CC" >
-    </TextView>
+        android:textSize="21sp" />
 
 </RelativeLayout>
