@@ -1,18 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="60dip"
+    android:layout_height="65dip"
     android:padding="5dip" >
 
     <TextView
         android:id="@+id/busLineIcon"
         android:layout_width="54dip"
         android:layout_height="54dip"
-        android:background="#FF8800"
+        android:background="@drawable/bus_background"
         android:gravity="center"
         android:text="666"
         android:textColor="#FFF6DF"
         android:textSize="21sp" >
+    </TextView>
+
+    <TextView
+        android:id="@+id/vehicleIcon"
+        android:layout_width="20dip"
+        android:layout_height="20dip"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@id/busLineIcon"
+        android:layout_toRightOf="@id/busLineIcon"
+        android:background="@drawable/bus"
+        android:gravity="center" >
     </TextView>
 
     <TextView
@@ -25,8 +37,8 @@
         android:layout_alignTop="@+id/busLineIcon"
         android:layout_marginLeft="5dip"
         android:layout_marginStart="5dip"
-        android:layout_toEndOf="@id/busLineIcon"
-        android:layout_toRightOf="@id/busLineIcon"
+        android:layout_toEndOf="@id/vehicleIcon"
+        android:layout_toRightOf="@id/vehicleIcon"
         android:gravity="center_vertical"
         android:text="Timelines example"
         android:textAppearance="?android:attr/textAppearanceLarge"
