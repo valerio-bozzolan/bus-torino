@@ -105,15 +105,15 @@ public class FavoritesActivity extends ActionBarActivity {
 		favoriteListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			public void onItemClick(AdapterView<?> av, View view,
 					int i, long l) {
-				View child = av.getChildAt(i);
-				TextView busStopIDTextView = (TextView) child
-						.findViewById(R.id.busStopID);
-				String busStopID = busStopIDTextView.getText().toString();
+				String busStopID = ((TextView) (av.getChildAt(i))
+						.findViewById(R.id.busStopID)).getText().toString();
 				Log.d("bus-torino", "bustorino tapped on busstop: " + busStopID);
+
 				Intent intent = new Intent(FavoritesActivity.this, MainActivity.class);
 				Bundle b = new Bundle();
 				b.putString("busStopID", busStopID);
 				intent.putExtras(b);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
 				startActivity(intent);
 				finish();
 			}
