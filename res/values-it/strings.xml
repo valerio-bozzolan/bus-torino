@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string>
     <string name="search">Cerca</string>
     <string name="insert_bus_stop_number">Inserisci il numero della fermata.</string>
-    <string name="network_error">Verifica l\'accesso ad Internet</string>
+    <string name="network_error">Verifica l\'accesso ad Internet!</string>
     <string name="no_arrival_times">Nessun arrivo previsto per questa fermata :(</string>
-    <string name="passages">Passaggi %1$s:</string>
+    <string name="passages">Fermata %1$s:</string>
     <string name="action_about">Info</string>
     <string name="action_favorites">Preferiti</string>
-    <string name="added_in_favorites">Fermata nei preferiti</string>
+    <string name="added_in_favorites">Fermata aggiunta ai preferiti</string>
     <string name="title_activity_favorites">Preferiti</string>
     <string name="tip_add_favorite">Premi sul nome di una fermata per inserirla in questa lista :)</string>
     <string name="action_remove_from_favourites">Rimuovi</string>

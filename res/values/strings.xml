@@ -10,7 +10,7 @@
     <string name="passages">Arrivals at %1$s:</string>
     <string name="action_about">About</string>
     <string name="action_favorites">Favorites</string>
-    <string name="added_in_favorites">Bus stop in your favorites</string>
+    <string name="added_in_favorites">Bus stop is now in your favorites</string>
     <string name="title_activity_favorites">Favorites</string>
     <string name="tip_add_favorite">Press on a bus stop name to populate this list :)</string>
     <string name="action_remove_from_favourites">Delete</string>
