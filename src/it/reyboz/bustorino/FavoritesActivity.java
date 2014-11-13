@@ -5,8 +5,13 @@ import java.util.HashMap;
 
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -18,6 +23,7 @@ import android.os.Bundle;
 public class FavoritesActivity extends ActionBarActivity {
 	private DBBusTo mDbHelper;
 	private SQLiteDatabase db;
+	private ListView favoriteListView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +33,33 @@ public class FavoritesActivity extends ActionBarActivity {
 		mDbHelper = new DBBusTo(this);
 		db = mDbHelper.getWritableDatabase();
 
+		createFavoriteList();
+	}
+
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+	      super.onCreateContextMenu(menu, v, menuInfo);
+	      if (v.getId()==R.id.favoriteListView) {
+	          MenuInflater inflater = getMenuInflater();
+	          inflater.inflate(R.menu.menu_favourites_entry, menu);
+	      }
+	}
+
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+	      AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+	      String busStopID = ((TextView) (info.targetView).findViewById(R.id.busStopID)).getText().toString();
+	      switch(item.getItemId()) {
+	         case R.id.action_favourite_entry_delete:
+	        	 db.delete(DBBusTo.BusStop.TABLE_NAME, DBBusTo.somethingEqualsInt(DBBusTo.BusStop.COLUMN_NAME_BUSSTOP_ID), new String[] {busStopID});
+	        	 createFavoriteList();
+	            return true;
+	          default:
+	                return super.onContextItemSelected(item);
+	      }
+	}
+
+	void createFavoriteList() {
 		ArrayList<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
 
 		String query = DBBusTo.SELECT_ALL_FROM
@@ -54,7 +87,7 @@ public class FavoritesActivity extends ActionBarActivity {
 		}
 		cursor.close();
 
-		ListView favoriteListView = (ListView) findViewById(R.id.favoriteListView);
+		favoriteListView = (ListView) findViewById(R.id.favoriteListView);
 
 		// If no data is found show a friendly message
 		if (data.isEmpty()) {
@@ -85,18 +118,6 @@ public class FavoritesActivity extends ActionBarActivity {
 				finish();
 			}
 		});
-		favoriteListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-
-			@Override
-			public boolean onItemLongClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				// TODO Auto-generated method stub
-				return false;
-			}
-
-		});
-
-		// Close DB connection
-		db.close();
+		registerForContextMenu(favoriteListView);
 	}
 }

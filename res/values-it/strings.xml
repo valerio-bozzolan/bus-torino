@@ -3,7 +3,7 @@
 
     <string name="search">Cerca</string>
     <string name="insert_bus_stop_number">Inserisci il numero della fermata.</string>
-    <string name="network_error">Errore di rete. Verifica l\'accesso ad Internet</string>
+    <string name="network_error">Verifica l\'accesso ad Internet</string>
     <string name="no_arrival_times">Nessun arrivo previsto per questa fermata :(</string>
     <string name="passages">Passaggi %1$s:</string>
     <string name="action_about">Info</string>
@@ -11,6 +11,7 @@
     <string name="added_in_favorites">Fermata nei preferiti</string>
     <string name="title_activity_favorites">Preferiti</string>
     <string name="tip_add_favorite">Premi sul nome di una fermata per inserirla in questa lista :)</string>
+    <string name="action_remove_from_favourites">Rimuovi</string>
     <string name="about">Informazioni</string>
     <string name="about_history">
 <![CDATA[

@@ -15,7 +15,6 @@
         android:gravity="center_vertical"
         android:text="Timelines example"
         android:textAppearance="?android:attr/textAppearanceMedium" >
-
     </TextView>
 
     <TextView
