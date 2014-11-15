@@ -29,11 +29,13 @@
         </activity>
         <activity
             android:name=".AboutActivity"
-            android:label="@string/about" >
+            android:label="@string/about"
+    		android:theme="@style/AboutTheme" >
         </activity>
         <activity
             android:name=".FavoritesActivity"
-            android:label="@string/title_activity_favorites" >
+            android:label="@string/title_activity_favorites"
+            android:theme="@style/FavTheme" >
         </activity>
     </application>
 
