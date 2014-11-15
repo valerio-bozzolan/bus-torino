@@ -1,10 +1,10 @@
 <resources>
-
     <!--
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
-    <style name="AppBaseTheme" parent="Theme.AppCompat.Light">
+    
+    <style name="AppBaseTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!--
             Theme customizations available in newer API levels can go in
             res/values-vXX/styles.xml, while customizations related to
@@ -15,6 +15,19 @@
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+        <item name="colorPrimary">@color/orange_500</item>
+        <item name="colorPrimaryDark">@color/orange_700</item>
+        <item name="colorAccent">@color/accent</item>
+        
+        <!-- blue
+        <item name="colorPrimary">@color/blue_500</item>
+        <item name="colorPrimaryDark">@color/blue_700</item>
+        <item name="colorAccent">@color/accent</item-->        
+                
+        <!-- azzurro
+        <item name="colorPrimary">@color/teal_300</item>
+        <item name="colorPrimaryDark">@color/teal_500</item>
+        <item name="colorAccent">@color/accent</item-->
     </style>
 
 </resources>

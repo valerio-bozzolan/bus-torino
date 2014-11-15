@@ -15,7 +15,7 @@
         android:gravity="center_vertical"
         android:text="Timelines example"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="#0099CC" >
+        android:textColor="@color/blue_500" >
     </TextView>
 
     <TextView
@@ -26,7 +26,7 @@
         android:layout_centerVertical="true"
         android:background="@drawable/bus_stop_background"
         android:gravity="center"
-        android:textColor="#FFF6DF"
+        android:textColor="@color/grey_100"
         android:textSize="21sp" />
 
 </RelativeLayout>
