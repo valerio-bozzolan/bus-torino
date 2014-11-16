@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    
     <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string>
     <string name="search">Cerca</string>
     <string name="insert_bus_stop_number">Numero fermata</string>
+    <string name="insert_bus_stop_number_error">Inserisci il numero della fermata</string>
     <string name="network_error">Verifica l\'accesso ad Internet!</string>
     <string name="no_arrival_times">Nessun arrivo previsto per questa fermata :(</string>
     <string name="passages">Fermata %1$s:</string>
@@ -15,6 +17,8 @@
     <string name="tip_add_favorite">Premi sul nome di una fermata per inserirla in questa lista :)</string>
     <string name="action_remove_from_favourites">Rimuovi</string>
     <string name="about">Informazioni</string>
+    <string name="legend"><b>12:56*</b> : Orario in tempo reale \n<b>12:56</b> &#160;&#160;: Orario programmato</string>
+    <string name="hint_button">OK!</string>
     <string name="about_history">
 <![CDATA[
         <h1>Benvenuto!</h1>

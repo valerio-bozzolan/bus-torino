@@ -13,7 +13,6 @@
         android:layout_alignParentTop="true"
         android:layout_toLeftOf="@+id/busStopID"
         android:gravity="center_vertical"
-        android:text="Timelines example"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="@color/blue_500" >
     </TextView>

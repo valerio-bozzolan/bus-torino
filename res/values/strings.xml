@@ -5,6 +5,7 @@
     <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string>
     <string name="search">Search</string>
     <string name="insert_bus_stop_number">Bus stop number</string>
+    <string name="insert_bus_stop_number_error">Insert bus stop number</string>
     <string name="network_error">Verify the state of your Internet connection!</string>
     <string name="no_arrival_times">No bus is supposed to arrive at this stop :(</string>
     <string name="passages">Arrivals at %1$s:</string>
@@ -16,6 +17,8 @@
     <string name="tip_add_favorite">Press on a bus stop name to populate this list :)</string>
     <string name="action_remove_from_favourites">Delete</string>
     <string name="about">About</string>
+    <string name="legend"><b>12:56*</b> : Real time arrival \n<b>12:56</b> &#160;&#160;: Scheduled time of arrival</string>
+    <string name="hint_button">GOT IT!</string>
     <string name="about_history">
 <![CDATA[
         <h1>Welcome!</h1>

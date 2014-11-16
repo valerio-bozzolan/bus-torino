@@ -9,6 +9,7 @@ import it.reyboz.bustorino.GTTSiteSucker.BusStop;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -19,6 +20,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -31,6 +33,8 @@ public class MainActivity extends ActionBarActivity {
 
 	private EditText busStopIDEditText;
 	private TextView busStopNameTextView;
+	private TextView legend;
+	private Button hideHint;
 	private ProgressBar annoyingSpinner;
 	private ListView resultsListView;
 
@@ -46,10 +50,12 @@ public class MainActivity extends ActionBarActivity {
 		setContentView(R.layout.activity_main);
 		busStopIDEditText = (EditText) findViewById(R.id.busStopIDEditText);
 		busStopNameTextView = (TextView) findViewById(R.id.busStopNameTextView);
+		legend = (TextView) findViewById(R.id.legend);
+		hideHint = (Button) findViewById(R.id.hideHint);
 		annoyingSpinner = (ProgressBar) findViewById(R.id.annoyingSpinner);
 		resultsListView = (ListView) findViewById(R.id.resultsListView);
 		myAsyncWget = new MyAsyncWget();
-
+		
 		// IME_ACTION_SEARCH keyboard option
 		busStopIDEditText
 				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -168,6 +174,13 @@ public class MainActivity extends ActionBarActivity {
 			}
 			busStopNameTextView.setText(String.format(
 					getString(R.string.passages), busStopNameDisplay));
+			if (isFirstTime()) {
+				legend.setVisibility(View.VISIBLE);
+				hideHint.setVisibility(View.VISIBLE);
+			}
+			else {
+				legend.setVisibility(View.GONE);
+			}
 
 			// Insert GTTBusStop info in the DB
 			ContentValues values = new ContentValues();
@@ -216,7 +229,7 @@ public class MainActivity extends ActionBarActivity {
 	public void launchSearchAction(String busStopID) {
 		if (busStopID.isEmpty()) {
 			Toast.makeText(getApplicationContext(),
-					R.string.insert_bus_stop_number, Toast.LENGTH_SHORT).show();
+					R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT).show();
 		} else if (!NetworkTools.isConnected(this)) {
 			NetworkTools.showNetworkError(this);
 		} else {
@@ -228,6 +241,13 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 
+	//hides hint
+	public void hideHint (View v) {
+		if (lastSearchedBusStopID != null) {
+			legend.setVisibility(View.GONE);
+			hideHint.setVisibility(View.GONE);
+		}
+    }
 	public void addInFavorites(View v) {
 		if (lastSearchedBusStopID != null) {
 			ContentValues newValues = new ContentValues();
@@ -263,5 +283,17 @@ public class MainActivity extends ActionBarActivity {
 			inputManager.hideSoftInputFromWindow(view.getWindowToken(),
 					InputMethodManager.HIDE_NOT_ALWAYS);
 		}
+	}
+	
+	private boolean isFirstTime() {
+		SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+		boolean ranBefore = preferences.getBoolean("RanBefore", false);
+		if (!ranBefore) {
+			// first time
+			SharedPreferences.Editor editor = preferences.edit();
+			editor.putBoolean("RanBefore", true);
+			editor.commit();
+		}
+		return !ranBefore;
 	}
 }
