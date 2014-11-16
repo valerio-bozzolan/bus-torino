@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import android.util.Log;
 
@@ -45,14 +46,14 @@ public class GTTSiteSucker {
 	 * 
 	 * @author boz
 	 */
-	public static class PassagesBusLine {
+	public static class BusLinePassages {
 
 		private int busLineID;
 		private String busLineName;
 
 		private ArrayList<TimePassage> timesPassages;
 
-		public PassagesBusLine() {
+		public BusLinePassages() {
 			timesPassages = new ArrayList<TimePassage>();
 		}
 
@@ -65,13 +66,13 @@ public class GTTSiteSucker {
 		}
 
 		public String getTimePassagesString() {
+			if(timesPassages.size() == 0) {
+				return null;
+			}
 			String out = "";
 			for (TimePassage timePassage : timesPassages) {
 				out += timePassage.getTime()
-						+ (timePassage.isInRealTime() ? "*" : "") + " ";
-			}
-			if (timesPassages.size() == 0) {
-				out = ":(";
+						+ (timePassage.isInRealTime() ? "*" : " ") + " ";
 			}
 			return out;
 		}
@@ -106,10 +107,10 @@ public class GTTSiteSucker {
 	public static class BusStop {
 		private Integer busStopID; // Es: 1254 (always Integer)
 		private String busStopName; // Es: MARCONI
-		private PassagesBusLine[] arrivalsAtBusStop;
+		private BusLinePassages[] arrivalsAtBusStop;
 
 		BusStop(Integer busStopID, String busStopName,
-				PassagesBusLine[] arrivalsAtBusStop) {
+				BusLinePassages[] arrivalsAtBusStop) {
 			this.busStopID = busStopID;
 			this.busStopName = busStopName;
 			this.arrivalsAtBusStop = arrivalsAtBusStop;
@@ -131,33 +132,42 @@ public class GTTSiteSucker {
 			this.busStopName = busStopName;
 		}
 
-		public PassagesBusLine[] getPassagesBusLine() {
+		public BusLinePassages[] getPassagesBusLine() {
 			return arrivalsAtBusStop;
 		}
 	}
 
 	/**
 	 * API/Workaround to get all informations from the 5T website
+	 * Return a BusStop object.
+	 * BusStop.busStopName can be null.
 	 * 
 	 * @param html
 	 * @author Valerio Bozzolan
 	 * @return BusStop
 	 */
-	public static BusStop arrivalTimesBylineHTMLSucker(String html) {
-		ArrayList<PassagesBusLine> arrivalsAtBusStop = new ArrayList<PassagesBusLine>();
+	public static BusStop getBusStopSuckingHTML(String html) {
+		if(html == null) {
+			return null;
+		}
+
+		ArrayList<BusLinePassages> arrivalsAtBusStop = new ArrayList<BusLinePassages>();
 		Document doc = Jsoup.parse(html);
-		for (Element tr : doc.getElementsByTag("tr")) {
-			PassagesBusLine passagesBusLine = new PassagesBusLine();
 
-			boolean codLineaGTTfound = false;
+		Elements trs = doc.getElementsByTag("tr");
+		for (Element tr : trs) {
+			BusLinePassages busLinePassages = new BusLinePassages();
 
-			for (Element td : tr.children()) {
+			boolean isBusLineIDFound = false;
+
+			Elements tds = tr.children();
+			for (Element td : tds) {
 				String tdContent = td.html();
 				if (tdContent.isEmpty()) {
 					continue;
 				}
 
-				if (!codLineaGTTfound) {
+				if (!isBusLineIDFound) {
 					Element tdURL = td.select("a").first();
 					String busLineName = tdURL.html();
 					String busLineID = "";
@@ -166,52 +176,59 @@ public class GTTSiteSucker {
 					if (matcher.find()) {
 						busLineID = matcher.group();
 					}
-					passagesBusLine.setBusLineID(Integer.parseInt(busLineID));
-					passagesBusLine.setBusLineName(busLineName);
-					codLineaGTTfound = true;
+					busLinePassages.setBusLineID(Integer.parseInt(busLineID));
+					busLinePassages.setBusLineName(busLineName);
+					isBusLineIDFound = true;
 					continue;
 				}
 
 				// Look for "<i>*</i>" (aka "prodotto surgelato")
-				boolean frozenProduct = !td.select("i").isEmpty();
-				if (frozenProduct) {
+				boolean isFrozenProduct = !td.select("i").isEmpty();
+				if (isFrozenProduct) {
 					td.select("i").remove();
 					tdContent = td.html();
 				}
 
-				passagesBusLine.addTimePassage(tdContent, frozenProduct);
+				busLinePassages.addTimePassage(tdContent, isFrozenProduct);
 			}
-			arrivalsAtBusStop.add(passagesBusLine);
+			arrivalsAtBusStop.add(busLinePassages);
 		}
 
-		// Sucking bus stop info
+		// Sucking bus stop infos
 		String busStopInfo = null;
-		String busStopName = null;
-		Integer busStopID = null;
 		Element tagStationInfo = doc.select("span").first();
-		if (tagStationInfo != null) {
-			busStopInfo = tagStationInfo.html();
-			Log.d("it.reyboz", "stationInfo:" + busStopInfo);
-
-			// Sucking station number (e.g.: 1254)
-			Matcher matcherStationNumber = Pattern.compile("([0-9]+)").matcher(
-					busStopInfo);
-			if (matcherStationNumber.find()) {
-				busStopID = Integer.parseInt(matcherStationNumber.group(1));
-			}
-			Log.d("it.reyboz", "stationNumber:" + busStopID);
-
-			// Sucking station name (e.g.: POZZO STRADA)
-			Matcher matcherStationName = Pattern.compile("&nbsp;(.+)").matcher(
-					busStopInfo);
-			if (matcherStationName.find()) {
-				busStopName = matcherStationName.group(1);
-			}
-			Log.d("it.reyboz", "stationName:" + busStopName);
+		if (tagStationInfo == null) {
+			Log.e("GTTSiteSucker", "Parse error: tagStationInfo is null!");
+			return null;
 		}
+		busStopInfo = tagStationInfo.html();
+
+		// Sucking busStopID (e.g.: 1254)
+		Integer busStopID = null;
+		Matcher matcherStationNumber = Pattern.compile("([0-9]+)").matcher(
+				busStopInfo);
+		if (matcherStationNumber.find()) {
+			busStopID = Integer.parseInt(matcherStationNumber.group(1));
+		}
+		if(busStopID == null) {
+			Log.e("GTTSiteSucker", "Parse error: busStopID is null!");
+			return null;
+		}
+
+		// Sucking busStopName (e.g.: POZZO STRADA)
+		String busStopName = null;
+		Matcher matcherStationName = Pattern.compile("&nbsp;(.+)").matcher(
+				busStopInfo);
+		if (matcherStationName.find()) {
+			busStopName = matcherStationName.group(1);
+		}
+
+		Log.d("GTTSiteSucker", "busStopInfo: " + busStopInfo);
+		Log.d("GTTSiteSucker", "busStopID: " + busStopID);
+		Log.d("GTTSiteSucker", "busStopName:" + busStopName);
 
 		return new BusStop(busStopID, busStopName,
-				(PassagesBusLine[]) arrivalsAtBusStop
-						.toArray(new PassagesBusLine[] {}));
+				(BusLinePassages[]) arrivalsAtBusStop
+						.toArray(new BusLinePassages[] {}));
 	}
 }

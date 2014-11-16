@@ -3,7 +3,7 @@ package it.reyboz.bustorino;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import it.reyboz.bustorino.GTTSiteSucker.PassagesBusLine;
+import it.reyboz.bustorino.GTTSiteSucker.BusLinePassages;
 import it.reyboz.bustorino.GTTSiteSucker.BusStop;
 
 import android.content.ContentValues;
@@ -29,48 +29,52 @@ import android.view.KeyEvent;
 
 public class MainActivity extends ActionBarActivity {
 
+	private EditText busStopIDEditText;
+	private TextView busStopNameTextView;
+	private ProgressBar annoyingSpinner;
+	private ListView resultsListView;
+
 	private MyAsyncWget myAsyncWget;
-	private TextView busStationName;
-	private EditText busStopNumberEditText;
-	private ProgressBar annoyingFedbackProgressBar;
-	private Integer lastSearchedBusStopID;
 	private DBBusTo mDbHelper;
 	private SQLiteDatabase db;
+
+	private Integer lastSearchedBusStopID;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		busStationName = (TextView) findViewById(R.id.busStationName);
-		busStopNumberEditText = (EditText) findViewById(R.id.busStopNumberEditText);
-		annoyingFedbackProgressBar = (ProgressBar) findViewById(R.id.annoyingFedbackProgress);
-		annoyingFedbackProgressBar.setVisibility(View.INVISIBLE);
+		busStopIDEditText = (EditText) findViewById(R.id.busStopIDEditText);
+		busStopNameTextView = (TextView) findViewById(R.id.busStopNameTextView);
+		annoyingSpinner = (ProgressBar) findViewById(R.id.annoyingSpinner);
+		resultsListView = (ListView) findViewById(R.id.resultsListView);
 		myAsyncWget = new MyAsyncWget();
 
-		busStopNumberEditText
+		// IME_ACTION_SEARCH keyboard option
+		busStopIDEditText
 				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 					@Override
 					public boolean onEditorAction(TextView v, int actionId,
 							KeyEvent event) {
 						if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-							searchClick(v);
+							onSearchClick(v);
 							return true;
 						}
 						return false;
 					}
 				});
 
-		// Gets the data repository in write mode
+		// Get data in write mode
 		mDbHelper = new DBBusTo(this);
 		db = mDbHelper.getWritableDatabase();
 
 		// Intercept calls from other part of the apps
 		Bundle b = getIntent().getExtras();
-		if(b != null) {
+		if (b != null) {
 			String busStopID = b.getString("busStopID");
-			if(busStopID != null) {
+			if (busStopID != null) {
 				launchSearchAction(busStopID);
-				busStopNumberEditText.setText(busStopID);
+				busStopIDEditText.setText(busStopID);
 			}
 		}
 	}
@@ -113,90 +117,100 @@ public class MainActivity extends ActionBarActivity {
 	 * @author boz
 	 */
 	public class MyAsyncWget extends AsyncWget {
-		protected void onPostExecute(String result) {
-			ArrayList<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
+		protected void onPostExecute(String htmlResponse) {
 
-			BusStop busStop = GTTSiteSucker
-					.arrivalTimesBylineHTMLSucker(result);
-
-			// Remember that the user searched this at last
-			lastSearchedBusStopID = busStop.getBusStopID();
-
-			PassagesBusLine[] passagesBusLine = busStop.getPassagesBusLine();
-
-			for (PassagesBusLine passageBusLine : passagesBusLine) {
-				HashMap<String, Object> singleEntry = new HashMap<String, Object>();
-				singleEntry.put("icon", passageBusLine.getBusLineName());
-				singleEntry.put("line-name",
-						passageBusLine.getTimePassagesString());
-				data.add(singleEntry);
+			// Network errors?
+			if (htmlResponse == null || exceptions != null) {
+				NetworkTools.showNetworkError(MainActivity.this);
+				stopSpinner();
+				Log.e("MainActivity", "Network error!");
+				return;
 			}
 
-			if (passagesBusLine.length != 0) {
-				// Hide the keyboard before showing results
-				hideKeyboard();
+			// Try sucking arrivals
+			BusStop busStop = GTTSiteSucker.getBusStopSuckingHTML(htmlResponse);
 
-				Integer busStopID = busStop.getBusStopID();
-
-				String busStopName = busStop.getBusStopName();
-				String busStopNameDisplay = "---";
-				if (busStopName == null && busStopID != null) {
-					busStopNameDisplay = String.valueOf((busStopID));
-				} else {
-					busStopNameDisplay = busStopName;
-				}
-				busStationName.setText(String.format(
-						getResources().getString(R.string.passages),
-						busStopNameDisplay));
-
-				// Insert the GTTBusStop in the DB
-				if (busStopID != null) {
-					ContentValues values = new ContentValues();
-					values.put(DBBusTo.BusStop.COLUMN_NAME_BUSSTOP_ID,
-							busStopID);
-					values.put(DBBusTo.BusStop.COLUMN_NAME_BUSSTOP_NAME,
-							busStopName);
-					long lastInserted = db.insertWithOnConflict(
-							DBBusTo.BusStop.TABLE_NAME, null, values,
-							SQLiteDatabase.CONFLICT_IGNORE);
-					Log.d("bus-torino", "bustorinoDB last BusStop inserted: "
-							+ lastInserted);
-				}
-
-				// Show results
-				String[] from = { "icon", "line-name" };
-				int[] to = { R.id.busLineIcon, R.id.busLine };
-				SimpleAdapter adapter = new SimpleAdapter(
-						getApplicationContext(), data, R.layout.bus_line_passage_entry,
-						from, to);
-
-				ListView tpm = (ListView) findViewById(R.id.resultsListView);
-				tpm.setAdapter(adapter);
-				tpm.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-					public void onItemClick(AdapterView<?> av, View view,
-							int i, long l) {
-						View child = av.getChildAt(i);
-						TextView busLineIcon = (TextView) child
-								.findViewById(R.id.busLineIcon);
-						String busLine = busLineIcon.getText().toString();
-						Log.d("bus-torino", "bustorino tapped on busline: " + busLine);
-						//Toast.makeText(MainActivity.this,
-						//		"myPos " + i + " " + busLineIcon.getText(),
-						//		Toast.LENGTH_LONG).show();
-					}
-				});
-			} else {
+			// Parse errors?
+			if (busStop == null) {
 				Toast.makeText(getApplicationContext(),
 						R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
+				stopSpinner();
+				Log.e("MainActivity", "Parse error! htmlResponse: "
+						+ htmlResponse);
+				return;
 			}
 
-			annoyingFedbackProgressBar.setVisibility(View.INVISIBLE);
-		}
-	}
+			// Remember last successfully searched busStopID
+			Integer busStopID = busStop.getBusStopID();
+			lastSearchedBusStopID = busStopID;
 
-	public void searchClick(View v) {
-		String busStopID = busStopNumberEditText.getText().toString();
-		launchSearchAction(busStopID);
+			// Retrieve passages
+			BusLinePassages[] passagesBusLine = busStop.getPassagesBusLine();
+
+			// No passages?
+			if (passagesBusLine.length == 0) {
+				Toast.makeText(getApplicationContext(),
+						R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
+				stopSpinner();
+				Log.d("MainActivity", "No passages!");
+				return;
+			}
+
+			// Hide the keyboard before showing passages
+			hideKeyboard();
+
+			String busStopName = busStop.getBusStopName();
+			String busStopNameDisplay;
+			if (busStopName == null) {
+				busStopNameDisplay = String.valueOf(busStopID);
+			} else {
+				busStopNameDisplay = busStopName;
+			}
+			busStopNameTextView.setText(String.format(
+					getString(R.string.passages), busStopNameDisplay));
+
+			// Insert GTTBusStop info in the DB
+			ContentValues values = new ContentValues();
+			values.put(DBBusTo.BusStop.COLUMN_NAME_BUSSTOP_ID, busStopID);
+			values.put(DBBusTo.BusStop.COLUMN_NAME_BUSSTOP_NAME, busStopName);
+			long lastInserted = db.insertWithOnConflict(
+					DBBusTo.BusStop.TABLE_NAME, null, values,
+					SQLiteDatabase.CONFLICT_IGNORE);
+			Log.d("MainActivity", "DBBusTo last BusStopID inserted: "
+					+ lastInserted);
+
+			// Populate the stupid ListView SimpleAdapter
+			ArrayList<HashMap<String, Object>> entries = new ArrayList<HashMap<String, Object>>();
+			for (BusLinePassages passageBusLine : passagesBusLine) {
+				HashMap<String, Object> entry = new HashMap<String, Object>();
+				String passages = passageBusLine.getTimePassagesString();
+				if (passages == null) {
+					passages = getString(R.string.no_passages);
+				}
+				entry.put("icon", passageBusLine.getBusLineName());
+				entry.put("passages", passages);
+				entries.add(entry);
+			}
+
+			// Show results using the stupid SimpleAdapter
+			String[] from = { "icon", "passages" };
+			int[] to = { R.id.busLineIcon, R.id.busLine };
+			SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
+					entries, R.layout.bus_line_passage_entry, from, to);
+			resultsListView.setAdapter(adapter);
+			resultsListView
+					.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+						public void onItemClick(AdapterView<?> av, View view,
+								int i, long l) {
+							String busLine = ((TextView) av.getChildAt(i)
+									.findViewById(R.id.busLineIcon)).getText()
+									.toString();
+							Log.d("MainActivity", "Tapped busLine: " + busLine);
+						}
+					});
+
+			stopSpinner();
+		}
 	}
 
 	public void launchSearchAction(String busStopID) {
@@ -206,10 +220,11 @@ public class MainActivity extends ActionBarActivity {
 		} else if (!NetworkTools.isConnected(this)) {
 			NetworkTools.showNetworkError(this);
 		} else {
-			annoyingFedbackProgressBar.setVisibility(View.VISIBLE);
+			startSpinner();
 			myAsyncWget.cancel(true);
 			myAsyncWget = new MyAsyncWget();
-			myAsyncWget.execute(GTTSiteSucker.arrivalTimesByLineQuery(busStopID));
+			myAsyncWget.execute(GTTSiteSucker
+					.arrivalTimesByLineQuery(busStopID));
 		}
 	}
 
@@ -227,25 +242,26 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 
-	private void hideKeyboard() {
-		InputMethodManager inputManager = (InputMethodManager) this
-				.getSystemService(Context.INPUT_METHOD_SERVICE);
+	public void onSearchClick(View v) {
+		launchSearchAction(busStopIDEditText.getText().toString());
+	}
 
-		// Check if no view has focus:
-		View view = this.getCurrentFocus();
+	private void stopSpinner() {
+		annoyingSpinner.setVisibility(View.INVISIBLE);
+	}
+
+	private void startSpinner() {
+		annoyingSpinner.setVisibility(View.VISIBLE);
+	}
+
+	private void hideKeyboard() {
+		InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
+		// Check if no view has focus
+		View view = getCurrentFocus();
 		if (view != null) {
 			inputManager.hideSoftInputFromWindow(view.getWindowToken(),
 					InputMethodManager.HIDE_NOT_ALWAYS);
 		}
 	}
-	/*
-	 * private void spamThePoorUser() { AlertDialog.Builder alert = new
-	 * AlertDialog.Builder(this); alert.setTitle(R.string.app_name);
-	 * alert.setMessage(R.string.app_description);
-	 * alert.setNegativeButton(android.R.string.ok, new
-	 * DialogInterface.OnClickListener() { public void onClick(DialogInterface
-	 * dialog, int whichButton) { } });
-	 * 
-	 * alert.show(); }
-	 */
 }

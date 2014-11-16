@@ -2,7 +2,6 @@ package it.reyboz.bustorino;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -12,8 +11,11 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 public class AsyncWget extends AsyncTask<String, String, String> {
+	protected Exception exceptions;
+
 	protected String doInBackground(String... uri) {
-		Log.d("async-action", "Async in backgroundo: " + uri[0]);
+		exceptions = null;
+		Log.d("AsyncWget", "Catching URL in background: " + uri[0]);
 		HttpURLConnection urlConnection = null;
 		StringBuilder result = null;
 		try {
@@ -28,11 +30,16 @@ public class AsyncWget extends AsyncTask<String, String, String> {
 			while ((line = reader.readLine()) != null) {
 				result.append(line);
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Log.e("AsyncWget", e.getMessage());
+			exceptions = e;
 		} finally {
 			urlConnection.disconnect();
+		}
+
+		if(result == null) {
+			return null;
 		}
 		return result.toString();
 	}
@@ -47,5 +54,9 @@ public class AsyncWget extends AsyncTask<String, String, String> {
 
 	protected void onCancelled() {
 		this.cancel(true);
+	}
+
+	protected void onError() {
+		
 	}
 }

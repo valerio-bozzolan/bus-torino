@@ -9,28 +9,15 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="it.reyboz.bustorino.MainActivity" >
 
-    <TextView
-        android:id="@+id/searchTitleTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/searchButton"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignRight="@+id/searchButton"
-        android:text="@string/insert_bus_stop_number" />
-
     <EditText
-        android:id="@+id/busStopNumberEditText"
+        android:id="@+id/busStopIDEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/searchTitleTextView"
-        android:layout_alignStart="@+id/searchTitleTextView"
-        android:layout_below="@+id/searchTitleTextView"
+        android:layout_alignParentLeft="true"
         android:layout_toLeftOf="@+id/searchButton"
         android:layout_toStartOf="@+id/searchButton"
         android:ems="10"
+        android:hint="@string/insert_bus_stop_number"
         android:imeOptions="actionSearch"
         android:inputType="number"
         android:singleLine="true" >
@@ -43,13 +30,13 @@
         android:layout_height="40dip"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_alignTop="@+id/busStopNumberEditText"
+        android:layout_alignTop="@+id/busStopIDEditText"
         android:background="@drawable/search_button_custom"
         android:contentDescription="@string/search"
-        android:onClick="searchClick" />
+        android:onClick="onSearchClick" />
 
     <ProgressBar
-        android:id="@+id/annoyingFedbackProgress"
+        android:id="@+id/annoyingSpinner"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -57,19 +44,20 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/busStopNumberEditText"
+        android:layout_below="@+id/busStopIDEditText"
         android:clickable="true"
-        android:indeterminate="true" />
+        android:indeterminate="true"
+        android:visibility="invisible" />
 
     <TextView
-        android:id="@+id/busStationName"
+        android:id="@+id/busStopNameTextView"
         android:layout_width="wrap_content"
         android:layout_height="45dip"
         android:layout_alignParentEnd="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/annoyingFedbackProgress"
+        android:layout_below="@+id/annoyingSpinner"
         android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:gravity="center_vertical"
@@ -82,7 +70,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/busStationName" >
+        android:layout_below="@+id/busStopNameTextView" >
     </ListView>
 
 </RelativeLayout>

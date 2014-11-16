@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="it.reyboz.bustorino"
-    android:versionCode="3"
-    android:versionName="1.2" >
+    android:versionCode="4"
+    android:versionName="1.3" >
 
     <uses-sdk
         android:minSdkVersion="11"
@@ -30,7 +30,7 @@
         <activity
             android:name=".AboutActivity"
             android:label="@string/about"
-    		android:theme="@style/AboutTheme" >
+            android:theme="@style/AboutTheme" >
         </activity>
         <activity
             android:name=".FavoritesActivity"

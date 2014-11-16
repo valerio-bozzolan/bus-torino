@@ -4,10 +4,11 @@
     <string name="app_name">BusTO</string>
     <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string>
     <string name="search">Search</string>
-    <string name="insert_bus_stop_number">Insert the number of the bus stop.</string>
+    <string name="insert_bus_stop_number">Bus stop number</string>
     <string name="network_error">Verify the state of your Internet connection!</string>
     <string name="no_arrival_times">No bus is supposed to arrive at this stop :(</string>
     <string name="passages">Arrivals at %1$s:</string>
+    <string name="no_passages">No passages</string>
     <string name="action_about">About</string>
     <string name="action_favorites">Favorites</string>
     <string name="added_in_favorites">Bus stop is now in your favorites</string>
