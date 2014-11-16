@@ -9,6 +9,7 @@ import it.reyboz.bustorino.GTTSiteSucker.BusStop;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -19,6 +20,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -31,6 +33,8 @@ public class MainActivity extends ActionBarActivity {
 
 	private EditText busStopIDEditText;
 	private TextView busStopNameTextView;
+	private TextView legend;
+	private Button hideHint;
 	private ProgressBar annoyingSpinner;
 	private ListView resultsListView;
 
@@ -46,10 +50,12 @@ public class MainActivity extends ActionBarActivity {
 		setContentView(R.layout.activity_main);
 		busStopIDEditText = (EditText) findViewById(R.id.busStopIDEditText);
 		busStopNameTextView = (TextView) findViewById(R.id.busStopNameTextView);
+		legend = (TextView) findViewById(R.id.legend);
+		hideHint = (Button) findViewById(R.id.hideHint);
 		annoyingSpinner = (ProgressBar) findViewById(R.id.annoyingSpinner);
 		resultsListView = (ListView) findViewById(R.id.resultsListView);
 		myAsyncWget = new MyAsyncWget();
-
+		
 		// IME_ACTION_SEARCH keyboard option
 		busStopIDEditText
 				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -209,14 +215,29 @@ public class MainActivity extends ActionBarActivity {
 						}
 					});
 
+			// Stop annoying spinner
 			stopSpinner();
+
+			// Show busStopName
+			busStopNameTextView.setVisibility(View.VISIBLE);
+
+			// Show hint?
+			if (getThisOption("show_legend")) {
+				legend.setVisibility(View.VISIBLE);
+				hideHint.setVisibility(View.VISIBLE);
+			} else {
+				legend.setVisibility(View.GONE);
+			}
+
+			// Show results
+			resultsListView.setVisibility(View.VISIBLE);
 		}
 	}
 
 	public void launchSearchAction(String busStopID) {
 		if (busStopID.isEmpty()) {
 			Toast.makeText(getApplicationContext(),
-					R.string.insert_bus_stop_number, Toast.LENGTH_SHORT).show();
+					R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT).show();
 		} else if (!NetworkTools.isConnected(this)) {
 			NetworkTools.showNetworkError(this);
 		} else {
@@ -246,6 +267,13 @@ public class MainActivity extends ActionBarActivity {
 		launchSearchAction(busStopIDEditText.getText().toString());
 	}
 
+	// Hides hint
+	public void onHideHint (View v) {
+		legend.setVisibility(View.GONE);
+		hideHint.setVisibility(View.GONE);
+		setThisOption("show_legend", false);
+    }
+
 	private void stopSpinner() {
 		annoyingSpinner.setVisibility(View.INVISIBLE);
 	}
@@ -263,5 +291,16 @@ public class MainActivity extends ActionBarActivity {
 			inputManager.hideSoftInputFromWindow(view.getWindowToken(),
 					InputMethodManager.HIDE_NOT_ALWAYS);
 		}
+	}
+
+	private void setThisOption(String optionName, boolean value) {
+		SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+		editor.putBoolean(optionName, value);
+		editor.commit();
+	}
+
+	private boolean getThisOption(String optionName) {
+		SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+		return preferences.getBoolean(optionName, true);
 	}
 }

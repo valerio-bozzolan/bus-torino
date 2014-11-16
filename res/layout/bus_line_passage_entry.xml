@@ -10,7 +10,6 @@
         android:layout_height="54dip"
         android:background="@drawable/bus_background"
         android:gravity="center"
-        android:text="666"
         android:textColor="@color/grey_100"
         android:textSize="21sp" >
     </TextView>
@@ -40,7 +39,6 @@
         android:layout_toEndOf="@id/vehicleIcon"
         android:layout_toRightOf="@id/vehicleIcon"
         android:gravity="center_vertical"
-        android:text="Timelines example"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@color/blue_500" >
     </TextView>
