@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    
     <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string>
     <string name="search">Cerca</string>
     <string name="insert_bus_stop_number">Numero fermata</string>
@@ -17,11 +18,16 @@
     <string name="action_remove_from_favourites">Rimuovi</string>
     <string name="about">Informazioni</string>
     <string name="legend"><b>12:56*</b> : Orario in tempo reale \n<b>12:56</b> &#160;&#160;: Orario programmato</string>
+    <string name="howDoesItWork"><b>Come Funziona?</b>\nQuest\'app ottiene i passaggi dei bus in tempo reale filtrando i dati forniti pubblicamente sul sito <b>www.5t.torino.it</b>.</string>
     <string name="hint_button">OK!</string>
+    <string name="action_help">Aiuto</string>
     <string name="about_history">
 <![CDATA[
         <h1>Benvenuto!</h1>
+        
         <p>Grazie per aver scelto BusTO, un\'app <b>indipendente</b> nata dalla necessità di spostarsi a Torino attraverso <b>software libero</b>:</p>
+		
+		<p>Perchè usare BusTO?</p>
 		<p>
         - Non sei <b>monitorato</b><br>
         - Non ci sono <b>pubblicità</b><br>
@@ -29,13 +35,13 @@
         - Inoltre l\'app è molto leggera!<br>
         </p>
 
-        <h2>Informazioni</h2>
+        <h2>Come Funziona?</h2>
         <p>Quest\'app ottiene i passaggi dei bus in tempo reale filtrando i dati forniti pubblicamente sul sito <i>www.5t.torino.it</i> «per uso personale».</p>
 
 		<p>Ingredienti:<br>
 		- <b>Valerio Bozzolan</b> come sviluppatore principale.<br>
 		- <b>Marco Gagino</b> come intenso collaboratore.<br>
-		- <b>Paolo Alloatti</b> per l\'icona originale.<br>
+		- <b>Paolo Alloatti</b> per l\'idea dell\'icona.<br>
 		- <b>JSoup</b> libreria per "<i>web scaping</i>"<br>
 		E tutti i contributori!
 		</p>
@@ -46,11 +52,11 @@
 		Ciò <b>significa</b> che puoi usare, studiare, migliorare e ricondividere quest\'app con <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: a patto di mantenere sempre questi diritti a tua volta e di attribuire sempre a Valerio Bozzolan gli \"sforzi\" per il codice sorgente.
 		</p>
 		
-		<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza alcuna garanzia.</p>
-
 		<h2>Note</h2>
+		<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza alcuna garanzia.</p>
 		
 		<p>Invio di bugs/idee: <a href="https://bugs.launchpad.net/bus-torino">lamentati qui</a>.</p>
+		
 		<p>Codice sorgente: <a href="https://code.launchpad.net/bus-torino">lp:bus-torino</a>.</p>
 		<p>Contatta l\'autore: <a href="mailto:valerio.bozzolan@studenti.polito.it?subject=BusTO">Valerio Bozzolan</a>.</p>
 

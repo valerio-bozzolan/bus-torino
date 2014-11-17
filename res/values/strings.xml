@@ -18,7 +18,9 @@
     <string name="action_remove_from_favourites">Delete</string>
     <string name="about">About</string>
     <string name="legend"><b>12:56*</b> : Real time arrival \n<b>12:56</b> &#160;&#160;: Scheduled time of arrival</string>
+    <string name="howDoesItWork"><b>How does it work?</b>\nThis app will show you the timetable of the buses using the information published on the site <b>http://www.5t.torino.it</b>.</string>
     <string name="hint_button">GOT IT!</string>
+    <string name="action_help">Help</string>
     <string name="about_history">
 <![CDATA[
         <h1>Welcome!</h1>
@@ -36,6 +38,13 @@
         <h2>How does it work?</h2>
         <p>This app will show you the timetable of the buses using the information published on the site <i>http://www.5t.torino.it</i>.</p>
 
+		<p>Who worked on BusTO:<br>
+		- <b>Valerio Bozzolan</b>, the main developer.<br>
+		- <b>Marco Gagino</b>, contributor.<br>
+		- <b>Paolo Alloatti</b>, the concept of the icon.<br>
+		Thanks to all the contributors!
+		</p>
+		
 		<h2>Licenses</h2>
 		<p>The app and the related source code are released by <a href="mailto:valerio.bozzolan@studenti.polito.it?subject=BusTO">Valerio Bozzolan</a> under the terms of two different licences:
 		the <i>Gnu General Public License v3+</i> (<a href="http://www.gnu.org/licenses/gpl.html">GNU GPLv3+</a>) and the <i>Creative Commons Attribution - Share alike 4.0 International</i> (<a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en">CC 4.0 By-Sa</a>).
@@ -43,8 +52,9 @@
 
 		<h2>Notes</h2>
 		<p>This app has been developed <b>hoping to be useful to everyone</b> but without any warranty (such as commercial warranties). If you discover some bugs or if you have some idea, please <a href="https://bugs.launchpad.net/bus-torino">report them</a>.</p>
-
+>		
 		<p>Source code: <a href="https://code.launchpad.net/bus-torino">lp:bus-torino</a>.</p>
+		<p>Mail the author: <a href="mailto:valerio.bozzolan@studenti.polito.it?subject=BusTO">Valerio Bozzolan</a>.</p>
 
 		<p>This translation is kindly provided by Riccardo Caniato.</p>
     ]]>

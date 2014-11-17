@@ -64,20 +64,29 @@
         android:onClick="addInFavorites"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:visibility="invisible" />
+    
+    <TextView
+        android:id="@+id/howDoesItWork"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/busStopNameTextView"
+        android:layout_marginBottom="1dp"
+        android:text="@string/howDoesItWork"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@color/blue_500"
+        android:visibility="invisible" />
 
     <TextView
         android:id="@+id/legend"
         android:layout_width="match_parent"
         android:layout_height="55dip"
-        android:layout_below="@+id/busStopNameTextView"
+        android:layout_below="@+id/howDoesItWork"
         android:layout_marginBottom="1dp"
-        android:background="?android:attr/selectableItemBackground"
         android:gravity="center_vertical"
         android:text="@string/legend"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@color/blue_500"
-        android:visibility="invisible" >
-    </TextView>
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/hideHint"
@@ -94,8 +103,7 @@
         android:onClick="onHideHint"
         android:text="@string/hint_button"
         android:textColor="@color/grey_100"
-        android:visibility="invisible" >
-    </Button>
+        android:visibility="invisible" />
 
     <ListView
         android:id="@+id/resultsListView"

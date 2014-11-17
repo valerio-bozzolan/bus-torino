@@ -34,7 +34,9 @@ public class MainActivity extends ActionBarActivity {
 	private EditText busStopIDEditText;
 	private TextView busStopNameTextView;
 	private TextView legend;
+	private TextView howDoesItWork;
 	private Button hideHint;
+	private MenuItem action_help;
 	private ProgressBar annoyingSpinner;
 	private ListView resultsListView;
 
@@ -51,6 +53,7 @@ public class MainActivity extends ActionBarActivity {
 		busStopIDEditText = (EditText) findViewById(R.id.busStopIDEditText);
 		busStopNameTextView = (TextView) findViewById(R.id.busStopNameTextView);
 		legend = (TextView) findViewById(R.id.legend);
+		howDoesItWork = (TextView) findViewById(R.id.howDoesItWork);
 		hideHint = (Button) findViewById(R.id.hideHint);
 		annoyingSpinner = (ProgressBar) findViewById(R.id.annoyingSpinner);
 		resultsListView = (ListView) findViewById(R.id.resultsListView);
@@ -89,6 +92,10 @@ public class MainActivity extends ActionBarActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
+
+		action_help = menu.findItem(R.id.action_help);
+
+		action_help.setVisible(false);
 		return true;
 	}
 
@@ -112,6 +119,11 @@ public class MainActivity extends ActionBarActivity {
 			Intent intentFavorites = new Intent(MainActivity.this,
 					FavoritesActivity.class);
 			startActivity(intentFavorites);
+			return true;
+		case R.id.action_help:
+			howDoesItWork.setVisibility(View.VISIBLE);
+			legend.setVisibility(View.VISIBLE);
+			hideHint.setVisibility(View.VISIBLE);
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -215,21 +227,26 @@ public class MainActivity extends ActionBarActivity {
 						}
 					});
 
-			// Stop annoying spinner
+			// Stops annoying spinner
 			stopSpinner();
+			
+			// Shows Help option in the menu
+			action_help.setVisible(true);
 
-			// Show busStopName
+			// Shows busStopName
 			busStopNameTextView.setVisibility(View.VISIBLE);
 
-			// Show hint?
+			// Shows hint?
 			if (getThisOption("show_legend")) {
+				howDoesItWork.setVisibility(View.VISIBLE);
 				legend.setVisibility(View.VISIBLE);
 				hideHint.setVisibility(View.VISIBLE);
 			} else {
+				howDoesItWork.setVisibility(View.GONE);
 				legend.setVisibility(View.GONE);
 			}
 
-			// Show results
+			// Shows results
 			resultsListView.setVisibility(View.VISIBLE);
 		}
 	}
@@ -269,6 +286,7 @@ public class MainActivity extends ActionBarActivity {
 
 	// Hides hint
 	public void onHideHint (View v) {
+		howDoesItWork.setVisibility(View.GONE);
 		legend.setVisibility(View.GONE);
 		hideHint.setVisibility(View.GONE);
 		setThisOption("show_legend", false);
