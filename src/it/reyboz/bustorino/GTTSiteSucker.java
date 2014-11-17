@@ -19,6 +19,34 @@ public class GTTSiteSucker {
 	}
 
 	/**
+	 * Helps comparing times
+	 * @author boz
+	 */
+	public static class Time {
+		private int mm;
+		private int hh;
+		
+		public Time(int hh, int mm) {
+			this.hh = hh;
+			this.mm = mm;
+		}
+
+		public boolean isMajorThan(Time time) {
+			if(hh >= time.getHH()) {
+				return mm >= time.getHH();
+			}
+			return false;
+		}
+
+		public int getHH() {
+			return hh;
+		}
+
+		public int getMM() {
+			return mm;
+		}
+	}
+	/**
 	 * A time passage is a time with the answer of: Is this in real time?
 	 * 
 	 * @author boz
@@ -38,6 +66,24 @@ public class GTTSiteSucker {
 
 		public boolean isInRealTime() {
 			return isInRealTime;
+		}
+
+		/**
+		 * @return null if can't be converted into a time
+		 */
+		public Time getComparableTime() {
+			int hh, mm;
+			String[] parts = time.split(":");
+			if(parts.length != 2) {
+				return null;
+			}
+			try {
+				hh = Integer.valueOf(parts[0]);
+				mm = Integer.valueOf(parts[1]);
+			} catch(NumberFormatException e) {
+				return null;
+			}
+			return new Time(hh, mm);
 		}
 	}
 
