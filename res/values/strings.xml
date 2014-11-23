@@ -8,7 +8,8 @@
     <string name="insert_bus_stop_number_error">Insert bus stop number</string>
     <string name="network_error">Verify the state of your Internet connection!</string>
     <string name="no_arrival_times">No bus is supposed to arrive at this stop :(</string>
-    <string name="passages">Arrivals at %1$s:</string>
+    <string name="passages">Arrivals at: %1$s</string>
+    <string name="lines">Lines: %1$s</string>
     <string name="no_passages">No passages</string>
     <string name="action_about">About</string>
     <string name="action_favorites">Favorites</string>
@@ -17,7 +18,7 @@
     <string name="tip_add_favorite">Press on a bus stop name to populate this list :)</string>
     <string name="action_remove_from_favourites">Delete</string>
     <string name="about">About</string>
-    <string name="legend"><b>12:56*</b> : Real time arrival \n<b>12:56</b> &#160;&#160;: Scheduled time of arrival</string>
+    <string name="legend">How to read timelines:\n<b>12:56*</b> Real time arrival \n<b>12:56</b> &#160; Scheduled time of arrival</string>
     <string name="howDoesItWork"><b>How does it work?</b>\nThis app will show you the timetable of the buses using the information published on the site <b>http://www.5t.torino.it</b>.</string>
     <string name="hint_button">GOT IT!</string>
     <string name="action_help">Help</string>
@@ -56,7 +57,7 @@
 		<p>Source code: <a href="https://code.launchpad.net/bus-torino">lp:bus-torino</a>.</p>
 		<p>Mail the author: <a href="mailto:valerio.bozzolan@studenti.polito.it?subject=BusTO">Valerio Bozzolan</a>.</p>
 
-		<p>This translation is kindly provided by Riccardo Caniato.</p>
+		<p>This translation is kindly provided by Riccardo Caniato and Marco Gagino.</p>
     ]]>
     </string>
 

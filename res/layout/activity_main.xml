@@ -103,6 +103,7 @@
         android:onClick="onHideHint"
         android:text="@string/hint_button"
         android:textColor="@color/grey_100"
+        android:textSize="21sp"
         android:visibility="invisible" />
 
     <ListView

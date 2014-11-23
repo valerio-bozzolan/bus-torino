@@ -8,15 +8,27 @@
         android:id="@+id/busStopName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/busStopID"
+        android:layout_above="@+id/busLineNames"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:layout_toLeftOf="@+id/busStopID"
         android:gravity="center_vertical"
-        android:text="Timelines example"
+        android:text="Bus Stop Name"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="@color/blue_500" >
     </TextView>
+
+    <TextView
+        android:id="@+id/busLineNames"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/busStopID"
+        android:layout_alignLeft="@+id/busStopName"
+        android:layout_toLeftOf="@+id/busStopID"
+        android:gravity="center_vertical"
+        android:text="Bus Line Names"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@color/blue_500" />
 
     <TextView
         android:id="@+id/busStopID"
@@ -26,6 +38,7 @@
         android:layout_centerVertical="true"
         android:background="@drawable/bus_stop_background"
         android:gravity="center"
+        android:text="BusStopID"
         android:textColor="@color/grey_100"
         android:textSize="21sp" />
 

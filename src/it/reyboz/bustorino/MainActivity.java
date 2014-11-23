@@ -1,9 +1,26 @@
+/*
+	BusTO - Arrival times for Turin public transports.
+    Copyright (C) 2014  Valerio Bozzolan
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package it.reyboz.bustorino;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import it.reyboz.bustorino.GTTSiteSucker.BusLinePassages;
+import it.reyboz.bustorino.GTTSiteSucker.BusLine;
 import it.reyboz.bustorino.GTTSiteSucker.BusStop;
 
 import android.content.ContentValues;
@@ -12,6 +29,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Debug;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -41,7 +59,7 @@ public class MainActivity extends ActionBarActivity {
 	private ListView resultsListView;
 
 	private MyAsyncWget myAsyncWget;
-	private DBBusTo mDbHelper;
+	private MyDB mDbHelper;
 	private SQLiteDatabase db;
 
 	private Integer lastSearchedBusStopID;
@@ -58,7 +76,7 @@ public class MainActivity extends ActionBarActivity {
 		annoyingSpinner = (ProgressBar) findViewById(R.id.annoyingSpinner);
 		resultsListView = (ListView) findViewById(R.id.resultsListView);
 		myAsyncWget = new MyAsyncWget();
-		
+
 		// IME_ACTION_SEARCH keyboard option
 		busStopIDEditText
 				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -74,7 +92,7 @@ public class MainActivity extends ActionBarActivity {
 				});
 
 		// Get data in write mode
-		mDbHelper = new DBBusTo(this);
+		mDbHelper = new MyDB(this);
 		db = mDbHelper.getWritableDatabase();
 
 		// Intercept calls from other part of the apps
@@ -146,7 +164,8 @@ public class MainActivity extends ActionBarActivity {
 			}
 
 			// Try sucking arrivals
-			BusStop busStop = GTTSiteSucker.getBusStopSuckingHTML(htmlResponse);
+			BusStop busStop = GTTSiteSucker.getBusStopSuckingHTML(db,
+					htmlResponse);
 
 			// Parse errors?
 			if (busStop == null) {
@@ -163,10 +182,10 @@ public class MainActivity extends ActionBarActivity {
 			lastSearchedBusStopID = busStopID;
 
 			// Retrieve passages
-			BusLinePassages[] passagesBusLine = busStop.getPassagesBusLine();
+			BusLine[] busLines = busStop.getBusLines();
 
 			// No passages?
-			if (passagesBusLine.length == 0) {
+			if (busLines.length == 0) {
 				Toast.makeText(getApplicationContext(),
 						R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
 				stopSpinner();
@@ -188,31 +207,24 @@ public class MainActivity extends ActionBarActivity {
 					getString(R.string.passages), busStopNameDisplay));
 
 			// Insert GTTBusStop info in the DB
-			ContentValues values = new ContentValues();
-			values.put(DBBusTo.BusStop.COLUMN_NAME_BUSSTOP_ID, busStopID);
-			values.put(DBBusTo.BusStop.COLUMN_NAME_BUSSTOP_NAME, busStopName);
-			long lastInserted = db.insertWithOnConflict(
-					DBBusTo.BusStop.TABLE_NAME, null, values,
-					SQLiteDatabase.CONFLICT_IGNORE);
-			Log.d("MainActivity", "DBBusTo last BusStopID inserted: "
-					+ lastInserted);
+			MyDB.BusStop.addBusStop(db, busStopID, busStopName);
 
 			// Populate the stupid ListView SimpleAdapter
 			ArrayList<HashMap<String, Object>> entries = new ArrayList<HashMap<String, Object>>();
-			for (BusLinePassages passageBusLine : passagesBusLine) {
+			for (BusLine busLine : busLines) {
 				HashMap<String, Object> entry = new HashMap<String, Object>();
-				String passages = passageBusLine.getTimePassagesString();
+				String passages = busLine.getTimePassagesString();
 				if (passages == null) {
 					passages = getString(R.string.no_passages);
 				}
-				entry.put("icon", passageBusLine.getBusLineName());
+				entry.put("icon", busLine.getBusLineName());
 				entry.put("passages", passages);
 				entries.add(entry);
 			}
 
 			// Show results using the stupid SimpleAdapter
 			String[] from = { "icon", "passages" };
-			int[] to = { R.id.busLineIcon, R.id.busLine };
+			int[] to = { R.id.busLineIcon, R.id.busLineNames };
 			SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
 					entries, R.layout.bus_line_passage_entry, from, to);
 			resultsListView.setAdapter(adapter);
@@ -229,7 +241,7 @@ public class MainActivity extends ActionBarActivity {
 
 			// Stops annoying spinner
 			stopSpinner();
-			
+
 			// Shows Help option in the menu
 			action_help.setVisible(true);
 
@@ -254,7 +266,8 @@ public class MainActivity extends ActionBarActivity {
 	public void launchSearchAction(String busStopID) {
 		if (busStopID.isEmpty()) {
 			Toast.makeText(getApplicationContext(),
-					R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT).show();
+					R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT)
+					.show();
 		} else if (!NetworkTools.isConnected(this)) {
 			NetworkTools.showNetworkError(this);
 		} else {
@@ -269,11 +282,9 @@ public class MainActivity extends ActionBarActivity {
 	public void addInFavorites(View v) {
 		if (lastSearchedBusStopID != null) {
 			ContentValues newValues = new ContentValues();
-			newValues.put(DBBusTo.BusStop.COLUMN_NAME_BUSSTOP_ISFAVORITE, 1);
-			db.update(
-					DBBusTo.BusStop.TABLE_NAME,
-					newValues,
-					DBBusTo.somethingEqualsInt(DBBusTo.BusStop.COLUMN_NAME_BUSSTOP_ID),
+			newValues.put(MyDB.BusStop.COLUMN_NAME_BUSSTOP_ISFAVORITE, 1);
+			db.update(MyDB.BusStop.TABLE_NAME, newValues, MyDB
+					.somethingEqualsInt(MyDB.BusStop.COLUMN_NAME_BUSSTOP_ID),
 					new String[] { String.valueOf(lastSearchedBusStopID) });
 			Toast.makeText(getApplicationContext(),
 					R.string.added_in_favorites, Toast.LENGTH_SHORT).show();
@@ -285,12 +296,12 @@ public class MainActivity extends ActionBarActivity {
 	}
 
 	// Hides hint
-	public void onHideHint (View v) {
+	public void onHideHint(View v) {
 		howDoesItWork.setVisibility(View.GONE);
 		legend.setVisibility(View.GONE);
 		hideHint.setVisibility(View.GONE);
 		setThisOption("show_legend", false);
-    }
+	}
 
 	private void stopSpinner() {
 		annoyingSpinner.setVisibility(View.INVISIBLE);
@@ -301,13 +312,11 @@ public class MainActivity extends ActionBarActivity {
 	}
 
 	private void hideKeyboard() {
-		InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-
-		// Check if no view has focus
 		View view = getCurrentFocus();
 		if (view != null) {
-			inputManager.hideSoftInputFromWindow(view.getWindowToken(),
-					InputMethodManager.HIDE_NOT_ALWAYS);
+			((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE))
+					.hideSoftInputFromWindow(view.getWindowToken(),
+							InputMethodManager.HIDE_NOT_ALWAYS);
 		}
 	}
 
