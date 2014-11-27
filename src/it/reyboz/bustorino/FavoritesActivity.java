@@ -93,7 +93,7 @@ public class FavoritesActivity extends ActionBarActivity {
 				+ BusStop.TABLE_NAME
 				+ MyDB.WHERE
 				+ MyDB.somethingEqualsInt(BusStop.COLUMN_NAME_BUSSTOP_ISFAVORITE)
-				+ MyDB.ORDER_BY + BusStop.COLUMN_NAME_BUSSTOP_ID + MyDB.ASC;
+				+ MyDB.ORDER_BY + BusStop.COLUMN_NAME_BUSSTOP_NAME + MyDB.ASC;
 		Cursor cursor = db
 				.rawQuery(query, new String[] { BusStop.IS_FAVORITE });
 		while (cursor.moveToNext()) {

@@ -51,8 +51,10 @@ public class GTTSiteSucker {
 		}
 
 		public boolean isMajorThan(Time time) {
-			if (hh >= time.getHH()) {
-				return mm >= time.getHH();
+			if (hh == time.getHH()) {
+				return mm >= time.getMM();
+			} else if(hh > time.getHH() || hh == 0 && time.getHH() == 23) {
+				return true;
 			}
 			return false;
 		}
@@ -162,6 +164,13 @@ public class GTTSiteSucker {
 		public String toString() {
 			return getTimePassagesString();
 		}
+
+		public Time getFirstPassageComparableTime() {
+			if(timesPassages.size() == 0) {
+				return null;
+			}
+			return timesPassages.get(0).getComparableTime();
+		}
 	}
 
 	/**
@@ -199,6 +208,22 @@ public class GTTSiteSucker {
 
 		public BusLine[] getBusLines() {
 			return busLines;
+		}
+
+		public void orderBusLinesByFirstArrival() {
+			for(int i=0; i<busLines.length - 1; i++) {
+				for(int j=i+1; j<busLines.length; j++) {
+					BusLine a = busLines[i];
+					BusLine b = busLines[j];
+					Time aTime = a.getFirstPassageComparableTime();
+					Time bTime = b.getFirstPassageComparableTime();
+					if(aTime != null && bTime != null && aTime.isMajorThan(bTime)) {
+						BusLine tmp = a;
+						busLines[i] = b;
+						busLines[j] = tmp;
+					}
+				}
+			}
 		}
 	}
 

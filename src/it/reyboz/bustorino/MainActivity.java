@@ -176,6 +176,9 @@ public class MainActivity extends ActionBarActivity {
 				return;
 			}
 
+			// Order bus lines by first arrival time :D
+			busStop.orderBusLinesByFirstArrival();
+
 			// Remember last successfully searched busStopID
 			Integer busStopID = busStop.getBusStopID();
 			lastSearchedBusStopID = busStopID;
