@@ -34,6 +34,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.content.Intent;
@@ -54,6 +55,8 @@ public class FavoritesActivity extends ActionBarActivity {
 
 		mDbHelper = new MyDB(this);
 		db = mDbHelper.getWritableDatabase();
+
+		favoriteListView = (ListView) findViewById(R.id.favoriteListView);
 
 		createFavoriteList();
 	}
@@ -142,8 +145,6 @@ public class FavoritesActivity extends ActionBarActivity {
 		}
 		cursor.close();
 
-		favoriteListView = (ListView) findViewById(R.id.favoriteListView);
-
 		// If no data is found show a friendly message
 		if (data.isEmpty()) {
 			favoriteListView.setVisibility(View.INVISIBLE);
@@ -161,10 +162,11 @@ public class FavoritesActivity extends ActionBarActivity {
 				.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 					public void onItemClick(AdapterView<?> av, View view,
 							int i, long l) {
-						String busStopID = ((TextView) (av.getChildAt(i))
+						String busStopID = ((TextView) view
 								.findViewById(R.id.busStopID)).getText()
 								.toString();
-						Log.d("bus-torino", "bustorino tapped on busstop: "
+
+						Log.d("FavoritesActivity", "Tapped on bus stop: "
 								+ busStopID);
 
 						Intent intent = new Intent(FavoritesActivity.this,
