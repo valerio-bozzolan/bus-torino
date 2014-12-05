@@ -29,6 +29,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -56,6 +58,9 @@ public class MainActivity extends ActionBarActivity {
 	private MenuItem action_help;
 	private ProgressBar annoyingSpinner;
 	private ListView resultsListView;
+
+	private SwipeRefreshLayout swipeRefreshLayout;
+	private Handler handler = new Handler();
 
 	private MyAsyncWget myAsyncWget;
 	private MyDB mDbHelper;
@@ -94,16 +99,39 @@ public class MainActivity extends ActionBarActivity {
 		mDbHelper = new MyDB(this);
 		db = mDbHelper.getWritableDatabase();
 
+		swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
+	    // the refresh listner. this would be called when the layout is pulled down
+	    swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+	         
+	        @Override
+	        public void onRefresh() {
+	            // get the new data from you data source
+	            // TODO : request data here
+	            // our swipeRefreshLayout needs to be notified when the data is returned in order for it to stop the animation
+	            handler.post(refreshing);
+	        }
+	    });
+
 		// Intercept calls from other part of the apps
 		Bundle b = getIntent().getExtras();
 		if (b != null) {
 			String busStopID = b.getString("busStopID");
 			if (busStopID != null) {
-				launchSearchAction(busStopID);
 				busStopIDEditText.setText(busStopID);
+				launchSearchAction(busStopID);
 			}
 		}
 	}
+
+	private final Runnable refreshing = new Runnable(){
+	    public void run(){
+	        try {
+	        	launchSearchAction(lastSearchedBusStopID);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }  
+	    }
+	};
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -281,6 +309,10 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 
+	public void launchSearchAction(Integer busStopID) {
+		launchSearchAction(String.valueOf((busStopID)));
+	}
+
 	public void addInFavorites(View v) {
 		if (lastSearchedBusStopID != null) {
 			ContentValues newValues = new ContentValues();
@@ -307,6 +339,7 @@ public class MainActivity extends ActionBarActivity {
 
 	private void stopSpinner() {
 		annoyingSpinner.setVisibility(View.INVISIBLE);
+		swipeRefreshLayout.setRefreshing(false);
 	}
 
 	private void startSpinner() {

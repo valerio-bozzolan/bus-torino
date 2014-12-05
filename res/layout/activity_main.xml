@@ -111,14 +111,20 @@
         android:textSize="21sp"
         android:visibility="invisible" />
 
-    <ListView
-        android:id="@+id/resultsListView"
+        
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/legend"
-        android:visibility="invisible" >
-    </ListView>
+        android:layout_below="@+id/legend">
+	    <ListView
+	        android:id="@+id/resultsListView"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:visibility="invisible" >
+	    </ListView>
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </RelativeLayout>
