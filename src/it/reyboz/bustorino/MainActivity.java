@@ -50,23 +50,37 @@ import android.view.KeyEvent;
 
 public class MainActivity extends ActionBarActivity {
 
+	/*
+	 * Various layout elements
+	 */
 	private EditText busStopIDEditText;
 	private TextView busStopNameTextView;
-	private TextView legend;
-	private TextView howDoesItWork;
-	private Button hideHint;
-	private MenuItem action_help;
-	private ProgressBar annoyingSpinner;
+	private ProgressBar progressBar;
+	private TextView legendTextView;
+	private TextView howDoesItWorkTextView;
+	private Button hideHintButton;
+	private MenuItem actionHelpMenuItem;
 	private ListView resultsListView;
-
 	private SwipeRefreshLayout swipeRefreshLayout;
+
+	/*
+	 * @see swipeRefreshLayout
+	 */
 	private Handler handler = new Handler();
+	private final Runnable refreshing = new Runnable() {
+		public void run() {
+			launchSearchAction(String.valueOf(lastSearchedBusStopID));
+		}
+	};
+
+	/**
+	 * Last successfully searched bus stop ID
+	 */
+	private Integer lastSearchedBusStopID;
 
 	private MyAsyncWget myAsyncWget;
 	private MyDB mDbHelper;
 	private SQLiteDatabase db;
-
-	private Integer lastSearchedBusStopID;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -74,11 +88,12 @@ public class MainActivity extends ActionBarActivity {
 		setContentView(R.layout.activity_main);
 		busStopIDEditText = (EditText) findViewById(R.id.busStopIDEditText);
 		busStopNameTextView = (TextView) findViewById(R.id.busStopNameTextView);
-		legend = (TextView) findViewById(R.id.legend);
-		howDoesItWork = (TextView) findViewById(R.id.howDoesItWork);
-		hideHint = (Button) findViewById(R.id.hideHint);
-		annoyingSpinner = (ProgressBar) findViewById(R.id.annoyingSpinner);
+		progressBar = (ProgressBar) findViewById(R.id.progressBar);
+		legendTextView = (TextView) findViewById(R.id.legend);
+		howDoesItWorkTextView = (TextView) findViewById(R.id.howDoesItWork);
+		hideHintButton = (Button) findViewById(R.id.hideHint);
 		resultsListView = (ListView) findViewById(R.id.resultsListView);
+		swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
 		myAsyncWget = new MyAsyncWget();
 
 		// IME_ACTION_SEARCH keyboard option
@@ -99,20 +114,16 @@ public class MainActivity extends ActionBarActivity {
 		mDbHelper = new MyDB(this);
 		db = mDbHelper.getWritableDatabase();
 
-		swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
-	    // the refresh listner. this would be called when the layout is pulled down
-	    swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-	         
-	        @Override
-	        public void onRefresh() {
-	            // get the new data from you data source
-	            // TODO : request data here
-	            // our swipeRefreshLayout needs to be notified when the data is returned in order for it to stop the animation
-	            handler.post(refreshing);
-	        }
-	    });
+		// Called when the layout is pulled down
+		swipeRefreshLayout
+				.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+					@Override
+					public void onRefresh() {
+						handler.post(refreshing);
+					}
+				});
 
-		// Intercept calls from other part of the apps
+		// Intercept calls from other activities
 		Bundle b = getIntent().getExtras();
 		if (b != null) {
 			String busStopID = b.getString("busStopID");
@@ -123,24 +134,12 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 
-	private final Runnable refreshing = new Runnable(){
-	    public void run(){
-	        try {
-	        	launchSearchAction(lastSearchedBusStopID);
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }  
-	    }
-	};
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 
-		action_help = menu.findItem(R.id.action_help);
-
-		action_help.setVisible(false);
+		actionHelpMenuItem = menu.findItem(R.id.action_help);
 		return true;
 	}
 
@@ -150,25 +149,14 @@ public class MainActivity extends ActionBarActivity {
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		switch (item.getItemId()) {
-		/*
-		 * case R.id.action_settings: Intent intentSettings = new
-		 * Intent(MainActivity.this,AboutActivity.class);
-		 * startActivity(intentSettings); return true;
-		 */
 		case R.id.action_about:
-			Intent intentAbout = new Intent(MainActivity.this,
-					AboutActivity.class);
-			startActivity(intentAbout);
+			startActivity(new Intent(MainActivity.this, AboutActivity.class));
 			return true;
 		case R.id.action_favorites:
-			Intent intentFavorites = new Intent(MainActivity.this,
-					FavoritesActivity.class);
-			startActivity(intentFavorites);
+			startActivity(new Intent(MainActivity.this, FavoritesActivity.class));
 			return true;
 		case R.id.action_help:
-			howDoesItWork.setVisibility(View.VISIBLE);
-			legend.setVisibility(View.VISIBLE);
-			hideHint.setVisibility(View.VISIBLE);
+			showHints();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -185,12 +173,12 @@ public class MainActivity extends ActionBarActivity {
 			// Network errors?
 			if (htmlResponse == null || exceptions != null) {
 				NetworkTools.showNetworkError(MainActivity.this);
-				stopSpinner();
+				hideSpinner();
 				Log.e("MainActivity", "Network error!");
 				return;
 			}
 
-			// Try sucking arrivals
+			// Try parsing arrivals
 			BusStop busStop = GTTSiteSucker.getBusStopSuckingHTML(db,
 					htmlResponse);
 
@@ -198,7 +186,7 @@ public class MainActivity extends ActionBarActivity {
 			if (busStop == null) {
 				Toast.makeText(getApplicationContext(),
 						R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
-				stopSpinner();
+				hideSpinner();
 				Log.e("MainActivity", "Parse error! htmlResponse: "
 						+ htmlResponse);
 				return;
@@ -218,13 +206,10 @@ public class MainActivity extends ActionBarActivity {
 			if (busLines.length == 0) {
 				Toast.makeText(getApplicationContext(),
 						R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
-				stopSpinner();
+				hideSpinner();
 				Log.d("MainActivity", "No passages!");
 				return;
 			}
-
-			// Hide the keyboard before showing passages
-			hideKeyboard();
 
 			String busStopName = busStop.getBusStopName();
 			String busStopNameDisplay;
@@ -252,12 +237,29 @@ public class MainActivity extends ActionBarActivity {
 				entries.add(entry);
 			}
 
+			// Hide the keyboard before showing passages
+			hideKeyboard();
+
+			// Shows hints + bus stop name + results + enable
+			if (getOption("show_legend", true)) {
+				showHints();
+			} else {
+				hideHints();
+			}
+			busStopNameTextView.setVisibility(View.VISIBLE);
+			swipeRefreshLayout.setEnabled(true);
+			resultsListView.setVisibility(View.VISIBLE);
+
+			// Stops annoying spinner
+			hideSpinner();
+
 			// Show results using the stupid SimpleAdapter
 			String[] from = { "icon", "passages" };
 			int[] to = { R.id.busLineIcon, R.id.busLineNames };
 			SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
 					entries, R.layout.bus_line_passage_entry, from, to);
 			resultsListView.setAdapter(adapter);
+			resultsListView.invalidate();
 			resultsListView
 					.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 						public void onItemClick(AdapterView<?> av, View view,
@@ -268,29 +270,16 @@ public class MainActivity extends ActionBarActivity {
 							Log.d("MainActivity", "Tapped busLine: " + busLine);
 						}
 					});
-
-			// Stops annoying spinner
-			stopSpinner();
-
-			// Shows Help option in the menu
-			action_help.setVisible(true);
-
-			// Shows busStopName
-			busStopNameTextView.setVisibility(View.VISIBLE);
-
-			// Shows hint?
-			if (getThisOption("show_legend")) {
-				howDoesItWork.setVisibility(View.VISIBLE);
-				legend.setVisibility(View.VISIBLE);
-				hideHint.setVisibility(View.VISIBLE);
-			} else {
-				howDoesItWork.setVisibility(View.GONE);
-				legend.setVisibility(View.GONE);
-			}
-
-			// Shows results
-			resultsListView.setVisibility(View.VISIBLE);
 		}
+	}
+
+	public void onSearchClick(View v) {
+		launchSearchAction(busStopIDEditText.getText().toString());
+	}
+
+	public void onHideHint(View v) {
+		hideHints();
+		setOption("show_legend", false);
 	}
 
 	public void launchSearchAction(String busStopID) {
@@ -301,16 +290,12 @@ public class MainActivity extends ActionBarActivity {
 		} else if (!NetworkTools.isConnected(this)) {
 			NetworkTools.showNetworkError(this);
 		} else {
-			startSpinner();
+			showSpinner();
 			myAsyncWget.cancel(true);
 			myAsyncWget = new MyAsyncWget();
 			myAsyncWget.execute(GTTSiteSucker
 					.arrivalTimesByLineQuery(busStopID));
 		}
-	}
-
-	public void launchSearchAction(Integer busStopID) {
-		launchSearchAction(String.valueOf((busStopID)));
 	}
 
 	public void addInFavorites(View v) {
@@ -325,25 +310,25 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 
-	public void onSearchClick(View v) {
-		launchSearchAction(busStopIDEditText.getText().toString());
+	private void setOption(String optionName, boolean value) {
+		SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+		editor.putBoolean(optionName, value);
+		editor.commit();
 	}
 
-	// Hides hint
-	public void onHideHint(View v) {
-		howDoesItWork.setVisibility(View.GONE);
-		legend.setVisibility(View.GONE);
-		hideHint.setVisibility(View.GONE);
-		setThisOption("show_legend", false);
+	private boolean getOption(String optionName, boolean optDefault) {
+		SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+		return preferences.getBoolean(optionName, optDefault);
 	}
 
-	private void stopSpinner() {
-		annoyingSpinner.setVisibility(View.INVISIBLE);
+	private void showSpinner() {
+		swipeRefreshLayout.setRefreshing(true);
+		progressBar.setVisibility(View.VISIBLE);
+	}
+
+	private void hideSpinner() {
 		swipeRefreshLayout.setRefreshing(false);
-	}
-
-	private void startSpinner() {
-		annoyingSpinner.setVisibility(View.VISIBLE);
+		progressBar.setVisibility(View.INVISIBLE);
 	}
 
 	private void hideKeyboard() {
@@ -355,14 +340,19 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 
-	private void setThisOption(String optionName, boolean value) {
-		SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
-		editor.putBoolean(optionName, value);
-		editor.commit();
+	private void showHints() {
+		Log.d("MainActivity", "HINTS mostrati");
+		howDoesItWorkTextView.setVisibility(View.VISIBLE);
+		legendTextView.setVisibility(View.VISIBLE);
+		hideHintButton.setVisibility(View.VISIBLE);
+		actionHelpMenuItem.setVisible(false);
 	}
 
-	private boolean getThisOption(String optionName) {
-		SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-		return preferences.getBoolean(optionName, true);
+	private void hideHints() {
+		Log.d("MainActivity", "HINTS nascosti");
+		howDoesItWorkTextView.setVisibility(View.GONE);
+		legendTextView.setVisibility(View.GONE);
+		hideHintButton.setVisibility(View.GONE);
+		actionHelpMenuItem.setVisible(true);
 	}
 }

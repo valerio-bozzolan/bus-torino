@@ -41,17 +41,12 @@
         android:onClick="onSearchClick" />
 
     <ProgressBar
-        android:id="@+id/annoyingSpinner"
+        android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentStart="true"
         android:layout_below="@+id/busStopIDEditText"
-        android:clickable="true"
-        android:indeterminate="true"
+        android:indeterminateOnly="true"
         android:visibility="invisible" />
 
     <TextView
@@ -62,13 +57,13 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/annoyingSpinner"
+        android:layout_below="@+id/progressBar"
         android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:gravity="center_vertical"
         android:onClick="addInFavorites"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:visibility="invisible" />
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/howDoesItWork"
@@ -79,7 +74,7 @@
         android:text="@string/howDoesItWork"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@color/blue_500"
-        android:visibility="invisible" />
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/legend"
@@ -91,7 +86,7 @@
         android:text="@string/legend"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@color/blue_500"
-        android:visibility="invisible" />
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/hideHint"
@@ -102,29 +97,29 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_alignTop="@+id/legend"
-        android:layout_below="@+id/annoyingSpinner"
+        android:layout_below="@+id/busStopIDEditText"
         android:background="@drawable/bus_background"
         android:contentDescription="@string/search"
         android:onClick="onHideHint"
         android:text="@string/hint_button"
         android:textColor="@color/grey_100"
         android:textSize="21sp"
-        android:visibility="invisible" />
+        android:visibility="gone" />
 
-        
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/swipe_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/legend">
-	    <ListView
-	        android:id="@+id/resultsListView"
-	        android:layout_width="match_parent"
-	        android:layout_height="match_parent"
-	        android:visibility="invisible" >
-	    </ListView>
+        android:layout_below="@+id/legend" >
+
+        <ListView
+            android:id="@+id/resultsListView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" >
+        </ListView>
     </android.support.v4.widget.SwipeRefreshLayout>
 
 </RelativeLayout>

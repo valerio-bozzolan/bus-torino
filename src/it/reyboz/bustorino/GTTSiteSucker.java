@@ -38,13 +38,15 @@ public class GTTSiteSucker {
 				+ busStop;
 	}
 
-	public static String busLinesByQuery(String busLineName) throws UnsupportedEncodingException {
-			return "http://m.gtt.to.it/m/it/arrivi.jsp?n="+ URLEncoder.encode(busLineName, "UTF-8");
+	public static String busLinesByQuery(String busLineName)
+			throws UnsupportedEncodingException {
+		return "http://m.gtt.to.it/m/it/arrivi.jsp?n="
+				+ URLEncoder.encode(busLineName, "UTF-8");
 	}
 
 	/**
 	 * Helps comparing times
-	 * 
+	 *
 	 * @author boz
 	 */
 	public static class Time {
@@ -59,7 +61,7 @@ public class GTTSiteSucker {
 		public boolean isMajorThan(Time time) {
 			if (hh == time.getHH()) {
 				return mm >= time.getMM();
-			} else if(hh > time.getHH() || hh == 0 && time.getHH() == 23) {
+			} else if (hh > time.getHH() || hh == 0 && time.getHH() == 23) {
 				return true;
 			}
 			return false;
@@ -76,7 +78,7 @@ public class GTTSiteSucker {
 
 	/**
 	 * A time passage is a time with the answer of: Is this in real time?
-	 * 
+	 *
 	 * @author boz
 	 */
 	public static class TimePassage {
@@ -117,7 +119,7 @@ public class GTTSiteSucker {
 
 	/**
 	 * Passages (at a bus line) (like line numbers)
-	 * 
+	 *
 	 * @author boz
 	 */
 	public static class BusLine {
@@ -172,7 +174,7 @@ public class GTTSiteSucker {
 		}
 
 		public Time getFirstPassageComparableTime() {
-			if(timesPassages.size() == 0) {
+			if (timesPassages.size() == 0) {
 				return null;
 			}
 			return timesPassages.get(0).getComparableTime();
@@ -182,7 +184,7 @@ public class GTTSiteSucker {
 	/**
 	 * A BusStop has information on the bus stop (bus stop name) and of all the
 	 * buses that pass through it
-	 * 
+	 *
 	 * @author boz
 	 */
 	public static class BusStop {
@@ -217,13 +219,14 @@ public class GTTSiteSucker {
 		}
 
 		public void orderBusLinesByFirstArrival() {
-			for(int i=0; i<busLines.length - 1; i++) {
-				for(int j=i+1; j<busLines.length; j++) {
+			for (int i = 0; i < busLines.length - 1; i++) {
+				for (int j = i + 1; j < busLines.length; j++) {
 					BusLine a = busLines[i];
 					BusLine b = busLines[j];
 					Time aTime = a.getFirstPassageComparableTime();
 					Time bTime = b.getFirstPassageComparableTime();
-					if(aTime != null && bTime != null && aTime.isMajorThan(bTime)) {
+					if (aTime != null && bTime != null
+							&& aTime.isMajorThan(bTime)) {
 						BusLine tmp = a;
 						busLines[i] = b;
 						busLines[j] = tmp;
@@ -236,7 +239,7 @@ public class GTTSiteSucker {
 	/**
 	 * API/Workaround to get all informations from the 5T website Return a
 	 * BusStop object. BusStop.busStopName can be null.
-	 * 
+	 *
 	 * @param html
 	 * @author Valerio Bozzolan
 	 * @return BusStop
@@ -338,12 +341,13 @@ public class GTTSiteSucker {
 	/**
 	 * API/Workaround to get all informations from the 5T website Return a
 	 * BusStop object. BusStop.busStopName can be null.
-	 * 
+	 *
 	 * @param html
 	 * @author Valerio Bozzolan
 	 * @return BusStop
 	 */
-	public static BusStop[] getBusStopsSuckingHTML(SQLiteDatabase db, String html) {
+	public static BusStop[] getBusStopsSuckingHTML(SQLiteDatabase db,
+			String html) {
 		if (html == null) {
 			return null;
 		}
@@ -371,8 +375,8 @@ public class GTTSiteSucker {
 
 				// Sucking bus stop ID (e.g.: 1254)
 				Integer busStopID = null;
-				Matcher matcherStationNumber = Pattern.compile("([0-9]+)").matcher(
-						liContent);
+				Matcher matcherStationNumber = Pattern.compile("([0-9]+)")
+						.matcher(liContent);
 				if (matcherStationNumber.find()) {
 					busStopID = Integer.parseInt(matcherStationNumber.group(1));
 				}
@@ -383,8 +387,8 @@ public class GTTSiteSucker {
 
 				// Sucking bus stop name (e.g.: POZZO STRADA)
 				String busStopName = null;
-				Matcher matcherStationName = Pattern.compile("[0-9]* - (.+)<br />").matcher(
-						liContent);
+				Matcher matcherStationName = Pattern.compile(
+						"[0-9]* - (.+)<br />").matcher(liContent);
 				if (matcherStationName.find()) {
 					busStopName = matcherStationName.group(1);
 				}
@@ -392,10 +396,9 @@ public class GTTSiteSucker {
 				Log.d("GTTSiteSucker", "busStopID: " + busStopID);
 				Log.d("GTTSiteSucker", "busStopName:" + busStopName);
 
-				busStops.add(new BusStop(busStopID, busStopName,
-						null));
+				busStops.add(new BusStop(busStopID, busStopName, null));
 			}
-		} else if(title.equals("Arrivi in fermata")) {
+		} else if (title.equals("Arrivi in fermata")) {
 			return null;
 		} else {
 			return null;

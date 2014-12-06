@@ -10,7 +10,7 @@
     <string name="passages">Fermata: %1$s</string>
     <string name="lines">Linee: %1$s</string>
     <string name="no_passages">Nessun passaggio</string>
-    <string name="action_about">Info</string>
+    <string name="action_about">Informazioni</string>
     <string name="action_favorites">Preferiti</string>
     <string name="added_in_favorites">Fermata aggiunta ai preferiti</string>
     <string name="title_activity_favorites">Preferiti</string>
