@@ -50,6 +50,9 @@ import android.view.KeyEvent;
 
 public class MainActivity extends ActionBarActivity {
 
+	private final boolean DOUBLE_SPINNER = true;
+	private final boolean NORMAL_SPINNER = false;
+
 	/*
 	 * Various layout elements
 	 */
@@ -69,7 +72,7 @@ public class MainActivity extends ActionBarActivity {
 	private Handler handler = new Handler();
 	private final Runnable refreshing = new Runnable() {
 		public void run() {
-			launchSearchAction(String.valueOf(lastSearchedBusStopID));
+			runSearchTask(String.valueOf(lastSearchedBusStopID), DOUBLE_SPINNER);
 		}
 	};
 
@@ -129,7 +132,7 @@ public class MainActivity extends ActionBarActivity {
 			String busStopID = b.getString("busStopID");
 			if (busStopID != null) {
 				busStopIDEditText.setText(busStopID);
-				launchSearchAction(busStopID);
+				runSearchTask(busStopID, NORMAL_SPINNER);
 			}
 		}
 	}
@@ -274,7 +277,7 @@ public class MainActivity extends ActionBarActivity {
 	}
 
 	public void onSearchClick(View v) {
-		launchSearchAction(busStopIDEditText.getText().toString());
+		runSearchTask(busStopIDEditText.getText().toString(), NORMAL_SPINNER);
 	}
 
 	public void onHideHint(View v) {
@@ -282,7 +285,7 @@ public class MainActivity extends ActionBarActivity {
 		setOption("show_legend", false);
 	}
 
-	public void launchSearchAction(String busStopID) {
+	public void runSearchTask(String busStopID, boolean spinnerType) {
 		if (busStopID.isEmpty()) {
 			Toast.makeText(getApplicationContext(),
 					R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT)
@@ -290,7 +293,7 @@ public class MainActivity extends ActionBarActivity {
 		} else if (!NetworkTools.isConnected(this)) {
 			NetworkTools.showNetworkError(this);
 		} else {
-			showSpinner();
+			showSpinner(spinnerType);
 			myAsyncWget.cancel(true);
 			myAsyncWget = new MyAsyncWget();
 			myAsyncWget.execute(GTTSiteSucker
@@ -321,8 +324,10 @@ public class MainActivity extends ActionBarActivity {
 		return preferences.getBoolean(optionName, optDefault);
 	}
 
-	private void showSpinner() {
-		swipeRefreshLayout.setRefreshing(true);
+	private void showSpinner(boolean swipeSpinner) {
+		if(swipeSpinner == DOUBLE_SPINNER) {
+			swipeRefreshLayout.setRefreshing(true);
+		}
 		progressBar.setVisibility(View.VISIBLE);
 	}
 
@@ -341,7 +346,6 @@ public class MainActivity extends ActionBarActivity {
 	}
 
 	private void showHints() {
-		Log.d("MainActivity", "HINTS mostrati");
 		howDoesItWorkTextView.setVisibility(View.VISIBLE);
 		legendTextView.setVisibility(View.VISIBLE);
 		hideHintButton.setVisibility(View.VISIBLE);
@@ -349,7 +353,6 @@ public class MainActivity extends ActionBarActivity {
 	}
 
 	private void hideHints() {
-		Log.d("MainActivity", "HINTS nascosti");
 		howDoesItWorkTextView.setVisibility(View.GONE);
 		legendTextView.setVisibility(View.GONE);
 		hideHintButton.setVisibility(View.GONE);
