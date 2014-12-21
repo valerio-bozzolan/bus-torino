@@ -46,6 +46,7 @@ import android.widget.ProgressBar;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 import android.view.KeyEvent;
 
 public class MainActivity extends ActionBarActivity {
@@ -57,6 +58,7 @@ public class MainActivity extends ActionBarActivity {
 	 * Various layout elements
 	 */
 	private EditText busStopIDEditText;
+	private EditText busStopIDEditText_char;
 	private TextView busStopNameTextView;
 	private ProgressBar progressBar;
 	private TextView legendTextView;
@@ -90,6 +92,7 @@ public class MainActivity extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		busStopIDEditText = (EditText) findViewById(R.id.busStopIDEditText);
+		busStopIDEditText_char = (EditText) findViewById(R.id.busStopIDEditText_char);
 		busStopNameTextView = (TextView) findViewById(R.id.busStopNameTextView);
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
 		legendTextView = (TextView) findViewById(R.id.legend);
@@ -99,6 +102,8 @@ public class MainActivity extends ActionBarActivity {
 		swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
 		myAsyncWget = new MyAsyncWget();
 
+		showKeyboard();
+		
 		// IME_ACTION_SEARCH keyboard option
 		busStopIDEditText
 				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -125,7 +130,7 @@ public class MainActivity extends ActionBarActivity {
 						handler.post(refreshing);
 					}
 				});
-
+		swipeRefreshLayout.setColorScheme(R.color.blue_500, R.color.orange_500);
 		// Intercept calls from other activities
 		Bundle b = getIntent().getExtras();
 		if (b != null) {
@@ -251,6 +256,7 @@ public class MainActivity extends ActionBarActivity {
 			}
 			busStopNameTextView.setVisibility(View.VISIBLE);
 			swipeRefreshLayout.setEnabled(true);
+			swipeRefreshLayout.setVisibility(View.VISIBLE);
 			resultsListView.setVisibility(View.VISIBLE);
 
 			// Stops annoying spinner
@@ -344,7 +350,31 @@ public class MainActivity extends ActionBarActivity {
 							InputMethodManager.HIDE_NOT_ALWAYS);
 		}
 	}
+	
+	private void showKeyboard() {
+        InputMethodManager imm = (InputMethodManager)
+                getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(busStopIDEditText_char, InputMethodManager.SHOW_IMPLICIT);
+	}
 
+	// Changes keyboard and EditText when toggle is pressed
+	public void onChangeKeyboard(View v) {
+	    // Is the toggle set to name of the bus stop?
+	    if (((ToggleButton) v).isChecked()) {
+	    	// change the edittext and the keyboard to char
+	    	busStopIDEditText.setVisibility(View.GONE);
+	    	busStopIDEditText_char.setVisibility(View.VISIBLE);
+			if (busStopIDEditText_char.requestFocus()) {
+				showKeyboard();
+		    }
+	    } else {
+			showKeyboard();
+	    	busStopIDEditText.setVisibility(View.VISIBLE);
+	    	busStopIDEditText_char.setVisibility(View.GONE);
+	    }
+	    
+	}
+	
 	private void showHints() {
 		howDoesItWorkTextView.setVisibility(View.VISIBLE);
 		legendTextView.setVisibility(View.VISIBLE);

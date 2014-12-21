@@ -6,6 +6,7 @@
     <string name="search">Search</string>
     <string name="insert_bus_stop_number">Bus stop number</string>
     <string name="insert_bus_stop_number_error">Insert bus stop number</string>
+    <string name="insert_bus_stop_name">Bus stop name</string>
     <string name="network_error">Verify the state of your Internet connection!</string>
     <string name="no_arrival_times">No bus is supposed to arrive at this stop :(</string>
     <string name="passages">Arrivals at: %1$s</string>

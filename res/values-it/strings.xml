@@ -5,6 +5,7 @@
     <string name="search">Cerca</string>
     <string name="insert_bus_stop_number">Numero fermata</string>
     <string name="insert_bus_stop_number_error">Inserisci il numero della fermata</string>
+    <string name="insert_bus_stop_name">Nome fermate</string>
     <string name="network_error">Verifica l\'accesso ad Internet!</string>
     <string name="no_arrival_times">Nessun arrivo previsto per questa fermata :(</string>
     <string name="passages">Fermata: %1$s</string>

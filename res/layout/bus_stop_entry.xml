@@ -1,39 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="80dip"
-    android:padding="5dip" >
+    android:layout_height="85dip" >
 
     <TextView
         android:id="@+id/busStopName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/busLineNames"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/busStopID"
+        android:layout_marginLeft="16sp"
+        android:layout_marginRight="16sp"
         android:gravity="center_vertical"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@+id/busStopID"
+        android:layout_alignTop="@id/busStopID"
         android:text="Bus Stop Name"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/blue_500" >
-    </TextView>
-
+        android:textColor="@color/blue_500" />
+    
+    <TextView
+        android:id="@+id/vehicleIcon"
+        android:layout_width="20dip"
+        android:layout_height="20dip"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/bus"
+        android:gravity="center"
+        android:layout_below="@+id/busStopName"
+        android:layout_alignLeft="@id/busStopName"
+        android:layout_marginTop="1sp" />
+    
     <TextView
         android:id="@+id/busLineNames"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/busStopID"
-        android:layout_alignLeft="@+id/busStopName"
+        android:layout_marginTop="3sp"
+        android:layout_marginLeft="2sp"
+        android:layout_marginRight="16sp"
+        android:layout_below="@+id/busStopName"
         android:layout_toLeftOf="@+id/busStopID"
         android:gravity="center_vertical"
         android:text="Bus Line Names"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="@color/blue_500" />
+        android:textColor="@color/blue_700"
+        android:layout_toRightOf="@+id/vehicleIcon"/>
 
     <TextView
         android:id="@+id/busStopID"
         android:layout_width="70dip"
         android:layout_height="70dip"
+        android:layout_marginRight="16sp"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:background="@drawable/bus_stop_background"
