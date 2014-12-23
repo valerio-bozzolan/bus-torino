@@ -61,7 +61,6 @@ public class MainActivity extends ActionBarActivity {
 	private EditText busStopIDEditText_char;
 	private TextView busStopNameTextView;
 	private ProgressBar progressBar;
-	private TextView legendTextView;
 	private TextView howDoesItWorkTextView;
 	private Button hideHintButton;
 	private MenuItem actionHelpMenuItem;
@@ -95,7 +94,6 @@ public class MainActivity extends ActionBarActivity {
 		busStopIDEditText_char = (EditText) findViewById(R.id.busStopIDEditText_char);
 		busStopNameTextView = (TextView) findViewById(R.id.busStopNameTextView);
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
-		legendTextView = (TextView) findViewById(R.id.legend);
 		howDoesItWorkTextView = (TextView) findViewById(R.id.howDoesItWork);
 		hideHintButton = (Button) findViewById(R.id.hideHint);
 		resultsListView = (ListView) findViewById(R.id.resultsListView);
@@ -259,7 +257,7 @@ public class MainActivity extends ActionBarActivity {
 			swipeRefreshLayout.setVisibility(View.VISIBLE);
 			resultsListView.setVisibility(View.VISIBLE);
 
-			// Stops annoying spinner
+			// Stops spinner
 			hideSpinner();
 
 			// Show results using the stupid SimpleAdapter
@@ -377,14 +375,12 @@ public class MainActivity extends ActionBarActivity {
 	
 	private void showHints() {
 		howDoesItWorkTextView.setVisibility(View.VISIBLE);
-		legendTextView.setVisibility(View.VISIBLE);
 		hideHintButton.setVisibility(View.VISIBLE);
 		actionHelpMenuItem.setVisible(false);
 	}
 
 	private void hideHints() {
 		howDoesItWorkTextView.setVisibility(View.GONE);
-		legendTextView.setVisibility(View.GONE);
 		hideHintButton.setVisibility(View.GONE);
 		actionHelpMenuItem.setVisible(true);
 	}

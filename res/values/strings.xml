@@ -8,7 +8,7 @@
     <string name="insert_bus_stop_number_error">Insert bus stop number</string>
     <string name="insert_bus_stop_name">Bus stop name</string>
     <string name="network_error">Verify the state of your Internet connection!</string>
-    <string name="no_arrival_times">No bus is supposed to arrive at this stop :(</string>
+    <string name="no_arrival_times">No bus is supposed to arrive at this stop</string>
     <string name="passages">Arrivals at: %1$s</string>
     <string name="lines">Lines: %1$s</string>
     <string name="no_passages">No passages</string>
@@ -16,11 +16,10 @@
     <string name="action_favorites">Favorites</string>
     <string name="added_in_favorites">Bus stop is now in your favorites</string>
     <string name="title_activity_favorites">Favorites</string>
-    <string name="tip_add_favorite">Press on a bus stop name to populate this list :)</string>
+    <string name="tip_add_favorite">Press on a bus stop name to populate this list</string>
     <string name="action_remove_from_favourites">Delete</string>
     <string name="about">About</string>
-    <string name="legend">How to read timelines:\n<b>12:56*</b> Real time arrival \n<b>12:56</b> &#160; Scheduled time of arrival</string>
-    <string name="howDoesItWork"><b>How does it work?</b>\nThis app will show you the timetable of the buses using the information published on the site <b>http://www.5t.torino.it</b>.</string>
+    <string name="howDoesItWork">- <b>Press on the bus stop name</b> above to add it to the favourites.\n- <b>How to read timelines:</b>\n<b>&#160;&#160;&#160;12:56*</b> Real time arrival\n<b>&#160;&#160;&#160;12:56</b> &#160; Scheduled time of arrival\n- <b>Pull down to refresh</b> the timetable.</string>
     <string name="hint_button">GOT IT!</string>
     <string name="action_help">Help</string>
     <string name="about_history">
@@ -38,7 +37,7 @@
         </p>
 
         <h2>How does it work?</h2>
-        <p>This app will show you the timetable of the buses using the information published on the site <i>http://www.5t.torino.it</i>.</p>
+        <p>This app will show you the timetable of the buses using the information published on the site <b>http://www.5t.torino.it</b>.</p>
 
 		<p>Who worked on BusTO:<br>
 		- <b>Valerio Bozzolan</b>, the main developer.<br>
