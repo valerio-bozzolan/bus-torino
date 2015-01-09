@@ -29,6 +29,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import android.database.sqlite.SQLiteDatabase;
+import android.text.SpanWatcher;
 import android.util.Log;
 
 public class GTTSiteSucker {
@@ -46,7 +47,7 @@ public class GTTSiteSucker {
 
 	/**
 	 * Helps comparing times
-	 *
+	 * 
 	 * @author boz
 	 */
 	public static class Time {
@@ -78,7 +79,7 @@ public class GTTSiteSucker {
 
 	/**
 	 * A time passage is a time with the answer of: Is this in real time?
-	 *
+	 * 
 	 * @author boz
 	 */
 	public static class TimePassage {
@@ -119,7 +120,7 @@ public class GTTSiteSucker {
 
 	/**
 	 * Passages (at a bus line) (like line numbers)
-	 *
+	 * 
 	 * @author boz
 	 */
 	public static class BusLine {
@@ -131,6 +132,19 @@ public class GTTSiteSucker {
 
 		public BusLine() {
 			timesPassages = new ArrayList<TimePassage>();
+		}
+
+		public BusLine(int busLineID) {
+			this.busLineID = busLineID;
+		}
+
+		public BusLine(String busLineName) {
+			this.busLineName = busLineName;
+		}
+
+		public BusLine(int busLineID, String busLineName) {
+			this.busLineID = busLineID;
+			this.busLineName = busLineName;
 		}
 
 		public void addTimePassage(String time, boolean isInRealTime) {
@@ -184,7 +198,7 @@ public class GTTSiteSucker {
 	/**
 	 * A BusStop has information on the bus stop (bus stop name) and of all the
 	 * buses that pass through it
-	 *
+	 * 
 	 * @author boz
 	 */
 	public static class BusStop {
@@ -239,7 +253,7 @@ public class GTTSiteSucker {
 	/**
 	 * API/Workaround to get all informations from the 5T website Return a
 	 * BusStop object. BusStop.busStopName can be null.
-	 *
+	 * 
 	 * @param html
 	 * @author Valerio Bozzolan
 	 * @return BusStop
@@ -341,7 +355,7 @@ public class GTTSiteSucker {
 	/**
 	 * API/Workaround to get all informations from the 5T website Return a
 	 * BusStop object. BusStop.busStopName can be null.
-	 *
+	 * 
 	 * @param html
 	 * @author Valerio Bozzolan
 	 * @return BusStop
@@ -354,35 +368,37 @@ public class GTTSiteSucker {
 
 		ArrayList<BusStop> busStops = new ArrayList<BusStop>();
 		Document doc = Jsoup.parse(html);
-
 		String title = doc.title();
+
 		if (title.equals("&nbsp;Elenco fermate")) {
+
 			// Find bus stops
+
 			Elements lis = doc.getElementsByTag("li");
 			for (Element li : lis) {
 				String liContent = li.html();
 				if (liContent.isEmpty()) {
 					continue;
 				}
-				Element a;
-				String href;
-				try {
-					a = li.getElementsByTag("a").first();
-					href = a.attr("href");
-				} catch (NullPointerException e) {
-					continue;
-				}
 
 				// Sucking bus stop ID (e.g.: 1254)
+				String href;
+				try {
+					href = li.getElementsByTag("a").first().attr("href");
+				} catch (NullPointerException e) {
+					Log.e("GTTSiteSucker",
+							"Parse error: busStopID can't be found!");
+					continue;
+				}
 				Integer busStopID = null;
-				Matcher matcherStationNumber = Pattern.compile("([0-9]+)")
-						.matcher(liContent);
-				if (matcherStationNumber.find()) {
-					busStopID = Integer.parseInt(matcherStationNumber.group(1));
+				Matcher matcherBusStopID = Pattern.compile("([0-9]+)").matcher(
+						href); // arrivi.jsp?n=1254
+				if (matcherBusStopID.find()) {
+					busStopID = Integer.parseInt(matcherBusStopID.group(1));
 				}
 				if (busStopID == null) {
 					Log.e("GTTSiteSucker", "Parse error: busStopID is null!");
-					return null;
+					continue;
 				}
 
 				// Sucking bus stop name (e.g.: POZZO STRADA)
@@ -392,13 +408,42 @@ public class GTTSiteSucker {
 				if (matcherStationName.find()) {
 					busStopName = matcherStationName.group(1);
 				}
+				if(busStopName == null) {
+					Log.e("GTTSiteSucker", "Parse error: busStopName is null!");
+					continue;
+				}
+
+				// Sucking bus line names
+				ArrayList<BusLine> busLines = new ArrayList<BusLine>();
+				Element span = null;
+				try {
+					span = li.getElementsByTag("span").first();
+				} catch (NullPointerException e) {
+					Log.d("GTTSiteSucker", "Can't retrieve span element");
+					continue;
+				}
+				String spanContent;
+				Matcher matcherSpan = Pattern.compile("Linee: (.+)").matcher(
+						span.html());
+				if (matcherSpan.find()) {
+					spanContent = matcherSpan.group(1);
+					String[] busLineNames = spanContent.split(", ");
+					for (int i = 0; i < busLineNames.length; i++) {
+						busLines.add(new BusLine(busLineNames[i]));
+					}
+				}
 
 				Log.d("GTTSiteSucker", "busStopID: " + busStopID);
 				Log.d("GTTSiteSucker", "busStopName:" + busStopName);
+				Log.d("GTTSiteSucker", "span: " + span.html());
 
-				busStops.add(new BusStop(busStopID, busStopName, null));
+				busStops.add(new BusStop(busStopID, busStopName, busLines
+						.toArray((new BusLine[] {}))));
 			}
 		} else if (title.equals("Arrivi in fermata")) {
+
+			// Find bus lines
+
 			return null;
 		} else {
 			return null;
