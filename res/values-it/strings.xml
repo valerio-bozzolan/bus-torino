@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+
     <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string>
     <string name="search">Cerca</string>
     <string name="insert_bus_stop_number">Numero fermata</string>
+    <string name="insert_bus_stop_name">Nome fermata</string>
     <string name="insert_bus_stop_number_error">Inserisci il numero della fermata</string>
+    <string name="encoding_error">Alcuni caratteri non possono essere riconosciuti</string>
     <string name="network_error">Verifica l\'accesso ad Internet!</string>
-    <string name="no_arrival_times">Nessun arrivo previsto per questa fermata :(</string>
+    <string name="no_arrival_times">Nessun arrivo previsto per questa fermata</string>
     <string name="passages">Fermata: %1$s</string>
     <string name="lines">Linee: %1$s</string>
     <string name="no_passages">Nessun passaggio</string>
@@ -14,12 +17,11 @@
     <string name="action_favorites">Preferiti</string>
     <string name="added_in_favorites">Fermata aggiunta ai preferiti</string>
     <string name="title_activity_favorites">Preferiti</string>
-    <string name="tip_add_favorite">Premi sul nome di una fermata per inserirla in questa lista :)</string>
+    <string name="tip_add_favorite">Premi sul nome di una fermata per inserirla in questa lista</string>
     <string name="action_remove_from_favourites">Rimuovi</string>
     <string name="about">Informazioni</string>
-    <string name="legend">Come leggere gli orari:\n<b>00:00*</b> Orario in tempo reale \n<b>00:00</b> &#160; Orario programmato</string>
-    <string name="howDoesItWork"><b>Ottimo!</b>\nHai appena ottenuto i passaggi dei bus in tempo reale grazie ai dati forniti sul sito <em>www.5t.torino.it</em>.</string>
-    <string name="hint_button">OK!</string>
+    <string name="howDoesItWork">- <b>Premi sul nome della fermata</b> per aggiungerla ai preferiti.\n- <b>Come leggere gli orari:</b>\n<b>&#160;&#160;&#160;12:56*</b> Orario in tempo reale\n<b>&#160;&#160;&#160;12:56</b> &#160; Orario programmato\n- <b>Trascina giù per aggiornare</b> l\'orario.</string>
+    <string name="hint_button">OK !</string>
     <string name="action_help">Aiuto</string>
     <string name="about_history">
 <![CDATA[

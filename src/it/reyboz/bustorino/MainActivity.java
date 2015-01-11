@@ -17,6 +17,7 @@
  */
 package it.reyboz.bustorino;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -41,11 +42,12 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 import android.view.KeyEvent;
 
 public class MainActivity extends ActionBarActivity {
@@ -56,15 +58,17 @@ public class MainActivity extends ActionBarActivity {
 	/*
 	 * Various layout elements
 	 */
-	private EditText busStopIDEditText;
+	private EditText busStopSearchByIDEditText;
+	private EditText busStopSearchByNameEditText;
 	private TextView busStopNameTextView;
 	private ProgressBar progressBar;
-	private TextView legendTextView;
 	private TextView howDoesItWorkTextView;
 	private Button hideHintButton;
 	private MenuItem actionHelpMenuItem;
-	private ListView resultsListView;
+	private it.reyboz.bustorino.MyListView resultsListView;
 	private SwipeRefreshLayout swipeRefreshLayout;
+	private ToggleButton floatingButton;
+	private ImageView floatingButtonShadow;
 
 	/*
 	 * @see swipeRefreshLayout
@@ -81,6 +85,14 @@ public class MainActivity extends ActionBarActivity {
 	 */
 	private Integer lastSearchedBusStopID;
 
+	private final boolean SEARCH_BY_ID = true;
+	private final boolean SEARCH_BY_NAME = false;
+	private boolean searchMode;
+
+	private final boolean SCROLL_UP = true;
+	private final boolean SCROLL_DOWN = false;
+	private boolean lastScroll = SCROLL_UP; // Workaround :)
+
 	private MyAsyncWget myAsyncWget;
 	private MyDB mDbHelper;
 	private SQLiteDatabase db;
@@ -89,18 +101,20 @@ public class MainActivity extends ActionBarActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		busStopIDEditText = (EditText) findViewById(R.id.busStopIDEditText);
+		busStopSearchByIDEditText = (EditText) findViewById(R.id.busStopSearchByIDEditText);
+		busStopSearchByNameEditText = (EditText) findViewById(R.id.busStopSearchByNameEditText);
 		busStopNameTextView = (TextView) findViewById(R.id.busStopNameTextView);
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
-		legendTextView = (TextView) findViewById(R.id.legend);
-		howDoesItWorkTextView = (TextView) findViewById(R.id.howDoesItWork);
-		hideHintButton = (Button) findViewById(R.id.hideHint);
-		resultsListView = (ListView) findViewById(R.id.resultsListView);
-		swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
+		howDoesItWorkTextView = (TextView) findViewById(R.id.howDoesItWorkTextView);
+		hideHintButton = (Button) findViewById(R.id.hideHintButton);
+		resultsListView = (it.reyboz.bustorino.MyListView) findViewById(R.id.resultsListView);
+		swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+		floatingButton = (ToggleButton) findViewById(R.id.floatingButton);
+		floatingButtonShadow = (ImageView) findViewById(R.id.floatingButtonShadow);
 		myAsyncWget = new MyAsyncWget();
 
 		// IME_ACTION_SEARCH keyboard option
-		busStopIDEditText
+		busStopSearchByIDEditText
 				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 					@Override
 					public boolean onEditorAction(TextView v, int actionId,
@@ -113,7 +127,21 @@ public class MainActivity extends ActionBarActivity {
 					}
 				});
 
-		// Get data in write mode
+		// IME_ACTION_SEARCH keyboard option
+		busStopSearchByNameEditText
+				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+					@Override
+					public boolean onEditorAction(TextView v, int actionId,
+							KeyEvent event) {
+						if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+							onSearchClick(v);
+							return true;
+						}
+						return false;
+					}
+				});
+
+		// Get database in write mode
 		mDbHelper = new MyDB(this);
 		db = mDbHelper.getWritableDatabase();
 
@@ -125,15 +153,35 @@ public class MainActivity extends ActionBarActivity {
 						handler.post(refreshing);
 					}
 				});
+		// @TODO @DEPRECATED swipeRefreshLayout.setColorScheme(R.color.blue_500,
+		// R.color.orange_500);
+
+		resultsListView.setOnDetectScrollListener(new OnDetectScrollListener() {
+		    @Override
+		    public void onUpScrolling() {
+		    	animateFloatingButton(SCROLL_UP);
+		    	lastScroll = SCROLL_UP;
+		    }
+
+		    @Override
+		    public void onDownScrolling() {
+		    	animateFloatingButton(SCROLL_DOWN);
+		    	lastScroll = SCROLL_DOWN;
+		    }
+		});
+
+		setSearchModeBusStopID();
 
 		// Intercept calls from other activities
 		Bundle b = getIntent().getExtras();
 		if (b != null) {
 			String busStopID = b.getString("busStopID");
 			if (busStopID != null) {
-				busStopIDEditText.setText(busStopID);
+				busStopSearchByIDEditText.setText(busStopID);
 				runSearchTask(busStopID, NORMAL_SPINNER);
 			}
+		} else {
+			showKeyboard();
 		}
 	}
 
@@ -182,102 +230,163 @@ public class MainActivity extends ActionBarActivity {
 			}
 
 			// Try parsing arrivals
-			BusStop busStop = GTTSiteSucker.getBusStopSuckingHTML(db,
+			BusStop[] busStops = GTTSiteSucker.getBusStopsSuckingHTML(db,
 					htmlResponse);
 
 			// Parse errors?
-			if (busStop == null) {
+			if (busStops == null || busStops.length == 0) {
 				Toast.makeText(getApplicationContext(),
 						R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
 				hideSpinner();
 				Log.e("MainActivity", "Parse error! htmlResponse: "
 						+ htmlResponse);
-				return;
-			}
+			} else if(busStops.length == 1) {
+				// There is only one bus stop to show
+				BusStop busStop = busStops[0];
 
-			// Order bus lines by first arrival time :D
-			busStop.orderBusLinesByFirstArrival();
-
-			// Remember last successfully searched busStopID
-			Integer busStopID = busStop.getBusStopID();
-			lastSearchedBusStopID = busStopID;
-
-			// Retrieve passages
-			BusLine[] busLines = busStop.getBusLines();
-
-			// No passages?
-			if (busLines.length == 0) {
-				Toast.makeText(getApplicationContext(),
-						R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
-				hideSpinner();
-				Log.d("MainActivity", "No passages!");
-				return;
-			}
-
-			String busStopName = busStop.getBusStopName();
-			String busStopNameDisplay;
-			if (busStopName == null) {
-				busStopNameDisplay = String.valueOf(busStopID);
-			} else {
-				busStopNameDisplay = busStopName;
-			}
-			busStopNameTextView.setText(String.format(
-					getString(R.string.passages), busStopNameDisplay));
-
-			// Insert GTTBusStop info in the DB
-			MyDB.BusStop.addBusStop(db, busStopID, busStopName);
-
-			// Populate the stupid ListView SimpleAdapter
-			ArrayList<HashMap<String, Object>> entries = new ArrayList<HashMap<String, Object>>();
-			for (BusLine busLine : busLines) {
-				HashMap<String, Object> entry = new HashMap<String, Object>();
-				String passages = busLine.getTimePassagesString();
-				if (passages == null) {
-					passages = getString(R.string.no_passages);
+				// Order bus lines by first arrival time :D
+				busStop.orderBusLinesByFirstArrival();
+	
+				// Remember as last successfully searched busStopID
+				Integer busStopID = busStop.getBusStopID();
+				lastSearchedBusStopID = busStopID;
+	
+				// Retrieve passages
+				BusLine[] busLines = busStop.getBusLines();
+	
+				// No passages?
+				if (busLines.length == 0) {
+					Toast.makeText(getApplicationContext(),
+							R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
+					hideSpinner();
+					Log.d("MainActivity", "No passages!");
+					return;
 				}
-				entry.put("icon", busLine.getBusLineName());
-				entry.put("passages", passages);
-				entries.add(entry);
-			}
-
-			// Hide the keyboard before showing passages
-			hideKeyboard();
-
-			// Shows hints + bus stop name + results + enable
-			if (getOption("show_legend", true)) {
-				showHints();
+	
+				String busStopName = busStop.getBusStopName();
+				String busStopNameDisplay;
+				if (busStopName == null) {
+					busStopNameDisplay = String.valueOf(busStopID);
+				} else {
+					busStopNameDisplay = busStopName;
+				}
+				busStopNameTextView.setText(String.format(
+						getString(R.string.passages), busStopNameDisplay));
+	
+				// Insert GTTBusStop info in the DB
+				MyDB.BusStop.addBusStop(db, busStopID, busStopName);
+	
+				// Populate the stupid ListView SimpleAdapter
+				ArrayList<HashMap<String, Object>> entries = new ArrayList<HashMap<String, Object>>();
+				for (BusLine busLine : busLines) {
+					HashMap<String, Object> entry = new HashMap<String, Object>();
+					String passages = busLine.getTimePassagesString();
+					if (passages == null) {
+						passages = getString(R.string.no_passages);
+					}
+					entry.put("icon", busLine.getBusLineName());
+					entry.put("passages", passages);
+					entries.add(entry);
+				}
+	
+				// Hide the keyboard before showing passages
+				hideKeyboard();
+	
+				// Shows hints + bus stop name + results + enable
+				if (getOption("show_legend", true)) {
+					showHints();
+				} else {
+					hideHints();
+				}
+				busStopNameTextView.setVisibility(View.VISIBLE);
+				swipeRefreshLayout.setEnabled(true);
+				swipeRefreshLayout.setVisibility(View.VISIBLE);
+				resultsListView.setVisibility(View.VISIBLE);
+	
+				// Stops spinner
+				hideSpinner();
+	
+				// Show results using the stupid SimpleAdapter
+				String[] from = { "icon", "passages" };
+				int[] to = { R.id.busLineIcon, R.id.busLineNames };
+				SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
+						entries, R.layout.bus_line_passage_entry, from, to);
+				resultsListView.setAdapter(adapter);
+				resultsListView.invalidate();
+				resultsListView
+						.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+							public void onItemClick(AdapterView<?> av, View view,
+									int i, long l) {
+								String busLine = ((TextView) av.getChildAt(i)
+										.findViewById(R.id.busLineIcon)).getText()
+										.toString();
+								Log.d("MainActivity", "Tapped busLine: " + busLine);
+							}
+						});
 			} else {
-				hideHints();
+				// Show a list of bus stops
+
+				// Populate the stupid ListView SimpleAdapter
+				ArrayList<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
+				for(int i=0; i<busStops.length; i++) {
+					HashMap<String, Object> singleEntry = new HashMap<String, Object>();
+
+					int busStopID = busStops[i].getBusStopID();
+					String busStopName = busStops[i].getBusStopName();
+					String busLineNames = busStops[i].toString();
+
+					singleEntry.put("bus-stop-ID", busStopID);
+					singleEntry.put("bus-stop-name", busStopName);
+					singleEntry.put("bus-line-names", String.format(getResources()
+							.getString(R.string.lines), "\n" + busLineNames));
+					data.add(singleEntry);
+				}
+
+				// Hide the keyboard before showing bus stops
+				hideKeyboard();
+
+				busStopNameTextView.setVisibility(View.GONE);
+				swipeRefreshLayout.setEnabled(true);
+				swipeRefreshLayout.setVisibility(View.VISIBLE);
+				resultsListView.setVisibility(View.VISIBLE);
+
+				// Stops spinner
+				hideSpinner();
+
+				// Show results
+				String[] from = { "bus-stop-ID", "bus-stop-name", "bus-line-names" };
+				int[] to = { R.id.busStopID, R.id.busStopName, R.id.busLineNames };
+				SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
+						data, R.layout.bus_stop_entry, from, to);
+				resultsListView.setAdapter(adapter);
+				resultsListView
+						.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+							public void onItemClick(AdapterView<?> av, View view,
+									int i, long l) {
+								String busStopID = ((TextView) view
+										.findViewById(R.id.busStopID)).getText()
+										.toString();
+
+								Log.d("FavoritesActivity", "Tapped on bus stop: "
+										+ busStopID);
+
+								setSearchModeBusStopID();
+								busStopSearchByIDEditText.setText(busStopID);
+								runSearchTask(busStopID, NORMAL_SPINNER);
+							}
+						});
 			}
-			busStopNameTextView.setVisibility(View.VISIBLE);
-			swipeRefreshLayout.setEnabled(true);
-			resultsListView.setVisibility(View.VISIBLE);
-
-			// Stops annoying spinner
-			hideSpinner();
-
-			// Show results using the stupid SimpleAdapter
-			String[] from = { "icon", "passages" };
-			int[] to = { R.id.busLineIcon, R.id.busLineNames };
-			SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
-					entries, R.layout.bus_line_passage_entry, from, to);
-			resultsListView.setAdapter(adapter);
-			resultsListView.invalidate();
-			resultsListView
-					.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-						public void onItemClick(AdapterView<?> av, View view,
-								int i, long l) {
-							String busLine = ((TextView) av.getChildAt(i)
-									.findViewById(R.id.busLineIcon)).getText()
-									.toString();
-							Log.d("MainActivity", "Tapped busLine: " + busLine);
-						}
-					});
 		}
 	}
 
 	public void onSearchClick(View v) {
-		runSearchTask(busStopIDEditText.getText().toString(), NORMAL_SPINNER);
+		String query;
+		if (searchMode == SEARCH_BY_ID) {
+			query = busStopSearchByIDEditText.getText().toString();
+		} else {
+			query = busStopSearchByNameEditText.getText().toString();		
+		}
+		runSearchTask(query, NORMAL_SPINNER);
 	}
 
 	public void onHideHint(View v) {
@@ -285,19 +394,26 @@ public class MainActivity extends ActionBarActivity {
 		setOption("show_legend", false);
 	}
 
-	public void runSearchTask(String busStopID, boolean spinnerType) {
-		if (busStopID.isEmpty()) {
+	public void runSearchTask(String busStopQuery, boolean spinnerType) {
+		if (busStopQuery.isEmpty()) {
 			Toast.makeText(getApplicationContext(),
 					R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT)
 					.show();
+			return;
 		} else if (!NetworkTools.isConnected(this)) {
 			NetworkTools.showNetworkError(this);
+			return;
 		} else {
 			showSpinner(spinnerType);
 			myAsyncWget.cancel(true);
 			myAsyncWget = new MyAsyncWget();
-			myAsyncWget.execute(GTTSiteSucker
-					.arrivalTimesByLineQuery(busStopID));
+			try {
+				myAsyncWget.execute(GTTSiteSucker
+					.busLinesByQuery(busStopQuery));
+			} catch (UnsupportedEncodingException e) {
+				Toast.makeText(getApplicationContext(),
+						R.string.encoding_error, Toast.LENGTH_SHORT).show();
+			}
 		}
 	}
 
@@ -324,16 +440,10 @@ public class MainActivity extends ActionBarActivity {
 		return preferences.getBoolean(optionName, optDefault);
 	}
 
-	private void showSpinner(boolean swipeSpinner) {
-		if(swipeSpinner == DOUBLE_SPINNER) {
-			swipeRefreshLayout.setRefreshing(true);
-		}
-		progressBar.setVisibility(View.VISIBLE);
-	}
-
-	private void hideSpinner() {
-		swipeRefreshLayout.setRefreshing(false);
-		progressBar.setVisibility(View.INVISIBLE);
+	private void showKeyboard() {
+		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		imm.showSoftInput(busStopSearchByNameEditText,
+				InputMethodManager.SHOW_IMPLICIT);
 	}
 
 	private void hideKeyboard() {
@@ -345,17 +455,63 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 
+	// Changes keyboard and EditText when toggle is pressed
+	public void onChangeKeyboard(View v) {
+		if (((ToggleButton) v).isChecked()) {
+			// Change the editText and the keyboard to char
+			setSearchModeBusStopName();
+			if (busStopSearchByNameEditText.requestFocus()) {
+				showKeyboard();
+			}
+		} else {
+			showKeyboard();
+			setSearchModeBusStopID();
+		}
+	}
+
+	private void setSearchModeBusStopID() {
+		searchMode = SEARCH_BY_ID;
+		busStopSearchByNameEditText.setVisibility(View.GONE);
+		busStopSearchByIDEditText.setVisibility(View.VISIBLE);
+		floatingButton.setChecked(false);
+	}
+
+	private void setSearchModeBusStopName() {
+		searchMode = SEARCH_BY_NAME;
+		busStopSearchByIDEditText.setVisibility(View.GONE);
+		busStopSearchByNameEditText.setVisibility(View.VISIBLE);
+		floatingButton.setChecked(true);
+	}
+
 	private void showHints() {
 		howDoesItWorkTextView.setVisibility(View.VISIBLE);
-		legendTextView.setVisibility(View.VISIBLE);
 		hideHintButton.setVisibility(View.VISIBLE);
 		actionHelpMenuItem.setVisible(false);
 	}
 
 	private void hideHints() {
 		howDoesItWorkTextView.setVisibility(View.GONE);
-		legendTextView.setVisibility(View.GONE);
 		hideHintButton.setVisibility(View.GONE);
 		actionHelpMenuItem.setVisible(true);
+	}
+
+	private void showSpinner(boolean swipeSpinner) {
+		if (swipeSpinner == DOUBLE_SPINNER) {
+			swipeRefreshLayout.setRefreshing(true);
+		}
+		progressBar.setVisibility(View.VISIBLE);
+	}
+
+	private void hideSpinner() {
+		swipeRefreshLayout.setRefreshing(false);
+		progressBar.setVisibility(View.INVISIBLE);
+	}
+
+	private void animateFloatingButton(boolean scrollDirection) {
+		if(scrollDirection != lastScroll) {
+			int mode = scrollDirection == SCROLL_UP ? View.VISIBLE : View.GONE;
+			floatingButton.setVisibility(mode);
+			floatingButtonShadow.setVisibility(mode);
+		}
 	}
 }
