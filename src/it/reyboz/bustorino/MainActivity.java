@@ -47,7 +47,6 @@ import android.widget.ProgressBar;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 import android.view.KeyEvent;
 
 public class MainActivity extends ActionBarActivity {
@@ -67,8 +66,9 @@ public class MainActivity extends ActionBarActivity {
 	private MenuItem actionHelpMenuItem;
 	private it.reyboz.bustorino.MyListView resultsListView;
 	private SwipeRefreshLayout swipeRefreshLayout;
-	private ToggleButton floatingButton;
-	private ImageView floatingButtonShadow;
+	private Button change_to_char;
+	private Button change_to_int;
+	private ImageView shadow;
 
 	/*
 	 * @see swipeRefreshLayout
@@ -109,8 +109,9 @@ public class MainActivity extends ActionBarActivity {
 		hideHintButton = (Button) findViewById(R.id.hideHintButton);
 		resultsListView = (it.reyboz.bustorino.MyListView) findViewById(R.id.resultsListView);
 		swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-		floatingButton = (ToggleButton) findViewById(R.id.floatingButton);
-		floatingButtonShadow = (ImageView) findViewById(R.id.floatingButtonShadow);
+		change_to_char = (Button) findViewById(R.id.change_to_char);
+		change_to_int = (Button) findViewById(R.id.change_to_int);
+		shadow = (ImageView) findViewById(R.id.shadow);
 		myAsyncWget = new MyAsyncWget();
 
 		// IME_ACTION_SEARCH keyboard option
@@ -155,8 +156,9 @@ public class MainActivity extends ActionBarActivity {
 				});
 		// @TODO @DEPRECATED swipeRefreshLayout.setColorScheme(R.color.blue_500,
 		// R.color.orange_500);
+		swipeRefreshLayout.setColorScheme(R.color.blue_500, R.color.orange_500);
 
-		resultsListView.setOnDetectScrollListener(new OnDetectScrollListener() {
+/*		resultsListView.setOnDetectScrollListener(new OnDetectScrollListener() {
 		    @Override
 		    public void onUpScrolling() {
 		    	animateFloatingButton(SCROLL_UP);
@@ -168,7 +170,7 @@ public class MainActivity extends ActionBarActivity {
 		    	animateFloatingButton(SCROLL_DOWN);
 		    	lastScroll = SCROLL_DOWN;
 		    }
-		});
+		});*/
 
 		setSearchModeBusStopID();
 
@@ -455,32 +457,34 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 
-	// Changes keyboard and EditText when toggle is pressed
-	public void onChangeKeyboard(View v) {
-		if (((ToggleButton) v).isChecked()) {
-			// Change the editText and the keyboard to char
-			setSearchModeBusStopName();
-			if (busStopSearchByNameEditText.requestFocus()) {
-				showKeyboard();
-			}
-		} else {
+	public void onChangeToChar(View v) {
+    	setSearchModeBusStopName();
+		if (busStopSearchByNameEditText.requestFocus()) {
 			showKeyboard();
-			setSearchModeBusStopID();
-		}
+	    }
+	}
+	
+	public void onChangeToInt(View v) {
+    	setSearchModeBusStopID();
+		if (busStopSearchByIDEditText.requestFocus()) {
+			showKeyboard();
+	    }
 	}
 
 	private void setSearchModeBusStopID() {
 		searchMode = SEARCH_BY_ID;
 		busStopSearchByNameEditText.setVisibility(View.GONE);
 		busStopSearchByIDEditText.setVisibility(View.VISIBLE);
-		floatingButton.setChecked(false);
+		change_to_char.setVisibility(View.VISIBLE);
+		change_to_int.setVisibility(View.GONE);
 	}
 
 	private void setSearchModeBusStopName() {
 		searchMode = SEARCH_BY_NAME;
 		busStopSearchByIDEditText.setVisibility(View.GONE);
 		busStopSearchByNameEditText.setVisibility(View.VISIBLE);
-		floatingButton.setChecked(true);
+		change_to_char.setVisibility(View.GONE);
+		change_to_int.setVisibility(View.VISIBLE);
 	}
 
 	private void showHints() {
@@ -507,11 +511,12 @@ public class MainActivity extends ActionBarActivity {
 		progressBar.setVisibility(View.INVISIBLE);
 	}
 
-	private void animateFloatingButton(boolean scrollDirection) {
+/*	private void animateFloatingButton(boolean scrollDirection) {
 		if(scrollDirection != lastScroll) {
 			int mode = scrollDirection == SCROLL_UP ? View.VISIBLE : View.GONE;
-			floatingButton.setVisibility(mode);
-			floatingButtonShadow.setVisibility(mode);
+			change_to_char.setVisibility(mode);
+			change_to_int.setVisibility(mode);
+			shadow.setVisibility(mode);
 		}
-	}
+	}*/
 }

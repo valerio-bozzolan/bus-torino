@@ -7,7 +7,7 @@
     <string name="insert_bus_stop_number">Numero fermata</string>
     <string name="insert_bus_stop_name">Nome fermata</string>
     <string name="insert_bus_stop_number_error">Inserisci il numero della fermata</string>
-    <string name="encoding_error">Alcuni caratteri non possono essere riconosciuti</string>
+    <string name="encoding_error">Alcuni caratteri non sono stati riconosciuti</string>
     <string name="network_error">Verifica l\'accesso ad Internet!</string>
     <string name="no_arrival_times">Nessun arrivo previsto per questa fermata</string>
     <string name="passages">Fermata: %1$s</string>
