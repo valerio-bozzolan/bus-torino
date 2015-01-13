@@ -306,7 +306,7 @@ public class MainActivity extends ActionBarActivity {
 				} else {
 					hideHints();
 				}
-
+				busStopNameTextView.setVisibility(View.VISIBLE);
 				swipeRefreshLayout.setEnabled(true);
 				swipeRefreshLayout.setVisibility(View.VISIBLE);
 				resultsListView.setVisibility(View.VISIBLE);
@@ -355,7 +355,11 @@ public class MainActivity extends ActionBarActivity {
 				// Hide the keyboard before showing bus stops
 				hideKeyboard();
 
-				busStopNameTextView.setText(getString(R.string.results));
+				/* busStopNameTextView.setText(getString(R.string.results));
+				 * con questo non funziona piu' il salvataggio delle fermate nei preferiti
+				 * (e' scomparso per un altro motivo, in activity_main.xml)
+				 * */
+				busStopNameTextView.setVisibility(View.GONE);
 				swipeRefreshLayout.setEnabled(false);
 				swipeRefreshLayout.setVisibility(View.VISIBLE);
 				resultsListView.setVisibility(View.VISIBLE);
