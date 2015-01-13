@@ -42,7 +42,6 @@ public class MyListView extends android.widget.ListView {
         onCreate(context, attrs, defStyle);
     }
 
-    @SuppressWarnings("UnusedParameters")
     private void onCreate(Context context, AttributeSet attrs, Integer defStyle) {
         setListeners();
     }

@@ -12,6 +12,7 @@
     <string name="no_arrival_times">Nessun arrivo previsto per questa fermata</string>
     <string name="passages">Fermata: %1$s</string>
     <string name="lines">Linee: %1$s</string>
+    <string name="results">Risultati…</string>
     <string name="no_passages">Nessun passaggio</string>
     <string name="action_about">Informazioni</string>
     <string name="action_favorites">Preferiti</string>

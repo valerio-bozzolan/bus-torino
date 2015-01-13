@@ -230,6 +230,32 @@ public class GTTSiteSucker {
 			}
 			return timesPassages.get(0).getComparableTime();
 		}
+
+		/**
+		 * Help sorting
+		 *
+		 * @param busLineName
+		 * @return boolean -1/0/1 if this is minor/equal/major than busLineName arg (First 0-9, than A-Z)
+		 */
+		public boolean isMajorThan(String busLineName) {
+			final String regex = "^([0-9]+)";
+			Integer nThis = string2Integer(grep(regex, this.busLineName));
+			Integer nOther = string2Integer(grep(regex, busLineName));
+			//Log.d("GTTSiteSucker", "\"" + this.busLineName + "\" (" + nThis + ") | \"" + busLineName + "\" (" + nOther + ")");
+			if(nThis != null) {
+				if(nOther != null) {
+					int res = nThis.compareTo(nOther);
+					if(res != 0) {
+						return res > 0; // 0-9 <=> 0-9
+					}
+				}
+				return false; // 0-9 < A-Z 
+			}
+			if(nOther != null) {
+				return true; // A-Z > 0-9
+			}
+			return this.busLineName.compareTo(busLineName) > 0; // A-Z <=> A-Z || 0-9 == 0-9
+		}
 	}
 
 	/**
@@ -286,6 +312,24 @@ public class GTTSiteSucker {
 			}
 		}
 
+		public void orderBusLinesByName() {
+			for (int i = 0; i < busLines.length - 1; i++) {
+				for (int j = i + 1; j < busLines.length; j++) {
+					BusLine a = busLines[i];
+					BusLine b = busLines[j];
+					// Log.d("GTTSiteSucker", "Comparing " + a.getBusLineName() + (a.isMajorThan(b.getBusLineName()) ? " major than " : " minor or equal than ") + b.getBusLineName());
+					if (a.isMajorThan(b.getBusLineName())) {
+						BusLine tmp = a;
+						busLines[i] = b;
+						busLines[j] = tmp;
+					}
+				}
+			}
+		}
+
+		/**
+		 * @return Bus line list
+		 */
 		public String toString() {
 			String busLineNames = "";
 			for(int i=0; i<busLines.length; i++) {
@@ -378,13 +422,12 @@ public class GTTSiteSucker {
 		} else if (title.equals("Arrivi in fermata")) {
 			// Find bus lines
 
-			// Sucking bus stop name (e.g.: POZZO STRADA)
 			String p = null;
 			try {
 				p = doc.getElementsByTag("p").first().html();
 			} catch (NullPointerException e) {
 				Log.e("GTTSiteSucker",
-						"Parse error: busStopID can't be found!");
+						"Parse error: busStopID and busStopName can't be found!");
 			}
 			if(p == null) {
 				return null;
@@ -416,7 +459,7 @@ public class GTTSiteSucker {
 				// Sucking bus line name (e.g.: 17 /)
 				String h3 = null;
 				try {
-					h3 = doc.getElementsByTag("h3").first().html();
+					h3 = li.getElementsByTag("h3").first().html();
 				} catch (NullPointerException e) {
 					Log.e("GTTSiteSucker",
 							"Parse error: busLineName can't be found!");
@@ -452,6 +495,7 @@ public class GTTSiteSucker {
 
 				busLines.add(busLine);
 			}
+
 			return new BusStop[] {new BusStop(busStopID, busStopName, busLines
 					.toArray((new BusLine[] {})))};
 		} else {
