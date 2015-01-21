@@ -3,3 +3,8 @@ bin
 assets
 libs
 .settings
+local.properties
+.gradle
+.idea/workspace.xml
+.idea/libraries
+build

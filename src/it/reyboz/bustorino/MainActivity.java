@@ -43,11 +43,13 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.KeyEvent;
+import com.melnykov.fab.FloatingActionButton;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -64,11 +66,9 @@ public class MainActivity extends ActionBarActivity {
 	private TextView howDoesItWorkTextView;
 	private Button hideHintButton;
 	private MenuItem actionHelpMenuItem;
-	private it.reyboz.bustorino.MyListView resultsListView;
+	private ListView resultsListView;
 	private SwipeRefreshLayout swipeRefreshLayout;
-	private Button changeKeyboardToBusStopIDFloatingButton;
-	private Button changeKeyboardToBusStopNameFloatingButton;
-	private ImageView shadowFloatingButton;
+    private FloatingActionButton floatingActionButton;
 
 	/*
 	 * @see swipeRefreshLayout
@@ -89,10 +89,6 @@ public class MainActivity extends ActionBarActivity {
 	private final boolean SEARCH_BY_NAME = false;
 	private boolean searchMode;
 
-	private final boolean SCROLL_UP = true;
-	private final boolean SCROLL_DOWN = false;
-	private boolean lastScrollDirection = SCROLL_UP; // Workaround :)
-
 	private MyAsyncWget myAsyncWget;
 	private MyDB mDbHelper;
 	private SQLiteDatabase db;
@@ -107,26 +103,26 @@ public class MainActivity extends ActionBarActivity {
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
 		howDoesItWorkTextView = (TextView) findViewById(R.id.howDoesItWorkTextView);
 		hideHintButton = (Button) findViewById(R.id.hideHintButton);
-		resultsListView = (it.reyboz.bustorino.MyListView) findViewById(R.id.resultsListView);
+		resultsListView = (ListView) findViewById(R.id.resultsListView);
 		swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-		changeKeyboardToBusStopIDFloatingButton = (Button) findViewById(R.id.changeKeyboardToBusStopIDFloatingButton);
-		changeKeyboardToBusStopNameFloatingButton = (Button) findViewById(R.id.changeKeyboardToBusStopNameFloatingButton);
-		shadowFloatingButton = (ImageView) findViewById(R.id.shadowFloatingButton);
+        floatingActionButton = (FloatingActionButton) findViewById(R.id.floatingActionButton);
 		myAsyncWget = new MyAsyncWget();
+
+        floatingActionButton.attachToListView(resultsListView);
 
 		// IME_ACTION_SEARCH keyboard option
 		busStopSearchByIDEditText
 				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-					@Override
-					public boolean onEditorAction(TextView v, int actionId,
-							KeyEvent event) {
-						if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-							onSearchClick(v);
-							return true;
-						}
-						return false;
-					}
-				});
+                    @Override
+                    public boolean onEditorAction(TextView v, int actionId,
+                                                  KeyEvent event) {
+                        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                            onSearchClick(v);
+                            return true;
+                        }
+                        return false;
+                    }
+                });
 
 		// IME_ACTION_SEARCH keyboard option
 		busStopSearchByNameEditText
@@ -164,20 +160,7 @@ public class MainActivity extends ActionBarActivity {
 		 */
 		swipeRefreshLayout.setColorScheme(R.color.blue_500, R.color.orange_500);
 
-		resultsListView.setOnDetectScrollListener(new OnDetectScrollListener() {
-		    @Override
-		    public void onUpScrolling() {
-		    	notifyScrollToFloatingButton(SCROLL_UP);
-		    	lastScrollDirection = SCROLL_UP;
-		    }
-
-		    @Override
-		    public void onDownScrolling() {
-		    	notifyScrollToFloatingButton(SCROLL_DOWN);
-		    	lastScrollDirection = SCROLL_DOWN;
-		    }
-		});
-
+        searchMode = SEARCH_BY_ID;
 		setSearchModeBusStopID();
 
 		// Intercept calls from other activities
@@ -306,7 +289,7 @@ public class MainActivity extends ActionBarActivity {
 				} else {
 					hideHints();
 				}
-
+				busStopNameTextView.setVisibility(View.VISIBLE);
 				swipeRefreshLayout.setEnabled(true);
 				swipeRefreshLayout.setVisibility(View.VISIBLE);
 				resultsListView.setVisibility(View.VISIBLE);
@@ -355,7 +338,11 @@ public class MainActivity extends ActionBarActivity {
 				// Hide the keyboard before showing bus stops
 				hideKeyboard();
 
-				busStopNameTextView.setText(getString(R.string.results));
+				/* busStopNameTextView.setText(getString(R.string.results));
+				 * con questo non funziona piu' il salvataggio delle fermate nei preferiti
+				 * (e' scomparso per un altro motivo, in activity_main.xml)
+				 * */
+				busStopNameTextView.setVisibility(View.GONE);
 				swipeRefreshLayout.setEnabled(false);
 				swipeRefreshLayout.setVisibility(View.VISIBLE);
 				resultsListView.setVisibility(View.VISIBLE);
@@ -403,6 +390,21 @@ public class MainActivity extends ActionBarActivity {
 		hideHints();
 		setOption("show_legend", false);
 	}
+
+    public void onToggleKeyboardLayout(View v) {
+        searchMode = !searchMode;
+        if(searchMode == SEARCH_BY_ID) {
+            setSearchModeBusStopID();
+            if (busStopSearchByIDEditText.requestFocus()) {
+                showKeyboard();
+            }
+        } else {
+            setSearchModeBusStopName();
+            if (busStopSearchByNameEditText.requestFocus()) {
+                showKeyboard();
+            }
+        }
+    }
 
 	public void runSearchTask(String busStopQuery, boolean spinnerType) {
 		if (busStopQuery.isEmpty()) {
@@ -465,34 +467,16 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 
-	public void onChangeKeyboardToBusStopName(View v) {
-    	setSearchModeBusStopName();
-		if (busStopSearchByNameEditText.requestFocus()) {
-			showKeyboard();
-	    }
-	}
-	
-	public void onChangeKeyboardToBusStopID(View v) {
-    	setSearchModeBusStopID();
-		if (busStopSearchByIDEditText.requestFocus()) {
-			showKeyboard();
-	    }
-	}
-
 	private void setSearchModeBusStopID() {
-		searchMode = SEARCH_BY_ID;
 		busStopSearchByNameEditText.setVisibility(View.GONE);
 		busStopSearchByIDEditText.setVisibility(View.VISIBLE);
-		changeKeyboardToBusStopIDFloatingButton.setVisibility(View.VISIBLE);
-		changeKeyboardToBusStopNameFloatingButton.setVisibility(View.GONE);
+        floatingActionButton.setImageResource(R.drawable.ic_keyboard_white_24dp);
 	}
 
 	private void setSearchModeBusStopName() {
-		searchMode = SEARCH_BY_NAME;
 		busStopSearchByIDEditText.setVisibility(View.GONE);
 		busStopSearchByNameEditText.setVisibility(View.VISIBLE);
-		changeKeyboardToBusStopIDFloatingButton.setVisibility(View.GONE);
-		changeKeyboardToBusStopNameFloatingButton.setVisibility(View.VISIBLE);
+        floatingActionButton.setImageResource(R.drawable.ic_looks_one_white_24dp);
 	}
 
 	private void showHints() {
@@ -514,21 +498,8 @@ public class MainActivity extends ActionBarActivity {
 		progressBar.setVisibility(View.VISIBLE);
 	}
 
-	private void showSpinner() {
-		showSpinner(NORMAL_SPINNER);
-	}
-
 	private void hideSpinner() {
 		swipeRefreshLayout.setRefreshing(false);
 		progressBar.setVisibility(View.INVISIBLE);
-	}
-
-	private void notifyScrollToFloatingButton(boolean scrollDirection) {
-		if(scrollDirection != lastScrollDirection) {
-			int mode = scrollDirection == SCROLL_UP ? View.VISIBLE : View.GONE;
-			changeKeyboardToBusStopIDFloatingButton.setVisibility(mode);
-			changeKeyboardToBusStopNameFloatingButton.setVisibility(mode);
-			shadowFloatingButton.setVisibility(mode);
-		}
 	}
 }
