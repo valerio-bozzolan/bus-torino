@@ -24,7 +24,7 @@ import android.text.method.LinkMovementMethod;
 import android.os.Bundle;
 import android.widget.TextView;
 
-public class AboutActivity extends ActionBarActivity {
+public class ActivityAbout extends ActionBarActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

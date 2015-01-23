@@ -18,11 +18,13 @@
 package it.reyboz.bustorino;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
 
-import it.reyboz.bustorino.GTTSiteSucker.BusLine;
-import it.reyboz.bustorino.GTTSiteSucker.BusStop;
+import it.reyboz.bustorino.lab.AsyncWget;
+import it.reyboz.bustorino.lab.GTTSiteSucker;
+import it.reyboz.bustorino.lab.GTTSiteSucker.BusLine;
+import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
+import it.reyboz.bustorino.lab.MyDB;
+import it.reyboz.bustorino.lab.NetworkTools;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -42,16 +44,13 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.KeyEvent;
 import com.melnykov.fab.FloatingActionButton;
 
-public class MainActivity extends ActionBarActivity {
+public class ActivityMain extends ActionBarActivity {
 
 	private final boolean DOUBLE_SPINNER = true;
 	private final boolean NORMAL_SPINNER = false;
@@ -66,7 +65,7 @@ public class MainActivity extends ActionBarActivity {
 	private TextView howDoesItWorkTextView;
 	private Button hideHintButton;
 	private MenuItem actionHelpMenuItem;
-	private ListView resultsListView;
+	private it.reyboz.bustorino.layouts.BusListView resultsListView;
 	private SwipeRefreshLayout swipeRefreshLayout;
     private FloatingActionButton floatingActionButton;
 
@@ -103,7 +102,7 @@ public class MainActivity extends ActionBarActivity {
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
 		howDoesItWorkTextView = (TextView) findViewById(R.id.howDoesItWorkTextView);
 		hideHintButton = (Button) findViewById(R.id.hideHintButton);
-		resultsListView = (ListView) findViewById(R.id.resultsListView);
+		resultsListView = (it.reyboz.bustorino.layouts.BusListView) findViewById(R.id.resultsListView);
 		swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
         floatingActionButton = (FloatingActionButton) findViewById(R.id.floatingActionButton);
 		myAsyncWget = new MyAsyncWget();
@@ -192,10 +191,10 @@ public class MainActivity extends ActionBarActivity {
 		// as you specify a parent activity in AndroidManifest.xml.
 		switch (item.getItemId()) {
 		case R.id.action_about:
-			startActivity(new Intent(MainActivity.this, AboutActivity.class));
+			startActivity(new Intent(ActivityMain.this, ActivityAbout.class));
 			return true;
 		case R.id.action_favorites:
-			startActivity(new Intent(MainActivity.this, FavoritesActivity.class));
+			startActivity(new Intent(ActivityMain.this, ActivityFavorites.class));
 			return true;
 		case R.id.action_help:
 			showHints();
@@ -212,9 +211,9 @@ public class MainActivity extends ActionBarActivity {
 	public class MyAsyncWget extends AsyncWget {
 		protected void onPostExecute(String htmlResponse) {
 
-			// Network errors?
 			if (htmlResponse == null || exceptions != null) {
-				NetworkTools.showNetworkError(MainActivity.this);
+                // Network error
+				NetworkTools.showNetworkError(ActivityMain.this);
 				hideSpinner();
 				Log.e("MainActivity", "Network error!");
 				return;
@@ -222,10 +221,10 @@ public class MainActivity extends ActionBarActivity {
 
 			// Try parsing arrivals
 			BusStop[] busStops = GTTSiteSucker.getBusStopsSuckingHTML(db,
-					htmlResponse);
+                    htmlResponse);
 
-			// Parse errors?
 			if (busStops == null || busStops.length == 0) {
+                // Parse errors
 				Toast.makeText(getApplicationContext(),
 						R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
 				hideSpinner();
@@ -233,9 +232,9 @@ public class MainActivity extends ActionBarActivity {
 						+ htmlResponse);
 			} else if(busStops.length == 1) {
 				// There is only one bus stop to show
+
 				BusStop busStop = busStops[0];
 
-				// Order bus lines by first arrival time :D
 				busStop.orderBusLinesByFirstArrival();
 	
 				// Remember as last successfully searched busStopID
@@ -267,20 +266,6 @@ public class MainActivity extends ActionBarActivity {
 				// Insert GTTBusStop info in the DB
 				MyDB.BusStop.addBusStop(db, busStopID, busStopName);
 	
-				// Populate the stupid ListView SimpleAdapter
-				ArrayList<HashMap<String, Object>> entries = new ArrayList<HashMap<String, Object>>();
-				for (BusLine busLine : busLines) {
-					HashMap<String, Object> entry = new HashMap<String, Object>();
-					String passages = busLine.getTimePassagesString();
-					if (passages == null) {
-						passages = getString(R.string.no_passages);
-					}
-					entry.put("icon", busLine.getBusLineName());
-					entry.put("passages", passages);
-					entries.add(entry);
-				}
-	
-				// Hide the keyboard before showing passages
 				hideKeyboard();
 	
 				// Shows hints
@@ -289,73 +274,37 @@ public class MainActivity extends ActionBarActivity {
 				} else {
 					hideHints();
 				}
+
 				busStopNameTextView.setVisibility(View.VISIBLE);
 				swipeRefreshLayout.setEnabled(true);
 				swipeRefreshLayout.setVisibility(View.VISIBLE);
 				resultsListView.setVisibility(View.VISIBLE);
 	
-				// Stops spinner
-				hideSpinner();
-	
-				// Show results using the stupid SimpleAdapter
-				String[] from = { "icon", "passages" };
-				int[] to = { R.id.busLineIcon, R.id.busLineNames };
-				SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
-						entries, R.layout.bus_line_passage_entry, from, to);
-				resultsListView.setAdapter(adapter);
-				resultsListView.invalidate();
-				resultsListView
-						.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-							public void onItemClick(AdapterView<?> av, View view,
-									int i, long l) {
-								String busLine = ((TextView) av.getChildAt(i)
-										.findViewById(R.id.busLineIcon)).getText()
-										.toString();
-								Log.d("MainActivity", "Tapped busLine: " + busLine);
-							}
-						});
+                resultsListView.showBusLines(busLines, getApplicationContext());
+                resultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    public void onItemClick(AdapterView<?> av, View view,
+                                            int i, long l) {
+                        String busLine = ((TextView) av.getChildAt(i)
+                                .findViewById(R.id.busLineIcon)).getText()
+                                .toString();
+                        Log.d("MainActivity", "Tapped busLine: " + busLine);
+                    }
+                });
+
+                hideSpinner();
 			} else {
 				// Show a list of bus stops
 
-				// Populate the stupid ListView SimpleAdapter
-				ArrayList<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
-				for(int i=0; i<busStops.length; i++) {
-					HashMap<String, Object> singleEntry = new HashMap<String, Object>();
-
-					busStops[i].orderBusLinesByName();
-
-					int busStopID = busStops[i].getBusStopID();
-					String busStopName = busStops[i].getBusStopName();
-					String busLineNames = busStops[i].toString();
-
-					singleEntry.put("bus-stop-ID", busStopID);
-					singleEntry.put("bus-stop-name", busStopName);
-					singleEntry.put("bus-line-names", String.format(getResources()
-							.getString(R.string.lines), "\n" + busLineNames));
-					data.add(singleEntry);
-				}
-
-				// Hide the keyboard before showing bus stops
 				hideKeyboard();
 
-				/* busStopNameTextView.setText(getString(R.string.results));
-				 * con questo non funziona piu' il salvataggio delle fermate nei preferiti
-				 * (e' scomparso per un altro motivo, in activity_main.xml)
-				 * */
-				busStopNameTextView.setVisibility(View.GONE);
+				busStopNameTextView.setText(getString(R.string.results));
+				busStopNameTextView.setVisibility(View.VISIBLE);
 				swipeRefreshLayout.setEnabled(false);
 				swipeRefreshLayout.setVisibility(View.VISIBLE);
 				resultsListView.setVisibility(View.VISIBLE);
 
-				// Stops spinner
-				hideSpinner();
-
 				// Show results
-				String[] from = { "bus-stop-ID", "bus-stop-name", "bus-line-names" };
-				int[] to = { R.id.busStopID, R.id.busStopName, R.id.busLineNames };
-				SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
-						data, R.layout.bus_stop_entry, from, to);
-				resultsListView.setAdapter(adapter);
+                resultsListView.showBusStops(busStops, getApplicationContext());
 				resultsListView
 						.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 							public void onItemClick(AdapterView<?> av, View view,
@@ -369,9 +318,12 @@ public class MainActivity extends ActionBarActivity {
 
 								setSearchModeBusStopID();
 								busStopSearchByIDEditText.setText(busStopID);
+
 								runSearchTask(busStopID, NORMAL_SPINNER);
 							}
 						});
+
+                hideSpinner();
 			}
 		}
 	}

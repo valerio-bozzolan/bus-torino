@@ -12,7 +12,7 @@
     <string name="no_arrival_times">Nessun arrivo previsto per questa fermata</string>
     <string name="passages">Fermata: %1$s</string>
     <string name="lines">Linee: %1$s</string>
-    <string name="results">Risultati…</string>
+    <string name="results">Scegli la fermata…</string>
     <string name="no_passages">Nessun passaggio</string>
     <string name="action_about">Informazioni</string>
     <string name="action_favorites">Preferiti</string>
@@ -47,7 +47,7 @@
 		- <b>Paolo Alloatti</b> per l\'idea dell\'icona.<br>
 		- <b>JSoup</b> libreria per "<i>web scaping</i>".<br>
 		- <b>makovkastar</b> per i floating button.<br>
-		- <b>Google</b> per le icone Material Design.</br>
+		- <b>Google</b> per le icone Material Design.<br>
 		E tutti i contributori!
 		</p>
 

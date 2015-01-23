@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    tools:context="it.reyboz.bustorino.AboutActivity" >
+    tools:context="it.reyboz.bustorino.ActivityAbout" >
 
     <TextView
         android:id="@+id/aboutTextView"

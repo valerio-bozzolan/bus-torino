@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.reyboz.bustorino;
+package it.reyboz.bustorino.lab;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -267,13 +267,21 @@ public class GTTSiteSucker {
 	public static class BusStop {
 		private Integer busStopID; // Es: 1254 (always Integer)
 		private String busStopName; // Es: MARCONI
+        private String latitude;
+        private String longitude;
 		private BusLine[] busLines;
 
 		BusStop(Integer busStopID, String busStopName, BusLine[] busLines) {
-			this.busStopID = busStopID;
-			this.busStopName = busStopName;
-			this.busLines = busLines;
+			this(busStopID, busStopName, busLines, null, null);
 		}
+
+        BusStop(Integer busStopID, String busStopName, BusLine[] busLines, String latitude, String longitude) {
+            this.busStopID = busStopID;
+            this.busStopName = busStopName;
+            this.busLines = busLines;
+            this.latitude = latitude;
+            this.longitude = longitude;
+        }
 
 		public void setGTTBusStopName(String busStopName) {
 			this.busStopName = busStopName;
@@ -327,6 +335,19 @@ public class GTTSiteSucker {
 			}
 		}
 
+        public void setCoordinate(String latitude, String longitude) {
+            this.latitude = latitude;
+            this.longitude = longitude;
+        }
+
+        public String getLatitude() {
+            return latitude;
+        }
+
+        public String getLongitude() {
+            return longitude;
+        }
+
 		/**
 		 * @return Bus line list
 		 */
@@ -346,7 +367,7 @@ public class GTTSiteSucker {
 	 * API/Workaround to get all informations from the 5T website.
 	 * Return a BusStop array.
 	 * 
-	 * @param html
+	 * @param html DOM of busLinesByQuery
 	 * @author Valerio Bozzolan
 	 * @return BusStop[] Bus stops
 	 */
@@ -505,4 +526,38 @@ public class GTTSiteSucker {
 
 		return busStops.toArray((new BusStop[] {}));
 	}
+
+    /**
+     * Return geographical infos about a bus stop
+     * @return BusStop
+     */
+    public BusStop getBusStopInfos(SQLiteDatabase db,
+                                   String json) {
+        // Yes, it's JSON, but I don't want to import org.json
+
+        String line = null;
+        while((line=bufReader.readLine()) != null) {
+            Integer busStopID = String2Integer(grep("shortName[\s]*:[\s]*\"([0-9]+)\"", line));
+
+            if(line=bufReader.readLine()) == null) {
+                return false;
+            }
+
+            String busStopName = grep("name[\s]*:[\s]*\"(.+)\"", line);
+
+            if(line=bufReader.readLine()) == null) {
+                return false;
+            }
+
+            String latitude = grep("lat[\s]*:[\s]*(.+),", line);
+
+            if(line=bufReader.readLine()) == null) {
+                return false;
+            }
+
+            String longitude = grep("lon[\s]*:[\s]*(.+),", line);
+
+            return new BusStop(busStopID, busStopName, null, latitude, longitude);
+        }
+    }
 }

@@ -17,9 +17,10 @@
  */
 package it.reyboz.bustorino;
 
-import it.reyboz.bustorino.MyDB.BusLine;
-import it.reyboz.bustorino.MyDB.BusStop;
-import it.reyboz.bustorino.MyDB.BusStopServeLine;
+import it.reyboz.bustorino.lab.MyDB;
+import it.reyboz.bustorino.lab.MyDB.BusLine;
+import it.reyboz.bustorino.lab.MyDB.BusStop;
+import it.reyboz.bustorino.lab.MyDB.BusStopServeLine;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +35,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.content.Intent;
@@ -42,7 +42,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
-public class FavoritesActivity extends ActionBarActivity {
+public class ActivityFavorites extends ActionBarActivity {
 	private ListView favoriteListView;
 
 	private MyDB mDbHelper;
@@ -156,7 +156,7 @@ public class FavoritesActivity extends ActionBarActivity {
 		String[] from = { "bus-stop-ID", "bus-stop-name", "bus-line-names" };
 		int[] to = { R.id.busStopID, R.id.busStopName, R.id.busLineNames };
 		SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
-				data, R.layout.bus_stop_entry, from, to);
+				data, R.layout.entry_bus_stop, from, to);
 		favoriteListView.setAdapter(adapter);
 		favoriteListView
 				.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -169,8 +169,8 @@ public class FavoritesActivity extends ActionBarActivity {
 						Log.d("FavoritesActivity", "Tapped on bus stop: "
 								+ busStopID);
 
-						Intent intent = new Intent(FavoritesActivity.this,
-								MainActivity.class);
+						Intent intent = new Intent(ActivityFavorites.this,
+								ActivityMain.class);
 						Bundle b = new Bundle();
 						b.putString("busStopID", busStopID);
 						intent.putExtras(b);

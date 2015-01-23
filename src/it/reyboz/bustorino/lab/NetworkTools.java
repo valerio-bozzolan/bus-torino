@@ -15,12 +15,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.reyboz.bustorino;
+package it.reyboz.bustorino.lab;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.widget.Toast;
+
+import it.reyboz.bustorino.R;
 
 public class NetworkTools {
 

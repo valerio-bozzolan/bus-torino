@@ -11,7 +11,7 @@
     <string name="network_error">Verify the state of your Internet connection!</string>
     <string name="no_arrival_times">No bus is supposed to arrive at this stop</string>
     <string name="passages">Arrivals at: %1$s</string>
-    <string name="results">Search results…</string>
+    <string name="results">Choose the bus stop…</string>
     <string name="lines">Lines: %1$s</string>
     <string name="no_passages">No passages</string>
     <string name="action_about">About</string>
