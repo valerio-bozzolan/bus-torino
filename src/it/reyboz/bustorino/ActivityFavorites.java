@@ -17,13 +17,10 @@
  */
 package it.reyboz.bustorino;
 
+import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
 import it.reyboz.bustorino.lab.MyDB;
-import it.reyboz.bustorino.lab.MyDB.BusLine;
-import it.reyboz.bustorino.lab.MyDB.BusStop;
-import it.reyboz.bustorino.lab.MyDB.BusStopServeLine;
-
-import java.util.ArrayList;
-import java.util.HashMap;
+import it.reyboz.bustorino.lab.MyDB.DBBusStop;
+import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
 
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -75,108 +72,60 @@ public class ActivityFavorites extends ActionBarActivity {
 	public boolean onContextItemSelected(MenuItem item) {
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
 				.getMenuInfo();
+
 		String busStopID = ((TextView) (info.targetView)
 				.findViewById(R.id.busStopID)).getText().toString();
+
 		switch (item.getItemId()) {
-		case R.id.action_favourite_entry_delete:
-			db.delete(BusStop.TABLE_NAME,
-					MyDB.somethingEqualsInt(BusStop.COLUMN_NAME_BUSSTOP_ID),
-					new String[] { busStopID });
-			createFavoriteList();
-			return true;
-		default:
-			return super.onContextItemSelected(item);
+			case R.id.action_favourite_entry_delete:
+				db.delete(DBBusStop.TABLE_NAME,
+						MyDB.somethingEqualsWithoutQuotes(DBBusStop.COLUMN_NAME_BUSSTOP_ID),
+						new String[] { busStopID });
+                db.delete(MyDB.DBBusStopServeLine.TABLE_NAME,
+                        MyDB.somethingEqualsWithoutQuotes(MyDB.DBBusStopServeLine.COLUMN_NAME_BUSSTOP_ID),
+                        new String[] { busStopID });
+				    createFavoriteList();
+				return true;
+			default:
+				return super.onContextItemSelected(item);
 		}
 	}
 
 	void createFavoriteList() {
-		ArrayList<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
-
-		String query = MyDB.SELECT_ALL_FROM
-				+ BusStop.TABLE_NAME
-				+ MyDB.WHERE
-				+ MyDB.somethingEqualsInt(BusStop.COLUMN_NAME_BUSSTOP_ISFAVORITE)
-				+ MyDB.ORDER_BY + BusStop.COLUMN_NAME_BUSSTOP_NAME + MyDB.ASC;
-		Cursor cursor = db
-				.rawQuery(query, new String[] { BusStop.IS_FAVORITE });
-		while (cursor.moveToNext()) {
-			HashMap<String, Object> singleEntry = new HashMap<String, Object>();
-
-			int busStopID = cursor.getInt(cursor
-					.getColumnIndex(MyDB.BusStop.COLUMN_NAME_BUSSTOP_ID));
-			String busStopName = cursor.getString(cursor
-					.getColumnIndex(MyDB.BusStop.COLUMN_NAME_BUSSTOP_NAME));
-
-			// Get bus Lines
-			String queryLines = MyDB.SELECT
-					+ BusLine.COLUMN_NAME_BUSLINE_NAME
-					+ MyDB.FROM
-					+ BusStopServeLine.TABLE_NAME
-					+ MyDB.COMMA
-					+ BusLine.TABLE_NAME
-					+ MyDB.WHERE
-					+ MyDB.somethingEqualsInt(BusStopServeLine
-							.getColumn(BusStopServeLine.COLUMN_NAME_BUSSTOP_ID))
-					+ MyDB.AND
-					+ BusStopServeLine
-							.getColumn(BusStopServeLine.COLUMN_NAME_BUSLINE_ID)
-					+ MyDB.EQUALS
-					+ BusLine.getColumn(BusLine.COLUMN_NAME_BUSLINE_ID)
-					+ MyDB.ORDER_BY + BusLine.COLUMN_NAME_BUSLINE_NAME
-					+ MyDB.ASC;
-			Cursor cursorLines = db.rawQuery(queryLines,
-					new String[] { String.valueOf(busStopID) });
-			String busLineNames = "";
-			while (cursorLines.moveToNext()) {
-				if (busLineNames != "") {
-					busLineNames += ", ";
-				}
-				busLineNames += cursorLines.getString(0);
-				Log.d("FavoritesActivity",
-						"Bus line name: " + cursorLines.getString(0));
-			}
-			cursorLines.close();
-
-			singleEntry.put("bus-stop-ID", busStopID);
-			singleEntry.put("bus-stop-name", busStopName);
-			singleEntry.put("bus-line-names", String.format(getResources()
-					.getString(R.string.lines), busLineNames));
-			data.add(singleEntry);
-		}
-		cursor.close();
+		BusStop[] busStops = MyDB.DBBusStop.getFavoriteBusStops(db);
 
 		// If no data is found show a friendly message
-		if (data.isEmpty()) {
+		if (busStops.length == 0) {
 			favoriteListView.setVisibility(View.INVISIBLE);
 			TextView favoriteTipTextView = (TextView) findViewById(R.id.favoriteTipTextView);
 			favoriteTipTextView.setVisibility(View.VISIBLE);
 		}
 
 		// Show results
-		String[] from = { "bus-stop-ID", "bus-stop-name", "bus-line-names" };
-		int[] to = { R.id.busStopID, R.id.busStopName, R.id.busLineNames };
-		SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
-				data, R.layout.entry_bus_stop, from, to);
-		favoriteListView.setAdapter(adapter);
+        favoriteListView.setAdapter(new AdapterBusStops(this, R.layout.entry_bus_stop, busStops));
 		favoriteListView
 				.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-					public void onItemClick(AdapterView<?> av, View view,
-							int i, long l) {
-						String busStopID = ((TextView) view
-								.findViewById(R.id.busStopID)).getText()
-								.toString();
-
-						Log.d("FavoritesActivity", "Tapped on bus stop: "
-								+ busStopID);
+					public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        /**
+                         * Casting because of Javamerda
+                         * @url http://stackoverflow.com/questions/30549485/androids-list-view-parameterized-type-in-adapterview-onitemclicklistener
+                         */
+                        BusStop busStop = (BusStop) parent.getItemAtPosition(position);
 
 						Intent intent = new Intent(ActivityFavorites.this,
 								ActivityMain.class);
+
 						Bundle b = new Bundle();
-						b.putString("busStopID", busStopID);
+						b.putString("busStopID", busStop.getBusStopID());
 						intent.putExtras(b);
 						intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
-								| Intent.FLAG_ACTIVITY_NEW_TASK);
+                                | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                        Log.d("FavoritesActivity", "Tapped on bus stop: "
+                                + busStop.getBusStopID());
+
 						startActivity(intent);
+
 						finish();
 					}
 				});

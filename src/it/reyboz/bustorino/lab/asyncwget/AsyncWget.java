@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.reyboz.bustorino.lab;
+package it.reyboz.bustorino.lab.asyncwget;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -27,12 +27,23 @@ import java.net.URL;
 import android.os.AsyncTask;
 import android.util.Log;
 
+/**
+ * Asynchronous DOM fetcher using HTTP.
+ *
+ * @author Valerio Bozzolan
+ */
 public class AsyncWget extends AsyncTask<String, String, String> {
 	protected Exception exceptions;
 
+	/**
+	 * Overload it!
+	 *
+	 * @param uri The URL
+	 * @return The response that go to the onPostExecute
+	 */
 	protected String doInBackground(String... uri) {
 		exceptions = null;
-		Log.d("AsyncWget", "Catching URL in background: " + uri[0]);
+		Log.d("asyncwget", "Catching URL in background: " + uri[0]);
 		HttpURLConnection urlConnection = null;
 		StringBuilder result = null;
 		try {
@@ -49,7 +60,7 @@ public class AsyncWget extends AsyncTask<String, String, String> {
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			Log.e("AsyncWget", e.getMessage());
+			Log.e("asyncwget", e.getMessage());
 			exceptions = e;
 		} finally {
 			urlConnection.disconnect();
@@ -62,9 +73,13 @@ public class AsyncWget extends AsyncTask<String, String, String> {
 	}
 
 	protected void onProgressUpdate(Integer... progress) {
-
 	}
 
+	/**
+	 * Overload it!
+	 *
+	 * @param result The DOM result fetched in background.
+	 */
 	protected void onPostExecute(String result) {
 		super.onPostExecute(result);
 	}

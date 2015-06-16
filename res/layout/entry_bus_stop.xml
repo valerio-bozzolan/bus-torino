@@ -43,6 +43,22 @@
         android:textColor="@color/blue_700" />
 
     <TextView
+        android:id="@+id/busStopLocality"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="2sp"
+        android:layout_marginTop="3sp"
+        android:layout_marginRight="16sp"
+        android:layout_below="@+id/busLineNames"
+        android:layout_toLeftOf="@+id/busStopID"
+        android:layout_toRightOf="@+id/vehicleIcon"
+        android:gravity="center_vertical"
+        android:text="busStopLocality"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@color/orange_700"
+        />
+
+    <TextView
         android:id="@+id/busStopID"
         android:layout_width="70dip"
         android:layout_height="70dip"

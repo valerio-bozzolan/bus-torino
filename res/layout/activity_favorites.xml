@@ -13,6 +13,8 @@
         android:gravity="center"
         android:text="@string/tip_add_favorite"
         android:textAppearance="?android:attr/textAppearanceMedium"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
         android:visibility="invisible" />
 
     <ListView

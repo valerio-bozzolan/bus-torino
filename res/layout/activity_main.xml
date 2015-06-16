@@ -13,7 +13,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:animateLayoutChanges="true" >
+        android:animateLayoutChanges="true">
         
         <EditText
             android:id="@+id/busStopSearchByIDEditText"
@@ -35,7 +35,7 @@
         	</requestFocus>
     	</EditText>
         
-	    <EditText
+	    <AutoCompleteTextView
 	        android:id="@+id/busStopSearchByNameEditText"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
@@ -53,7 +53,7 @@
 	        android:visibility="gone" >
 	        <requestFocus>
 	        </requestFocus>
-	    </EditText>
+	    </AutoCompleteTextView>
 	    
 	    <ImageButton
 	        android:id="@+id/searchButton"
@@ -66,7 +66,8 @@
 	        android:layout_alignTop="@+id/busStopSearchByIDEditText"
 	        android:background="@drawable/search_button_custom"
 	        android:contentDescription="@string/search"
-	        android:onClick="onSearchClick" />
+	        android:onClick="onSearchClick"
+			tools:ignore="NewApi" />
 	
 	    <ProgressBar
 	        android:id="@+id/progressBar"
@@ -100,7 +101,8 @@
 	        android:gravity="center_vertical"
 	        android:onClick="addInFavorites"
 	        android:textAppearance="?android:attr/textAppearanceMedium"
-	        android:visibility="gone" />
+	        android:visibility="gone"
+			tools:ignore="NewApi" />
 	        
 	 <TextView
 	        android:id="@+id/howDoesItWorkTextView"
@@ -122,6 +124,7 @@
 	        android:layout_width="85dip"
 	        android:layout_height="wrap_content"
 	        android:layout_alignParentEnd="true"
+			android:layout_alignParentRight="true"
 	        android:layout_marginRight="16dp"
 	        android:layout_alignBottom="@+id/howDoesItWorkTextView"
 	        android:background="@drawable/bus_background"
@@ -141,12 +144,14 @@
 	        android:layout_below="@+id/howDoesItWorkTextView"
 	        android:visibility="gone" >
 	
-	        <it.reyboz.bustorino.layouts.BusListView
+	        <ListView
 	            android:id="@+id/resultsListView"
 	            android:layout_width="match_parent"
 	            android:layout_height="match_parent"
-	            android:visibility="gone" >
-	        </it.reyboz.bustorino.layouts.BusListView>
+	            android:visibility="gone"
+				android:clickable="true"
+				android:descendantFocusability="blocksDescendants" >
+	        </ListView>
 
 	    </android.support.v4.widget.SwipeRefreshLayout>
 

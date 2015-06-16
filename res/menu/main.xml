@@ -6,18 +6,35 @@
     <item
         android:id="@+id/action_favorites"
         android:icon="@+drawable/ic_star"
-        android:orderInCategory="100"
+        android:orderInCategory="1"
         android:showAsAction="ifRoom"
         android:title="@string/action_favorites"
         app:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/action_about"
-        android:orderInCategory="100"
-        android:title="@string/action_about"/>
-    <item
         android:id="@+id/action_help"
-        android:orderInCategory="100"
+        android:orderInCategory="2"
         android:title="@string/action_help"
         android:visible="true"/>
-
+    <item
+        android:orderInCategory="3"
+        android:title="@string/action_about">
+        <menu>
+            <item
+                android:id="@+id/action_about"
+                android:orderInCategory="4"
+                android:title="@string/action_about"/>
+            <item
+                android:id="@+id/action_changelog"
+                android:orderInCategory="5"
+                android:title="@string/action_changelog" />
+            <item android:id="@+id/action_source"
+                  android:title="@string/action_source"
+                  app:showAsAction="never"
+                  android:orderInCategory="6"/>
+            <item android:id="@+id/action_author"
+                  android:title="@string/action_author"
+                  app:showAsAction="never"
+                  android:orderInCategory="7"/>
+        </menu>
+    </item>
 </menu>

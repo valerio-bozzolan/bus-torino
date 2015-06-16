@@ -17,6 +17,9 @@
  */
 package it.reyboz.bustorino.lab;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -34,24 +37,9 @@ import android.util.Log;
 /**
  * «BusTO, because sucking happens»
  * 
- * @author boz
+ * @author Valerio Bozzolan
  */
 public class GTTSiteSucker {
-
-	/**
-	 * 
-	 * @deprecated
-	 */
-	public static String arrivalTimesByLineQuery(String busStop) {
-		return "http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName="
-				+ busStop;
-	}
-
-	public static String busLinesByQuery(String busLineName)
-			throws UnsupportedEncodingException {
-		return "http://m.gtt.to.it/m/it/arrivi.jsp?n="
-				+ URLEncoder.encode(busLineName, "UTF-8");
-	}
 
 	/**
 	 * Execute regexes.
@@ -83,8 +71,6 @@ public class GTTSiteSucker {
 
 	/**
 	 * Helps comparing times
-	 * 
-	 * @author boz
 	 */
 	public static class Time {
 		private int mm;
@@ -152,6 +138,11 @@ public class GTTSiteSucker {
 			}
 			return new Time(hh, mm);
 		}
+
+		public String toString() {
+			return time
+					+ (isInRealTime ? "*" : " ");
+		}
 	}
 
 	/**
@@ -163,52 +154,13 @@ public class GTTSiteSucker {
 
 		private Integer busLineID;
 		private String busLineName;
+        private String busLineUsername;
+        private Integer busLineType;
 
-		private ArrayList<TimePassage> timesPassages;
-
-		public BusLine() {
-			this(null, null);
-		}
-
-		public BusLine(Integer busLineID) {
-			this(busLineID, null);
-		}
-
-		public BusLine(String busLineName) {
-			this(null, busLineName);
-		}
+		private ArrayList<TimePassage> timesPassages = new ArrayList<TimePassage>();
 
 		public BusLine(Integer busLineID, String busLineName) {
 			this.busLineID = busLineID;
-			this.busLineName = busLineName;
-			timesPassages = new ArrayList<TimePassage>();
-		}
-
-		public void addTimePassage(String time, boolean isInRealTime) {
-			timesPassages.add(new TimePassage(time, isInRealTime));
-		}
-
-		public ArrayList<TimePassage> getTimePassages() {
-			return timesPassages;
-		}
-
-		public String getTimePassagesString() {
-			if (timesPassages == null || timesPassages.size() == 0) {
-				return null;
-			}
-			String out = "";
-			for (TimePassage timePassage : timesPassages) {
-				out += timePassage.getTime()
-						+ (timePassage.isInRealTime() ? "*" : " ") + " ";
-			}
-			return out;
-		}
-
-		public String getBusLineName() {
-			return busLineName;
-		}
-
-		public void setBusLineName(String busLineName) {
 			this.busLineName = busLineName;
 		}
 
@@ -220,8 +172,50 @@ public class GTTSiteSucker {
 			this.busLineID = busLineID;
 		}
 
-		public String toString() {
-			return getTimePassagesString();
+		public String getBusLineName() {
+			return busLineName;
+		}
+
+		public void setBusLineName(String busLineName) {
+			this.busLineName = busLineName;
+		}
+
+        public String getBusLineUsername() {
+            return busLineUsername;
+        }
+
+        public void setBusLineUsername(String busLineUsername) {
+            this.busLineUsername = busLineUsername;
+        }
+
+        public Integer getBusLineType() {
+            return busLineType;
+        }
+
+        public void setBusLineType(Integer busLineType) {
+            this.busLineType = busLineType;
+        }
+
+        public void addTimePassage(String time, boolean isInRealTime) {
+			timesPassages.add(new TimePassage(time, isInRealTime));
+		}
+
+		public TimePassage[] getTimePassages() {
+			return timesPassages.toArray(new TimePassage[timesPassages.size()]);
+		}
+
+		public String getTimePassagesString() {
+			if (timesPassages.size() == 0) {
+				return null;
+			}
+			String out = "";
+			for (TimePassage timePassage : timesPassages) {
+				if(! out.equals("")) {
+					out += " ";
+				}
+				out += timePassage.toString();
+			}
+			return out;
 		}
 
 		public Time getFirstPassageComparableTime() {
@@ -229,6 +223,10 @@ public class GTTSiteSucker {
 				return null;
 			}
 			return timesPassages.get(0).getComparableTime();
+		}
+
+		public String toString() {
+			return busLineName + " (" + busLineID + ")";
 		}
 
 		/**
@@ -265,33 +263,58 @@ public class GTTSiteSucker {
 	 * @author boz
 	 */
 	public static class BusStop {
-		private Integer busStopID; // Es: 1254 (always Integer)
+		private String busStopID; // Es: 1254 NOT always Integer!!! Sometimes there is something like "STCAR" D:
 		private String busStopName; // Es: MARCONI
+        private String busStopUsername;
+		private String busStopLocality; // Es: Torino
         private String latitude;
         private String longitude;
 		private BusLine[] busLines;
 
-		BusStop(Integer busStopID, String busStopName, BusLine[] busLines) {
-			this(busStopID, busStopName, busLines, null, null);
+		private Boolean isFavorite = null;
+
+		public BusStop(String busStopID) {
+			this.busStopID = busStopID;
 		}
 
-        BusStop(Integer busStopID, String busStopName, BusLine[] busLines, String latitude, String longitude) {
+		public BusStop(String busStopID, String busStopName) {
+			this.busStopID = busStopID;
+			this.busStopName = busStopName;
+		}
+
+		public BusStop(String busStopID, String busStopName, BusLine[] busLines) {
+			this.busStopID = busStopID;
+			this.busStopName = busStopName;
+			this.busLines = busLines;
+		}
+
+        public BusStop(String busStopID, String busStopName, String busStopLocality, BusLine[] busLines, String latitude, String longitude, Boolean isFavorite) {
             this.busStopID = busStopID;
             this.busStopName = busStopName;
+			this.busStopLocality = busStopLocality;
             this.busLines = busLines;
             this.latitude = latitude;
             this.longitude = longitude;
+			this.isFavorite = isFavorite;
         }
-
-		public void setGTTBusStopName(String busStopName) {
-			this.busStopName = busStopName;
-		}
 
 		public String getBusStopName() {
 			return busStopName;
 		}
 
-		public Integer getBusStopID() {
+        public String getBusStopUsername() {
+            return busStopUsername;
+        }
+
+        public void setBusStopUsername(String busStopUsername) {
+            this.busStopUsername = busStopUsername;
+        }
+
+        public String getBusStopLocality() {
+			return busStopLocality;
+		}
+
+		public String getBusStopID() {
 			return busStopID;
 		}
 
@@ -320,19 +343,8 @@ public class GTTSiteSucker {
 			}
 		}
 
-		public void orderBusLinesByName() {
-			for (int i = 0; i < busLines.length - 1; i++) {
-				for (int j = i + 1; j < busLines.length; j++) {
-					BusLine a = busLines[i];
-					BusLine b = busLines[j];
-					// Log.d("GTTSiteSucker", "Comparing " + a.getBusLineName() + (a.isMajorThan(b.getBusLineName()) ? " major than " : " minor or equal than ") + b.getBusLineName());
-					if (a.isMajorThan(b.getBusLineName())) {
-						BusLine tmp = a;
-						busLines[i] = b;
-						busLines[j] = tmp;
-					}
-				}
-			}
+		public void setBusStopLocality(String busStopLocality) {
+			this.busStopLocality = busStopLocality;
 		}
 
         public void setCoordinate(String latitude, String longitude) {
@@ -348,216 +360,38 @@ public class GTTSiteSucker {
             return longitude;
         }
 
+		public Boolean getIsFavorite() {
+			return isFavorite;
+		}
+
+		public void setIsFavorite(Boolean isFavorite) {
+			this.isFavorite = isFavorite;
+		}
+
+		public void orderBusLinesByName() {
+			for (int i = 0; i < busLines.length - 1; i++) {
+				for (int j = i + 1; j < busLines.length; j++) {
+					BusLine a = busLines[i];
+					BusLine b = busLines[j];
+					// Log.d("GTTSiteSucker", "Comparing " + a.getBusLineName() + (a.isMajorThan(b.getBusLineName()) ? " major than " : " minor or equal than ") + b.getBusLineName());
+					if (a.isMajorThan(b.getBusLineName())) {
+						BusLine tmp = a;
+						busLines[i] = b;
+						busLines[j] = tmp;
+					}
+				}
+			}
+		}
+
 		/**
 		 * @return Bus line list
 		 */
 		public String toString() {
-			String busLineNames = "";
-			for(int i=0; i<busLines.length; i++) {
-				if (busLineNames != "") {
-					busLineNames += "\n";
-				}
-				busLineNames += busLines[i].getBusLineName();
+			String toString = busStopID;
+			if(busStopName != null) {
+				toString += " (" + busStopName + ")";
 			}
-			return busLineNames;
+			return toString;
 		}
 	}
-
-	/**
-	 * API/Workaround to get all informations from the 5T website.
-	 * Return a BusStop array.
-	 * 
-	 * @param html DOM of busLinesByQuery
-	 * @author Valerio Bozzolan
-	 * @return BusStop[] Bus stops
-	 */
-	public static BusStop[] getBusStopsSuckingHTML(SQLiteDatabase db,
-			String html) {
-		if (html == null) {
-			return null;
-		}
-
-		ArrayList<BusStop> busStops = new ArrayList<BusStop>();
-
-		Document doc = Jsoup.parse(html);
-		String title = doc.title().trim();
-		if (title.substring(1).equals("Elenco fermate")) {
-
-			// Find bus stops
-			Elements lis = doc.getElementsByTag("li");
-			for (Element li : lis) {
-				String liContent = li.html();
-				if (liContent.isEmpty()) {
-					continue;
-				}
-
-				// Sucking bus stop ID (e.g.: 1254)
-				String href;
-				try {
-					href = li.getElementsByTag("a").first().attr("href");
-				} catch (NullPointerException e) {
-					Log.e("GTTSiteSucker",
-							"Parse error: busStopID can't be found!");
-					continue;
-				}
-				Integer busStopID = string2Integer(grep("([0-9]+)", href));
-				if (busStopID == null) {
-					Log.e("GTTSiteSucker", "Parse error: busStopID is null!");
-					continue;
-				}
-
-				// Sucking bus stop name (e.g.: POZZO STRADA)
-				String busStopName = grep("- (.+)<br", liContent);
-				if(busStopName == null) {
-					Log.e("GTTSiteSucker", "Parse error: busStopName is null!");
-					continue;
-				}
-
-				// Sucking bus lines
-				ArrayList<BusLine> busLines = new ArrayList<BusLine>();
-				Element span = null;
-				try {
-					span = li.getElementsByTag("span").last();
-				} catch (NullPointerException e) {
-					Log.d("GTTSiteSucker", "Can't retrieve span element");
-				}
-				if(span == null) {
-					Log.d("GTTSiteSucker", "Span element is null!" + li.html());
-					continue;
-				}
-				String spanContent = grep("Linee: (.+)", span.html());
-				if (spanContent != null) {
-					String[] busLineNames = spanContent.split(", ");
-					for (int i = 0; i < busLineNames.length; i++) {
-						busLines.add(new BusLine(busLineNames[i]));
-					}
-				}
-
-				Log.d("GTTSiteSucker", "busStopID: " + busStopID);
-				Log.d("GTTSiteSucker", "busStopName:" + busStopName);
-				Log.d("GTTSiteSucker", "busLines: " + busLines.size());
-
-				busStops.add(new BusStop(busStopID, busStopName, busLines
-						.toArray((new BusLine[] {}))));
-			}
-		} else if (title.equals("Arrivi in fermata")) {
-			// Find bus lines
-
-			String p = null;
-			try {
-				p = doc.getElementsByTag("p").first().html();
-			} catch (NullPointerException e) {
-				Log.e("GTTSiteSucker",
-						"Parse error: busStopID and busStopName can't be found!");
-			}
-			if(p == null) {
-				return null;
-			}
-
-			// Sucking bus stop ID (e.g. 1254)
-			Integer busStopID = string2Integer(grep("([0-9]+) -", p)); // arrivi.jsp?n=(1254)
-			if (busStopID == null) {
-				Log.e("GTTSiteSucker", "Parse error: busStopID is null: " + p);
-				return null;
-			}
-
-			// Sucking bus stop name (e.g.: POZZO STRADA)
-			String busStopName = grep("- (.+)<br", p);
-			if(busStopName == null) {
-				Log.e("GTTSiteSucker", "Parse error: busStopName is null!");
-				return null;
-			}
-			
-			// Sucking bus lines
-			ArrayList<BusLine> busLines = new ArrayList<BusLine>();
-			Elements lis = doc.getElementsByTag("li");
-			for (Element li : lis) {
-				String liContent = li.html();
-				if (liContent.isEmpty()) {
-					continue;
-				}
-
-				// Sucking bus line name (e.g.: 17 /)
-				String h3 = null;
-				try {
-					h3 = li.getElementsByTag("h3").first().html();
-				} catch (NullPointerException e) {
-					Log.e("GTTSiteSucker",
-							"Parse error: busLineName can't be found!");
-				}
-				if(h3 == null) {
-					continue;
-				}
-				String busLineName = grep("Linea&nbsp;(.+)", h3);
-				if(busLineName == null) {
-					Log.e("GTTSiteSucker", "Parse error: busLineName is null: " + h3);
-					continue;
-				}
-
-				BusLine busLine = new BusLine(busLineName);
-
-				// Sucking bus passages
-				Elements spans = li.parent().select("li > span");
-				for (Element span : spans) {
-					String spanContent = span.html();
-					if (spanContent.isEmpty()) {
-						continue;
-					}
-
-					String busLinePassage = grep("([0-9]+:[0-9]+)", spanContent);
-					if(busLinePassage == null) {
-						Log.e("GTTSiteSucker", "Parse error: busLinePassage is null: " + spanContent);
-						continue;
-					}
-
-					String busLinePassageInRealTime = grep("(span)", spanContent);
-					busLine.addTimePassage(busLinePassage, busLinePassageInRealTime == null ? false : true);
-				}
-
-				busLines.add(busLine);
-			}
-
-			return new BusStop[] {new BusStop(busStopID, busStopName, busLines
-					.toArray((new BusLine[] {})))};
-		} else {
-			Log.e("GTTSiteSucker", "Title does not recognized: «" + title + "»");
-			return null;
-		}
-
-		return busStops.toArray((new BusStop[] {}));
-	}
-
-    /**
-     * Return geographical infos about a bus stop
-     * @return BusStop
-     */
-    public BusStop getBusStopInfos(SQLiteDatabase db,
-                                   String json) {
-        // Yes, it's JSON, but I don't want to import org.json
-
-        String line = null;
-        while((line=bufReader.readLine()) != null) {
-            Integer busStopID = String2Integer(grep("shortName[\s]*:[\s]*\"([0-9]+)\"", line));
-
-            if(line=bufReader.readLine()) == null) {
-                return false;
-            }
-
-            String busStopName = grep("name[\s]*:[\s]*\"(.+)\"", line);
-
-            if(line=bufReader.readLine()) == null) {
-                return false;
-            }
-
-            String latitude = grep("lat[\s]*:[\s]*(.+),", line);
-
-            if(line=bufReader.readLine()) == null) {
-                return false;
-            }
-
-            String longitude = grep("lon[\s]*:[\s]*(.+),", line);
-
-            return new BusStop(busStopID, busStopName, null, latitude, longitude);
-        }
-    }
 }

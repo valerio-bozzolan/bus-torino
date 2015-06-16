@@ -7,28 +7,34 @@
     <string name="insert_bus_stop_number">Bus stop number</string>
     <string name="insert_bus_stop_name">Bus stop name</string>
     <string name="insert_bus_stop_number_error">Insert bus stop number</string>
+    <string name="insert_bus_stop_name_error">Insert bus stop name</string>
     <string name="encoding_error">Sorry but you are using not allowed characters</string>
     <string name="network_error">Verify the state of your Internet connection!</string>
     <string name="no_arrival_times">No bus is supposed to arrive at this stop</string>
+    <string name="no_bus_stop_have_this_name">Seems that no bus stop have this name</string>
+    <string name="parsing_error">Error parsing the 5T/GTT website (damn site!)</string>
     <string name="passages">Arrivals at: %1$s</string>
     <string name="results">Choose the bus stop…</string>
     <string name="lines">Lines: %1$s</string>
     <string name="no_passages">No passages</string>
-    <string name="action_about">About</string>
     <string name="action_favorites">Favorites</string>
+    <string name="action_about">About</string>
+    <string name="action_source">Source code</string>
+    <string name="action_changelog">Last changes</string>
+    <string name="action_author">Meet the author</string>
+    <string name="action_help">Help</string>
     <string name="added_in_favorites">Bus stop is now in your favorites</string>
     <string name="title_activity_favorites">Favorites</string>
     <string name="tip_add_favorite">Press on a bus stop name to populate this list</string>
     <string name="action_remove_from_favourites">Delete</string>
     <string name="about">About</string>
-    <string name="howDoesItWork">- <b>Press on the bus stop name</b> above to add it to the favourites.\n- <b>How to read timelines:</b>\n<b>&#160;&#160;&#160;12:56*</b> Real time arrival\n<b>&#160;&#160;&#160;12:56</b> &#160; Scheduled time of arrival\n- <b>Pull down to refresh</b> the timetable.</string>
+    <string name="howDoesItWork"><b>Tap the bus stop name</b> to add it to the favourites\n\n<b>How to read timelines:</b>\n<b>&#160;&#160;&#160;12:56*</b> Real time arrival\n<b>&#160;&#160;&#160;12:56</b> &#160; Scheduled time of arrival\n\n<b>Pull down to refresh</b> the timetable</string>
     <string name="hint_button">GOT IT!</string>
-    <string name="action_help">Help</string>
     <string name="about_history">
 <![CDATA[
         <h1>Welcome!</h1>
 
-        <p>Thanks for using BusTO, an <b>indipendent</b> app useful to move around Torino using a <b>Free/Libre and Open Source software</b>.</p>
+        <p>Thanks for using BusTO, an <b>indipendent</b> app useful to move around Torino using a <b>Free/Libre software</b>.</p>
 
         <p>Why using this app?</p>
 		<p>
@@ -39,12 +45,12 @@
         </p>
 
         <h2>How does it work?</h2>
-        <p>This app will show you the timetable of the buses using the information published on the site <b>http://www.5t.torino.it</b>.</p>
+        <p>This app will show you the timetable of the buses using the information published on the site <b>www.5t.torino.it</b>.</p>
 
 		<p>Who worked on BusTO:<br>
 		- <b>Valerio Bozzolan</b>, the main developer.<br>
-		- <b>Marco Gagino</b>, contributor.<br>
-		- <b>Paolo Alloatti</b>, the concept of the icon.<br>
+		- <b>Marco Gagino</b>, the main contributor + icon.<br>
+		- <b>Paolo Alloatti</b>, the original concept of the icon.<br>
 		- <b>JSoup</b> for the web scraper library.<br>
 		- <b>makovkastar</b> for the floating buttons.<br>
 		- <b>Google</b> for Material Design icons.<br>
@@ -53,18 +59,18 @@
 		</p>
 		
 		<h2>Licenses</h2>
-		<p>The app and the related source code are released by <a href="mailto:valerio.bozzolan@studenti.polito.it?subject=BusTO">Valerio Bozzolan</a> under the terms of two different licences:
-		the <i>Gnu General Public License v3+</i> (<a href="http://www.gnu.org/licenses/gpl.html">GNU GPLv3+</a>) and the <i>Creative Commons Attribution - Share alike 4.0 International</i> (<a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en">CC 4.0 By-Sa</a>).
+		<p>The app and the related source code are released by <a href="mailto:valerio.bozzolan@studenti.polito.it?subject=BusTO">Valerio Bozzolan</a> under the terms of the <i>Gnu General Public License v3+</i> (<a href="http://www.gnu.org/licenses/gpl.html">GNU GPLv3+</a>).
 		So everyone is allowed to use, to study, to improve and to share this app by <b>any kind of means</b> and for <b>any purpose</b>: under the conditions of manteining this rights and of attributing the original source code to Valerio Bozzolan.</p>
 
 		<h2>Notes</h2>
-		<p>This app has been developed <b>hoping to be useful to everyone</b> but without any warranty (such as commercial warranties). If you discover some bugs or if you have some idea, please <a href="https://bugs.launchpad.net/bus-torino">report them</a>.</p>
->		
+		<p>This app has been developed <b>hoping to be useful to everyone</b> but without any warranty.</p>
+
+        <p>Send bugs/ideas: <a href="https://bugs.launchpad.net/bus-torino">bug tracker</a>.</p>
 		<p>Source code: <a href="https://code.launchpad.net/bus-torino">lp:bus-torino</a>.</p>
-		<p>Mail the author: <a href="mailto:valerio.bozzolan@studenti.polito.it?subject=BusTO">Valerio Bozzolan</a>.</p>
+		<p>Changes: <a href="http://bustorino.reyboz.it/CONTRIBUTORS_AND_CHANGES.txt">changes.txt</a></p>
+		<p>Meet the author: <a href="http://boz.reyboz.it">Valerio Bozzolan</a>.</p>
 
 		<p>This translation is kindly provided by Riccardo Caniato and Marco Gagino.</p>
     ]]>
     </string>
-
 </resources>

@@ -7,28 +7,34 @@
     <string name="insert_bus_stop_number">Numero fermata</string>
     <string name="insert_bus_stop_name">Nome fermata</string>
     <string name="insert_bus_stop_number_error">Inserisci il numero della fermata</string>
+    <string name="insert_bus_stop_name_error">Inserisci il nome della fermata</string>
     <string name="encoding_error">Alcuni caratteri non sono stati riconosciuti</string>
     <string name="network_error">Verifica l\'accesso ad Internet!</string>
     <string name="no_arrival_times">Nessun arrivo previsto per questa fermata</string>
+    <string name="no_bus_stop_have_this_name">Sembra che nessuna fermata abbia questo nome</string>
+    <string name="parsing_error">Errore di lettura del sito 5T/GTT (dannato sito!)</string>
     <string name="passages">Fermata: %1$s</string>
     <string name="lines">Linee: %1$s</string>
     <string name="results">Scegli la fermata…</string>
     <string name="no_passages">Nessun passaggio</string>
     <string name="action_about">Informazioni</string>
     <string name="action_favorites">Preferiti</string>
+    <string name="action_source">Codice sorgente</string>
+    <string name="action_changelog">Ultimi cambiamenti</string>
+    <string name="action_author">Incontra l\'autore</string>
+    <string name="action_help">Aiuto</string>
     <string name="added_in_favorites">Fermata aggiunta ai preferiti</string>
     <string name="title_activity_favorites">Preferiti</string>
-    <string name="tip_add_favorite">Premi sul nome di una fermata per inserirla in questa lista</string>
+    <string name="tip_add_favorite">Tocca il nome di una fermata per aggiungerla in questa lista</string>
     <string name="action_remove_from_favourites">Rimuovi</string>
     <string name="about">Informazioni</string>
-    <string name="howDoesItWork">- <b>Premi sul nome della fermata</b> per aggiungerla ai preferiti.\n- <b>Come leggere gli orari:</b>\n<b>&#160;&#160;&#160;12:56*</b> Orario in tempo reale\n<b>&#160;&#160;&#160;12:56</b> &#160; Orario programmato\n- <b>Trascina giù per aggiornare</b> l\'orario.</string>
+    <string name="howDoesItWork"><b>Tocca il nome della fermata</b> per aggiungerla ai preferiti\n\n<b>Come leggere gli orari:</b>\n<b>&#160;&#160;&#160;12:56*</b> Orario in tempo reale\n<b>&#160;&#160;&#160;12:56</b> &#160; Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario.</string>
     <string name="hint_button">OK !</string>
-    <string name="action_help">Aiuto</string>
     <string name="about_history">
 <![CDATA[
         <h1>Benvenuto!</h1>
         
-        <p>Grazie per aver scelto BusTO, un\'app <b>indipendente</b> nata dalla necessità di spostarsi a Torino attraverso <b>software libero</b>:</p>
+        <p>Grazie per aver scelto BusTO, un\'app \"politicamente\" <b>indipendente</b> da GTT/5T, per spostarsi a Torino attraverso <b>software libero</b>:</p>
 		
 		<p>Perchè usare BusTO?</p>
 		<p>
@@ -43,7 +49,7 @@
 
 		<p>Ingredienti:<br>
 		- <b>Valerio Bozzolan</b> come sviluppatore principale.<br>
-		- <b>Marco Gagino</b> come intenso collaboratore.<br>
+		- <b>Marco Gagino</b> come intenso collaboratore + icona.<br>
 		- <b>Paolo Alloatti</b> per l\'idea dell\'icona.<br>
 		- <b>JSoup</b> libreria per "<i>web scaping</i>".<br>
 		- <b>makovkastar</b> per i floating button.<br>
@@ -52,9 +58,8 @@
 		</p>
 
 		<h2>Licenze</h2>
-		<p>L\'app e il relativo codice sorgente sono distribuiti sotto doppia licenza:
-		<i>GNU GPL</i> e <i>CC By-Sa</i>.
-		Ciò <b>significa</b> che puoi usare, studiare, migliorare e ricondividere quest\'app con <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: a patto di mantenere sempre questi diritti a tua volta e di attribuire sempre a Valerio Bozzolan gli \"sforzi\" per il codice sorgente.
+		<p>L\'app e il relativo codice sorgente sono distribuiti sotto licenza <i>Gnu General Public License v3+</i> (<a href="http://www.gnu.org/licenses/gpl.html">GNU GPLv3+</a>).
+		Ciò <b>significa</b> che puoi usare, studiare, migliorare e ricondividere quest\'app con <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: a patto di mantenere sempre questi diritti a tua volta e di dare credito a Valerio Bozzolan.
 		</p>
 		
 		<h2>Note</h2>
@@ -63,7 +68,7 @@
 		<p>Invio di bugs/idee: <a href="https://bugs.launchpad.net/bus-torino">lamentati qui</a>.</p>
 		<p>Codice sorgente: <a href="https://code.launchpad.net/bus-torino">lp:bus-torino</a>.</p>
 		<p>Cosa è cambiato: <a href="http://bustorino.reyboz.it/CONTRIBUTORS_AND_CHANGES.txt">changes.txt</a></p>
-		<p>Contatta l\'autore: <a href="mailto:valerio.bozzolan@studenti.polito.it?subject=BusTO">Valerio Bozzolan</a>.</p>
+		<p>Contatta l\'autore: <a href="http://boz.reyboz.it">Valerio Bozzolan</a>.</p>
 
 		<p>Buon utilizzo! :)</p>
     ]]>
