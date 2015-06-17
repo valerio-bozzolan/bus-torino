@@ -81,13 +81,9 @@ public class ActivityFavorites extends ActionBarActivity {
 
 		switch (item.getItemId()) {
 			case R.id.action_favourite_entry_delete:
-				db.delete(DBBusStop.TABLE_NAME,
-                    MyDB.somethingEqualsWithoutQuotes(DBBusStop.COLUMN_NAME_BUSSTOP_ID),
-                    new String[] { busStop.getBusStopID() });
-                db.delete(MyDB.DBBusStopServeLine.TABLE_NAME,
-                    MyDB.somethingEqualsWithoutQuotes(MyDB.DBBusStopServeLine.COLUMN_NAME_BUSSTOP_ID),
-                    new String[] { busStop.getBusStopID() });
-				    createFavoriteList();
+                busStop.setIsFavorite(false);
+                MyDB.DBBusStop.addBusStop(db, busStop);
+                createFavoriteList();
 				return true;
             case R.id.action_rename_bus_stop_username:
                 showBusStopUsernameInputDialog(busStop);

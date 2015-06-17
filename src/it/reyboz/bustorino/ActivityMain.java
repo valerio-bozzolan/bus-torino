@@ -397,23 +397,23 @@ public class ActivityMain extends ActionBarActivity {
 		resultsListView.setAdapter(new AdapterBusStops(this, R.layout.entry_bus_stop, busStops));
 		resultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				/**
-				 * Casting because of Javamerda
-				 * @url http://stackoverflow.com/questions/30549485/androids-list-view-parameterized-type-in-adapterview-onitemclicklistener
-				 */
-				BusStop busStop = (BusStop) parent.getItemAtPosition(position);
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                /**
+                 * Casting because of Javamerda
+                 * @url http://stackoverflow.com/questions/30549485/androids-list-view-parameterized-type-in-adapterview-onitemclicklistener
+                 */
+                BusStop busStop = (BusStop) parent.getItemAtPosition(position);
 
-				String busStopID = busStop.getBusStopID();
-				busStopSearchByIDEditText.setText(busStopID);
+                String busStopID = busStop.getBusStopID();
+                busStopSearchByIDEditText.setText(busStopID);
 
-				setSearchModeBusStopID();
+                setSearchModeBusStopID();
 
-				showSpinner();
-				asyncWgetBusStopFromBusStopID(busStopID);
-			}
-		});
+                showSpinner();
+                asyncWgetBusStopFromBusStopID(busStopID);
+            }
+        });
 	}
 
 	/**
@@ -457,20 +457,23 @@ public class ActivityMain extends ActionBarActivity {
 			busStop.setIsFavorite(true);
             MyDB.DBBusStop.addBusStop(db, busStop);
 
-            // This will also scrape the busStopLocality
-            try {
-                new AsyncWgetBusStopSuggestions(busStop.getBusStopID()) {
-                    @Override
-                    public void onReceivedBusStopNames(BusStop[] busStops, int status) {
-                        if(status == AsyncWgetBusStopSuggestions.ERROR_NONE) {
-                            for(BusStop busStop: busStops) {
-                                MyDB.DBBusStop.addBusStop(db, busStop);
+            BusStop dbBusStop = MyDB.DBBusStop.getBusStop(db, busStop.getBusStopID());
+            if(dbBusStop == null || dbBusStop.getBusStopLocality() == null) {
+                // This will also scrape the busStopLocality
+                try {
+                    new AsyncWgetBusStopSuggestions(busStop.getBusStopID()) {
+                        @Override
+                        public void onReceivedBusStopNames(BusStop[] busStops, int status) {
+                            if (status == AsyncWgetBusStopSuggestions.ERROR_NONE) {
+                                for (BusStop busStop : busStops) {
+                                    MyDB.DBBusStop.addBusStop(db, busStop);
+                                }
                             }
                         }
-                    }
-                };
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+                    };
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
             }
 
             Toast.makeText(getApplicationContext(),
