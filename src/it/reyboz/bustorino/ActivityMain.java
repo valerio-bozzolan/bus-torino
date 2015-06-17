@@ -345,12 +345,15 @@ public class ActivityMain extends ActionBarActivity {
 			return;
 		}
 
-		String busStopName = busStop.getBusStopName();
+        BusStop dbBusStop = MyDB.DBBusStop.getBusStop(db, busStop.getBusStopID());
+
 		String busStopNameDisplay;
-		if (busStopName == null) {
-			busStopNameDisplay = String.valueOf(busStopID);
+        if(dbBusStop != null && dbBusStop.getBusStopUsername() != null) {
+            busStopNameDisplay = dbBusStop.getBusStopUsername();
+        } else if (busStop.getBusStopName() != null) {
+			busStopNameDisplay = busStop.getBusStopName();
 		} else {
-			busStopNameDisplay = busStopName;
+			busStopNameDisplay = String.valueOf(busStopID);
 		}
 		busStopNameTextView.setText(String.format(
 				getString(R.string.passages), busStopNameDisplay));

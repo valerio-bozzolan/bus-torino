@@ -22,7 +22,10 @@ import it.reyboz.bustorino.lab.MyDB;
 import it.reyboz.bustorino.lab.MyDB.DBBusStop;
 import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.support.v7.app.ActionBarActivity;
+import android.text.InputType;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -31,6 +34,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -73,19 +77,21 @@ public class ActivityFavorites extends ActionBarActivity {
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
 				.getMenuInfo();
 
-		String busStopID = ((TextView) (info.targetView)
-				.findViewById(R.id.busStopID)).getText().toString();
+        BusStop busStop = (BusStop) favoriteListView.getItemAtPosition(info.position);
 
 		switch (item.getItemId()) {
 			case R.id.action_favourite_entry_delete:
 				db.delete(DBBusStop.TABLE_NAME,
-						MyDB.somethingEqualsWithoutQuotes(DBBusStop.COLUMN_NAME_BUSSTOP_ID),
-						new String[] { busStopID });
+                    MyDB.somethingEqualsWithoutQuotes(DBBusStop.COLUMN_NAME_BUSSTOP_ID),
+                    new String[] { busStop.getBusStopID() });
                 db.delete(MyDB.DBBusStopServeLine.TABLE_NAME,
-                        MyDB.somethingEqualsWithoutQuotes(MyDB.DBBusStopServeLine.COLUMN_NAME_BUSSTOP_ID),
-                        new String[] { busStopID });
+                    MyDB.somethingEqualsWithoutQuotes(MyDB.DBBusStopServeLine.COLUMN_NAME_BUSSTOP_ID),
+                    new String[] { busStop.getBusStopID() });
 				    createFavoriteList();
 				return true;
+            case R.id.action_rename_bus_stop_username:
+                showBusStopUsernameInputDialog(busStop);
+                return true;
 			default:
 				return super.onContextItemSelected(item);
 		}
@@ -131,4 +137,61 @@ public class ActivityFavorites extends ActionBarActivity {
 				});
 		registerForContextMenu(favoriteListView);
 	}
+
+    private class BusStopUsernameOnClickListener implements DialogInterface.OnClickListener {
+        private BusStop busStop;
+
+        BusStopUsernameOnClickListener(BusStop busStop) {
+            this.busStop = busStop;
+        }
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+
+        }
+    }
+
+    public void showBusStopUsernameInputDialog(BusStop busStop) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle(getString(R.string.dialog_rename_bus_stop_username_title));
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setText(busStop.getBusStopName());
+        input.setHint(busStop.getBusStopName());
+
+        builder.setView(input);
+
+        builder.setPositiveButton(getString(android.R.string.ok), new BusStopUsernameOnClickListener(busStop) {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String busStopUsername = input.getText().toString();
+                if(busStopUsername == null || busStopUsername.length() == 0) {
+                    busStopUsername = super.busStop.getBusStopName();
+                }
+
+                super.busStop.setBusStopUsername(busStopUsername);
+                MyDB.DBBusStop.addBusStop(db, super.busStop);
+
+                createFavoriteList();
+            }
+        });
+        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.setNeutralButton(R.string.dialog_rename_bus_stop_username_reset_button, new BusStopUsernameOnClickListener(busStop) {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                super.busStop.setBusStopUsername(null);
+                MyDB.DBBusStop.addBusStop(db, super.busStop, DBBusStop.FORCE_NULL_BUSSTOP_USERNAME);
+
+                createFavoriteList();
+            }
+        });
+        builder.show();
+    }
 }

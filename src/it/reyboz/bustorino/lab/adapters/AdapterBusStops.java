@@ -59,7 +59,11 @@ public class AdapterBusStops extends ArrayAdapter<BusStop> {
 
         // Take the TextView from layout and set the busStop name
         TextView busStopNameTextView = (TextView) convertView.findViewById(R.id.busStopName);
-        busStopNameTextView.setText(busStop.getBusStopName());
+        if(busStop.getBusStopUsername() != null) {
+            busStopNameTextView.setText(busStop.getBusStopUsername());
+        } else {
+            busStopNameTextView.setText(busStop.getBusStopName());
+        }
 
         // Vehicle icon
         TextView busLineVehicleIcon = (TextView) convertView.findViewById(R.id.vehicleIcon);

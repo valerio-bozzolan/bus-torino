@@ -156,16 +156,19 @@ public class MyDB extends SQLiteOpenHelper {
 			return rowExists(db, TABLE_NAME, getColumn(COLUMN_NAME_BUSSTOP_ID), busStopID);
 		}
 
+        public final static int FORCE_NULL_BUSSTOP_USERNAME = 1;
+
 		/**
 		 * Add a bus stop or replace the existing bus stop.
 		 * It also add its bus lines!
 		 *
 		 * @param db
 		 * @param busStop
+         * @param forceNULL
 		 * @return
 		 * @throws SQLException
 		 */
-		public static void addBusStop(SQLiteDatabase db, BusStop busStop) throws SQLException {
+		public static void addBusStop(SQLiteDatabase db, BusStop busStop, int forceNULL) throws SQLException {
 			ContentValues values = new ContentValues();
 
 			if(busStop.getBusStopName() != null) {
@@ -173,6 +176,8 @@ public class MyDB extends SQLiteOpenHelper {
 			}
             if(busStop.getBusStopUsername() != null) {
                 values.put(COLUMN_NAME_BUSSTOP_USERNAME, busStop.getBusStopUsername());
+            } else if((forceNULL & FORCE_NULL_BUSSTOP_USERNAME) != 0) {
+                values.putNull(COLUMN_NAME_BUSSTOP_USERNAME);
             }
 			if (busStop.getBusStopLocality() != null) {
 				values.put(COLUMN_NAME_BUSSTOP_LOCALITY, busStop.getBusStopLocality());
@@ -207,6 +212,10 @@ public class MyDB extends SQLiteOpenHelper {
             }
 		}
 
+        public static void addBusStop(SQLiteDatabase db, BusStop busStop) throws SQLException {
+            addBusStop(db, busStop, 0);
+        }
+
         public static BusStop[] getFavoriteBusStops(SQLiteDatabase db) {
             ArrayList<BusStop> busStops = new ArrayList<BusStop>();
 
@@ -235,6 +244,33 @@ public class MyDB extends SQLiteOpenHelper {
             c.close();
 
             return busStops.toArray(new BusStop[busStops.size()]);
+        }
+
+        public static BusStop getBusStop(SQLiteDatabase db, String searchBusStopID) {
+            BusStop busStop = null;
+
+            String query = MyDB.SELECT_ALL_FROM
+                    + TABLE_NAME
+                    + WHERE
+                    + somethingEqualsWithoutQuotes(COLUMN_NAME_BUSSTOP_ID);
+
+            Cursor c = db.rawQuery(query, new String[]{searchBusStopID});
+
+            while (c.moveToNext()) {
+                String busStopID = c.getString(c.getColumnIndex(COLUMN_NAME_BUSSTOP_ID));
+                String busStopName = c.getString(c.getColumnIndex(COLUMN_NAME_BUSSTOP_NAME));
+                String busStopUsername = c.getString(c.getColumnIndex(COLUMN_NAME_BUSSTOP_USERNAME));
+                String busStopLocality = c.getString(c.getColumnIndex(COLUMN_NAME_BUSSTOP_LOCALITY));
+
+                BusLine[] busLines = DBBusStopServeLine.getBusLinesServedByBusStopID(db, busStopID);
+
+                busStop = new BusStop(busStopID, busStopName, busLines);
+                busStop.setBusStopUsername(busStopUsername);
+                busStop.setBusStopLocality(busStopLocality);
+            }
+            c.close();
+
+            return busStop;
         }
 
 		public static String getColumn(String columnName) {

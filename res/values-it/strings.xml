@@ -27,6 +27,9 @@
     <string name="title_activity_favorites">Preferiti</string>
     <string name="tip_add_favorite">Tocca il nome di una fermata per aggiungerla in questa lista</string>
     <string name="action_remove_from_favourites">Rimuovi</string>
+    <string name="action_rename_bus_stop_username">Rinomina</string>
+    <string name="dialog_rename_bus_stop_username_title">Rinomina fermata</string>
+    <string name="dialog_rename_bus_stop_username_reset_button">Reset</string>
     <string name="about">Informazioni</string>
     <string name="howDoesItWork"><b>Tocca il nome della fermata</b> per aggiungerla ai preferiti\n\n<b>Come leggere gli orari:</b>\n<b>&#160;&#160;&#160;12:56*</b> Orario in tempo reale\n<b>&#160;&#160;&#160;12:56</b> &#160; Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario.</string>
     <string name="hint_button">OK !</string>
