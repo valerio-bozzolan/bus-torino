@@ -35,7 +35,7 @@
         	</requestFocus>
     	</EditText>
         
-	    <AutoCompleteTextView
+	    <EditText
 	        android:id="@+id/busStopSearchByNameEditText"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
@@ -53,7 +53,7 @@
 	        android:visibility="gone" >
 	        <requestFocus>
 	        </requestFocus>
-	    </AutoCompleteTextView>
+	    </EditText>
 	    
 	    <ImageButton
 	        android:id="@+id/searchButton"
@@ -160,14 +160,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            android:layout_gravity="bottom|right"
+            android:layout_gravity="bottom|end"
             android:src="@drawable/ic_keyboard_white_24dp"
-            fab:fab_colorNormal="@color/orange_500"
-            fab:fab_colorPressed="@color/orange_700"
-            fab:fab_colorRipple="@color/accent"
+            fab:fab_type="normal"
+            fab:fab_shadow="true"
+            fab:fab_colorNormal="@color/teal_300"
+            fab:fab_colorPressed="@color/teal_200"
+            fab:fab_colorRipple="@color/teal_200"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:onClick="onToggleKeyboardLayout"/>
 	    
 	</RelativeLayout>

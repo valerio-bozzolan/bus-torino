@@ -19,6 +19,7 @@ package it.reyboz.bustorino;
 
 import java.io.UnsupportedEncodingException;
 
+import it.reyboz.bustorino.lab.GTTSiteSucker;
 import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
 import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopFromBusStopID;
 import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopSuggestions;
@@ -60,7 +61,7 @@ public class ActivityMain extends ActionBarActivity {
 	 * Layout elements
 	 */
 	private EditText busStopSearchByIDEditText;
-	private AutoCompleteTextView busStopSearchByNameEditText;
+	private EditText busStopSearchByNameEditText;
 	private TextView busStopNameTextView;
 	private ProgressBar progressBar;
 	private TextView howDoesItWorkTextView;
@@ -117,7 +118,7 @@ public class ActivityMain extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		busStopSearchByIDEditText = (EditText) findViewById(R.id.busStopSearchByIDEditText);
-		busStopSearchByNameEditText = (AutoCompleteTextView) findViewById(R.id.busStopSearchByNameEditText);
+		busStopSearchByNameEditText = (EditText) findViewById(R.id.busStopSearchByNameEditText);
 		busStopNameTextView = (TextView) findViewById(R.id.busStopNameTextView);
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
 		howDoesItWorkTextView = (TextView) findViewById(R.id.howDoesItWorkTextView);
@@ -456,7 +457,23 @@ public class ActivityMain extends ActionBarActivity {
 			busStop.setIsFavorite(true);
             MyDB.DBBusStop.addBusStop(db, busStop);
 
-			Toast.makeText(getApplicationContext(),
+            // This will also scrape the busStopLocality
+            try {
+                new AsyncWgetBusStopSuggestions(busStop.getBusStopID()) {
+                    @Override
+                    public void onReceivedBusStopNames(BusStop[] busStops, int status) {
+                        if(status == AsyncWgetBusStopSuggestions.ERROR_NONE) {
+                            for(BusStop busStop: busStops) {
+                                MyDB.DBBusStop.addBusStop(db, busStop);
+                            }
+                        }
+                    }
+                };
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+
+            Toast.makeText(getApplicationContext(),
 					R.string.added_in_favorites, Toast.LENGTH_SHORT).show();
 		}
 	}

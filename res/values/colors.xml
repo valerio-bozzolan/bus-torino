@@ -5,8 +5,9 @@
     <color name="orange_700">#F57C00</color>
     <color name="blue_500">#2196F3</color>
     <color name="blue_700">#1976D2</color>
-    <color name="teal_300">#4DB6AC</color>
     <color name="teal_500">#009688</color>
+    <color name="teal_300">#4DB6AC</color>
+    <color name="teal_200">#80cbc4</color>
     <color name="grey_100">#F5F5F5</color>
     <color name="grey_600">#757575</color>
     <color name="white">#FFFFFF</color>
