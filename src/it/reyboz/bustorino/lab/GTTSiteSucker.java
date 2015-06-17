@@ -288,16 +288,6 @@ public class GTTSiteSucker {
 			this.busLines = busLines;
 		}
 
-        public BusStop(String busStopID, String busStopName, String busStopLocality, BusLine[] busLines, String latitude, String longitude, Boolean isFavorite) {
-            this.busStopID = busStopID;
-            this.busStopName = busStopName;
-			this.busStopLocality = busStopLocality;
-            this.busLines = busLines;
-            this.latitude = latitude;
-            this.longitude = longitude;
-			this.isFavorite = isFavorite;
-        }
-
 		public String getBusStopName() {
 			return busStopName;
 		}

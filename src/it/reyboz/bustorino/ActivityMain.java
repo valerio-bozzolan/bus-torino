@@ -289,7 +289,7 @@ public class ActivityMain extends ActionBarActivity {
      * @param busStopID
      */
 	private void asyncWgetBusStopFromBusStopID(String busStopID) {
-		if(busStopID == null) {
+		if(busStopID == null || busStopID.length() == 0) {
 			Toast.makeText(getApplicationContext(),
 					R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT).show();
 			hideSpinner();
@@ -534,6 +534,7 @@ public class ActivityMain extends ActionBarActivity {
 
     private void prepareGUIForBusLines() {
         busStopNameTextView.setVisibility(View.VISIBLE);
+        busStopNameTextView.setClickable(true);
         swipeRefreshLayout.setEnabled(true);
         swipeRefreshLayout.setVisibility(View.VISIBLE);
         resultsListView.setVisibility(View.VISIBLE);
@@ -542,6 +543,7 @@ public class ActivityMain extends ActionBarActivity {
 
     private void prepareGUIForBusStops() {
 		busStopNameTextView.setText(getString(R.string.results));
+        busStopNameTextView.setClickable(false);
         busStopNameTextView.setVisibility(View.VISIBLE);
         swipeRefreshLayout.setEnabled(false);
         swipeRefreshLayout.setVisibility(View.VISIBLE);

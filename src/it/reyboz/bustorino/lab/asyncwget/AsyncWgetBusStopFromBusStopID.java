@@ -36,7 +36,7 @@ import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
  *
  * @author Valerio Bozzolan
  */
-public class AsyncWgetBusStopFromBusStopID extends AsyncWget {
+    public class AsyncWgetBusStopFromBusStopID extends AsyncWget {
     public final static int ERROR_NONE = 0;
     public final static int ERROR_EMPTY_DOM = 1;
     public final static int ERROR_DOM = 2;
@@ -51,7 +51,20 @@ public class AsyncWgetBusStopFromBusStopID extends AsyncWget {
         super.execute(getURL(busStopID));;
     }
 
+    /**
+     * I've sent an email to the public email info@5t.torino.it to write down something like: «YOUR SITE EXPLODE IF I USE **YOUR** BUS LINE IDs STARTING WITH ZERO!!!!!»
+     * So, waiting for a response, I must purge the busStopID from "0"s.
+     * My face--->   .__.
+     *
+     * @param busStopID
+     * @returnI must purge
+     */
     protected final String getURL(String busStopID) {
+        char zero = busStopID.charAt(0);
+        if(zero == '0') {
+            Log.i("AsyncWgetBusStop", "5T-super-purge-workaround-patch applyed because of «'nghia zio sto sito funzia bnnbene»");
+            busStopID = busStopID.substring(1);
+        }
         return "http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + busStopID;
     }
 
