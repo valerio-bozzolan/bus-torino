@@ -22,6 +22,7 @@ import it.reyboz.bustorino.lab.MyDB;
 import it.reyboz.bustorino.lab.MyDB.DBBusStop;
 import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.support.v7.app.ActionBarActivity;
@@ -29,12 +30,15 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -48,6 +52,8 @@ public class ActivityFavorites extends ActionBarActivity {
 
 	private MyDB mDbHelper;
 	private SQLiteDatabase db;
+
+    private EditText bus_stop_name;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -150,19 +156,20 @@ public class ActivityFavorites extends ActionBarActivity {
     public void showBusStopUsernameInputDialog(BusStop busStop) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
+        bus_stop_name = (EditText) findViewById(R.id.bus_stop_name);
+        LayoutInflater inflater = this.getLayoutInflater();
+
         builder.setTitle(getString(R.string.dialog_rename_bus_stop_username_title));
+        builder.setMessage("testo di prova per la finestra di dialogo");
+        builder.setView(inflater.inflate(R.layout.rename_dialog, null));
 
-        final EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        input.setText(busStop.getBusStopName());
-        input.setHint(busStop.getBusStopName());
-
-        builder.setView(input);
+       // bus_stop_name.setText(busStop.getBusStopName());
+       // bus_stop_name.setHint(busStop.getBusStopName());
 
         builder.setPositiveButton(getString(android.R.string.ok), new BusStopUsernameOnClickListener(busStop) {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String busStopUsername = input.getText().toString();
+                String busStopUsername = bus_stop_name.getText().toString();
                 if(busStopUsername == null || busStopUsername.length() == 0) {
                     busStopUsername = super.busStop.getBusStopName();
                 }

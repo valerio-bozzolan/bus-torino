@@ -161,7 +161,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
             android:layout_gravity="bottom|end"
-            android:src="@drawable/ic_keyboard_white_24dp"
+            android:src="@drawable/alphabetical"
             fab:fab_type="normal"
             fab:fab_shadow="true"
             fab:fab_colorNormal="@color/teal_300"

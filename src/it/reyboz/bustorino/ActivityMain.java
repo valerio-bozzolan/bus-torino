@@ -19,7 +19,6 @@ package it.reyboz.bustorino;
 
 import java.io.UnsupportedEncodingException;
 
-import it.reyboz.bustorino.lab.GTTSiteSucker;
 import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
 import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopFromBusStopID;
 import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopSuggestions;
@@ -45,7 +44,6 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -83,7 +81,7 @@ public class ActivityMain extends ActionBarActivity {
 	};
 
     /*
-     * To toggle keyboard
+     * To toggle alphabetical
      */
 	private final boolean SEARCH_BY_ID = true;
 	private final boolean SEARCH_BY_NAME = false;
@@ -128,7 +126,7 @@ public class ActivityMain extends ActionBarActivity {
         floatingActionButton = (FloatingActionButton) findViewById(R.id.floatingActionButton);
         floatingActionButton.attachToListView(resultsListView);
 
-		// IME_ACTION_SEARCH keyboard option
+		// IME_ACTION_SEARCH alphabetical option
 		busStopSearchByIDEditText
 				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 					@Override
@@ -142,7 +140,7 @@ public class ActivityMain extends ActionBarActivity {
 					}
 				});
 
-		// IME_ACTION_SEARCH keyboard option
+		// IME_ACTION_SEARCH alphabetical option
 		busStopSearchByNameEditText
 				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 					@Override
@@ -359,7 +357,7 @@ public class ActivityMain extends ActionBarActivity {
 		busStopNameTextView.setText(String.format(
 				getString(R.string.passages), busStopNameDisplay));
 
-		// Hide the keyboard before showing passages
+		// Hide the alphabetical before showing passages
 		hideKeyboard();
 
 		// Shows hints
@@ -512,7 +510,7 @@ public class ActivityMain extends ActionBarActivity {
 		busStopSearchByNameEditText.setVisibility(View.GONE);
 		busStopSearchByNameEditText.setText("");
 		busStopSearchByIDEditText.setVisibility(View.VISIBLE);
-        floatingActionButton.setImageResource(R.drawable.ic_keyboard_white_24dp);
+        floatingActionButton.setImageResource(R.drawable.alphabetical);
 	}
 
 	private void setSearchModeBusStopName() {
@@ -520,7 +518,7 @@ public class ActivityMain extends ActionBarActivity {
 		busStopSearchByIDEditText.setVisibility(View.GONE);
 		busStopSearchByIDEditText.setText("");
 		busStopSearchByNameEditText.setVisibility(View.VISIBLE);
-        floatingActionButton.setImageResource(R.drawable.ic_looks_one_white_24dp);
+        floatingActionButton.setImageResource(R.drawable.numeric);
 	}
 
 	private void showHints() {
