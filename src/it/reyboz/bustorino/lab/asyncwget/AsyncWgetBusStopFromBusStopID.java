@@ -60,11 +60,25 @@ import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
      * @returnI must purge
      */
     protected final String getURL(String busStopID) {
-        char zero = busStopID.charAt(0);
-        if(zero == '0') {
-            Log.i("AsyncWgetBusStop", "5T-super-purge-workaround-patch applyed because of «'nghia zio sto sito funzia bnnbene»");
-            busStopID = busStopID.substring(1);
+
+
+
+	String enable_5T_simulator = "on";
+	final char ZZZZZZZZZZZZZZZZZZZZZZZZZZZZEEEEEROOOOOOOOOOOOOOOOOO = '0';
+        char[] cinquettiBarraGtt = busStopID.toCharArray();
+        int merda = 0;
+        while(cinquettiBarraGtt[merda] == ZZZZZZZZZZZZZZZZZZZZZZZZZZZZEEEEEROOOOOOOOOOOOOOOOOO) {
+		Log.i("AsyncWgetBusStop", "'nghia zio sto sito funzia bnnbene");
+                merda++;
         }
+        String trenoDiMerda = "";
+        for(int merdaio = merda; merda < cinquettiBarraGtt.length; merdaio++) {
+                trenoDiMerda += cinquettiBarraGtt[merda];
+        }
+	enableGTTSimulator = "off";
+
+
+
         return "http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + busStopID;
     }
 
