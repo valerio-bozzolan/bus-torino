@@ -1,177 +1,179 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:fab="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="it.reyboz.bustorino.ActivityMain" >
-    
+                xmlns:fab="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                tools:context="it.reyboz.bustorino.ActivityMain">
+
     <!-- 
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="14dip" -->
-    
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:animateLayoutChanges="true">
-        
+
         <EditText
             android:id="@+id/busStopSearchByIDEditText"
-       		android:layout_width="wrap_content"
-        	android:layout_height="wrap_content"
-        	android:layout_toLeftOf="@+id/searchButton"
-        	android:layout_toStartOf="@+id/searchButton"
-        	android:layout_alignParentStart="true"
-        	android:layout_alignParentLeft="true"
-        	android:layout_marginLeft="16dip"
-        	android:layout_marginRight="5dip"
-        	android:layout_marginEnd="5dp"
-        	android:ems="10"
-        	android:hint="@string/insert_bus_stop_number"
-        	android:imeOptions="actionSearch"
-        	android:inputType="number"
-        	android:singleLine="true" >
-        	<requestFocus>
-        	</requestFocus>
-    	</EditText>
-        
-	    <EditText
-	        android:id="@+id/busStopSearchByNameEditText"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_toLeftOf="@+id/searchButton"
-	        android:layout_toStartOf="@+id/searchButton"
-	        android:layout_alignParentStart="true"
-	        android:layout_alignParentLeft="true"
-        	android:layout_marginLeft="16dip"
-	        android:layout_marginRight="5dip"
-	        android:layout_marginEnd="5dp"
-	        android:ems="10"
-	        android:hint="@string/insert_bus_stop_name"
-	        android:imeOptions="actionSearch"
-	        android:singleLine="true"
-	        android:visibility="gone" >
-	        <requestFocus>
-	        </requestFocus>
-	    </EditText>
-	    
-	    <ImageButton
-	        android:id="@+id/searchButton"
-	        style="?android:attr/borderlessButtonStyle"
-	        android:layout_width="40dip"
-	        android:layout_height="40dip"
-	        android:layout_marginRight="16dp"
-	        android:layout_alignParentEnd="true"
-	        android:layout_alignParentRight="true"
-	        android:layout_alignTop="@+id/busStopSearchByIDEditText"
-	        android:background="@drawable/search_button_custom"
-	        android:contentDescription="@string/search"
-	        android:onClick="onSearchClick"
-			tools:ignore="NewApi" />
-	
-	    <ProgressBar
-	        android:id="@+id/progressBar"
-	        style="?android:attr/progressBarStyleHorizontal"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_marginRight="16dp"
-	        android:layout_marginLeft="16dip"
-	        android:layout_alignParentEnd="true"
-	        android:layout_alignParentLeft="true"
-	        android:layout_alignParentRight="true"
-	        android:layout_alignParentStart="true"
-	        android:layout_below="@+id/searchButton"
-	        android:indeterminateOnly="true"
-	        android:visibility="gone" />
-	
-	    <TextView
-	        android:id="@+id/busStopNameTextView"
-	        android:layout_width="wrap_content"
-	        android:layout_height="48dip"
-	        android:layout_marginRight="16dp"
-	        android:layout_marginLeft="16dip"
-	        android:layout_marginTop="10dp"
-	        android:layout_alignParentEnd="true"
-	        android:layout_alignParentLeft="true"
-	        android:layout_alignParentRight="true"
-	        android:layout_alignParentStart="true"
-	        android:layout_below="@+id/searchButton"
-	        android:background="?android:attr/selectableItemBackground"
-	        android:clickable="true"
-	        android:gravity="center_vertical"
-	        android:onClick="addInFavorites"
-	        android:textAppearance="?android:attr/textAppearanceMedium"
-	        android:visibility="gone"
-			tools:ignore="NewApi" />
-	        
-	 <TextView
-	        android:id="@+id/howDoesItWorkTextView"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_toLeftOf="@+id/hideHintButton"
-	        android:layout_below="@+id/busStopNameTextView"
-	        android:layout_marginRight="16dp"
-	        android:layout_marginLeft="16dip"
-	        android:layout_marginBottom="10dp"
-	        android:text="@string/howDoesItWork"
-	        android:textAppearance="?android:attr/textAppearanceSmall"
-	        android:textColor="@color/blue_500"
-	        android:visibility="gone" />
-	
-	    <Button
-	        android:id="@+id/hideHintButton"
-	        style="?android:attr/buttonStyleSmall"
-	        android:layout_width="85dip"
-	        android:layout_height="wrap_content"
-	        android:layout_alignParentEnd="true"
-			android:layout_alignParentRight="true"
-	        android:layout_marginRight="16dp"
-	        android:layout_alignBottom="@+id/howDoesItWorkTextView"
-	        android:background="@drawable/bus_background"
-	        android:text="@string/hint_button"
-	        android:textColor="@color/grey_100"
-	        android:textSize="19sp"
-	        android:visibility="gone"
-	        android:onClick="onHideHint" />
-	
-	    <android.support.v4.widget.SwipeRefreshLayout
-	        android:id="@+id/swipeRefreshLayout"
-	        android:layout_width="match_parent"
-	        android:layout_height="match_parent"
-	        android:layout_alignParentEnd="true"
-	        android:layout_alignParentRight="true"
-	    	android:animateLayoutChanges="true"
-	        android:layout_below="@+id/howDoesItWorkTextView"
-	        android:visibility="gone" >
-	
-	        <ListView
-	            android:id="@+id/resultsListView"
-	            android:layout_width="match_parent"
-	            android:layout_height="match_parent"
-	            android:visibility="gone"
-				android:clickable="true"
-				android:descendantFocusability="blocksDescendants" >
-	        </ListView>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginEnd="5dp"
+            android:layout_marginLeft="16dip"
+            android:layout_marginRight="5dip"
+            android:layout_toLeftOf="@+id/searchButton"
+            android:layout_toStartOf="@+id/searchButton"
+            android:ems="10"
+            android:hint="@string/insert_bus_stop_number"
+            android:imeOptions="actionSearch"
+            android:inputType="number"
+            android:singleLine="true">
 
-	    </android.support.v4.widget.SwipeRefreshLayout>
+            <requestFocus>
+            </requestFocus>
+        </EditText>
+
+        <EditText
+            android:id="@+id/busStopSearchByNameEditText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginEnd="5dp"
+            android:layout_marginLeft="16dip"
+            android:layout_marginRight="5dip"
+            android:layout_toLeftOf="@+id/searchButton"
+            android:layout_toStartOf="@+id/searchButton"
+            android:ems="10"
+            android:hint="@string/insert_bus_stop_name"
+            android:imeOptions="actionSearch"
+            android:singleLine="true"
+            android:visibility="gone">
+
+            <requestFocus>
+            </requestFocus>
+        </EditText>
+
+        <ImageButton
+            android:id="@+id/searchButton"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="40dip"
+            android:layout_height="40dip"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignTop="@+id/busStopSearchByIDEditText"
+            android:layout_marginRight="16dp"
+            android:background="@drawable/search_button_custom"
+            android:contentDescription="@string/search"
+            android:onClick="onSearchClick"
+            tools:ignore="NewApi"/>
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/searchButton"
+            android:layout_marginLeft="16dip"
+            android:layout_marginRight="16dp"
+            android:indeterminateOnly="true"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/busStopNameTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="48dip"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/searchButton"
+            android:layout_marginLeft="16dip"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="10dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:gravity="center_vertical"
+            android:onClick="addInFavorites"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:visibility="gone"
+            tools:ignore="NewApi"/>
+
+        <TextView
+            android:id="@+id/howDoesItWorkTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/busStopNameTextView"
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="16dip"
+            android:layout_marginRight="16dp"
+            android:layout_toLeftOf="@+id/hideHintButton"
+            android:text="@string/howDoesItWork"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/blue_500"
+            android:visibility="gone"/>
+
+        <Button
+            android:id="@+id/hideHintButton"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="85dip"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/howDoesItWorkTextView"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="16dp"
+            android:background="@drawable/bus_background"
+            android:onClick="onHideHint"
+            android:text="@string/hint_button"
+            android:textColor="@color/grey_100"
+            android:textSize="19sp"
+            android:visibility="gone"/>
+
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/howDoesItWorkTextView"
+            android:animateLayoutChanges="true"
+            android:visibility="gone">
+
+            <ListView
+                android:id="@+id/resultsListView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true"
+                android:descendantFocusability="blocksDescendants"
+                android:visibility="gone">
+            </ListView>
+
+        </android.support.v4.widget.SwipeRefreshLayout>
 
         <com.melnykov.fab.FloatingActionButton
             android:id="@+id/floatingActionButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:layout_gravity="bottom|end"
-            android:src="@drawable/ic_keyboard_white_24dp"
-            fab:fab_type="normal"
-            fab:fab_shadow="true"
-            fab:fab_colorNormal="@color/teal_300"
-            fab:fab_colorPressed="@color/teal_200"
-            fab:fab_colorRipple="@color/teal_200"
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:onClick="onToggleKeyboardLayout"/>
-	    
-	</RelativeLayout>
+            android:layout_gravity="bottom|end"
+            android:layout_margin="16dp"
+            android:onClick="onToggleKeyboardLayout"
+            android:src="@drawable/alphabetical"
+            fab:fab_colorNormal="@color/teal_300"
+            fab:fab_colorPressed="@color/teal_200"
+            fab:fab_colorRipple="@color/teal_200"
+            fab:fab_shadow="true"
+            fab:fab_type="normal"/>
+
+    </RelativeLayout>
 
 </RelativeLayout>

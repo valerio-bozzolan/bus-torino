@@ -28,7 +28,7 @@
     <string name="tip_add_favorite">Press on a bus stop name to populate this list</string>
     <string name="action_remove_from_favourites">Delete</string>
     <string name="action_rename_bus_stop_username">Rename</string>
-    <string name="dialog_rename_bus_stop_username_title">Rename bus stop</string>
+    <string name="dialog_rename_bus_stop_username_title">Rename the bus stop</string>
     <string name="dialog_rename_bus_stop_username_reset_button">Reset</string>
     <string name="about">About</string>
     <string name="howDoesItWork"><b>Tap the bus stop name</b> to add it to the favourites\n\n<b>How to read timelines:</b>\n<b>&#160;&#160;&#160;12:56*</b> Real time arrival\n<b>&#160;&#160;&#160;12:56</b> &#160; Scheduled time of arrival\n\n<b>Pull down to refresh</b> the timetable</string>

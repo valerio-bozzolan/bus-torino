@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import it.reyboz.bustorino.lab.GTTSiteSucker;
 
 import static it.reyboz.bustorino.lab.GTTSiteSucker.grep;
+
 import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
 
 /**
@@ -36,7 +37,7 @@ import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
  *
  * @author Valerio Bozzolan
  */
-    public class AsyncWgetBusStopFromBusStopID extends AsyncWget {
+public class AsyncWgetBusStopFromBusStopID extends AsyncWget {
     public final static int ERROR_NONE = 0;
     public final static int ERROR_EMPTY_DOM = 1;
     public final static int ERROR_DOM = 2;
@@ -48,38 +49,51 @@ import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
      * @param busStopID
      */
     public AsyncWgetBusStopFromBusStopID(String busStopID) {
-        super.execute(getURL(busStopID));;
+        super.execute(getURL(busStopID));
+        ;
+    }
+
+    protected final String getURL(String busStopID) {
+        return "http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + getFilteredBusStopID(busStopID);
+    }
+
+    protected final String getEmergencyURL(String busStopID) {
+        return "http://www.gtt.to.it/cms/percorari/arrivi?palina=" + getFilteredBusStopID(busStopID);
     }
 
     /**
-     * I've sent an email to the public email info@5t.torino.it to write down something like: «YOUR SITE EXPLODE IF I USE **YOUR** BUS LINE IDs STARTING WITH ZERO!!!!!»
-     * So, waiting for a response, I must purge the busStopID from "0"s.
-     * My face--->   .__.
+     * I've sent many emails to the public email info@5t.torino.it to write down something like:
+     * «YOUR SITE EXPLODE IF I USE **YOUR** BUS LINE IDs STARTING WITH ZERO!!!!!»
+     * So, waiting for a response, I must purge the busStopID from "0"s  .__.
+     * IN YOUR FACE 5T/GTT. IN YOUR FACE.
      *
      * @param busStopID
-     * @returnI must purge
+     * @return parseInt(busStopID)
+     * @antifeatured yep
+     * @notabug yep
+     * @wontfix yep
      */
-    protected final String getURL(String busStopID) {
+    protected final String getFilteredBusStopID(String busStopID) {
+        /*
+         * OK leds me ezplain why 'm dong this shot of shittt. OK zo swhy?
+         * Bhumm thads because the GTT/5T site-"developer" ids obviusli drunk.
+         */
+        String enableGTTDeveloperSimulator = "on"; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+        final char ZZZZZZZEEEEROOOOOO = '0'; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+        char[] cinquettiBarraGtt = busStopID.toCharArray(); // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+        int merda = 0; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+        while (merda < cinquettiBarraGtt.length && cinquettiBarraGtt[merda] == ZZZZZZZEEEEROOOOOO) {
+            // COMPLETELELELLELEEELY DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+            Log.i("AsyncWgetBusStop", "scimmie ubriache assunte per tirar su il sito 5T/GTT"); // DR
+            merda++; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+        } // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+        String trenoDiMerda = ""; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+        for (; merda < cinquettiBarraGtt.length; merda++) { // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+            trenoDiMerda += cinquettiBarraGtt[merda]; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+        } // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+        enableGTTDeveloperSimulator = "off"; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
 
-
-
-	String enable_5T_simulator = "on";
-	final char ZZZZZZZZZZZZZZZZZZZZZZZZZZZZEEEEEROOOOOOOOOOOOOOOOOO = '0';
-        char[] cinquettiBarraGtt = busStopID.toCharArray();
-        int merda = 0;
-        while(cinquettiBarraGtt[merda] == ZZZZZZZZZZZZZZZZZZZZZZZZZZZZEEEEEROOOOOOOOOOOOOOOOOO) {
-		Log.i("AsyncWgetBusStop", "'nghia zio sto sito funzia bnnbene");
-                merda++;
-        }
-        String trenoDiMerda = "";
-        for(int merdaio = merda; merda < cinquettiBarraGtt.length; merdaio++) {
-                trenoDiMerda += cinquettiBarraGtt[merda];
-        }
-	enableGTTSimulator = "off";
-
-
-
-        return "http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + busStopID;
+        return trenoDiMerda;
     }
 
     protected void onPostExecute(String responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas) {
@@ -90,21 +104,21 @@ import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
 
         Document doc = Jsoup.parse(responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas);
         Element error = doc.select("p.errore").first();
-        if(error != null) {
+        if (error != null) {
             onReceivedBusStop(null, ERROR_NO_PASSAGES_OR_NO_BUS_STOP);
             return;
         }
 
         Element span = doc.select("span").first();
         String busStopID = grep("^(.+)&nbsp;", span.html());
-        if(busStopID == null) {
+        if (busStopID == null) {
             Log.e("BusStop", "Empty busStopID from " + span.html());
             onReceivedBusStop(null, ERROR_DOM);
             return;
         }
 
         String busStopName = grep("^.+&nbsp;(.+)", span.html()); // The first "dot" is the single strange space character in the middle of "39{HERE→} {←HERE}PORTA NUOVA"
-        if(busStopName == null) {
+        if (busStopName == null) {
             Log.e("BusStop", "Empty busStopName from " + span.html());
             onReceivedBusStop(null, ERROR_DOM);
             return;
@@ -115,21 +129,21 @@ import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
 
         // Every table row is a busLine
         Elements trs = doc.select("table tr");
-        for(Element tr : trs) {
+        for (Element tr : trs) {
             Element line = tr.select("td.line a").first();
-            if(!line.hasText()) {
+            if (!line.hasText()) {
                 onReceivedBusStop(null, ERROR_DOM);
                 return;
             }
 
             String busLineName = line.text();
             Integer busLineID = Integer.parseInt(
-                grep(
-                        "([0-9]+)$",
-                        line.attr("href")
-                )
+                    grep(
+                            "([0-9]+)$",
+                            line.attr("href")
+                    )
             );
-            if(busLineName == null || busLineID == null) {
+            if (busLineName == null || busLineID == null) {
                 onReceivedBusStop(null, ERROR_DOM);
                 return;
             }
@@ -138,12 +152,12 @@ import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
 
             // Every busLine have passages
             Elements tds = tr.select("td:not(.line)");
-            for(Element td : tds) {
+            for (Element td : tds) {
                 boolean isInRealTime = td.select("i").size() > 0;
 
                 td.select("i").remove(); // Stripping "*"
                 String time = td.text().trim();
-                if(time.equals("")) {
+                if (time.equals("")) {
                     // Yes... Sometimes there is an EMPTY td ._.
                     continue;
                 }
@@ -153,14 +167,14 @@ import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
             busLines.add(busLine);
         }
         onReceivedBusStop(
-            new BusStop(
-                busStopID,
-                busStopName,
-                busLines.toArray(
-                        new GTTSiteSucker.BusLine[busLines.size()]
-                )
-            ),
-            ERROR_NONE
+                new BusStop(
+                        busStopID,
+                        busStopName,
+                        busLines.toArray(
+                                new GTTSiteSucker.BusLine[busLines.size()]
+                        )
+                ),
+                ERROR_NONE
         );
     }
 
@@ -168,7 +182,7 @@ import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
      * Overload this!
      *
      * @param busStop The busStop
-     * @param status Error status if any
+     * @param status  Error status if any
      */
     public void onReceivedBusStop(GTTSiteSucker.BusStop busStop, int status) {
         // Do something here
