@@ -196,6 +196,17 @@ public class ActivityMain extends ActionBarActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("MainActivity", "onResume fired");
+        if (searchMode == SEARCH_BY_ID && lastSuccessfullySearchedBusStopID != null && lastSuccessfullySearchedBusStopID.length() != 0) {
+            showSpinner();
+            busStopSearchByIDEditText.setText(lastSuccessfullySearchedBusStopID);
+            asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStopID);
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
