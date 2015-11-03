@@ -195,10 +195,15 @@ public class ActivityMain extends ActionBarActivity {
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d("MainActivity", "onResume fired");
+
+    /**
+     * Reload bus stop timetable when it's fulled resumed.
+     *
+     * @Override
+     */
+    protected void onPostResume() {
+        super.onPostResume();
+        Log.d("MainActivity", "onPostResume fired");
         if (searchMode == SEARCH_BY_ID && lastSuccessfullySearchedBusStopID != null && lastSuccessfullySearchedBusStopID.length() != 0) {
             showSpinner();
             busStopSearchByIDEditText.setText(lastSuccessfullySearchedBusStopID);

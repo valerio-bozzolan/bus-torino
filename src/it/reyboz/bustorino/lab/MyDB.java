@@ -360,16 +360,38 @@ public class MyDB extends SQLiteOpenHelper {
 
 		private static final String SQL_DROP_TABLE = DROP_TABLE	+ TABLE_NAME;
 
+		/**
+		 * Serve a bus stop by a bus line (if it don't exists)
+		 * @param db
+		 * @param busStopID
+		 * @param busLineID
+		 */
 		public static void addBusStopServeLine(SQLiteDatabase db,
 				String busStopID, Integer busLineID) {
-			ContentValues values = new ContentValues();
-			values.put(COLUMN_NAME_BUSSTOP_ID, busStopID);
-			values.put(COLUMN_NAME_BUSLINE_ID, busLineID);
-			try {
+
+			String queryExists = SELECT
+					+ getColumn(COLUMN_NAME_BUSSTOP_ID) + COMMA
+					+ getColumn(COLUMN_NAME_BUSLINE_ID)
+					+ FROM
+					+ TABLE_NAME
+					+ WHERE
+					+ somethingEqualsWithoutQuotes(COLUMN_NAME_BUSSTOP_ID)
+					+ AND
+					+ somethingEqualsWithoutQuotes(COLUMN_NAME_BUSLINE_ID);
+			Cursor cursor = db.rawQuery(queryExists,
+					new String[] { String.valueOf(busStopID), String.valueOf(busLineID) });
+
+			boolean exists = cursor.moveToNext();
+			cursor.close();
+
+			if(exists) {
+				Log.d("MyDB", "busStopServeLine relation between busStopID " + busStopID + " and busLineID " + busLineID + " already inserted");
+			} else {
+				ContentValues values = new ContentValues();
+				values.put(COLUMN_NAME_BUSSTOP_ID, busStopID);
+				values.put(COLUMN_NAME_BUSLINE_ID, busLineID);
 				long inserted = db.insert(TABLE_NAME, null, values);
 				Log.d("MyDB", "busStopServeLine relation between busStopID " + busStopID + " and busLineID " + busLineID + " inserted as " + inserted);
-			} catch (SQLException e) {
-				Log.d("MyDB", "busStopServeLine relation between busStopID " + busStopID + " and busLineID " + busLineID + " already inserted");
 			}
 		}
 
