@@ -24,17 +24,25 @@
                 android:orderInCategory="4"
                 android:title="@string/action_about"/>
             <item
-                android:id="@+id/action_changelog"
+                android:id="@+id/action_news"
                 android:orderInCategory="5"
-                android:title="@string/action_changelog" />
+                android:title="@string/action_news" />
+            <item android:id="@+id/action_bugs"
+                android:title="@string/action_bugs"
+                app:showAsAction="never"
+                android:orderInCategory="6"/>
             <item android:id="@+id/action_source"
                   android:title="@string/action_source"
                   app:showAsAction="never"
-                  android:orderInCategory="6"/>
+                  android:orderInCategory="7"/>
+            <item android:id="@+id/action_licence"
+                android:title="@string/action_licence"
+                app:showAsAction="never"
+                android:orderInCategory="8"/>
             <item android:id="@+id/action_author"
                   android:title="@string/action_author"
                   app:showAsAction="never"
-                  android:orderInCategory="7"/>
+                  android:orderInCategory="9"/>
         </menu>
     </item>
 </menu>

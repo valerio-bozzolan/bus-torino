@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="it.reyboz.bustorino"
     android:versionCode="11"
-    android:versionName="1.6.5" >
+    android:versionName="1.6.5">
 
     <uses-sdk
         android:minSdkVersion="7"
@@ -16,12 +16,12 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <activity
             android:name=".ActivityMain"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize" >
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -31,13 +31,13 @@
         <activity
             android:name=".ActivityAbout"
             android:label="@string/about"
-            android:theme="@style/AboutTheme" >
-        </activity>
+            android:parentActivityName=".ActivityMain"
+            android:theme="@style/AboutTheme"></activity>
         <activity
             android:name=".ActivityFavorites"
             android:label="@string/title_activity_favorites"
-            android:theme="@style/FavTheme" >
-        </activity>
+            android:parentActivityName=".ActivityMain"
+            android:theme="@style/FavTheme"></activity>
     </application>
 
 </manifest>

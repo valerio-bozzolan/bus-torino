@@ -17,12 +17,14 @@
     <string name="lines">Linee: %1$s</string>
     <string name="results">Scegli la fermata…</string>
     <string name="no_passages">Nessun passaggio</string>
-    <string name="action_about">Informazioni</string>
     <string name="action_favorites">Preferiti</string>
-    <string name="action_source">Codice sorgente</string>
-    <string name="action_changelog">Ultimi cambiamenti</string>
-    <string name="action_author">Incontra l\'autore</string>
     <string name="action_help">Aiuto</string>
+    <string name="action_about">Informazioni</string>
+    <string name="action_news">News</string>
+    <string name="action_bugs">Invia bug</string>
+    <string name="action_source">Codice sorgente</string>
+    <string name="action_licence">Licenza</string>
+    <string name="action_author">Incontra l\'autore</string>
     <string name="added_in_favorites">Fermata aggiunta ai preferiti</string>
     <string name="title_activity_favorites">Preferiti</string>
     <string name="tip_add_favorite">Tocca il nome di una fermata per aggiungerla in questa lista</string>
@@ -51,28 +53,22 @@
         <p>Quest\'app ottiene i passaggi dei bus in tempo reale filtrando i dati forniti pubblicamente sul sito <i>www.5t.torino.it</i> «per uso personale».</p>
 
 		<p>Ingredienti:<br>
-		- <b>Valerio Bozzolan</b> come sviluppatore principale.<br>
-		- <b>Marco Gagino</b> come intenso collaboratore + icona.<br>
+		- <b>Valerio Bozzolan</b> sviluppatore principale.<br>
+		- <b>Marco Gagino</b> intenso collaboratore, creatore dell\'icona, responsabile della grafica.<br>
 		- <b>Paolo Alloatti</b> per l\'idea dell\'icona.<br>
 		- <b>JSoup</b> libreria per "<i>web scaping</i>".<br>
-		- <b>makovkastar</b> per i floating button.<br>
-		- <b>Google</b> per le icone Material Design.<br>
-		E tutti i contributori!
+		- <b>makovkastar</b> bottone fluttuante.<br>
+		- <b>Google</b> icone Material Design.<br>
+		- Tutti i contributori!
 		</p>
 
 		<h2>Licenze</h2>
-		<p>L\'app e il relativo codice sorgente sono distribuiti sotto licenza <i>Gnu General Public License v3+</i> (<a href="http://www.gnu.org/licenses/gpl.html">GNU GPLv3+</a>).
+		<p>L\'app e il relativo codice sorgente sono distribuiti sotto la licenza <i>GNU General Public License v3+</i>.
 		Ciò <b>significa</b> che puoi usare, studiare, migliorare e ricondividere quest\'app con <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: a patto di mantenere sempre questi diritti a tua volta e di dare credito a Valerio Bozzolan.
 		</p>
 		
 		<h2>Note</h2>
-		<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza alcuna garanzia.</p>
-		
-		<p>Invio di bugs/idee: <a href="https://bugs.launchpad.net/bus-torino">lamentati qui</a>.</p>
-		<p>Codice sorgente: <a href="https://code.launchpad.net/bus-torino">lp:bus-torino</a>.</p>
-		<p>Cosa è cambiato: <a href="http://bustorino.reyboz.it/CONTRIBUTORS_AND_CHANGES.txt">changes.txt</a></p>
-		<p>Contatta l\'autore: <a href="http://boz.reyboz.it">Valerio Bozzolan</a>.</p>
-
+		<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza NESSUNA garanzia.</p>
 		<p>Buon utilizzo! :)</p>
     ]]>
     </string>

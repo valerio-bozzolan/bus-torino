@@ -214,20 +214,26 @@ public class ActivityMain extends ActionBarActivity {
                 // Respond to the action bar's Up/Home button
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
+            case R.id.action_help:
+                showHints();
+                return true;
             case R.id.action_favorites:
                 startActivity(new Intent(ActivityMain.this, ActivityFavorites.class));
                 return true;
             case R.id.action_about:
                 startActivity(new Intent(ActivityMain.this, ActivityAbout.class));
                 return true;
+            case R.id.action_news:
+                openIceweasel("http://blog.reyboz.it/tag/busto/");
+                return true;
+            case R.id.action_bugs:
+                openIceweasel("https://bugs.launchpad.net/bus-torino");
+                return true;
             case R.id.action_source:
-                openIceweasel("https://launchpad.net/bus-torino");
+                openIceweasel("https://code.launchpad.net/bus-torino    ");
                 return true;
-            case R.id.action_changelog:
-                openIceweasel("http://bustorino.reyboz.it/CONTRIBUTORS_AND_CHANGES.txt");
-                return true;
-            case R.id.action_help:
-                showHints();
+            case R.id.action_licence:
+                openIceweasel("http://www.gnu.org/licenses/gpl-3.0.html");
                 return true;
             case R.id.action_author:
                 openIceweasel("http://boz.reyboz.it?lovebusto");

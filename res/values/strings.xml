@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">BusTO</string>
+    <string name="app_name" translatable="false">BusTO</string>
     <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string>
     <string name="search">Search</string>
     <string name="insert_bus_stop_number">Bus stop number</string>
@@ -18,11 +18,13 @@
     <string name="lines">Lines: %1$s</string>
     <string name="no_passages">No passages</string>
     <string name="action_favorites">Favorites</string>
-    <string name="action_about">About</string>
-    <string name="action_source">Source code</string>
-    <string name="action_changelog">Last changes</string>
-    <string name="action_author">Meet the author</string>
     <string name="action_help">Help</string>
+    <string name="action_about">About</string>
+    <string name="action_news">News releases</string>
+    <string name="action_bugs">Bug submission</string>
+    <string name="action_source">Source code</string>
+    <string name="action_licence">Licence</string>
+    <string name="action_author">Meet the author</string>
     <string name="added_in_favorites">Bus stop is now in your favorites</string>
     <string name="title_activity_favorites">Favorites</string>
     <string name="tip_add_favorite">Press on a bus stop name to populate this list</string>
@@ -37,7 +39,7 @@
 <![CDATA[
         <h1>Welcome!</h1>
 
-        <p>Thanks for using BusTO, an <b>indipendent</b> app useful to move around Torino using a <b>Free/Libre software</b>.</p>
+        <p>Thanks for using BusTO, a "politically" <b>indipendent</b> app useful to move around Torino using a <b>Free/Libre software</b>.</p>
 
         <p>Why using this app?</p>
 		<p>
@@ -51,29 +53,23 @@
         <p>This app will show you the timetable of the buses using the information published on the site <b>www.5t.torino.it</b>.</p>
 
 		<p>Who worked on BusTO:<br>
-		- <b>Valerio Bozzolan</b>, the main developer.<br>
-		- <b>Marco Gagino</b>, the main contributor + icon.<br>
-		- <b>Paolo Alloatti</b>, the original concept of the icon.<br>
-		- <b>JSoup</b> for the web scraper library.<br>
-		- <b>makovkastar</b> for the floating buttons.<br>
-		- <b>Google</b> for Material Design icons.<br>
-
-		Thanks to all the contributors!
+		- <b>Valerio Bozzolan</b> main developer.<br>
+		- <b>Marco Gagino</b> main contributor and icon creator.<br>
+		- <b>Paolo Alloatti</b> original concept of the icon.<br>
+		- <b>JSoup</b> web scraper library.<br>
+		- <b>makovkastar</b> floating buttons.<br>
+		- <b>Google</b> Material Design icons.<br>
+		- All the contributors!
 		</p>
 		
 		<h2>Licenses</h2>
-		<p>The app and the related source code are released by <a href="mailto:valerio.bozzolan@studenti.polito.it?subject=BusTO">Valerio Bozzolan</a> under the terms of the <i>Gnu General Public License v3+</i> (<a href="http://www.gnu.org/licenses/gpl.html">GNU GPLv3+</a>).
-		So everyone is allowed to use, to study, to improve and to share this app by <b>any kind of means</b> and for <b>any purpose</b>: under the conditions of manteining this rights and of attributing the original source code to Valerio Bozzolan.</p>
+		<p>The app and the related source code are released by Valerio Bozzolan under the terms of the <i>GNU General Public License v3+</i>).
+		So everyone is allowed to use, to study, to improve and to share this app by <b>any kind of means</b> and for <b>any purpose</b>: under the conditions of maintaining this rights and of attributing the original work to Valerio Bozzolan.</p>
 
 		<h2>Notes</h2>
-		<p>This app has been developed <b>hoping to be useful to everyone</b> but without any warranty.</p>
-
-        <p>Send bugs/ideas: <a href="https://bugs.launchpad.net/bus-torino">bug tracker</a>.</p>
-		<p>Source code: <a href="https://code.launchpad.net/bus-torino">lp:bus-torino</a>.</p>
-		<p>Changes: <a href="http://bustorino.reyboz.it/CONTRIBUTORS_AND_CHANGES.txt">changes.txt</a></p>
-		<p>Meet the author: <a href="http://boz.reyboz.it">Valerio Bozzolan</a>.</p>
-
+		<p>This app has been developed <b>hoping to be useful to everyone</b> but without ANY warranty.</p>
 		<p>This translation is kindly provided by Riccardo Caniato and Marco Gagino.</p>
+		<p>Get involved! :)</p>
     ]]>
     </string>
 </resources>
