@@ -2,8 +2,8 @@
 <manifest
     package="it.reyboz.bustorino"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="12"
-    android:versionName="1.6.6">
+    android:versionCode="13"
+    android:versionName="1.6.7">
 
     <uses-sdk
         android:minSdkVersion="7"
