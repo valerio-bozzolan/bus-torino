@@ -17,17 +17,6 @@
  */
 package it.reyboz.bustorino;
 
-import java.io.UnsupportedEncodingException;
-
-import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
-import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopFromBusStopID;
-import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopSuggestions;
-import it.reyboz.bustorino.lab.GTTSiteSucker.BusLine;
-import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
-import it.reyboz.bustorino.lab.MyDB;
-import it.reyboz.bustorino.lab.NetworkTools;
-import it.reyboz.bustorino.lab.adapters.AdapterBusLines;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -39,10 +28,10 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -52,9 +41,19 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.view.KeyEvent;
 
 import com.melnykov.fab.FloatingActionButton;
+
+import java.io.UnsupportedEncodingException;
+
+import it.reyboz.bustorino.lab.GTTSiteSucker.BusLine;
+import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
+import it.reyboz.bustorino.lab.MyDB;
+import it.reyboz.bustorino.lab.NetworkTools;
+import it.reyboz.bustorino.lab.adapters.AdapterBusLines;
+import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
+import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopFromBusStopID;
+import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopSuggestions;
 
 public class ActivityMain extends ActionBarActivity {
 
@@ -181,17 +180,47 @@ public class ActivityMain extends ActionBarActivity {
 
         setSearchModeBusStopID();
 
-        // Intercept calls from other activities
-        Bundle b = getIntent().getExtras();
-        if (b != null) {
-            String busStopID = b.getString("bus-stop-ID");
-            if (busStopID != null) {
-                busStopSearchByIDEditText.setText(busStopID);
-                showSpinner();
-                asyncWgetBusStopFromBusStopID(busStopID);
+        // Intercept calls from URL intent
+        boolean tryedFromIntent = false;
+        String busStopID = null;
+        Uri data = getIntent().getData();
+        if (data != null) {
+            switch (data.getHost()) {
+                case "m.gtt.to.it":
+                    // http://m.gtt.to.it/m/it/arrivi.jsp?n=1254
+                    busStopID = data.getQueryParameter("n");
+                    if (busStopID == null) {
+                        Log.e("ActivityMain", "Expected ?n from: " + data);
+                    }
+                    break;
+                default:
+                    Log.e("ActivityMain", "Unexpected intent URL: " + data);
+            }
+            tryedFromIntent = true;
+        }
+
+        // ...or intercept calls from other activities
+        if (!tryedFromIntent) {
+            Bundle b = getIntent().getExtras();
+            if (b != null) {
+                busStopID = b.getString("bus-stop-ID");
+                tryedFromIntent = true;
+            }
+        }
+
+        if (busStopID == null) {
+            // Show keyboard if can't start from intent
+            showKeyboard();
+
+            if (tryedFromIntent) {
+                // Show a warning if you come from intent but can't start
+                asyncWgetBusStopFromBusStopID(null);
             }
         } else {
-            showKeyboard();
+            // Start from intent successfully
+            busStopSearchByIDEditText.setText(busStopID);
+            showSpinner();
+            asyncWgetBusStopFromBusStopID(busStopID);
         }
     }
 
@@ -203,7 +232,7 @@ public class ActivityMain extends ActionBarActivity {
      */
     protected void onPostResume() {
         super.onPostResume();
-        Log.d("MainActivity", "onPostResume fired");
+        Log.d("ActivityMain", "onPostResume fired");
         if (searchMode == SEARCH_BY_ID && lastSuccessfullySearchedBusStopID != null && lastSuccessfullySearchedBusStopID.length() != 0) {
             showSpinner();
             busStopSearchByIDEditText.setText(lastSuccessfullySearchedBusStopID);
@@ -246,7 +275,7 @@ public class ActivityMain extends ActionBarActivity {
                 openIceweasel("https://bugs.launchpad.net/bus-torino");
                 return true;
             case R.id.action_source:
-                openIceweasel("https://code.launchpad.net/bus-torino    ");
+                openIceweasel("https://code.launchpad.net/bus-torino");
                 return true;
             case R.id.action_licence:
                 openIceweasel("http://www.gnu.org/licenses/gpl-3.0.html");

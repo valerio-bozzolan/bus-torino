@@ -20,6 +20,7 @@
     <string name="action_favorites">Favorites</string>
     <string name="action_help">Help</string>
     <string name="action_about">About</string>
+    <string name="action_about_more">More about</string>
     <string name="action_news">News releases</string>
     <string name="action_bugs">Bug submission</string>
     <string name="action_source">Source code</string>

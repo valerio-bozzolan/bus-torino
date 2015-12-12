@@ -20,6 +20,7 @@
     <string name="action_favorites">Preferiti</string>
     <string name="action_help">Aiuto</string>
     <string name="action_about">Informazioni</string>
+    <string name="action_about_more">Più informazioni</string>
     <string name="action_news">News</string>
     <string name="action_bugs">Invia bug</string>
     <string name="action_source">Codice sorgente</string>
