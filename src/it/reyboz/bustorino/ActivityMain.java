@@ -193,6 +193,12 @@ public class ActivityMain extends ActionBarActivity {
                         Log.e("ActivityMain", "Expected ?n from: " + data);
                     }
                     break;
+                case "www.gtt.to.it":
+                    // http://www.gtt.to.it/cms/percorari/arrivi?palina=1254cd 
+                    busStopID = data.getQueryParameter("palina");
+                    if (busStopID == null) {
+                        Log.e("ActivityMain", "Expected ?palina from: " + data);
+                    }
                 default:
                     Log.e("ActivityMain", "Unexpected intent URL: " + data);
             }

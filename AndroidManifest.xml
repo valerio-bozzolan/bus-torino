@@ -36,8 +36,19 @@
                 <category android:name="android.intent.category.BROWSABLE"></category>
 
                 <data
+                    android:host="www.gtt.to.it"
+                    android:pathPrefix="/cms/percorari/arrivi"
+                    android:scheme="http"></data>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"></action>
+
+                <category android:name="android.intent.category.DEFAULT"></category>
+                <category android:name="android.intent.category.BROWSABLE"></category>
+
+                <data
                     android:host="m.gtt.to.it"
-                    android:pathPrefix="/m/"
+                    android:pathPrefix="/m/it/arrivi.jsp"
                     android:scheme="http"></data>
             </intent-filter>
         </activity>
