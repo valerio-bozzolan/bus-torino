@@ -131,7 +131,7 @@
             android:layout_toLeftOf="@+id/hideHintButton"
             android:text="@string/howDoesItWork"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@color/blue_500"
+            android:textColor="@color/green_500"
             android:visibility="gone"/>
 
         <Button
@@ -182,9 +182,9 @@
             android:layout_margin="16dp"
             android:onClick="onToggleKeyboardLayout"
             android:src="@drawable/alphabetical"
-            fab:fab_colorNormal="@color/teal_300"
-            fab:fab_colorPressed="@color/teal_200"
-            fab:fab_colorRipple="@color/teal_200"
+            fab:fab_colorNormal="@color/green_500"
+            fab:fab_colorPressed="@color/green_300"
+            fab:fab_colorRipple="@color/green_300"
             fab:fab_shadow="true"
             fab:fab_type="normal"/>
 

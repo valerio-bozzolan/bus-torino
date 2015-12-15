@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/barcode-scanner.iml" filepath="$PROJECT_DIR$/barcode-scanner.iml" />
+      <module fileurl="file://$PROJECT_DIR$/xmas.iml" filepath="$PROJECT_DIR$/xmas.iml" />
     </modules>
   </component>
 </project>

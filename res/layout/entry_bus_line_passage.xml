@@ -43,7 +43,7 @@
         android:layout_toRightOf="@id/vehicleIcon"
         android:gravity="center_vertical"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="@color/blue_500" >
+        android:textColor="@color/red_700" >
     </TextView>
 
 </RelativeLayout>

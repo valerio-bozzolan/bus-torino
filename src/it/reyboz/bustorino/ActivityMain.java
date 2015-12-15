@@ -176,7 +176,7 @@ public class ActivityMain extends ActionBarActivity {
          * @deprecated
          * @see https://developer.android.com/reference/android/support/v4/widget/SwipeRefreshLayout.html#setColorSchemeResources%28int...%29
          */
-        swipeRefreshLayout.setColorScheme(R.color.blue_500, R.color.orange_500);
+        swipeRefreshLayout.setColorScheme(R.color.red_500, R.color.green_500);
 
         setSearchModeBusStopID();
 

@@ -2,15 +2,15 @@
 <resources>
 
     <style name="FavTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">@color/blue_500</item>
-        <item name="colorPrimaryDark">@color/blue_700</item>
-        <item name="colorAccent">@color/accent</item>
+        <item name="colorPrimary">@color/green_500</item>
+        <item name="colorPrimaryDark">@color/green_700</item>
+        <item name="colorAccent">@color/green_500</item>
     </style>
 
     <style name="AboutTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">@color/teal_300</item>
-        <item name="colorPrimaryDark">@color/teal_500</item>
-        <item name="colorAccent">@color/accent</item>
+        <item name="colorPrimary">@color/green_500</item>
+        <item name="colorPrimaryDark">@color/green_700</item>
+        <item name="colorAccent">@color/green_500</item>
     </style>
 
 </resources>

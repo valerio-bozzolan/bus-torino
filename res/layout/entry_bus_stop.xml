@@ -16,7 +16,7 @@
         android:layout_toLeftOf="@+id/busStopID"
         android:text="Bus Stop Name"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/blue_500" />
+        android:textColor="@color/green_500" />
 
     <TextView
         android:id="@+id/vehicleIcon"
@@ -40,7 +40,7 @@
         android:gravity="center_vertical"
         android:text="Bus Line Names"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="@color/blue_700" />
+        android:textColor="@color/green_700" />
 
     <TextView
         android:id="@+id/busStopLocality"
@@ -55,7 +55,7 @@
         android:gravity="center_vertical"
         android:text="busStopLocality"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="@color/orange_700"
+        android:textColor="@color/red_700"
         />
 
     <TextView
