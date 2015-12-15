@@ -4,6 +4,7 @@
 
     <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string>
     <string name="search">Cerca</string>
+    <string name="qrcode">QR Code</string>
     <string name="insert_bus_stop_number">Numero fermata</string>
     <string name="insert_bus_stop_name">Nome fermata</string>
     <string name="insert_bus_stop_number_error">Inserisci il numero della fermata</string>

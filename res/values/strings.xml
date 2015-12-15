@@ -4,6 +4,7 @@
     <string name="app_name" translatable="false">BusTO</string>
     <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string>
     <string name="search">Search</string>
+    <string name="qrcode">Scan QR Code</string>
     <string name="insert_bus_stop_number">Bus stop number</string>
     <string name="insert_bus_stop_name">Bus stop name</string>
     <string name="insert_bus_stop_number_error">Insert bus stop number</string>

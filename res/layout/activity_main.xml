@@ -15,15 +15,28 @@
         android:layout_height="match_parent"
         android:animateLayoutChanges="true">
 
+        <ImageButton
+            android:id="@+id/QRButton"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="30dip"
+            android:layout_height="30dip"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignBottom="@+id/searchButton"
+            android:layout_marginLeft="16dp"
+            android:background="@drawable/qrcode_button_custom"
+            android:contentDescription="@string/qrcode"
+            android:onClick="onSearchClick"
+            tools:ignore="NewApi"/>
+
         <EditText
             android:id="@+id/busStopSearchByIDEditText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
             android:layout_marginEnd="5dp"
-            android:layout_marginLeft="16dip"
+            android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
+            android:layout_toRightOf="@+id/QRButton"
             android:layout_toLeftOf="@+id/searchButton"
             android:layout_toStartOf="@+id/searchButton"
             android:ems="10"
@@ -36,15 +49,16 @@
             </requestFocus>
         </EditText>
 
+        <!--android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"-->
         <EditText
             android:id="@+id/busStopSearchByNameEditText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
             android:layout_marginEnd="5dp"
-            android:layout_marginLeft="16dip"
+            android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
+            android:layout_toRightOf="@+id/QRButton"
             android:layout_toLeftOf="@+id/searchButton"
             android:layout_toStartOf="@+id/searchButton"
             android:ems="10"
