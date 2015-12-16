@@ -26,7 +26,7 @@
             android:layout_marginLeft="16dp"
             android:background="@drawable/qrcode_button_custom"
             android:contentDescription="@string/qrcode"
-            android:onClick="onSearchClick"
+            android:onClick="onQRButtonClick"
             tools:ignore="NewApi"/>
 
         <EditText

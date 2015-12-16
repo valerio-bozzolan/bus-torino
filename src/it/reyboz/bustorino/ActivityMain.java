@@ -42,6 +42,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 import com.melnykov.fab.FloatingActionButton;
 
 import java.io.UnsupportedEncodingException;
@@ -185,23 +187,7 @@ public class ActivityMain extends ActionBarActivity {
         String busStopID = null;
         Uri data = getIntent().getData();
         if (data != null) {
-            switch (data.getHost()) {
-                case "m.gtt.to.it":
-                    // http://m.gtt.to.it/m/it/arrivi.jsp?n=1254
-                    busStopID = data.getQueryParameter("n");
-                    if (busStopID == null) {
-                        Log.e("ActivityMain", "Expected ?n from: " + data);
-                    }
-                    break;
-                case "www.gtt.to.it":
-                    // http://www.gtt.to.it/cms/percorari/arrivi?palina=1254cd 
-                    busStopID = data.getQueryParameter("palina");
-                    if (busStopID == null) {
-                        Log.e("ActivityMain", "Expected ?palina from: " + data);
-                    }
-                default:
-                    Log.e("ActivityMain", "Unexpected intent URL: " + data);
-            }
+            busStopID = getBusStopIDFromUri(data);
             tryedFromIntent = true;
         }
 
@@ -495,6 +481,43 @@ public class ActivityMain extends ActionBarActivity {
         }
     }
 
+    /**
+     * QR scan Intent
+     *
+     * @param v View QRButton clicked
+     */
+    public void onQRButtonClick(View v) {
+        IntentIntegrator integrator = new IntentIntegrator(this);
+        integrator.initiateScan();
+    }
+
+    /**
+     * Receive the Barcode Scanner Intent
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param intent
+     */
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
+        if (scanResult != null) {
+            Toast.makeText(getApplicationContext(),
+                    R.string.no_qrcode, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String content = scanResult.getContents();
+
+        Uri uri = Uri.parse(content);
+
+        String busStopID = getBusStopIDFromUri(uri);
+
+        busStopSearchByIDEditText.setText(busStopID);
+
+        showSpinner();
+        asyncWgetBusStopFromBusStopID(busStopID);
+    }
+
     public void onHideHint(View v) {
         hideHints();
         setOption(OPTION_SHOW_LEGEND, false);
@@ -646,5 +669,34 @@ public class ActivityMain extends ActionBarActivity {
     public void openIceweasel(String url) {
         Intent browserIntent1 = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         startActivity(browserIntent1);
+    }
+
+    /**
+     * Try to extract the bus stop ID from a URi
+     *
+     * @param uri The URL
+     * @return bus stop ID or null
+     */
+    public String getBusStopIDFromUri(Uri uri) {
+        String busStopID;
+        switch (uri.getHost()) {
+            case "m.gtt.to.it":
+                // http://m.gtt.to.it/m/it/arrivi.jsp?n=1254
+                busStopID = uri.getQueryParameter("n");
+                if (busStopID == null) {
+                    Log.e("ActivityMain", "Expected ?n from: " + uri);
+                }
+                break;
+            case "www.gtt.to.it":
+                // http://www.gtt.to.it/cms/percorari/arrivi?palina=1254cd
+                busStopID = uri.getQueryParameter("palina");
+                if (busStopID == null) {
+                    Log.e("ActivityMain", "Expected ?palina from: " + uri);
+                }
+            default:
+                Log.e("ActivityMain", "Unexpected intent URL: " + uri);
+                busStopID = null;
+        }
+        return busStopID;
     }
 }

@@ -1,12 +1,34 @@
-gen
-bin
-assets
-libs
-.settings
+# Built application files
+*.apk
+*.ap_
+
+# Files for the dex VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+
+# Local configuration file (SDK path, etc)
 local.properties
+
+# Eclipse project files
+.classpath
+.project
+
+# Android Studio
+*.iml
+.idea
+#.idea/workspace.xml - remove # and delete .idea if it better suit your needs.
 .gradle
-.idea/workspace.xml
-.idea/libraries
-build
-.idea/codeStyleSettings.xml
-.idea/runConfigurations.xml
+build/
+
+#NDK
+obj/
+
+# I don't want to see this shit.
+Thumbs.db
+.DS_Store
