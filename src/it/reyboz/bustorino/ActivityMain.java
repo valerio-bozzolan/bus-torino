@@ -500,7 +500,7 @@ public class ActivityMain extends ActionBarActivity {
      */
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
-        if (scanResult != null) {
+        if (scanResult == null) {
             Toast.makeText(getApplicationContext(),
                     R.string.no_qrcode, Toast.LENGTH_SHORT).show();
             return;
@@ -513,7 +513,6 @@ public class ActivityMain extends ActionBarActivity {
         String busStopID = getBusStopIDFromUri(uri);
 
         busStopSearchByIDEditText.setText(busStopID);
-
         showSpinner();
         asyncWgetBusStopFromBusStopID(busStopID);
     }
