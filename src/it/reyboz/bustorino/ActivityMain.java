@@ -99,7 +99,7 @@ public class ActivityMain extends ActionBarActivity {
     /**
      * Last successfully searched bus stop ID
      */
-    private String lastSuccessfullySearchedBusStopID;
+    private String lastSuccessfullySearchedBusStopID = null;
 
     AsyncWgetBusStopSuggestions asyncWgetBusStopSuggestions;
     AsyncWgetBusStopFromBusStopID asyncWgetBusStopFromBusStopID;
@@ -130,12 +130,13 @@ public class ActivityMain extends ActionBarActivity {
         floatingActionButton = (FloatingActionButton) findViewById(R.id.floatingActionButton);
         floatingActionButton.attachToListView(resultsListView);
 
-        // IME_ACTION_SEARCH alphabetical option
+        busStopSearchByIDEditText.setSelectAllOnFocus(true);
         busStopSearchByIDEditText
                 .setOnEditorActionListener(new TextView.OnEditorActionListener() {
                     @Override
                     public boolean onEditorAction(TextView v, int actionId,
                                                   KeyEvent event) {
+                        // IME_ACTION_SEARCH alphabetical option
                         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                             onSearchClick(v);
                             return true;
@@ -144,12 +145,13 @@ public class ActivityMain extends ActionBarActivity {
                     }
                 });
 
-        // IME_ACTION_SEARCH alphabetical option
+        busStopSearchByNameEditText.setSelectAllOnFocus(true);
         busStopSearchByNameEditText
                 .setOnEditorActionListener(new TextView.OnEditorActionListener() {
                     @Override
                     public boolean onEditorAction(TextView v, int actionId,
                                                   KeyEvent event) {
+                        // IME_ACTION_SEARCH alphabetical option
                         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                             onSearchClick(v);
                             return true;
@@ -482,7 +484,7 @@ public class ActivityMain extends ActionBarActivity {
     }
 
     /**
-     * QR scan Intent
+     * QR scan button clocked
      *
      * @param v View QRButton clicked
      */
@@ -500,18 +502,17 @@ public class ActivityMain extends ActionBarActivity {
      */
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
-        if (scanResult == null) {
+
+        Uri uri;
+        try {
+            uri = Uri.parse( scanResult.getContents() );
+        } catch(NullPointerException e) {
             Toast.makeText(getApplicationContext(),
                     R.string.no_qrcode, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String content = scanResult.getContents();
-
-        Uri uri = Uri.parse(content);
-
         String busStopID = getBusStopIDFromUri(uri);
-
         busStopSearchByIDEditText.setText(busStopID);
         showSpinner();
         asyncWgetBusStopFromBusStopID(busStopID);
@@ -676,7 +677,7 @@ public class ActivityMain extends ActionBarActivity {
      * @param uri The URL
      * @return bus stop ID or null
      */
-    public String getBusStopIDFromUri(Uri uri) {
+    public static String getBusStopIDFromUri(Uri uri) {
         String busStopID;
         switch (uri.getHost()) {
             case "m.gtt.to.it":
