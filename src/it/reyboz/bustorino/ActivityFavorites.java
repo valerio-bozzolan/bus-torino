@@ -177,8 +177,9 @@ public class ActivityFavorites extends ActionBarActivity {
         View renameDialogLayout = inflater.inflate(R.layout.rename_dialog, null);
 
         bus_stop_name = (EditText) renameDialogLayout.findViewById(R.id.rename_dialog_bus_stop_name);
-        bus_stop_name.setText(busStop.getBusStopName());
+        bus_stop_name.setText(busStop.getBusStopUsername());
         bus_stop_name.setHint(busStop.getBusStopName());
+        bus_stop_name.setSelectAllOnFocus(true);
 
         builder.setTitle(getString(R.string.dialog_rename_bus_stop_username_title));
         builder.setView(renameDialogLayout);
