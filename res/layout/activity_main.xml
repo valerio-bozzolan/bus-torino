@@ -43,7 +43,8 @@
             android:hint="@string/insert_bus_stop_number"
             android:imeOptions="actionSearch"
             android:inputType="number"
-            android:singleLine="true">
+            android:singleLine="true"
+            android:selectAllOnFocus="true">
 
             <requestFocus>
             </requestFocus>

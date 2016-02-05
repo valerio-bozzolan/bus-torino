@@ -144,8 +144,6 @@ public class ActivityMain extends ActionBarActivity {
                         return false;
                     }
                 });
-
-        busStopSearchByNameEditText.setSelectAllOnFocus(true);
         busStopSearchByNameEditText
                 .setOnEditorActionListener(new TextView.OnEditorActionListener() {
                     @Override
@@ -224,12 +222,11 @@ public class ActivityMain extends ActionBarActivity {
             }
         } else {
             // If you are here an intent has worked successfully
-            busStopSearchByIDEditText.setText(busStopID);
+            setBusStopSearchByIDEditText(busStopID);
             showSpinner();
             asyncWgetBusStopFromBusStopID(busStopID);
         }
     }
-
 
     /**
      * Reload bus stop timetable when it's fulled resumed from background.
@@ -238,13 +235,11 @@ public class ActivityMain extends ActionBarActivity {
      */
     protected void onPostResume() {
         super.onPostResume();
-        Log.d("ActivityMain", "onPostResume fired");
+        Log.d("ActivityMain", "onPostResume fired. Last successfully bus stop ID: " + lastSuccessfullySearchedBusStopID);
         if (searchMode == SEARCH_BY_ID && lastSuccessfullySearchedBusStopID != null && lastSuccessfullySearchedBusStopID.length() != 0) {
-            if (busStopSearchByIDEditText.length() == 0) {
-                showSpinner();
-                busStopSearchByIDEditText.setText(lastSuccessfullySearchedBusStopID);
-                asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStopID);
-            }
+            showSpinner();
+            setBusStopSearchByIDEditText(lastSuccessfullySearchedBusStopID);
+            asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStopID);
         }
     }
 
@@ -623,6 +618,15 @@ public class ActivityMain extends ActionBarActivity {
         floatingActionButton.setImageResource(R.drawable.numeric);
     }
 
+    /**
+     * Having that cursor at the left of the edit text makes me cancer.
+     * @param busStopID bus stop ID
+     */
+    private void setBusStopSearchByIDEditText(String busStopID) {
+        busStopSearchByIDEditText.setText(busStopID);
+        busStopSearchByIDEditText.setSelection(busStopID.length());
+    }
+
     private void showHints() {
         howDoesItWorkTextView.setVisibility(View.VISIBLE);
         hideHintButton.setVisibility(View.VISIBLE);
@@ -671,7 +675,6 @@ public class ActivityMain extends ActionBarActivity {
         swipeRefreshLayout.setEnabled(false);
         swipeRefreshLayout.setVisibility(View.VISIBLE);
         resultsListView.setVisibility(View.VISIBLE);
-        actionHelpMenuItem.setVisible(false);
         actionHelpMenuItem.setVisible(false);
     }
 
