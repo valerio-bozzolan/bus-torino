@@ -226,6 +226,8 @@ public class ActivityMain extends ActionBarActivity {
             showSpinner();
             asyncWgetBusStopFromBusStopID(busStopID);
         }
+
+        Log.d("MainActivity", "Created");
     }
 
     /**
