@@ -184,8 +184,11 @@ public class ActivityMain extends ActionBarActivity {
 
         setSearchModeBusStopID();
 
+        ///////////////////////////////// START INTENT CHECK QUEUE /////////////////////////////////
+
         // Intercept calls from URL intent
         boolean tryedFromIntent = false;
+
         String busStopID = null;
         Uri data = getIntent().getData();
         if (data != null) {
@@ -193,25 +196,34 @@ public class ActivityMain extends ActionBarActivity {
             tryedFromIntent = true;
         }
 
-        // ...or intercept calls from other activities
+        // Intercept calls from other activities
         if (!tryedFromIntent) {
             Bundle b = getIntent().getExtras();
             if (b != null) {
                 busStopID = b.getString("bus-stop-ID");
-                tryedFromIntent = true;
+
+                /**
+                 * I'm not very sure if you are coming from an Intent.
+                 * Some launchers work in strange ways.
+                 */
+                tryedFromIntent = busStopID != null;
             }
         }
+
+        ////////////////////////////////// END INTENT CHECK QUEUE //////////////////////////////////
 
         if (busStopID == null) {
             // Show keyboard if can't start from intent
             showKeyboard();
 
+            // You haven't obtained anything... from an intent?
             if (tryedFromIntent) {
-                // Show a warning if you come from intent but can't start
+
+                // This shows a luser warning
                 asyncWgetBusStopFromBusStopID(null);
             }
         } else {
-            // Start from intent successfully
+            // If you are here an intent has worked successfully
             busStopSearchByIDEditText.setText(busStopID);
             showSpinner();
             asyncWgetBusStopFromBusStopID(busStopID);
@@ -220,7 +232,7 @@ public class ActivityMain extends ActionBarActivity {
 
 
     /**
-     * Reload bus stop timetable when it's fulled resumed.
+     * Reload bus stop timetable when it's fulled resumed from background.
      *
      * @Override
      */
@@ -228,9 +240,11 @@ public class ActivityMain extends ActionBarActivity {
         super.onPostResume();
         Log.d("ActivityMain", "onPostResume fired");
         if (searchMode == SEARCH_BY_ID && lastSuccessfullySearchedBusStopID != null && lastSuccessfullySearchedBusStopID.length() != 0) {
-            showSpinner();
-            busStopSearchByIDEditText.setText(lastSuccessfullySearchedBusStopID);
-            asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStopID);
+            if (busStopSearchByIDEditText.length() == 0) {
+                showSpinner();
+                busStopSearchByIDEditText.setText(lastSuccessfullySearchedBusStopID);
+                asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStopID);
+            }
         }
     }
 
@@ -505,8 +519,8 @@ public class ActivityMain extends ActionBarActivity {
 
         Uri uri;
         try {
-            uri = Uri.parse( scanResult.getContents() );
-        } catch(NullPointerException e) {
+            uri = Uri.parse(scanResult.getContents());
+        } catch (NullPointerException e) {
             Toast.makeText(getApplicationContext(),
                     R.string.no_qrcode, Toast.LENGTH_SHORT).show();
             return;
