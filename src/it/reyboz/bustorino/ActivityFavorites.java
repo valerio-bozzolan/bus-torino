@@ -65,8 +65,6 @@ public class ActivityFavorites extends ActionBarActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         createFavoriteList();
-
-        db.close();
     }
 
     @Override
