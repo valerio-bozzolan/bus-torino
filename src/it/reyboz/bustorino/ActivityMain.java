@@ -87,9 +87,9 @@ public class ActivityMain extends ActionBarActivity {
     /*
      * To toggle alphabetical
      */
-    private final boolean SEARCH_BY_ID = true;
-    private final boolean SEARCH_BY_NAME = false;
-    private boolean searchMode;
+    private static final int SEARCH_BY_ID = 1;
+    private static final int SEARCH_BY_NAME = 0;
+    private int searchMode; // int seems more appropriate (was boolean)
 
     /*
      * Options
@@ -104,15 +104,6 @@ public class ActivityMain extends ActionBarActivity {
     AsyncWgetBusStopSuggestions asyncWgetBusStopSuggestions;
     AsyncWgetBusStopFromBusStopID asyncWgetBusStopFromBusStopID;
 
-    /**
-     * Last successfully searched bus stop / bus stops
-     */
-    private BusStop[] busStopsCache;
-
-    /*
-     * SQLite
-     */
-    private MyDB mDbHelper;
     private SQLiteDatabase db;
 
     @Override
@@ -159,7 +150,7 @@ public class ActivityMain extends ActionBarActivity {
                 });
 
         // Get database in write mode
-        mDbHelper = new MyDB(this);
+        MyDB mDbHelper = new MyDB(this);
         db = mDbHelper.getWritableDatabase();
 
         // Called when the layout is pulled down
@@ -172,13 +163,9 @@ public class ActivityMain extends ActionBarActivity {
                 });
 
         /**
-         * Deprecated! D:
-         *
          * @author Marco Gagino!!!
-         * @deprecated
-         * @see https://developer.android.com/reference/android/support/v4/widget/SwipeRefreshLayout.html#setColorSchemeResources%28int...%29
          */
-        swipeRefreshLayout.setColorScheme(R.color.blue_500, R.color.orange_500);
+        swipeRefreshLayout.setColorSchemeColors(R.color.blue_500, R.color.orange_500); // setColorScheme is deprecated, setColorSchemeColors isn't
 
         setSearchModeBusStopID();
 
@@ -232,9 +219,8 @@ public class ActivityMain extends ActionBarActivity {
 
     /**
      * Reload bus stop timetable when it's fulled resumed from background.
-     *
-     * @Override
      */
+    @Override
     protected void onPostResume() {
         super.onPostResume();
         Log.d("ActivityMain", "onPostResume fired. Last successfully bus stop ID: " + lastSuccessfullySearchedBusStopID);
@@ -348,7 +334,7 @@ public class ActivityMain extends ActionBarActivity {
     /**
      * It's pure magic <3
      *
-     * @param busStopID
+     * @param busStopID the ID as a String
      */
     private void asyncWgetBusStopFromBusStopID(String busStopID) {
         if (busStopID == null || busStopID.length() == 0) {
@@ -507,16 +493,13 @@ public class ActivityMain extends ActionBarActivity {
     /**
      * Receive the Barcode Scanner Intent
      *
-     * @param requestCode
-     * @param resultCode
-     * @param intent
      */
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
 
         Uri uri;
         try {
-            uri = Uri.parse(scanResult.getContents());
+            uri = Uri.parse(scanResult != null ? scanResult.getContents() : null); // this apparently prevents NullPointerException. Somehow.
         } catch (NullPointerException e) {
             Toast.makeText(getApplicationContext(),
                     R.string.no_qrcode, Toast.LENGTH_SHORT).show();
@@ -641,11 +624,11 @@ public class ActivityMain extends ActionBarActivity {
         actionHelpMenuItem.setVisible(true);
     }
 
-    private final boolean DOUBLE_SPINNER = true;
-    private final boolean NORMAL_SPINNER = false;
+    private final static boolean DOUBLE_SPINNER = true;
+    private final static boolean NORMAL_SPINNER = false;
 
     private void showSpinner(boolean swipeSpinner) {
-        if (swipeSpinner == DOUBLE_SPINNER) {
+        if (swipeSpinner) { // swipeSpinner == DOUBLE_SPINNER
             swipeRefreshLayout.setRefreshing(true);
         } else { // NORMAL_SPINNER
             progressBar.setVisibility(View.VISIBLE);

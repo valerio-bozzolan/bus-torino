@@ -3,11 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="it.reyboz.bustorino.ActivityMain">
 
     <ImageButton
         android:id="@+id/QRButton"
+        style="?android:attr/borderlessButtonStyle"
         android:layout_width="30dip"
         android:layout_height="30dip"
         android:layout_alignBottom="@+id/searchButton"
@@ -17,7 +19,7 @@
         android:layout_marginStart="16dp"
         android:background="@drawable/qrcode_button_custom"
         android:contentDescription="@string/qrcode"
-        android:onClick="onQRButtonClick"/>
+        android:onClick="onQRButtonClick" />
 
     <EditText
         android:id="@+id/busStopSearchByIDEditText"
@@ -64,16 +66,17 @@
 
     <ImageButton
         android:id="@+id/searchButton"
+        style="?android:attr/borderlessButtonStyle"
         android:layout_width="40dip"
         android:layout_height="40dip"
-        android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:layout_alignTop="@+id/busStopSearchByIDEditText"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
         android:background="@drawable/search_button_custom"
         android:contentDescription="@string/search"
-        android:onClick="onSearchClick"/>
+        android:onClick="onSearchClick" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -106,6 +109,7 @@
         android:layout_marginRight="16dp"
         android:layout_marginStart="16dip"
         android:layout_marginTop="10dp"
+        android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:gravity="center_vertical"
         android:onClick="addInFavorites"
@@ -153,8 +157,8 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/howDoesItWorkTextView"
-        android:visibility="gone"
-        >
+        android:animateLayoutChanges="true"
+        android:visibility="gone">
 
         <ListView
             android:id="@+id/resultsListView"

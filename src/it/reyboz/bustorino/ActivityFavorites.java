@@ -22,16 +22,13 @@ import it.reyboz.bustorino.lab.MyDB;
 import it.reyboz.bustorino.lab.MyDB.DBBusStop;
 import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
 
-import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
-import android.text.InputType;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -39,19 +36,15 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.content.Intent;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 public class ActivityFavorites extends ActionBarActivity {
     private ListView favoriteListView;
 
-    private MyDB mDbHelper;
     private SQLiteDatabase db;
 
     private EditText bus_stop_name;
@@ -63,7 +56,7 @@ public class ActivityFavorites extends ActionBarActivity {
 
         getSupportActionBar().setIcon(R.drawable.ic_launcher);
 
-        mDbHelper = new MyDB(this);
+        MyDB mDbHelper = new MyDB(this);
         db = mDbHelper.getWritableDatabase();
 
         favoriteListView = (ListView) findViewById(R.id.favoriteListView);
@@ -72,6 +65,8 @@ public class ActivityFavorites extends ActionBarActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         createFavoriteList();
+
+        db.close();
     }
 
     @Override
@@ -186,7 +181,7 @@ public class ActivityFavorites extends ActionBarActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String busStopUsername = bus_stop_name.getText().toString();
-                if (busStopUsername == null || busStopUsername.length() == 0) {
+                if (busStopUsername.length() == 0) {
                     busStopUsername = super.busStop.getBusStopName();
                 }
 

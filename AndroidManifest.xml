@@ -30,49 +30,59 @@
             </intent-filter>
 
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"></action>
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.DEFAULT"></category>
-                <category android:name="android.intent.category.BROWSABLE"></category>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
 
                 <data
                     android:host="www.gtt.to.it"
                     android:pathPrefix="/cms/percorari/arrivi"
-                    android:scheme="http"></data>
+                    android:scheme="http" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"></action>
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.DEFAULT"></category>
-                <category android:name="android.intent.category.BROWSABLE"></category>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
                     android:host="gtt.to.it"
                     android:pathPrefix="/cms/percorari/arrivi"
-                    android:scheme="http"></data>
+                    android:scheme="http" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"></action>
+                <action android:name="android.intent.action.VIEW" />
 
-                <category android:name="android.intent.category.DEFAULT"></category>
-                <category android:name="android.intent.category.BROWSABLE"></category>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
                     android:host="m.gtt.to.it"
                     android:pathPrefix="/m/it/arrivi.jsp"
-                    android:scheme="http"></data>
+                    android:scheme="http" />
             </intent-filter>
         </activity>
         <activity
             android:name=".ActivityAbout"
             android:label="@string/about"
             android:parentActivityName=".ActivityMain"
-            android:theme="@style/AboutTheme"></activity>
+            android:theme="@style/AboutTheme">
+            <!-- API < 16: -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ActivityMain" />
+        </activity>
         <activity
             android:name=".ActivityFavorites"
             android:label="@string/title_activity_favorites"
             android:parentActivityName=".ActivityMain"
-            android:theme="@style/FavTheme"></activity>
+            android:theme="@style/FavTheme">
+            <!-- API < 16: -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ActivityMain" />
+        </activity>
     </application>
 
 </manifest>

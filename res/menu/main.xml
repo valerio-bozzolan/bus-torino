@@ -1,15 +1,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto"
-      xmlns:tools="http://schemas.android.com/tools"
-      tools:context="it.reyboz.bustorino.ActivityMain">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="it.reyboz.bustorino.ActivityMain">
 
+    <!--suppress AndroidDomInspection --> <!-- Android Studio can't find ic_star even though it's there. -->
     <item
         android:id="@+id/action_favorites"
         android:icon="@+drawable/ic_star"
         android:orderInCategory="1"
-        android:showAsAction="ifRoom"
         android:title="@string/action_favorites"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
     <item
         android:orderInCategory="2"
         android:title="@string/action_about">
@@ -17,36 +17,36 @@
             <item
                 android:id="@+id/action_about"
                 android:orderInCategory="4"
-                android:title="@string/action_about_more"/>
+                android:title="@string/action_about_more" />
             <item
                 android:id="@+id/action_news"
                 android:orderInCategory="5"
-                android:title="@string/action_news"/>
+                android:title="@string/action_news" />
             <item
                 android:id="@+id/action_bugs"
                 android:orderInCategory="6"
                 android:title="@string/action_bugs"
-                app:showAsAction="never"/>
+                app:showAsAction="never" />
             <item
                 android:id="@+id/action_source"
                 android:orderInCategory="7"
                 android:title="@string/action_source"
-                app:showAsAction="never"/>
+                app:showAsAction="never" />
             <item
                 android:id="@+id/action_licence"
                 android:orderInCategory="8"
                 android:title="@string/action_licence"
-                app:showAsAction="never"/>
+                app:showAsAction="never" />
             <item
                 android:id="@+id/action_author"
                 android:orderInCategory="9"
                 android:title="@string/action_author"
-                app:showAsAction="never"/>
+                app:showAsAction="never" />
         </menu>
     </item>
     <item
         android:id="@+id/action_help"
         android:orderInCategory="3"
         android:title="@string/action_help"
-        android:visible="true"/>
+        android:visible="true" />
 </menu>
