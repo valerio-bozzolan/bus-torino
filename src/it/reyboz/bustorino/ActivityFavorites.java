@@ -180,11 +180,11 @@ public class ActivityFavorites extends ActionBarActivity {
             public void onClick(DialogInterface dialog, int which) {
                 String busStopUsername = bus_stop_name.getText().toString();
                 if (busStopUsername.length() == 0) {
-                    busStopUsername = super.busStop.getBusStopName();
+                    busStopUsername = null;
                 }
 
                 super.busStop.setBusStopUsername(busStopUsername);
-                MyDB.DBBusStop.addBusStop(db, super.busStop);
+                MyDB.DBBusStop.addBusStop(db, super.busStop, DBBusStop.FORCE_NULL_BUSSTOP_USERNAME);
 
                 createFavoriteList();
             }
