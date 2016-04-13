@@ -18,7 +18,8 @@
 package it.reyboz.bustorino;
 
 import android.support.v4.app.NavUtils;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
@@ -26,7 +27,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-public class ActivityAbout extends ActionBarActivity {
+public class ActivityAbout extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,11 +36,14 @@ public class ActivityAbout extends ActionBarActivity {
         Spanned htmlText = Html.fromHtml(getResources().getString(
                 R.string.about_history));
         TextView aboutTextView = (TextView) findViewById(R.id.aboutTextView);
+        assert aboutTextView != null;
         aboutTextView.setText(htmlText);
         aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
 
         // Back button
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar ab = getSupportActionBar();
+        assert ab != null;
+        ab.setDisplayHomeAsUpEnabled(true);
     }
 
     @Override

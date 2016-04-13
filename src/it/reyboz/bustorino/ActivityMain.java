@@ -26,7 +26,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.NavUtils;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -57,7 +57,7 @@ import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
 import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopFromBusStopID;
 import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopSuggestions;
 
-public class ActivityMain extends ActionBarActivity {
+public class ActivityMain extends AppCompatActivity {
 
     /*
      * Layout elements
@@ -119,7 +119,9 @@ public class ActivityMain extends ActionBarActivity {
         resultsListView = (ListView) findViewById(R.id.resultsListView);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
         floatingActionButton = (FloatingActionButton) findViewById(R.id.floatingActionButton);
-        floatingActionButton.attachToListView(resultsListView);
+        if (floatingActionButton != null) {
+            floatingActionButton.attachToListView(resultsListView);
+        }
 
         busStopSearchByIDEditText.setSelectAllOnFocus(true);
         busStopSearchByIDEditText

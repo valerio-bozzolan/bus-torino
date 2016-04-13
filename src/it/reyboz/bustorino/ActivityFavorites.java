@@ -25,7 +25,8 @@ import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.support.v4.app.NavUtils;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -42,7 +43,7 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
-public class ActivityFavorites extends ActionBarActivity {
+public class ActivityFavorites extends AppCompatActivity {
     private ListView favoriteListView;
 
     private SQLiteDatabase db;
@@ -54,15 +55,15 @@ public class ActivityFavorites extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favorites);
 
-        getSupportActionBar().setIcon(R.drawable.ic_launcher);
+        ActionBar ab = getSupportActionBar();
+        assert ab != null;
+        ab.setIcon(R.drawable.ic_launcher);
+        ab.setDisplayHomeAsUpEnabled(true); // Back button
 
         MyDB mDbHelper = new MyDB(this);
         db = mDbHelper.getWritableDatabase();
 
         favoriteListView = (ListView) findViewById(R.id.favoriteListView);
-
-        // Back button
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         createFavoriteList();
     }
@@ -116,6 +117,7 @@ public class ActivityFavorites extends ActionBarActivity {
         if (busStops.length == 0) {
             favoriteListView.setVisibility(View.INVISIBLE);
             TextView favoriteTipTextView = (TextView) findViewById(R.id.favoriteTipTextView);
+            assert favoriteTipTextView != null;
             favoriteTipTextView.setVisibility(View.VISIBLE);
         }
 
