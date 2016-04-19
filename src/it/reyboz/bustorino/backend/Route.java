@@ -18,14 +18,14 @@
 
 package it.reyboz.bustorino.backend;
 
-import java.util.Collection;
+import java.util.List;
 
 public class Route {
     public final String name;
     public final String destinazione;
-    public final Collection<Passaggio> passaggi;
+    public final List<Passaggio> passaggi;
 
-    public Route(String name, String destinazione, Collection<Passaggio> passaggi) {
+    public Route(String name, String destinazione, List<Passaggio> passaggi) {
         this.name = name;
         this.destinazione = destinazione;
         this.passaggi = passaggi;

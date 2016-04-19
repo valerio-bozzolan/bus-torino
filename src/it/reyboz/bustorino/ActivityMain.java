@@ -51,7 +51,6 @@ import java.io.UnsupportedEncodingException;
 import it.reyboz.bustorino.lab.GTTSiteSucker.BusLine;
 import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
 import it.reyboz.bustorino.lab.MyDB;
-import it.reyboz.bustorino.lab.NetworkTools;
 import it.reyboz.bustorino.lab.adapters.AdapterBusLines;
 import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
 import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopFromBusStopID;

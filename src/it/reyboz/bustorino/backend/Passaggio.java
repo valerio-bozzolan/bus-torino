@@ -74,6 +74,16 @@ public final class Passaggio implements Comparable<Passaggio> {
         return diff;
     }
 
+    @Override
+    public String toString() {
+        String resultString = (this.hh).concat(":").concat(this.mm);
+        if(this.isInRealTime) {
+            return resultString.concat("*");
+        } else {
+            return resultString;
+        }
+    }
+
     /**
      * Parses without blowing up.
      *

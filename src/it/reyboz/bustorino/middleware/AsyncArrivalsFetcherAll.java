@@ -40,4 +40,8 @@ public class AsyncArrivalsFetcherAll extends AsyncTask<Void, Void, Palina> {
     @Override protected Palina doInBackground(Void... useless) {
         return af.ReadArrivalTimesAll(this.stopID, this.result); // TODO: reuse the same Palina object and update it
     }
+
+    @Override protected void onPostExecute(Palina p) {
+
+    }
 }

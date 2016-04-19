@@ -122,7 +122,7 @@ public class Palina {
         return this.routes.get(index).getPassaggi();
     }
 
-    // TODO: ponder on the usefulness\uselessness of having separate Route and RouteInternal classes just for this method
+    // TODO: ponder on the usefulness/uselessness of having separate Route and RouteInternal classes just for this method
     /**
      * Gets timetables for every route.
      *
