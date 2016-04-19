@@ -20,21 +20,21 @@ package it.reyboz.bustorino.backend;
 
 // "arrivals" è più usato di "transit" o simili, e chi sono io per mettermi a dibattere con gli inglesi?
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public interface ArrivalsFetcher extends Fetcher {
-    /**
-     * Reads arrival times from a (hopefully) real-time source, e.g. the GTT website.
-     * Don't call this in UI thread!
-     *
-     * @param stopID stop ID, in normalized form.
-     * @param routeID route ID, in normalized form.
-     * @param res result code (will be set by this method)
-     * @return arrival times
-     * @see it.reyboz.bustorino.backend.Fetcher.resultCodes
-     * @see FiveTNormalizer
-     */
-    Palina ReadArrivalTimesRoute(String stopID, String routeID, AtomicInteger res);
+//    /**
+//     * Reads arrival times from a (hopefully) real-time source, e.g. the GTT website.
+//     * Don't call this in UI thread!
+//     *
+//     * @param stopID stop ID, in normalized form.
+//     * @param routeID route ID, in normalized form.
+//     * @param res result code (will be set by this method)
+//     * @return arrival times
+//     * @see it.reyboz.bustorino.backend.Fetcher.result
+//     * @see FiveTNormalizer
+//     */
+//    Palina ReadArrivalTimesRoute(String stopID, String routeID, AtomicReference<Fetcher.result> res);
 
     /**
      * Reads arrival times from a (hopefully) real-time source, e.g. the GTT website.
@@ -43,8 +43,8 @@ public interface ArrivalsFetcher extends Fetcher {
      * @param routeID route ID, in normalized form.
      * @param res result code (will be set by this method)
      * @return arrival times
-     * @see it.reyboz.bustorino.backend.Fetcher.resultCodes
+     * @see it.reyboz.bustorino.backend.Fetcher.result
      * @see FiveTNormalizer
      */
-    Palina ReadArrivalTimesAll(String routeID, AtomicInteger res);
+    Palina ReadArrivalTimesAll(String routeID, AtomicReference<result> res);
 }

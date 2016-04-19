@@ -18,6 +18,9 @@
 
 package it.reyboz.bustorino.backend;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,17 +31,16 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class GTTJSONFetcher implements ArrivalsFetcher  {
-    @Override
-    public Palina ReadArrivalTimesRoute(String stopID, String routeID, AtomicInteger res) {
-        return this.ReadArrivalTimesAll(routeID, res); // TODO: finish implementation
-    }
+//    @Override
+//    public Palina ReadArrivalTimesRoute(String stopID, String routeID, AtomicReference<Fetcher.result> res) {
+//        return this.ReadArrivalTimesAll(routeID, res); // TODO: implement this when it's needed (never?)
+//    }
 
-    @Override
-    public Palina ReadArrivalTimesAll(String routeID, AtomicInteger res) {
-        HttpURLConnection urlConnection;
+    @Override @NonNull
+    public Palina ReadArrivalTimesAll(String routeID, AtomicReference<result> res) {
         URL url;
         Palina p = new Palina();
         JSONArray json;
@@ -49,42 +51,22 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         try {
             url = new URL("http://www.gtt.to.it/cms/index.php?option=com_gtt&task=palina.getTransiti&palina=" + routeID + "&realtime=true");
         } catch (MalformedURLException e) {
-            res.set(resultCodes.PARSER_ERROR.ordinal());
+            res.set(result.PARSER_ERROR);
             return p;
         }
 
-        try {
-            urlConnection = (HttpURLConnection) url.openConnection();
-        } catch(IOException e) {
-            res.set(resultCodes.SERVER_OFFLINE.ordinal()); // TODO: can we assume this is CLIENT_OFFLINE?
+        json = queryURL(url, res);
+        if(json == null) {
             return p;
-        }
-
-        try {
-            InputStream in = urlConnection.getInputStream();
-            json = new JSONArray(streamToString(in));
-        } catch (Exception e) {
-            res.set(resultCodes.PARSER_ERROR.ordinal());
-            return p;
-        } finally {
-            urlConnection.disconnect();
         }
 
         howManyRoutes = json.length();
         if(howManyRoutes == 0) {
-            res.set(resultCodes.EMPTY_RESULT_SET.ordinal());
+            res.set(result.EMPTY_RESULT_SET);
             return p;
         }
 
         try {
-            // returns [{"PassaggiRT":[],"Passaggi":[]}] for non existing stops
-            json.getJSONObject(0).getString("Linea"); // if we can get this, then there's something useful in the array.
-        } catch(JSONException e) {
-            res.set(resultCodes.EMPTY_RESULT_SET.ordinal()); // could also use NOT_FOUND
-            return p;
-        }
-
-        try { // TODO: split this to reuse other part in ReadArrivalTimesRoute
             for(i = 0; i < howManyRoutes; i++) {
                 thisroute = json.getJSONObject(i);
                 pos = p.addRoute(thisroute.getString("Linea"), thisroute.getString("Direzione"));
@@ -102,12 +84,45 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
                 }
             }
         } catch (JSONException e) {
-            res.set(resultCodes.PARSER_ERROR.ordinal());
+            res.set(result.PARSER_ERROR);
             return p;
         }
 
-        res.set(resultCodes.OK.ordinal());
+        res.set(result.OK);
         return p;
+    }
+
+    @Nullable
+    private JSONArray queryURL(URL url, AtomicReference<result> res) {
+        HttpURLConnection urlConnection;
+        JSONArray json;
+
+        try {
+            urlConnection = (HttpURLConnection) url.openConnection();
+        } catch(IOException e) {
+            res.set(result.SERVER_OFFLINE); // TODO: can we assume this is CLIENT_OFFLINE?
+            return null;
+        }
+
+        try {
+            InputStream in = urlConnection.getInputStream();
+            json = new JSONArray(streamToString(in));
+        } catch (Exception e) {
+            res.set(result.PARSER_ERROR);
+            return null;
+        } finally {
+            urlConnection.disconnect();
+        }
+
+        try {
+            // returns [{"PassaggiRT":[],"Passaggi":[]}] for non existing stops!
+            json.getJSONObject(0).getString("Linea"); // if we can get this, then there's something useful in the array.
+        } catch(JSONException e) {
+            res.set(result.EMPTY_RESULT_SET); // could also use NOT_FOUND
+            return null;
+        }
+
+        return json;
     }
 
     // https://stackoverflow.com/a/14585883

@@ -22,9 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public interface Fetcher {
     /**
-     * Status codes, convert to int with resultCodes.OK.ordinal() and the like.
+     * Status codes.
      *
-     * NULL: still haven't started
      * OK: got a response, parsed correctly, obtained some data
      * CLIENT_OFFLINE: can't connect to the internet
      * SERVER_OFFLINE: the server is down for maintenance (apparently sometimes happens to the 5T website and they put a message on the home page, that can be parsed to set this state)
@@ -32,8 +31,8 @@ public interface Fetcher {
      * PARSER_ERROR: the server replied something that can't be parsed, probably it's not the data we're looking for (e.g. "PHP: Fatal Error")
      * NO_RESULTS: like OK, but there's an empty array (no stops\routes\"passaggi" found)
      */
-    enum resultCodes {
-        NULL, OK, CLIENT_OFFLINE, SERVER_OFFLINE, SERVER_ERROR, PARSER_ERROR, NOT_FOUND, EMPTY_RESULT_SET
+    enum result {
+        OK, CLIENT_OFFLINE, SERVER_OFFLINE, SERVER_ERROR, PARSER_ERROR, NOT_FOUND, EMPTY_RESULT_SET
     }
 
     // moved to AsyncFetcher since shouldn't be reused on different runs

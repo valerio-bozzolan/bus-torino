@@ -19,16 +19,17 @@
 package it.reyboz.bustorino.middleware;
 
 import it.reyboz.bustorino.backend.ArrivalsFetcher;
+import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.Palina;
 
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class AsyncArrivalsFetcherAll extends AsyncTask<Void, Void, Palina> {
     ArrivalsFetcher af;
-    AtomicInteger result;
+    AtomicReference<Fetcher.result> result;
     String stopID;
 
     public AsyncArrivalsFetcherAll(@NonNull ArrivalsFetcher af, @NonNull String stopID) {
@@ -37,6 +38,6 @@ public class AsyncArrivalsFetcherAll extends AsyncTask<Void, Void, Palina> {
     }
 
     @Override protected Palina doInBackground(Void... useless) {
-        return af.ReadArrivalTimesAll(this.stopID, this.result);
+        return af.ReadArrivalTimesAll(this.stopID, this.result); // TODO: reuse the same Palina object and update it
     }
 }
