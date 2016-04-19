@@ -16,17 +16,27 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.reyboz.bustorino.backend;
+package it.reyboz.bustorino.middleware;
 
-import java.util.List;
+import it.reyboz.bustorino.backend.ArrivalsFetcher;
+import it.reyboz.bustorino.backend.Palina;
 
-public interface StopsFinderByName extends Fetcher {
-    /**
-     * Finds stops by name. Don't call this in UI thread!
-     *
-     * @param name the string to search for
-     * @return list of stops, in normalized form.
-     * @see FiveTNormalizer
-     */
-    List<String> FindByName(String name);
+import android.os.AsyncTask;
+import android.support.annotation.NonNull;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class AsyncArrivalsFetcherAll extends AsyncTask<Void, Void, Palina> {
+    ArrivalsFetcher af;
+    AtomicInteger result;
+    String stopID;
+
+    public AsyncArrivalsFetcherAll(@NonNull ArrivalsFetcher af, @NonNull String stopID) {
+        this.af = af;
+        this.stopID = stopID;
+    }
+
+    @Override protected Palina doInBackground(Void... useless) {
+        return af.ReadArrivalTimesAll(this.stopID, this.result);
+    }
 }

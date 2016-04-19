@@ -31,7 +31,7 @@ public final class Passaggio implements Comparable<Passaggio> {
      * @param TimeGTT time in GTT format (e.g. "11:22*"), already trimmed from whitespace.
      * @throws IllegalArgumentException if nothing reasonable can be extracted from the string
      */
-    public Passaggio(String TimeGTT) {
+    public Passaggio(@NonNull String TimeGTT) {
         String[] parts = TimeGTT.split(":");
         if(parts.length != 2) {
             // TODO: messaggio d'errore meno ridicolo

@@ -29,8 +29,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
 
-import it.reyboz.bustorino.lab.GTTSiteSucker;
-
 /**
  * Asynchronous BusStop[] fetcher from a query.
  *

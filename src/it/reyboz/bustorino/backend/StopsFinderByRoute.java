@@ -20,9 +20,9 @@ package it.reyboz.bustorino.backend;
 
 import java.util.List;
 
-public interface StopsFinderByRoute {
+public interface StopsFinderByRoute extends Fetcher {
     /**
-     * Finds every stop in a route.
+     * Finds every stop in a route. Don't call this in UI thread!
      *
      * @param routeID route ID, in normalized form.
      * @return list of stops, in normalized form.

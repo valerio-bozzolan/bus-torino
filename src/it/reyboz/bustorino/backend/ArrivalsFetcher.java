@@ -20,23 +20,31 @@ package it.reyboz.bustorino.backend;
 
 // "arrivals" è più usato di "transit" o simili, e chi sono io per mettermi a dibattere con gli inglesi?
 
-public interface ArrivalsFetcher {
+import java.util.concurrent.atomic.AtomicInteger;
+
+public interface ArrivalsFetcher extends Fetcher {
     /**
      * Reads arrival times from a (hopefully) real-time source, e.g. the GTT website.
+     * Don't call this in UI thread!
      *
      * @param stopID stop ID, in normalized form.
      * @param routeID route ID, in normalized form.
+     * @param res result code (will be set by this method)
      * @return arrival times
+     * @see it.reyboz.bustorino.backend.Fetcher.resultCodes
      * @see FiveTNormalizer
      */
-    Palina ReadArrivalTimesLine(String stopID, String routeID);
+    Palina ReadArrivalTimesRoute(String stopID, String routeID, AtomicInteger res);
 
     /**
      * Reads arrival times from a (hopefully) real-time source, e.g. the GTT website.
+     * Don't call this in UI thread!
      *
      * @param routeID route ID, in normalized form.
+     * @param res result code (will be set by this method)
      * @return arrival times
+     * @see it.reyboz.bustorino.backend.Fetcher.resultCodes
      * @see FiveTNormalizer
      */
-    Palina ReadArrivalTimesAll(String routeID);
+    Palina ReadArrivalTimesAll(String routeID, AtomicInteger res);
 }
