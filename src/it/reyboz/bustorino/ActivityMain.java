@@ -48,13 +48,17 @@ import com.melnykov.fab.FloatingActionButton;
 
 import java.io.UnsupportedEncodingException;
 
+import it.reyboz.bustorino.backend.ArrivalsFetcher;
+import it.reyboz.bustorino.backend.Fetcher;
+import it.reyboz.bustorino.backend.GTTJSONFetcher;
+import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.lab.GTTSiteSucker.BusLine;
 import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
 import it.reyboz.bustorino.lab.MyDB;
-import it.reyboz.bustorino.lab.adapters.AdapterBusLines;
 import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
-import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopFromBusStopID;
 import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopSuggestions;
+import it.reyboz.bustorino.middleware.AsyncArrivalsFetcherAll;
+import it.reyboz.bustorino.middleware.PalinaAdapter;
 
 public class ActivityMain extends AppCompatActivity {
 
@@ -101,9 +105,17 @@ public class ActivityMain extends AppCompatActivity {
     private String lastSuccessfullySearchedBusStopID = null;
 
     AsyncWgetBusStopSuggestions asyncWgetBusStopSuggestions;
-    AsyncWgetBusStopFromBusStopID asyncWgetBusStopFromBusStopID;
+    //AsyncWgetBusStopFromBusStopID asyncWgetBusStopFromBusStopID;
+
+    /*
+     * Arrays of fetchers, tryed in this order (slightly overengineered, maybe?)
+     */
+    ArrivalsFetcher[] ArrivalFetchers = {new GTTJSONFetcher()};
 
     private SQLiteDatabase db;
+
+
+    ///////////////////////////////// EVENT HANDLERS ///////////////////////////////////////////////
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,7 +182,7 @@ public class ActivityMain extends AppCompatActivity {
 
         setSearchModeBusStopID();
 
-        ///////////////////////////////// START INTENT CHECK QUEUE /////////////////////////////////
+        //---------------------------- START INTENT CHECK QUEUE ------------------------------------
 
         // Intercept calls from URL intent
         boolean tryedFromIntent = false;
@@ -196,7 +208,7 @@ public class ActivityMain extends AppCompatActivity {
             }
         }
 
-        ////////////////////////////////// END INTENT CHECK QUEUE //////////////////////////////////
+        //---------------------------- END INTENT CHECK QUEUE --------------------------------------
 
         if (busStopID == null) {
             // Show keyboard if can't start from intent
@@ -279,6 +291,8 @@ public class ActivityMain extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    ///////////////////////////////// THIS NEEDS REFACTORING ///////////////////////////////////////
+
     /**
      * It's pure magic <3
      *
@@ -332,6 +346,8 @@ public class ActivityMain extends AppCompatActivity {
         }
     }
 
+    ///////////////////////////////// ARRIVALS FETCHER /////////////////////////////////////////////
+
     /**
      * It's pure magic <3
      *
@@ -349,69 +365,99 @@ public class ActivityMain extends AppCompatActivity {
             hideSpinner();
             return;
         }
-        if (asyncWgetBusStopFromBusStopID != null) {
-            asyncWgetBusStopFromBusStopID.cancel(true);
-            asyncWgetBusStopFromBusStopID = null;
+
+        // TODO: handle cancellation if needed
+//        if (asyncWgetBusStopFromBusStopID != null) {
+//            asyncWgetBusStopFromBusStopID.cancel(true);
+//            //asyncWgetBusStopFromBusStopID = null;
+//            return;
+//        }
+
+        for(ArrivalsFetcher af : ArrivalFetchers) {
+            new AsyncArrivalsFetcherAll(af, busStopID, new AsyncArrivalsFetcherAllCallbackImplementation());
         }
-        asyncWgetBusStopFromBusStopID = new AsyncWgetBusStopFromBusStopID(busStopID) {
-            public void onReceivedBusStop(BusStop busStop, int status) {
-                hideSpinner();
 
-                switch (status) {
-                    case AsyncWgetBusStopSuggestions.ERROR_EMPTY_DOM:
-                    case AsyncWgetBusStopSuggestions.ERROR_DOM:
-                        Toast.makeText(getApplicationContext(),
-                                R.string.parsing_error, Toast.LENGTH_SHORT).show();
-                        break;
-                    case AsyncWgetBusStopFromBusStopID.ERROR_NO_PASSAGES_OR_NO_BUS_STOP:
-                        Toast.makeText(getApplicationContext(),
-                                R.string.no_passages, Toast.LENGTH_SHORT).show();
-                        break;
-
-                    case AsyncWgetBusStopSuggestions.ERROR_NONE:
-                        lastSuccessfullySearchedBusStopID = busStop.getBusStopID();
-                        MyDB.DBBusStop.addBusStop(db, busStop);
-                        populateBusLinesLayout(busStop);
-                        break;
-                }
-            }
-        };
     }
 
-    private void populateBusLinesLayout(BusStop busStop) {
-        busStop.orderBusLinesByFirstArrival();
+    private class AsyncArrivalsFetcherAllCallbackImplementation implements AsyncArrivalsFetcherAll.AsyncArrivalsFetcherAllCallback {
+        public void call(Palina p, Fetcher.result res, String stopID) {
+            hideSpinner();
+
+            switch (res) {
+                case CLIENT_OFFLINE:
+                    if (!NetworkTools.isConnected(getApplicationContext())) {
+                        NetworkTools.showNetworkError(getApplicationContext());
+                        hideSpinner();
+                        return;
+                    }
+                case SERVER_ERROR: // TODO: better error message for these 2 cases
+                case SERVER_OFFLINE:
+                case PARSER_ERROR:
+                    Toast.makeText(getApplicationContext(),
+                            R.string.parsing_error, Toast.LENGTH_SHORT).show();
+                    break;
+                case EMPTY_RESULT_SET:
+                    Toast.makeText(getApplicationContext(),
+                            R.string.no_passages, Toast.LENGTH_SHORT).show();
+                    break;
+                case OK:
+                    lastSuccessfullySearchedBusStopID = stopID;
+                    hideKeyboard();
+                    //MyDB.DBBusStop.addBusStop(db, busStop); // TODO: determine why this was needed
+                    populateBusLinesLayout(p, stopID);
+                    break;
+            }
+        }
+    }
+
+    private void populateBusLinesLayout(Palina p, String stopID) {
+
+        // should be already ordered, no need for this
+        //busStop.orderBusLinesByFirstArrival();
 
         // Remember last successfully searched busStopID
-        String busStopID = busStop.getBusStopID();
+        //String busStopID = busStop.getBusStopID();
 
         // Retrieve passages
-        BusLine[] busLines = busStop.getBusLines();
+        //BusLine[] busLines = busStop.getBusLines();
+
+
+        /*
+         * asyncWgetBusStopFromBusStopID was already checking for this (now it's done in
+         * AsyncArrivalsFetcherAllCallbackImplementation)!
 
         // No passages?
-        if (busLines.length == 0) {
+        if(busLines.length == 0) {
             Toast.makeText(getApplicationContext(),
                     R.string.no_arrival_times, Toast.LENGTH_SHORT).show();
             return;
-        }
+        }*/
 
-        BusStop dbBusStop = MyDB.DBBusStop.getBusStop(db, busStop.getBusStopID());
+         /* TODO: determine if there was a reason to store everything in the database, other than
+          * showing the last timetable when "resuming" the app (which wasn't currently done, I think
+          * it just fetches new timetables every time)
+          */
+        //BusStop dbBusStop = MyDB.DBBusStop.getBusStop(db, busStop.getBusStopID());
 
         String busStopNameDisplay;
-        if (dbBusStop != null && dbBusStop.getBusStopUsername() != null) {
+        // TODO: implement favorites username
+        // TODO: implement bus stop name (if can be fetched)
+        /*if(dbBusStop != null && dbBusStop.getBusStopUsername() != null) {
             busStopNameDisplay = dbBusStop.getBusStopUsername();
         } else if (busStop.getBusStopName() != null) {
             busStopNameDisplay = busStop.getBusStopName();
         } else {
             busStopNameDisplay = String.valueOf(busStopID);
-        }
+        }*/
+        busStopNameDisplay = stopID;
+
         busStopNameTextView.setText(String.format(
                 getString(R.string.passages), busStopNameDisplay));
 
-        // Hide the alphabetical before showing passages
-        hideKeyboard();
+        // keyboard is already hidden, at this point
 
         // Shows hints
-        if (getOption(OPTION_SHOW_LEGEND, true)) {
+        if(getOption(OPTION_SHOW_LEGEND, true)) {
             showHints();
         } else {
             hideHints();
@@ -419,7 +465,7 @@ public class ActivityMain extends AppCompatActivity {
 
         prepareGUIForBusLines();
 
-        resultsListView.setAdapter(new AdapterBusLines(this, R.layout.entry_bus_line_passage, busLines));
+        resultsListView.setAdapter(new PalinaAdapter(this, p));
         resultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
@@ -434,6 +480,9 @@ public class ActivityMain extends AppCompatActivity {
             }
         });
     }
+
+    ///////////////////////////////// OTHER STUFF? /////////////////////////////////////////////////
+    // TODO: look into this stuff, possibly move handlers together with other handlers
 
     private void populateBusStopsLayout(BusStop[] busStops) {
         busStopNameTextView.setVisibility(View.GONE);

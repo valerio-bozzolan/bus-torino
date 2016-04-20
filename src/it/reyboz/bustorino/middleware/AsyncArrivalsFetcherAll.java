@@ -28,13 +28,15 @@ import android.support.annotation.NonNull;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class AsyncArrivalsFetcherAll extends AsyncTask<Void, Void, Palina> {
-    ArrivalsFetcher af;
-    AtomicReference<Fetcher.result> result;
-    String stopID;
+    private final ArrivalsFetcher af;
+    private AtomicReference<Fetcher.result> result;
+    private final String stopID;
+    private final AsyncArrivalsFetcherAllCallback callback;
 
-    public AsyncArrivalsFetcherAll(@NonNull ArrivalsFetcher af, @NonNull String stopID) {
+    public AsyncArrivalsFetcherAll(@NonNull ArrivalsFetcher af, @NonNull String stopID, AsyncArrivalsFetcherAllCallback callback) {
         this.af = af;
         this.stopID = stopID;
+        this.callback = callback;
     }
 
     @Override protected Palina doInBackground(Void... useless) {
@@ -42,6 +44,19 @@ public class AsyncArrivalsFetcherAll extends AsyncTask<Void, Void, Palina> {
     }
 
     @Override protected void onPostExecute(Palina p) {
+        if(!this.isCancelled()) { // is this really needed?
+            this.callback.call(p, result.get(), this.stopID);
+        }
+    }
 
+    /**
+     * Android doesn't really support JDK 8, so we have to use this hack\workaround.<br>
+     * <br>
+     * I've already tested 4 different solutions, this is the cleanest-looking so far...<br>
+     * <br>
+     * The only purpose of this interface is to glue together the AsyncArrivalsFetcherAll and whatver ActivityMain needs to do after obraining results, change parameters liberally if needed.
+     */
+    public interface AsyncArrivalsFetcherAllCallback {
+        void call(Palina p, Fetcher.result res, String stopID);
     }
 }
