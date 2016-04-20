@@ -118,7 +118,7 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
             // returns [{"PassaggiRT":[],"Passaggi":[]}] for non existing stops!
             json.getJSONObject(0).getString("Linea"); // if we can get this, then there's something useful in the array.
         } catch(JSONException e) {
-            res.set(result.EMPTY_RESULT_SET); // could also use NOT_FOUND
+            res.set(result.EMPTY_RESULT_SET);
             return null;
         }
 

@@ -83,7 +83,7 @@ public class ActivityMain extends AppCompatActivity {
     private final Runnable refreshing = new Runnable() {
         public void run() {
             showSpinner(DOUBLE_SPINNER);
-            asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStopID);
+            asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStopID, 0);
         }
     };
 
@@ -110,7 +110,9 @@ public class ActivityMain extends AppCompatActivity {
     /*
      * Arrays of fetchers, tryed in this order (slightly overengineered, maybe?)
      */
-    ArrivalsFetcher[] ArrivalFetchers = {new GTTJSONFetcher()};
+    private ArrivalsFetcher[] ArrivalFetchers = {new GTTJSONFetcher()};
+    int ArrivalFetchersPos; // position in the array
+    private AsyncArrivalsFetcherAll AsyncArrivalsFetcherRunningInstance;
 
     private SQLiteDatabase db;
 
@@ -218,13 +220,13 @@ public class ActivityMain extends AppCompatActivity {
             if (tryedFromIntent) {
 
                 // This shows a luser warning
-                asyncWgetBusStopFromBusStopID(null);
+                asyncWgetBusStopFromBusStopIDReset();
             }
         } else {
             // If you are here an intent has worked successfully
             setBusStopSearchByIDEditText(busStopID);
             showSpinner();
-            asyncWgetBusStopFromBusStopID(busStopID);
+            asyncWgetBusStopFromBusStopID(busStopID, 0);
         }
 
         Log.d("MainActivity", "Created");
@@ -240,7 +242,7 @@ public class ActivityMain extends AppCompatActivity {
         if (searchMode == SEARCH_BY_ID && lastSuccessfullySearchedBusStopID != null && lastSuccessfullySearchedBusStopID.length() != 0) {
             showSpinner();
             setBusStopSearchByIDEditText(lastSuccessfullySearchedBusStopID);
-            asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStopID);
+            asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStopID, 0);
         }
     }
 
@@ -349,64 +351,85 @@ public class ActivityMain extends AppCompatActivity {
     ///////////////////////////////// ARRIVALS FETCHER /////////////////////////////////////////////
 
     /**
-     * It's pure magic <3
+     * Try every fetcher until you get something usable.
      *
-     * @param busStopID the ID as a String
+     * @param busStopID the ID
+     * @param whichArrivalsFetcher set to 0 if you want to live (used internally by the recursion)
      */
-    private void asyncWgetBusStopFromBusStopID(String busStopID) {
-        if (busStopID == null || busStopID.length() == 0) {
+    private void asyncWgetBusStopFromBusStopID(String busStopID, int whichArrivalsFetcher) {
+        // TODO: move showSpinner here
+
+        // using a "global" variable to avoid adding parameters to AsyncArrivalsFetcherAll: the fact
+        // that this method uses recursion is a mere implementation detail.
+        this.ArrivalFetchersPos = whichArrivalsFetcher;
+
+        if(busStopID == null || busStopID.length() == 0) {
             Toast.makeText(getApplicationContext(),
                     R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT).show();
             hideSpinner();
             return;
         }
+
+        // TODO: remove this once we're sure fetchers can handle this case
         if (!NetworkTools.isConnected(getApplicationContext())) {
             NetworkTools.showNetworkError(getApplicationContext());
             hideSpinner();
             return;
         }
 
-        // TODO: handle cancellation if needed
-//        if (asyncWgetBusStopFromBusStopID != null) {
-//            asyncWgetBusStopFromBusStopID.cancel(true);
-//            //asyncWgetBusStopFromBusStopID = null;
-//            return;
-//        }
-
-        for(ArrivalsFetcher af : ArrivalFetchers) {
-            new AsyncArrivalsFetcherAll(af, busStopID, new AsyncArrivalsFetcherAllCallbackImplementation());
+        if(whichArrivalsFetcher >= ArrivalFetchers.length) {
+            // TODO: error message (tryed every fetcher and failed)
+            asyncWgetBusStopFromBusStopIDReset();
+            hideSpinner();
+            return;
         }
 
+        // cancel whatever is still running
+        if(AsyncArrivalsFetcherRunningInstance != null) {
+            // cancel() should hopefully only kill the background thread, not the one we're using for this same recursion...
+            AsyncArrivalsFetcherRunningInstance.cancel(true);
+        }
+        AsyncArrivalsFetcherRunningInstance = new AsyncArrivalsFetcherAll(ArrivalFetchers[whichArrivalsFetcher], busStopID, new AsyncArrivalsFetcherAllCallbackImplementation());
+        AsyncArrivalsFetcherRunningInstance.execute();
+    }
+
+    private void asyncWgetBusStopFromBusStopIDReset() {
+        this.ArrivalFetchersPos = 0;
+        if(AsyncArrivalsFetcherRunningInstance != null) {
+            AsyncArrivalsFetcherRunningInstance.cancel(true);
+        }
     }
 
     private class AsyncArrivalsFetcherAllCallbackImplementation implements AsyncArrivalsFetcherAll.AsyncArrivalsFetcherAllCallback {
         public void call(Palina p, Fetcher.result res, String stopID) {
-            hideSpinner();
+            hideSpinner(); // TODO: remove this once showSpinner() is in asyncWgetBusStopFromBusStopID()
 
             switch (res) {
                 case CLIENT_OFFLINE:
                     if (!NetworkTools.isConnected(getApplicationContext())) {
                         NetworkTools.showNetworkError(getApplicationContext());
                         hideSpinner();
-                        return;
                     }
+                    break; // goto recursion
                 case SERVER_ERROR: // TODO: better error message for these 2 cases
                 case SERVER_OFFLINE:
                 case PARSER_ERROR:
                     Toast.makeText(getApplicationContext(),
                             R.string.parsing_error, Toast.LENGTH_SHORT).show();
-                    break;
+                    break; // goto recursion
                 case EMPTY_RESULT_SET:
                     Toast.makeText(getApplicationContext(),
                             R.string.no_passages, Toast.LENGTH_SHORT).show();
-                    break;
+                    break; // goto recursion
                 case OK:
                     lastSuccessfullySearchedBusStopID = stopID;
                     hideKeyboard();
                     //MyDB.DBBusStop.addBusStop(db, busStop); // TODO: determine why this was needed
                     populateBusLinesLayout(p, stopID);
-                    break;
+                    return; // RETURN.
             }
+            // indirect recursion through a callback. ...yeha.
+            asyncWgetBusStopFromBusStopID(stopID, ArrivalFetchersPos+1);
         }
     }
 
@@ -523,7 +546,7 @@ public class ActivityMain extends AppCompatActivity {
         showSpinner();
         if (searchMode == SEARCH_BY_ID) {
             String busStopID = busStopSearchByIDEditText.getText().toString();
-            asyncWgetBusStopFromBusStopID(busStopID);
+            asyncWgetBusStopFromBusStopID(busStopID, 0);
         } else { // searchMode == SEARCH_BY_NAME
             String query = busStopSearchByNameEditText.getText().toString();
             asyncWgetBusStopSuggestions(query);
@@ -559,7 +582,7 @@ public class ActivityMain extends AppCompatActivity {
         String busStopID = getBusStopIDFromUri(uri);
         busStopSearchByIDEditText.setText(busStopID);
         showSpinner();
-        asyncWgetBusStopFromBusStopID(busStopID);
+        asyncWgetBusStopFromBusStopID(busStopID, 0);
     }
 
     public void onHideHint(View v) {

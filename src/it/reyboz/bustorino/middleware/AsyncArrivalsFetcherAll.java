@@ -33,7 +33,7 @@ public class AsyncArrivalsFetcherAll extends AsyncTask<Void, Void, Palina> {
     private final String stopID;
     private final AsyncArrivalsFetcherAllCallback callback;
 
-    public AsyncArrivalsFetcherAll(@NonNull ArrivalsFetcher af, @NonNull String stopID, AsyncArrivalsFetcherAllCallback callback) {
+    public AsyncArrivalsFetcherAll(@NonNull ArrivalsFetcher af, @NonNull String stopID, @NonNull AsyncArrivalsFetcherAllCallback callback) {
         this.af = af;
         this.stopID = stopID;
         this.callback = callback;
