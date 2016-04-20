@@ -73,13 +73,13 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
 
                 passaggi = thisroute.getJSONArray("PassaggiRT");
                 howManyPassaggi = passaggi.length();
-                for(j = 0; j < howManyPassaggi; i++) {
+                for(j = 0; j < howManyPassaggi; j++) {
                     p.addPassaggio(passaggi.getString(j).concat("*"), pos);
                 }
 
                 passaggi = thisroute.getJSONArray("Passaggi"); // now the non-real-time ones
                 howManyPassaggi = passaggi.length();
-                for(j = 0; j < howManyPassaggi; i++) {
+                for(j = 0; j < howManyPassaggi; j++) {
                     p.addPassaggio(passaggi.getString(j), pos);
                 }
             }
@@ -95,6 +95,7 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
     @Nullable
     private JSONArray queryURL(URL url, AtomicReference<result> res) {
         HttpURLConnection urlConnection;
+        InputStream in = null;
         JSONArray json;
 
         try {
@@ -105,12 +106,15 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         }
 
         try {
-            InputStream in = urlConnection.getInputStream();
+            in = urlConnection.getInputStream();
             json = new JSONArray(streamToString(in));
         } catch (Exception e) {
             res.set(result.PARSER_ERROR);
             return null;
         } finally {
+            try {
+                if (in != null) {in.close();} // this is getting ureadable quite fast.
+            } catch(Exception ignored) {}
             urlConnection.disconnect();
         }
 
@@ -125,9 +129,9 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         return json;
     }
 
-    // https://stackoverflow.com/a/14585883
+    // https://stackoverflow.com/a/5445161
     private static String streamToString(InputStream is) {
-        Scanner s = new Scanner(is); // TODO: test this
+        Scanner s = new Scanner(is, "UTF-8").useDelimiter("\\A");;
         return s.hasNext() ? s.next() : "";
     }
 

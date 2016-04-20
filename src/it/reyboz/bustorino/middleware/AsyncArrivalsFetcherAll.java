@@ -37,6 +37,7 @@ public class AsyncArrivalsFetcherAll extends AsyncTask<Void, Void, Palina> {
         this.af = af;
         this.stopID = stopID;
         this.callback = callback;
+        this.result = new AtomicReference<>();
     }
 
     @Override protected Palina doInBackground(Void... useless) {

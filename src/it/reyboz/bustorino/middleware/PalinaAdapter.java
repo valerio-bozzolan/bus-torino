@@ -45,7 +45,7 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
     private TextView busLineIconTextView = null;
     private TextView busLinePassagesTextView = null;
     private TextView busLineVehicleIcon = null;
-    private View someRandomConvertView = null;
+    private View theViewToUse = null;
     private static int layout = R.layout.entry_bus_line_passage;
 
     public PalinaAdapter(Context context, Palina p) {
@@ -62,21 +62,23 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if(convertView == null) {
-            if(this.someRandomConvertView == null) {
+            if(this.theViewToUse == null) {
                 LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 convertView = inflater.inflate(layout, null);
-                this.someRandomConvertView = convertView;
+                this.theViewToUse = convertView;
             }
         } else {
-            this.someRandomConvertView = convertView;
+            this.theViewToUse = convertView;
         }
+
+        // ------------------- /!\ Don't use convertView beyond this point /!\ ---------------------
 
         if(this.entryView == null) {
             // I'd be surprised if this doesn't catch fire as soon as it runs.
-            this.entryView = (TextView) this.someRandomConvertView.findViewById(R.id.busLineNames);
-            this.busLineIconTextView = (TextView) this.someRandomConvertView.findViewById(R.id.busLineIcon);
-            this.busLinePassagesTextView = (TextView) this.someRandomConvertView.findViewById(R.id.busLineNames);;
-            this.busLineVehicleIcon = (TextView) this.someRandomConvertView.findViewById(R.id.vehicleIcon); // Vehicle icon
+            this.entryView = (TextView) this.theViewToUse.findViewById(R.id.busLineNames);
+            this.busLineIconTextView = (TextView) this.theViewToUse.findViewById(R.id.busLineIcon);
+            this.busLinePassagesTextView = (TextView) this.theViewToUse.findViewById(R.id.busLineNames);;
+            this.busLineVehicleIcon = (TextView) this.theViewToUse.findViewById(R.id.vehicleIcon); // Vehicle icon
         }
 
         Route route = getItem(position);
@@ -98,6 +100,6 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
             this.busLinePassagesTextView.setText(resultString);
         }
 
-        return convertView;
+        return this.theViewToUse;
     }
 }
