@@ -8,42 +8,48 @@
     android:paddingRight="16dip" >
 
     <TextView
-        android:id="@+id/busLineIcon"
+        android:id="@+id/routeID"
         android:layout_width="54dip"
         android:layout_height="54dip"
         android:background="@drawable/bus_background"
         android:gravity="center"
         android:textColor="@color/grey_100"
-        android:textSize="21sp" >
+        android:textSize="21sp">
     </TextView>
 
-    <TextView
-        android:id="@+id/vehicleIcon"
-        android:layout_width="20dip"
-        android:layout_height="20dip"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_toEndOf="@id/busLineIcon"
-        android:layout_toRightOf="@id/busLineIcon"
-        android:background="@drawable/bus"
-        android:gravity="center" >
-    </TextView>
-
-    <TextView
-        android:id="@+id/busLineNames"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/busLineIcon"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignTop="@+id/busLineIcon"
-        android:layout_marginLeft="5dip"
-        android:layout_marginStart="5dip"
-        android:layout_toEndOf="@id/vehicleIcon"
-        android:layout_toRightOf="@id/vehicleIcon"
-        android:gravity="center_vertical"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="@color/blue_500" >
-    </TextView>
+        android:layout_alignTop="@+id/routeID"
+        android:layout_toEndOf="@id/routeID"
+        android:layout_toRightOf="@id/routeID"
+        android:orientation="vertical"
+        android:gravity="top|start">
+
+            <!--the icon comes from setCompoundDrawables in PalinaAdapter -->
+            <!--android:drawableLeft="@drawable/bus"
+                android:drawableStart="@drawable/bus" -->
+            <TextView
+                android:id="@+id/routeDestination"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/grey_600"
+                android:layout_height="30dp"
+                android:layout_width="wrap_content"
+                android:maxLines="1"
+                android:drawablePadding="0dp"
+                android:singleLine="true">
+            </TextView>
+
+            <!-- this can hold 4 timetable entries before overflowing into a second line. It's ugly but at least doesn't lose any information. -->
+            <TextView
+                android:id="@+id/routeTimetable"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/blue_500"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_marginLeft="5dip"
+                android:layout_marginStart="5dip">
+            </TextView>
+    </LinearLayout>
 
 </RelativeLayout>

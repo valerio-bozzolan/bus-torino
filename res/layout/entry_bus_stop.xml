@@ -30,7 +30,7 @@
         android:layout_marginTop="1sp" />
 
     <TextView
-        android:id="@+id/busLineNames"
+        android:id="@+id/routeTimetable"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="2sp"
@@ -56,7 +56,7 @@
         android:layout_marginTop="3sp"
         android:layout_marginRight="16sp"
         android:layout_marginEnd="16sp"
-        android:layout_below="@+id/busLineNames"
+        android:layout_below="@+id/routeTimetable"
         android:layout_toLeftOf="@+id/busStopID"
         android:layout_toStartOf="@+id/busStopID"
         android:layout_toRightOf="@+id/vehicleIcon"

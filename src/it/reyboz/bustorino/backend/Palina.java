@@ -42,6 +42,7 @@ public class Palina {
      * @param routeID name
      * @param destinazione end of line\terminus (underground stations have the same ID for both directions)
      * @return array index for this route
+     * @see RouteInternal
      */
     public int addRoute(String routeID, String destinazione) {
         this.routes.add(new RouteInternal(routeID, destinazione));

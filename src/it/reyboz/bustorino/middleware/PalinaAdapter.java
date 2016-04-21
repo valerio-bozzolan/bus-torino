@@ -25,6 +25,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import java.util.List;
+import java.util.Objects;
 
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Palina;
@@ -43,12 +44,16 @@ import it.reyboz.bustorino.backend.Route;
 public class PalinaAdapter extends ArrayAdapter<Route> {
     private LayoutInflater li;
     private static int row_layout = R.layout.entry_bus_line_passage;
+    private static final int busIcon = R.drawable.bus;
+    private static final int subwayIcon = R.drawable.subway;
+    //private static final int tramIcon = R.drawable.tram;
+    //private static final int cityIcon = R.drawable.city;
 
     // hey look, a pattern!
     static class ViewHolder {
-        TextView busLineIconTextView;
-        TextView busLineVehicleIcon;
-        TextView busLinePassagesTextView;
+        TextView rowStopIcon;
+        TextView rowRouteDestination;
+        TextView rowRouteTimetable;
     }
 
     public PalinaAdapter(Context context, Palina p) {
@@ -77,11 +82,11 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
 
             // STORE TEXTVIEWS!
             vh = new ViewHolder();
-            vh.busLineIconTextView = (TextView) convertView.findViewById(R.id.busLineIcon);
-            vh.busLineVehicleIcon = (TextView) convertView.findViewById(R.id.vehicleIcon);
-            vh.busLinePassagesTextView = (TextView) convertView.findViewById(R.id.busLineNames);
+            vh.rowStopIcon = (TextView) convertView.findViewById(R.id.routeID);
+            vh.rowRouteDestination = (TextView) convertView.findViewById(R.id.routeDestination);
+            vh.rowRouteTimetable = (TextView) convertView.findViewById(R.id.routeTimetable);
 
-            // STORE VIEWHOLDER IN\ON\OVER\UNDER\ABOVE\BESIDES THE VIEW!
+            // STORE VIEWHOLDER IN\ON\OVER\UNDER\ABOVE\BESIDE THE VIEW!
             convertView.setTag(vh);
         } else {
             // RECOVER THIS STUFF!
@@ -90,21 +95,26 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
 
         Route route = getItem(position);
 
-        // Take the TextView from layout and set the busLine name
-        // TODO: pezza temporanea da sistemare
-        vh.busLineIconTextView.setText(route.name + " > " + route.destinazione);
+        vh.rowStopIcon.setText(route.name);
+        vh.rowRouteDestination.setText(route.destinazione);
+
+        // TODO: decide if we really need\want this
+        if(route.name.equals("METRO") || route.name.equals("FTC") || route.name.equals("CAN")) {
+            vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(subwayIcon, 0, 0, 0);
+        } else {
+            vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
+        }
 
         List<Passaggio> passaggi = route.passaggi;
         if(passaggi.size() == 0) {
-            vh.busLinePassagesTextView.setText(R.string.no_passages);
-            vh.busLineVehicleIcon.setVisibility(View.INVISIBLE);
+            vh.rowRouteTimetable.setText(R.string.no_passages);
         } else {
             String resultString = "";
             for(Passaggio passaggio : passaggi) {
                 // "+" calls concat() and some other stuff internally, this should be faster
                 resultString = resultString.concat(passaggio.toString()).concat(" ");
             }
-            vh.busLinePassagesTextView.setText(resultString);
+            vh.rowRouteTimetable.setText(resultString);
         }
 
         return convertView;

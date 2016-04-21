@@ -69,7 +69,7 @@ public class AdapterBusStops extends ArrayAdapter<BusStop> {
         TextView busLineVehicleIcon = (TextView) convertView.findViewById(R.id.vehicleIcon);
 
         // Take the TextView from layout and set the busStop locality
-        TextView busStopLinesTextView = (TextView) convertView.findViewById(R.id.busLineNames);
+        TextView busStopLinesTextView = (TextView) convertView.findViewById(R.id.routeTimetable);
         if(busStop.getBusLines() != null) {
             String busLines = "";
             for(BusLine busLine: busStop.getBusLines()) {

@@ -56,14 +56,14 @@ public class AdapterBusLines extends ArrayAdapter<BusLine> {
         BusLine busLine = getItem( position );
 
         // Take the TextView from layout and set the busLine name
-        TextView busLineIconTextView = (TextView) convertView.findViewById(R.id.busLineIcon);
+        TextView busLineIconTextView = (TextView) convertView.findViewById(R.id.routeID);
         busLineIconTextView.setText(busLine.getBusLineName());
 
         // Vehicle icon
         TextView busLineVehicleIcon = (TextView) convertView.findViewById(R.id.vehicleIcon);
 
         // Take the TextView from layout and set the BusLine's passages
-        TextView busLinePassagesTextView = (TextView) convertView.findViewById(R.id.busLineNames);
+        TextView busLinePassagesTextView = (TextView) convertView.findViewById(R.id.routeTimetable);
         String timePassages = busLine.getTimePassagesString();
         if(timePassages != null) {
             busLinePassagesTextView.setText(timePassages);
