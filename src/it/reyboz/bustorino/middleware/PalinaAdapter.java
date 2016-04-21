@@ -41,65 +41,72 @@ import it.reyboz.bustorino.backend.Route;
  * @author Ludovico Pavesi
  */
 public class PalinaAdapter extends ArrayAdapter<Route> {
-    private TextView entryView = null;
-    private TextView busLineIconTextView = null;
-    private TextView busLinePassagesTextView = null;
-    private TextView busLineVehicleIcon = null;
-    private View theViewToUse = null;
-    private static int layout = R.layout.entry_bus_line_passage;
+    private LayoutInflater li;
+    private static int row_layout = R.layout.entry_bus_line_passage;
+
+    // hey look, a pattern!
+    static class ViewHolder {
+        TextView busLineIconTextView;
+        TextView busLineVehicleIcon;
+        TextView busLinePassagesTextView;
+    }
 
     public PalinaAdapter(Context context, Palina p) {
         // TODO: find a more efficient way if there's one
-        super(context, layout, p.queryAllRoutes());
+        super(context, row_layout, p.queryAllRoutes());
+        li = LayoutInflater.from(context);
     }
 
     /**
-     * Some parts taken from the AdapterBusLines class, some parts inspired by this tutorial:
-     * http://www.simplesoft.it/android/guida-agli-adapter-e-le-listview-in-android.html
+     * Some parts taken from the AdapterBusLines class.<br>
+     * Some parts inspired by these enlightening tutorials:<br>
+     * http://www.simplesoft.it/android/guida-agli-adapter-e-le-listview-in-android.html<br>
+     * https://www.codeofaninja.com/2013/09/android-viewholder-pattern-example.html<br>
      * And some other bits and bobs TIRATI FUORI DAL NULLA CON L'INTUIZIONE INTELLETTUALE PERCHÉ
      * SEMBRA CHE NESSUNO ABBIA LA MINIMA IDEA DI COME FUNZIONA UN ADAPTER SU ANDROID.
      */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder vh;
+
+        // TODO: determine why this is called twice with null and twice with a convertView, to display 2 rows.
         if(convertView == null) {
-            if(this.theViewToUse == null) {
-                LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(layout, null);
-                this.theViewToUse = convertView;
-            }
+            // INFLATE!
+            // setting a parent here is not supported and causes a fatal exception, apparently.
+            convertView = li.inflate(row_layout, null);
+
+            // STORE TEXTVIEWS!
+            vh = new ViewHolder();
+            vh.busLineIconTextView = (TextView) convertView.findViewById(R.id.busLineIcon);
+            vh.busLineVehicleIcon = (TextView) convertView.findViewById(R.id.vehicleIcon);
+            vh.busLinePassagesTextView = (TextView) convertView.findViewById(R.id.busLineNames);
+
+            // STORE VIEWHOLDER IN\ON\OVER\UNDER\ABOVE\BESIDES THE VIEW!
+            convertView.setTag(vh);
         } else {
-            this.theViewToUse = convertView;
-        }
-
-        // ------------------- /!\ Don't use convertView beyond this point /!\ ---------------------
-
-        if(this.entryView == null) {
-            // I'd be surprised if this doesn't catch fire as soon as it runs.
-            this.entryView = (TextView) this.theViewToUse.findViewById(R.id.busLineNames);
-            this.busLineIconTextView = (TextView) this.theViewToUse.findViewById(R.id.busLineIcon);
-            this.busLinePassagesTextView = (TextView) this.theViewToUse.findViewById(R.id.busLineNames);;
-            this.busLineVehicleIcon = (TextView) this.theViewToUse.findViewById(R.id.vehicleIcon); // Vehicle icon
+            // RECOVER THIS STUFF!
+            vh = (ViewHolder) convertView.getTag();
         }
 
         Route route = getItem(position);
 
         // Take the TextView from layout and set the busLine name
         // TODO: pezza temporanea da sistemare
-        busLineIconTextView.setText(route.name + " > " + route.destinazione);
+        vh.busLineIconTextView.setText(route.name + " > " + route.destinazione);
 
         List<Passaggio> passaggi = route.passaggi;
         if(passaggi.size() == 0) {
-            this.busLinePassagesTextView.setText(R.string.no_passages);
-            this.busLineVehicleIcon.setVisibility(View.INVISIBLE);
+            vh.busLinePassagesTextView.setText(R.string.no_passages);
+            vh.busLineVehicleIcon.setVisibility(View.INVISIBLE);
         } else {
             String resultString = "";
             for(Passaggio passaggio : passaggi) {
                 // "+" calls concat() and some other stuff internally, this should be faster
                 resultString = resultString.concat(passaggio.toString()).concat(" ");
             }
-            this.busLinePassagesTextView.setText(resultString);
+            vh.busLinePassagesTextView.setText(resultString);
         }
 
-        return this.theViewToUse;
+        return convertView;
     }
 }
