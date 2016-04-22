@@ -5,7 +5,7 @@
     android:paddingTop="8dip"
     android:paddingBottom="8dip"
     android:paddingLeft="16dip"
-    android:paddingRight="16dip" >
+    android:paddingRight="16dip">
 
     <TextView
         android:id="@+id/routeID"
@@ -17,39 +17,35 @@
         android:textSize="21sp">
     </TextView>
 
-    <LinearLayout
+    <!--the icon comes from setCompoundDrawables in PalinaAdapter -->
+    <!--android:drawableLeft="@drawable/bus"
+        android:drawableStart="@drawable/bus" -->
+    <TextView
+        android:id="@+id/routeDestination"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/grey_600"
+        android:layout_height="30dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/routeID"
         android:layout_toEndOf="@id/routeID"
         android:layout_toRightOf="@id/routeID"
-        android:orientation="vertical"
-        android:gravity="top|start">
+        android:layout_alignTop="@+id/routeID"
+        android:maxLines="1"
+        android:drawablePadding="0dp"
+        android:singleLine="true">
+    </TextView>
 
-            <!--the icon comes from setCompoundDrawables in PalinaAdapter -->
-            <!--android:drawableLeft="@drawable/bus"
-                android:drawableStart="@drawable/bus" -->
-            <TextView
-                android:id="@+id/routeDestination"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="@color/grey_600"
-                android:layout_height="30dp"
-                android:layout_width="wrap_content"
-                android:maxLines="1"
-                android:drawablePadding="0dp"
-                android:singleLine="true">
-            </TextView>
-
-            <!-- this can hold 4 timetable entries before overflowing into a second line. It's ugly but at least doesn't lose any information. -->
-            <TextView
-                android:id="@+id/routeTimetable"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="@color/blue_500"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:layout_marginLeft="5dip"
-                android:layout_marginStart="5dip">
-            </TextView>
-    </LinearLayout>
+    <!-- this can hold 3-4 timetable entries before overflowing into a second line. It's ugly but at least doesn't lose any information. -->
+    <TextView
+        android:id="@+id/routeTimetable"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/blue_500"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="5dip"
+        android:layout_marginStart="5dip"
+        android:layout_toEndOf="@id/routeID"
+        android:layout_toRightOf="@id/routeID"
+        android:layout_below="@id/routeDestination">
+    </TextView>
 
 </RelativeLayout>

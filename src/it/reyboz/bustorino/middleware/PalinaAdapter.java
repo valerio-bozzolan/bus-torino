@@ -25,7 +25,6 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import java.util.List;
-import java.util.Objects;
 
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Palina;
@@ -44,6 +43,7 @@ import it.reyboz.bustorino.backend.Route;
 public class PalinaAdapter extends ArrayAdapter<Route> {
     private LayoutInflater li;
     private static int row_layout = R.layout.entry_bus_line_passage;
+    private static final int metroBg = R.drawable.metro_background;
     private static final int busIcon = R.drawable.bus;
     private static final int subwayIcon = R.drawable.subway;
     //private static final int tramIcon = R.drawable.tram;
@@ -94,15 +94,28 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
         }
 
         Route route = getItem(position);
-
-        vh.rowStopIcon.setText(route.name);
         vh.rowRouteDestination.setText(route.destinazione);
 
         // TODO: decide if we really need\want this
-        if(route.name.equals("METRO") || route.name.equals("FTC") || route.name.equals("CAN")) {
-            vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(subwayIcon, 0, 0, 0);
-        } else {
-            vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
+        switch(route.name) {
+            case "METRO":
+                vh.rowStopIcon.setText("M1"); // "METRO" gets split in 2 lines
+                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(subwayIcon, 0, 0, 0);
+                /* not really needed, but we're already taking the performance penality of running this
+                 * switch for every route. Replacing "METRO" with "M1" should probably be done in another
+                 * "normalizer" class.
+                 */
+                vh.rowStopIcon.setBackgroundResource(metroBg);
+                break;
+            case "FTC":
+            case "CAN":
+                vh.rowStopIcon.setText(route.name);
+                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(subwayIcon, 0, 0, 0);
+                break;
+            default:
+                vh.rowStopIcon.setText(route.name);
+                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
+                break;
         }
 
         List<Passaggio> passaggi = route.passaggi;
