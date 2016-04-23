@@ -43,6 +43,8 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
     public Palina ReadArrivalTimesAll(String routeID, AtomicReference<result> res) {
         URL url;
         Palina p = new Palina();
+        String routename;
+        String bacino;
         JSONArray json;
         int howManyRoutes, howManyPassaggi, i, j, pos; // il misto inglese-italiano è un po' ridicolo ma tanto vale...
         JSONObject thisroute;
@@ -69,17 +71,36 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         try {
             for(i = 0; i < howManyRoutes; i++) {
                 thisroute = json.getJSONObject(i);
-                pos = p.addRoute(thisroute.getString("Linea"), thisroute.getString("Direzione"));
+                routename = thisroute.getString("Linea");
+                try {
+                    bacino = thisroute.getString("Bacino");
+                } catch (JSONException ignored) { // if "Bacino" gets removed...
+                    bacino = "U";
+                }
+
+                pos = p.addRoute(routename, thisroute.getString("Direzione"), decodeType(routename, bacino));
+
+                /*
+                 * Okay, this is just absurd.
+                 * The underground always has 4 non-real-time timetable entries; however, the first
+                 * two are old\stale\bogus, as they're in the past. The other two are exactly the
+                 * same ones that appear on the screens in the stations.
+                 */
+                if(routename.equals("METRO")) {
+                    j = 2;
+                } else {
+                    j = 0;
+                }
 
                 passaggi = thisroute.getJSONArray("PassaggiRT");
                 howManyPassaggi = passaggi.length();
-                for(j = 0; j < howManyPassaggi; j++) {
+                for(; j < howManyPassaggi; j++) {
                     p.addPassaggio(passaggi.getString(j).concat("*"), pos);
                 }
 
                 passaggi = thisroute.getJSONArray("Passaggi"); // now the non-real-time ones
                 howManyPassaggi = passaggi.length();
-                for(j = 0; j < howManyPassaggi; j++) {
+                for(; j < howManyPassaggi; j++) {
                     p.addPassaggio(passaggi.getString(j), pos);
                 }
             }
@@ -101,7 +122,7 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
         } catch(IOException e) {
-            res.set(result.SERVER_OFFLINE); // TODO: can we assume this is CLIENT_OFFLINE?
+            res.set(result.SERVER_ERROR); // TODO: can we assume this is CLIENT_OFFLINE?
             return null;
         }
 
@@ -131,8 +152,27 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
 
     // https://stackoverflow.com/a/5445161
     private static String streamToString(InputStream is) {
-        Scanner s = new Scanner(is, "UTF-8").useDelimiter("\\A");;
+        Scanner s = new Scanner(is, "UTF-8").useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
+    }
+
+    private static Route.Type decodeType(final String routename, final String bacino) {
+        if(routename.equals("METRO")) {
+            return Route.Type.METRO;
+        }
+
+        switch (bacino) {
+            case "U":
+                return Route.Type.BUS;
+            case "F":
+                return Route.Type.RAILWAY;
+            case "E":
+                return Route.Type.LONG_DISTANCE_BUS;
+            default:
+                return Route.Type.BUS;
+        }
+
+
     }
 
 }

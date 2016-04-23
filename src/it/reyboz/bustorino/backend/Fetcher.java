@@ -18,21 +18,18 @@
 
 package it.reyboz.bustorino.backend;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 public interface Fetcher {
     /**
      * Status codes.<br>
      *<br>
      * OK: got a response, parsed correctly, obtained some data<br>
      * CLIENT_OFFLINE: can't connect to the internet<br>
-     * SERVER_OFFLINE: the server is down for maintenance (apparently sometimes happens to the 5T website and they put a message on the home page, that can be parsed to set this state)<br>
      * SERVER_ERROR: the server replied anything other than HTTP 200, basically<br>
      * PARSER_ERROR: the server replied something that can't be parsed, probably it's not the data we're looking for (e.g. "PHP: Fatal Error")<br>
      * EMPTY_RESULT_SET: the response is valid and indicates there are no stops\routes\"passaggi"<br>
      */
     enum result {
-        OK, CLIENT_OFFLINE, SERVER_OFFLINE, SERVER_ERROR, PARSER_ERROR, EMPTY_RESULT_SET
+        OK, CLIENT_OFFLINE, SERVER_ERROR, PARSER_ERROR, EMPTY_RESULT_SET
     }
 
     // moved to AsyncFetcher since shouldn't be reused on different runs

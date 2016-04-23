@@ -24,10 +24,42 @@ public class Route {
     public final String name;
     public final String destinazione;
     public final List<Passaggio> passaggi;
+    public final Type type;
+    public enum Type { // "long distance" sono gli extraurbani.
+        BUS, LONG_DISTANCE_BUS, METRO, RAILWAY, TRAM
+    }
 
-    public Route(String name, String destinazione, List<Passaggio> passaggi) {
+    /**
+     * Constructor.
+     *
+     * @param name route ID
+     * @param destinazione terminus\end of line
+     * @param type bus, long distance bus, underground, and so on
+     * @param passaggi timetable, a good choice is an ArrayList of size 6
+     * @see Palina Palina.addRoute() method
+     */
+    public Route(String name, String destinazione, Type type, List<Passaggio> passaggi) {
         this.name = name;
         this.destinazione = destinazione;
         this.passaggi = passaggi;
+        this.type = type;
     }
+
+    /**
+     * Exactly what it says on the tin.
+     *
+     * @return times from the timetable
+     */
+    public List<Passaggio> getPassaggi() {
+        return this.passaggi;
+    }
+
+    /**
+     * Adds a time (passaggio) to the timetable for this route
+     *
+     * @param TimeGTT time in GTT format (e.g. "11:22*")
+     */
+     public void addPassaggio(String TimeGTT) {
+         this.passaggi.add(new Passaggio(TimeGTT));
+     }
 }

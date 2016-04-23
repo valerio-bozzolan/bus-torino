@@ -1,6 +1,6 @@
 /*
-	BusTO - Arrival times for Turin public transports.
-    Copyright (C) 2014  Valerio Bozzolan
+	BusTO (backend components)
+    Copyright (C) 2016 Ludovico Pavesi
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 package it.reyboz.bustorino.middleware;
 
 import android.content.Context;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,10 +44,11 @@ import it.reyboz.bustorino.backend.Route;
 public class PalinaAdapter extends ArrayAdapter<Route> {
     private LayoutInflater li;
     private static int row_layout = R.layout.entry_bus_line_passage;
-    private static final int metroBg = R.drawable.metro_background;
+    private static final int metroBg = R.drawable.route_background_metro;
+    private static final int extraurbanoBg = R.drawable.route_background_bus_long_distance;
     private static final int busIcon = R.drawable.bus;
-    private static final int subwayIcon = R.drawable.subway;
-    //private static final int tramIcon = R.drawable.tram;
+    private static final int trainIcon = R.drawable.subway;
+    private static final int tramIcon = R.drawable.tram;
     //private static final int cityIcon = R.drawable.city;
 
     // hey look, a pattern!
@@ -94,27 +96,28 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
         }
 
         Route route = getItem(position);
+        vh.rowStopIcon.setText(route.name);
         vh.rowRouteDestination.setText(route.destinazione);
 
-        // TODO: decide if we really need\want this
-        switch(route.name) {
-            case "METRO":
-                vh.rowStopIcon.setText("M1"); // "METRO" gets split in 2 lines
-                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(subwayIcon, 0, 0, 0);
-                /* not really needed, but we're already taking the performance penality of running this
-                 * switch for every route. Replacing "METRO" with "M1" should probably be done in another
-                 * "normalizer" class.
-                 */
-                vh.rowStopIcon.setBackgroundResource(metroBg);
-                break;
-            case "FTC":
-            case "CAN":
-                vh.rowStopIcon.setText(route.name);
-                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(subwayIcon, 0, 0, 0);
-                break;
+        switch (route.type) {
+            case BUS:
             default:
-                vh.rowStopIcon.setText(route.name);
                 vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
+                break;
+            case LONG_DISTANCE_BUS:
+                vh.rowStopIcon.setBackgroundResource(extraurbanoBg);
+                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
+                break;
+            case METRO:
+                vh.rowStopIcon.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                vh.rowStopIcon.setBackgroundResource(metroBg);
+                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(trainIcon, 0, 0, 0);
+                break;
+            case RAILWAY:
+                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(trainIcon, 0, 0, 0);
+                break;
+            case TRAM: // never used but whatever.
+                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(tramIcon, 0, 0, 0);
                 break;
         }
 

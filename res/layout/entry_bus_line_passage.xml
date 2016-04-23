@@ -11,7 +11,7 @@
         android:id="@+id/routeID"
         android:layout_width="54dip"
         android:layout_height="54dip"
-        android:background="@drawable/bus_background"
+        android:background="@drawable/route_background_bus"
         android:gravity="center"
         android:textColor="@color/grey_100"
         android:textSize="21sp">

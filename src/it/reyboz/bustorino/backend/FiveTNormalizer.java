@@ -35,17 +35,19 @@ package it.reyboz.bustorino.backend;
  * - "CAN" or "FTC" (railway lines)<br>
  * - ...screw it, let's just hope all the websites and APIs return something sane as route IDs.<br>
  * <p/>
- * This class exists because Java doesn't support traits.
+ * This class exists because Java doesn't support traits.<br>
+ * <br>
+ * Note: this class also just became useless, as 5T now uses the same format as GTT website.
  */
 public abstract class FiveTNormalizer {
-    private static String FiveTNormalizeRoute(String RouteID) {
+    public static String FiveTNormalizeRoute(String RouteID) {
         while (RouteID.startsWith("0")) {
             RouteID = RouteID.substring(1);
         }
         return RouteID;
     }
 
-    private static String FiveTNormalizeStop(String StopID) {
+    public static String FiveTNormalizeStop(String StopID) {
         StopID = FiveTNormalizeRoute(StopID);
         // is this faster than a regex?
         if (StopID.length() == 5 && StopID.startsWith("ST") && Character.isLetter(StopID.charAt(2)) && Character.isLetter(StopID.charAt(3)) && Character.isLetter(StopID.charAt(4))) {
@@ -97,8 +99,8 @@ public abstract class FiveTNormalizer {
         return StopID;
     }
 
-    private static String NormalizedToFiveT(String StopID) {
-        if (StopID.startsWith("82")) {
+    public static String NormalizedToFiveT(final String StopID) {
+        if(StopID.startsWith("82") && StopID.length() == 4) {
             switch (StopID) {
                 case "8230":
                     return "STLGO";
@@ -147,4 +149,5 @@ public abstract class FiveTNormalizer {
 
         return StopID;
     }
+
 }
