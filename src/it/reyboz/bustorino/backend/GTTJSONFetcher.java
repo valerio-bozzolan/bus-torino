@@ -34,11 +34,6 @@ import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GTTJSONFetcher implements ArrivalsFetcher  {
-//    @Override
-//    public Palina ReadArrivalTimesRoute(String stopID, String routeID, AtomicReference<Fetcher.result> res) {
-//        return this.ReadArrivalTimesAll(routeID, res); // TODO: implement this when it's needed (never?)
-//    }
-
     @Override @NonNull
     public Palina ReadArrivalTimesAll(String routeID, AtomicReference<result> res) {
         URL url;

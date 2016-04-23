@@ -192,4 +192,40 @@ public class FiveTScraperFetcher extends FiveTNormalizer implements ArrivalsFetc
         res.set(result.OK);
         return p;
     }
+
+    // preserved for future generations:
+//    /*
+//     * I've sent many emails to the public email info@5t.torino.it to write down something like:
+//     * «YOUR SITE EXPLODE IF I USE **YOUR** BUS LINE IDs STARTING WITH ZERO!!!!!»
+//     * So, waiting for a response, I must purge the busStopID from "0"s  .__.
+//     * IN YOUR FACE 5T/GTT. IN YOUR FACE.
+//     *
+//     * @param busStopID
+//     * @return parseInt(busStopID)
+//     * @antifeatured yep
+//     * @notabug yep
+//     * @wontfix yep
+//     */
+//    protected final String getFilteredBusStopID(String busStopID) {
+//        /*
+//         * OK leds me ezplain why 'm dong this shot of shittt. OK zo swhy?
+//         * Bhumm thads because the GTT/5T site-"developer" ids obviusli drunk.
+//         */
+//        String enableGTTDeveloperSimulator = "on"; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+//        final char ZZZZZZZEEEEROOOOOO = '0'; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+//        char[] cinquettiBarraGtt = busStopID.toCharArray(); // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+//        int merda = 0; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+//        while (merda < cinquettiBarraGtt.length && cinquettiBarraGtt[merda] == ZZZZZZZEEEEROOOOOO) {
+//            // COMPLETELELELLELEEELY DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+//            Log.i("AsyncWgetBusStop", "scimmie ubriache assunte per tirar su il sito 5T/GTT"); // DR
+//            merda++; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+//        } // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+//        String trenoDiMerda = ""; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+//        for (; merda < cinquettiBarraGtt.length; merda++) { // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+//            trenoDiMerda += cinquettiBarraGtt[merda]; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+//        } // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+//        enableGTTDeveloperSimulator = "off"; // DRUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUNK
+//
+//        return trenoDiMerda;
+//    }
 }

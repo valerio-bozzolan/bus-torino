@@ -683,10 +683,11 @@ public class ActivityMain extends AppCompatActivity {
 
     private void toggleSpinner(boolean enable) {
         if (enable) {
+            //already set by the RefreshListener when needed
             //swipeRefreshLayout.setRefreshing(true);
             progressBar.setVisibility(View.VISIBLE);
         } else {
-            //swipeRefreshLayout.setRefreshing(false);
+            swipeRefreshLayout.setRefreshing(false);
             progressBar.setVisibility(View.GONE);
         }
     }
