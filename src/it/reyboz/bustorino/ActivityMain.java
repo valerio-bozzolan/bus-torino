@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.NavUtils;
@@ -61,6 +62,26 @@ import it.reyboz.bustorino.middleware.AsyncArrivalsFetcherAll;
 import it.reyboz.bustorino.middleware.PalinaAdapter;
 
 public class ActivityMain extends AppCompatActivity {
+
+    public class RecursionHelper {
+        private int pos = 0;
+        public AsyncTask<?, ?, ?> RunningInstance = null; // the only one that hasn't been cancelled
+
+        public void reset() {
+            this.pos = 0;
+            if(RunningInstance != null) {
+                RunningInstance.cancel(true);
+            }
+        }
+
+        public void increment() {
+            pos++;
+        }
+
+        public int getPos() {
+            return pos;
+        }
+    }
 
     /*
      * Layout elements
@@ -107,12 +128,18 @@ public class ActivityMain extends AppCompatActivity {
     }
     private ArrivalsFetcher[] ArrivalFetchers = {new MockFetcher(), new MockFetcher(), new MockFetcher(), new MockFetcher(), new MockFetcher()};*/
 
-    /*
-     * Arrays of fetchers, tryed in this order
-     */
+     /*
+      * I tried to wrap everything in a class and it didn't work right no matter what.
+      * Or it kinda worked, but accessing the stuff became very ugly, especially if you wanted to
+      * hide the internal structure of the class.
+      * At least I've managed to shoehorn two variables and a method in there, the array will stay
+      * outside.
+      *
+      * I don't know if I should be surprised that handling recursion the C way looks a lot cleaner
+      * than wrapping everything the Java way.
+      */
     private ArrivalsFetcher[] ArrivalFetchers = {new GTTJSONFetcher(), new FiveTScraperFetcher()};
-    private int ArrivalFetchersPos; // position in the array (don't set it manually!)
-    private AsyncArrivalsFetcherAll AsyncArrivalsFetcherRunningInstance; // the only one that hasn't been cancelled
+    private RecursionHelper ArrivalFetchersRecursionHelper = new RecursionHelper();
 
     private SQLiteDatabase db;
 
@@ -124,7 +151,7 @@ public class ActivityMain extends AppCompatActivity {
     private Handler handler = new Handler();
     private final Runnable refreshing = new Runnable() {
         public void run() {
-            asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStopID, 0);
+            asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStopID, true);
         }
     };
 
@@ -229,12 +256,13 @@ public class ActivityMain extends AppCompatActivity {
             if (tryedFromIntent) {
 
                 // This shows a luser warning
-                asyncWgetBusStopFromBusStopIDReset();
+                // TODO: did I accidentally remove the warning?
+                ArrivalFetchersRecursionHelper.reset();
             }
         } else {
             // If you are here an intent has worked successfully
             setBusStopSearchByIDEditText(busStopID);
-            asyncWgetBusStopFromBusStopID(busStopID, 0);
+            asyncWgetBusStopFromBusStopID(busStopID, true);
         }
 
         Log.d("MainActivity", "Created");
@@ -249,7 +277,7 @@ public class ActivityMain extends AppCompatActivity {
         Log.d("ActivityMain", "onPostResume fired. Last successfully bus stop ID: " + lastSuccessfullySearchedBusStopID);
         if (searchMode == SEARCH_BY_ID && lastSuccessfullySearchedBusStopID != null && lastSuccessfullySearchedBusStopID.length() != 0) {
             setBusStopSearchByIDEditText(lastSuccessfullySearchedBusStopID);
-            asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStopID, 0);
+            asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStopID, true);
         }
     }
 
@@ -309,7 +337,7 @@ public class ActivityMain extends AppCompatActivity {
         // TODO: do we need toggleSpinner(true) here?
         if (searchMode == SEARCH_BY_ID) {
             String busStopID = busStopSearchByIDEditText.getText().toString();
-            asyncWgetBusStopFromBusStopID(busStopID, 0);
+            asyncWgetBusStopFromBusStopID(busStopID, true);
         } else { // searchMode == SEARCH_BY_NAME
             String query = busStopSearchByNameEditText.getText().toString();
             asyncWgetBusStopSuggestions(query);
@@ -344,7 +372,7 @@ public class ActivityMain extends AppCompatActivity {
 
         String busStopID = getBusStopIDFromUri(uri);
         busStopSearchByIDEditText.setText(busStopID);
-        asyncWgetBusStopFromBusStopID(busStopID, 0);
+        asyncWgetBusStopFromBusStopID(busStopID, true);
     }
 
     public void onHideHint(View v) {
@@ -457,14 +485,14 @@ public class ActivityMain extends AppCompatActivity {
      * Try every fetcher until you get something usable.
      *
      * @param busStopID the ID
-     * @param whichArrivalsFetcher set to 0 if you want to live (used internally by the recursion)
+     * @param reset set to true if you want to live (set to false during recursion)
      */
-    private void asyncWgetBusStopFromBusStopID(String busStopID, int whichArrivalsFetcher) {
+    private void asyncWgetBusStopFromBusStopID(String busStopID, boolean reset) {
         toggleSpinner(true);
 
-        // using a "global" variable to avoid adding parameters to AsyncArrivalsFetcherAll: the fact
-        // that this method uses recursion is a mere implementation detail.
-        this.ArrivalFetchersPos = whichArrivalsFetcher;
+        if(reset) {
+            ArrivalFetchersRecursionHelper.reset();
+        }
 
         if(busStopID == null || busStopID.length() == 0) {
             Toast.makeText(getApplicationContext(),
@@ -480,27 +508,21 @@ public class ActivityMain extends AppCompatActivity {
             return;
         }
 
-        if(whichArrivalsFetcher >= ArrivalFetchers.length) {
+        if(ArrivalFetchersRecursionHelper.getPos() >= ArrivalFetchers.length) {
             // TODO: error message (tryed every fetcher and failed)
-            asyncWgetBusStopFromBusStopIDReset();
+            ArrivalFetchersRecursionHelper.reset();
             toggleSpinner(false);
             return;
         }
 
         // cancel whatever is still running
-        if(AsyncArrivalsFetcherRunningInstance != null) {
+        if(ArrivalFetchersRecursionHelper.RunningInstance != null) {
             // cancel() should hopefully only kill the background thread, not the one we're using for this same recursion...
-            AsyncArrivalsFetcherRunningInstance.cancel(true);
+            ArrivalFetchersRecursionHelper.RunningInstance.cancel(true);
         }
-        AsyncArrivalsFetcherRunningInstance = new AsyncArrivalsFetcherAll(ArrivalFetchers[whichArrivalsFetcher], busStopID, new AsyncArrivalsFetcherAllCallbackImplementation());
-        AsyncArrivalsFetcherRunningInstance.execute();
-    }
 
-    private void asyncWgetBusStopFromBusStopIDReset() {
-        this.ArrivalFetchersPos = 0;
-        if(AsyncArrivalsFetcherRunningInstance != null) {
-            AsyncArrivalsFetcherRunningInstance.cancel(true);
-        }
+        // create new task, run it, store the running instance. Don't try to reorder these calls even though it's unreadable, trust me.
+        ArrivalFetchersRecursionHelper.RunningInstance = new AsyncArrivalsFetcherAll(ArrivalFetchers[ArrivalFetchersRecursionHelper.getPos()], busStopID, new AsyncArrivalsFetcherAllCallbackImplementation()).execute();
     }
 
     private class AsyncArrivalsFetcherAllCallbackImplementation implements AsyncArrivalsFetcherAll.AsyncArrivalsFetcherAllCallback {
@@ -530,7 +552,8 @@ public class ActivityMain extends AppCompatActivity {
             }
             // TODO: what do we do if a fetcher says no such stop/route exists? try next fetcher or give up?
             // indirect recursion through a callback. ...yeha.
-            asyncWgetBusStopFromBusStopID(stopID, ArrivalFetchersPos+1);
+            ArrivalFetchersRecursionHelper.increment();
+            asyncWgetBusStopFromBusStopID(stopID, false);
         }
     }
 
