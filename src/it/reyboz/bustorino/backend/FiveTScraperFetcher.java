@@ -119,10 +119,27 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
                 return p;
             }
 
+            // this fetcher doesn't support railways and probably they've removed METRO too, but anyway...
             if(busLineName.equals("METRO")) {
                 routeIndex = p.addRoute(busLineName, "", Route.Type.METRO);
             } else {
-                routeIndex = p.addRoute(busLineName, "", Route.Type.BUS);
+                if(busLineName.length() >= 4) {
+                    boolean isExtraurbano = true;
+                    for(int ch = 0; ch < busLineName.length(); ch++) {
+                        if(!Character.isDigit(busLineName.charAt(ch))) {
+                            isExtraurbano = false;
+                            break;
+                        }
+                    }
+
+                    if(isExtraurbano) {
+                        routeIndex = p.addRoute(busLineName, "", Route.Type.LONG_DISTANCE_BUS);
+                    } else {
+                        routeIndex = p.addRoute(busLineName, "", Route.Type.BUS);
+                    }
+                } else {
+                    routeIndex = p.addRoute(busLineName, "", Route.Type.BUS);
+                }
             }
 
             // Every busLine have passages
