@@ -136,18 +136,18 @@ public class ActivityMain extends AppCompatActivity {
 
      /*
       * I tried to wrap everything in a class and it didn't work right no matter what.
-      * Or it kinda worked, but accessing the stuff became very ugly, especially if you wanted to
+      * Or it kinda worked, but accessing things became very ugly, especially if you wanted to
       * hide the internal structure of the class.
       * At least I've managed to shoehorn two variables and a method in there, the array will stay
       * outside.
       *
       * I don't know if I should be surprised that handling recursion the C way looks a lot cleaner
-      * than wrapping everything the Java way.
+      * than wrapping and extending and implementing everything the Java way.
       */
     private ArrivalsFetcher[] ArrivalFetchers = {new GTTJSONFetcher(), new FiveTScraperFetcher()};
     private RecursionHelper ArrivalFetchersRecursionHelper = new RecursionHelper();
 
-    private StopsFinderByName[] StopsFindersByName = {new FiveTStopsFetcher(),  new GTTStopsFetcher()};
+    private StopsFinderByName[] StopsFindersByName = {new GTTStopsFetcher(), new FiveTStopsFetcher()};
     private RecursionHelper StopsFindersByNameRecursionHelper = new RecursionHelper();
 
     private SQLiteDatabase db;

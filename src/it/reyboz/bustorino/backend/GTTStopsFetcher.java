@@ -24,8 +24,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,9 +35,11 @@ public class GTTStopsFetcher implements StopsFinderByName  {
     public List<Stop> FindByName(String name, AtomicReference<result> res) {
         URL url;
         List<Stop> s = new LinkedList<>();
+        String fullname;
         String content;
         String bacino;
         String localita;
+        Route.Type type;
         JSONArray json;
         int howManyStops, i;
         JSONObject thisstop;
@@ -48,8 +50,8 @@ public class GTTStopsFetcher implements StopsFinderByName  {
         }
 
         try {
-            url = new URL("http://www.gtt.to.it/cms/components/com_gtt/views/palinejson/view.html.php?term=" + name);
-        } catch (MalformedURLException e) {
+            url = new URL("http://www.gtt.to.it/cms/components/com_gtt/views/palinejson/view.html.php?term=" + URLEncoder.encode(name, "utf-8"));
+        } catch (Exception e) {
             res.set(result.PARSER_ERROR);
             return s;
         }
@@ -80,6 +82,7 @@ public class GTTStopsFetcher implements StopsFinderByName  {
         try {
             for(i = 0; i < howManyStops; i++) {
                 thisstop = json.getJSONObject(i);
+                fullname = thisstop.getString("data");
 
                 try {
                     localita = thisstop.getString("localita");
@@ -96,7 +99,17 @@ public class GTTStopsFetcher implements StopsFinderByName  {
                     bacino = "U";
                 }
 
-                s.add(new Stop(thisstop.getString("data"), thisstop.getString("value"), localita, FiveTNormalizer.decodeType("", bacino)));
+                if(fullname.startsWith("Metro ")) {
+                    type = Route.Type.METRO;
+                } else if(fullname.length() >= 6 && fullname.startsWith("S00")) {
+                    type = Route.Type.RAILWAY;
+                } else if(fullname.startsWith("ST")) {
+                    type = Route.Type.RAILWAY;
+                } else {
+                    type = FiveTNormalizer.decodeType("", bacino);
+                }
+
+                s.add(new Stop(fullname, thisstop.getString("value"), localita, type));
 
             }
         } catch (JSONException e) {

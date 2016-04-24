@@ -18,8 +18,8 @@
 
 package it.reyboz.bustorino.backend;
 
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,8 +62,8 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
 
         String responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas = null;
         try {
-            responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas = networkTools.getDOM(new URL("http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + routeID), res);
-        } catch (MalformedURLException e) {
+            responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas = networkTools.getDOM(new URL("http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + URLEncoder.encode(routeID, "utf-8")), res);
+        } catch (Exception e) {
             res.set(result.PARSER_ERROR);
         }
         if(responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas == null) {

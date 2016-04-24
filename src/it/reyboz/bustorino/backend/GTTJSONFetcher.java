@@ -24,8 +24,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GTTJSONFetcher implements ArrivalsFetcher  {
@@ -42,8 +42,8 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         JSONArray passaggi;
 
         try {
-            url = new URL("http://www.gtt.to.it/cms/index.php?option=com_gtt&task=palina.getTransiti&palina=" + routeID + "&realtime=true");
-        } catch (MalformedURLException e) {
+            url = new URL("http://www.gtt.to.it/cms/index.php?option=com_gtt&task=palina.getTransiti&palina=" + URLEncoder.encode(routeID, "utf-8") + "&realtime=true");
+        } catch (Exception e) {
             res.set(result.PARSER_ERROR);
             return p;
         }
