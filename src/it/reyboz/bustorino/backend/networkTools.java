@@ -18,6 +18,8 @@
 
 package it.reyboz.bustorino.backend;
 
+import android.support.annotation.Nullable;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,6 +27,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class networkTools {
@@ -64,5 +67,49 @@ public abstract class networkTools {
 
         res.set(Fetcher.result.SERVER_ERROR); // will be set to "OK" later, this is a safety net in case StringBuilder returns null, the website returns an HTTP 204 or something like that.
         return result.toString();
+    }
+
+    @Nullable
+    static String queryURL(URL url, AtomicReference<Fetcher.result> res) {
+        HttpURLConnection urlConnection;
+        InputStream in = null;
+        String s;
+
+        try {
+            urlConnection = (HttpURLConnection) url.openConnection();
+        } catch(IOException e) {
+            res.set(Fetcher.result.SERVER_ERROR); // TODO: can we assume this is CLIENT_OFFLINE?
+            return null;
+        }
+
+        res.set(Fetcher.result.PARSER_ERROR); // will be set to OK later
+
+        try {
+            in = urlConnection.getInputStream();
+        } catch (Exception e) {
+            return null;
+        }
+
+        s = streamToString(in);
+
+        try {
+            in.close();
+        } catch(Exception ignored) {}
+
+        try {
+            urlConnection.disconnect();
+        } catch(Exception ignored) {}
+
+        if(s.length() == 0) {
+            return null;
+        } else {
+            return s;
+        }
+    }
+
+    // https://stackoverflow.com/a/5445161
+    static String streamToString(InputStream is) {
+        Scanner s = new Scanner(is, "UTF-8").useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
     }
 }

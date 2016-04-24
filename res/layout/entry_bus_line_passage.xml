@@ -36,7 +36,7 @@
 
     <!-- this can hold 3-4 timetable entries before overflowing into a second line. It's ugly but at least doesn't lose any information. -->
     <TextView
-        android:id="@+id/routeTimetable"
+        android:id="@+id/routesThatStopHere"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@color/blue_500"
         android:layout_height="wrap_content"

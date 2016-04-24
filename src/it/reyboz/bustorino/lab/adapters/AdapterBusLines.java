@@ -60,16 +60,16 @@ public class AdapterBusLines extends ArrayAdapter<BusLine> {
         busLineIconTextView.setText(busLine.getBusLineName());
 
         // Vehicle icon
-        TextView busLineVehicleIcon = (TextView) convertView.findViewById(R.id.vehicleIcon);
+        //TextView busLineVehicleIcon = (TextView) convertView.findViewById(R.id.vehicleIcon);
 
         // Take the TextView from layout and set the BusLine's passages
-        TextView busLinePassagesTextView = (TextView) convertView.findViewById(R.id.routeTimetable);
+        TextView busLinePassagesTextView = (TextView) convertView.findViewById(R.id.routesThatStopHere);
         String timePassages = busLine.getTimePassagesString();
         if(timePassages != null) {
             busLinePassagesTextView.setText(timePassages);
         } else {
             busLinePassagesTextView.setText(R.string.no_passages);
-            busLineVehicleIcon.setVisibility(View.INVISIBLE);
+            //busLineVehicleIcon.setVisibility(View.INVISIBLE);
         }
 
         return convertView;

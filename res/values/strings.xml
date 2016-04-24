@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name" translatable="false">BusTO</string>
-    <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string>
+    <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string><!-- TODO: translate this -->
     <string name="search">Search</string>
     <string name="qrcode">Scan QR Code</string>
     <string name="insert_bus_stop_number">Bus stop number</string>
@@ -14,6 +14,7 @@
     <string name="no_arrival_times">No bus is supposed to arrive at this stop</string>
     <string name="no_bus_stop_have_this_name">Seems that no bus stop have this name</string>
     <string name="parsing_error">Error parsing the 5T/GTT website (damn site!)</string>
+    <string name="query_too_short">Name too short, type more characters and retry</string> <!-- TODO: carry out experiments to determine the best wording for this message and publish a paper with the findings -->
     <string name="passages">Arrivals at: %1$s</string>
     <string name="results">Choose the bus stop…</string>
     <string name="lines">Lines: %1$s</string>
@@ -42,7 +43,7 @@
 <![CDATA[
         <h1>Welcome!</h1>
 
-        <p>Thanks for using BusTO, a "politically" <b>indipendent</b> app useful to move around Torino using a <b>Free/Libre software</b>.</p>
+        <p>Thanks for using BusTO, a "politically" <b>independent</b> app useful to move around Torino using a <b>Free/Libre software</b>.</p>
 
         <p>Why using this app?</p>
 		<p>

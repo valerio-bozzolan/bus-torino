@@ -75,5 +75,6 @@
 		<p>Buon utilizzo! :)</p>
     ]]>
     </string>
+    <string name="query_too_short">Nome troppo corto, digita più caratteri e riprova</string>
 
 </resources>

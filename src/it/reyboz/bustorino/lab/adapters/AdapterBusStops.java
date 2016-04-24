@@ -66,10 +66,10 @@ public class AdapterBusStops extends ArrayAdapter<BusStop> {
         }
 
         // Vehicle icon
-        TextView busLineVehicleIcon = (TextView) convertView.findViewById(R.id.vehicleIcon);
+        //TextView busLineVehicleIcon = (TextView) convertView.findViewById(R.id.vehicleIcon);
 
         // Take the TextView from layout and set the busStop locality
-        TextView busStopLinesTextView = (TextView) convertView.findViewById(R.id.routeTimetable);
+        TextView busStopLinesTextView = (TextView) convertView.findViewById(R.id.routesThatStopHere);
         if(busStop.getBusLines() != null) {
             String busLines = "";
             for(BusLine busLine: busStop.getBusLines()) {
@@ -81,7 +81,7 @@ public class AdapterBusStops extends ArrayAdapter<BusStop> {
             busStopLinesTextView.setText(busLines);
         } else {
             busStopLinesTextView.setVisibility(View.GONE);
-            busLineVehicleIcon.setVisibility(View.INVISIBLE);
+            //busLineVehicleIcon.setVisibility(View.INVISIBLE);
         }
 
         TextView busStopLocaLityTextView = (TextView) convertView.findViewById(R.id.busStopLocality);

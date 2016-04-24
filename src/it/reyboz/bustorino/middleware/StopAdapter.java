@@ -18,7 +18,6 @@
 package it.reyboz.bustorino.middleware;
 
 import android.content.Context;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,9 +27,6 @@ import android.widget.TextView;
 import java.util.List;
 
 import it.reyboz.bustorino.R;
-import it.reyboz.bustorino.backend.Palina;
-import it.reyboz.bustorino.backend.Passaggio;
-import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 
 /**
@@ -39,6 +35,10 @@ import it.reyboz.bustorino.backend.Stop;
 public class StopAdapter extends ArrayAdapter<Stop> {
     private LayoutInflater li;
     private static int row_layout = R.layout.entry_bus_stop;
+    private static final int busIcon = R.drawable.bus;
+    private static final int trainIcon = R.drawable.subway;
+    private static final int tramIcon = R.drawable.tram;
+    private static final int cityIcon = R.drawable.city;
 
     static class ViewHolder {
         TextView busStopIDTextView;
@@ -62,8 +62,7 @@ public class StopAdapter extends ArrayAdapter<Stop> {
             vh = new ViewHolder();
             vh.busStopIDTextView = (TextView) convertView.findViewById(R.id.busStopID);
             vh.busStopNameTextView = (TextView) convertView.findViewById(R.id.busStopName);
-            vh.busLineVehicleIcon = (TextView) convertView.findViewById(R.id.vehicleIcon);
-            vh.busStopLinesTextView = (TextView) convertView.findViewById(R.id.routeTimetable);
+            vh.busStopLinesTextView = (TextView) convertView.findViewById(R.id.routesThatStopHere);
             vh.busStopLocaLityTextView = (TextView) convertView.findViewById(R.id.busStopLocality);
             convertView.setTag(vh);
         } else {
@@ -91,6 +90,27 @@ public class StopAdapter extends ArrayAdapter<Stop> {
 //            busStopLinesTextView.setVisibility(View.GONE);
 //            busLineVehicleIcon.setVisibility(View.INVISIBLE);
 //        }
+
+        if(stop.type == null) {
+            vh.busStopLinesTextView.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
+        } else {
+            switch(stop.type) {
+                case BUS:
+                default:
+                    vh.busStopLinesTextView.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
+                    break;
+                case METRO:
+                case RAILWAY:
+                    vh.busStopLinesTextView.setCompoundDrawablesWithIntrinsicBounds(trainIcon, 0, 0, 0);
+                    break;
+                case TRAM:
+                    vh.busStopLinesTextView.setCompoundDrawablesWithIntrinsicBounds(tramIcon, 0, 0, 0);
+                    break;
+                case LONG_DISTANCE_BUS:
+                    // è l'opposto della città ma va beh, dettagli.
+                    vh.busStopLinesTextView.setCompoundDrawablesWithIntrinsicBounds(cityIcon, 0, 0, 0);
+            }
+        }
 
         if (stop.location == null) {
             vh.busStopLocaLityTextView.setVisibility(View.GONE);

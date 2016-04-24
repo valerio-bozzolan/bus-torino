@@ -57,6 +57,7 @@ import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.FiveTScraperFetcher;
 import it.reyboz.bustorino.backend.FiveTStopsFetcher;
 import it.reyboz.bustorino.backend.GTTJSONFetcher;
+import it.reyboz.bustorino.backend.GTTStopsFetcher;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.StopsFinderByName;
@@ -88,12 +89,6 @@ public class ActivityMain extends AppCompatActivity {
         public int getPos() {
             return pos;
         }
-    }
-
-    private boolean isConnected() {
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnected();
     }
 
     /*
@@ -152,7 +147,7 @@ public class ActivityMain extends AppCompatActivity {
     private ArrivalsFetcher[] ArrivalFetchers = {new GTTJSONFetcher(), new FiveTScraperFetcher()};
     private RecursionHelper ArrivalFetchersRecursionHelper = new RecursionHelper();
 
-    private StopsFinderByName[] StopsFindersByName = {new FiveTStopsFetcher()};
+    private StopsFinderByName[] StopsFindersByName = {new FiveTStopsFetcher(),  new GTTStopsFetcher()};
     private RecursionHelper StopsFindersByNameRecursionHelper = new RecursionHelper();
 
     private SQLiteDatabase db;
@@ -435,7 +430,7 @@ public class ActivityMain extends AppCompatActivity {
 //        }
 
 
-        if(StopsFindersByNameRecursionHelper.getPos() >= ArrivalFetchers.length) {
+        if(StopsFindersByNameRecursionHelper.getPos() >= StopsFindersByName.length) {
             // TODO: error message (tryed every fetcher and failed)
             StopsFindersByNameRecursionHelper.reset();
             toggleSpinner(false);
@@ -458,8 +453,9 @@ public class ActivityMain extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),
                             R.string.network_error, Toast.LENGTH_SHORT).show();
                     break; // goto recursion
-                case SERVER_ERROR: // TODO: better error message for this case
+                case SERVER_ERROR:
                     if(isConnected()) {
+                        // TODO: better error message for this case
                         Toast.makeText(getApplicationContext(),
                                 R.string.parsing_error, Toast.LENGTH_SHORT).show();
                     } else {
@@ -471,6 +467,10 @@ public class ActivityMain extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),
                             R.string.parsing_error, Toast.LENGTH_SHORT).show();
                     break; // goto recursion
+                case QUERY_TOO_SHORT:
+                    Toast.makeText(getApplicationContext(),
+                            R.string.query_too_short, Toast.LENGTH_SHORT).show();
+                    break;
                 case EMPTY_RESULT_SET:
                     Toast.makeText(getApplicationContext(),
                             R.string.no_bus_stop_have_this_name, Toast.LENGTH_SHORT).show();
@@ -484,8 +484,8 @@ public class ActivityMain extends AppCompatActivity {
                     toggleSpinner(false); // recursion terminated, remove spinner
                     return; // RETURN.
             }
-            ArrivalFetchersRecursionHelper.increment();
-            asyncWgetBusStopFromBusStopID(query, false);
+            StopsFindersByNameRecursionHelper.increment();
+            asyncWgetBusStopSuggestions(query, false);
         }
     }
 
@@ -532,7 +532,7 @@ public class ActivityMain extends AppCompatActivity {
             ArrivalFetchersRecursionHelper.reset();
         }
 
-        if(busStopID == null || busStopID.length() == 0) {
+        if(busStopID == null || busStopID.length() == 0) { // TODO: this should be run only on first recursive call
             Toast.makeText(getApplicationContext(),
                     R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT).show();
             toggleSpinner(false);
@@ -563,14 +563,18 @@ public class ActivityMain extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),
                             R.string.network_error, Toast.LENGTH_SHORT).show();
                     break; // goto recursion
-                case SERVER_ERROR: // TODO: better error message for this case
+                case SERVER_ERROR:
                     if(isConnected()) {
                         Toast.makeText(getApplicationContext(),
                                 R.string.parsing_error, Toast.LENGTH_SHORT).show();
-                    } else {
+                    } else { // TODO: better error message for this case
                         Toast.makeText(getApplicationContext(),
                                 R.string.network_error, Toast.LENGTH_SHORT).show();
                     }
+                    break;
+                case QUERY_TOO_SHORT: // should never happen here, but to err on the side of caution...
+                    Toast.makeText(getApplicationContext(),
+                            R.string.query_too_short, Toast.LENGTH_SHORT).show();
                     break;
                 case PARSER_ERROR:
                     Toast.makeText(getApplicationContext(),
@@ -647,6 +651,12 @@ public class ActivityMain extends AppCompatActivity {
     }
 
     ///////////////////////////////// OTHER STUFF //////////////////////////////////////////////////
+    private boolean isConnected() {
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
+    }
+
     // TODO: try to move these 3 methods to a separate class
 
     public void addInFavorites(View v) {

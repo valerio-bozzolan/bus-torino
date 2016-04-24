@@ -34,8 +34,11 @@ public final class Passaggio implements Comparable<Passaggio> {
     public Passaggio(@NonNull String TimeGTT) {
         String[] parts = TimeGTT.split(":");
         if(parts.length != 2) {
-            // TODO: messaggio d'errore meno ridicolo
-            throw new IllegalArgumentException("The string " + TimeGTT + " doesn't follow the sacred format of time according to GTT!");
+            //throw new IllegalArgumentException("The string " + TimeGTT + " doesn't follow the sacred format of time according to GTT!");
+            this.hh = "??";
+            this.mm = "??";
+            this.isInRealTime = false;
+            return;
         }
         this.hh = parts[0];
         if(parts[1].endsWith("*")) {

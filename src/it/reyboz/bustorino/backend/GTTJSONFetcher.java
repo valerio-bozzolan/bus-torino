@@ -19,18 +19,13 @@
 package it.reyboz.bustorino.backend;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GTTJSONFetcher implements ArrivalsFetcher  {
@@ -40,6 +35,7 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         Palina p = new Palina();
         String routename;
         String bacino;
+        String content;
         JSONArray json;
         int howManyRoutes, howManyPassaggi, i, j, pos; // il misto inglese-italiano è un po' ridicolo ma tanto vale...
         JSONObject thisroute;
@@ -52,8 +48,23 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
             return p;
         }
 
-        json = queryURL(url, res);
-        if(json == null) {
+        content = networkTools.queryURL(url, res);
+        if(content == null) {
+            return p;
+        }
+
+        try {
+            json = new JSONArray(content);
+        } catch(JSONException e) {
+            res.set(result.PARSER_ERROR);
+            return p;
+        }
+
+        try {
+            // returns [{"PassaggiRT":[],"Passaggi":[]}] for non existing stops!
+            json.getJSONObject(0).getString("Linea"); // if we can get this, then there's something useful in the array.
+        } catch(JSONException e) {
+            res.set(result.EMPTY_RESULT_SET);
             return p;
         }
 
@@ -73,7 +84,7 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
                     bacino = "U";
                 }
 
-                pos = p.addRoute(routename, thisroute.getString("Direzione"), decodeType(routename, bacino));
+                pos = p.addRoute(routename, thisroute.getString("Direzione"), FiveTNormalizer.decodeType(routename, bacino));
 
                 /*
                  * Okay, this is just absurd.
@@ -106,68 +117,6 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
 
         res.set(result.OK);
         return p;
-    }
-
-    @Nullable
-    private JSONArray queryURL(URL url, AtomicReference<result> res) {
-        HttpURLConnection urlConnection;
-        InputStream in = null;
-        JSONArray json;
-
-        try {
-            urlConnection = (HttpURLConnection) url.openConnection();
-        } catch(IOException e) {
-            res.set(result.SERVER_ERROR); // TODO: can we assume this is CLIENT_OFFLINE?
-            return null;
-        }
-
-        try {
-            in = urlConnection.getInputStream();
-            json = new JSONArray(streamToString(in));
-        } catch (Exception e) {
-            res.set(result.PARSER_ERROR);
-            return null;
-        } finally {
-            try {
-                if (in != null) {in.close();} // this is getting ureadable quite fast.
-            } catch(Exception ignored) {}
-            urlConnection.disconnect();
-        }
-
-        try {
-            // returns [{"PassaggiRT":[],"Passaggi":[]}] for non existing stops!
-            json.getJSONObject(0).getString("Linea"); // if we can get this, then there's something useful in the array.
-        } catch(JSONException e) {
-            res.set(result.EMPTY_RESULT_SET);
-            return null;
-        }
-
-        return json;
-    }
-
-    // https://stackoverflow.com/a/5445161
-    private static String streamToString(InputStream is) {
-        Scanner s = new Scanner(is, "UTF-8").useDelimiter("\\A");
-        return s.hasNext() ? s.next() : "";
-    }
-
-    private static Route.Type decodeType(final String routename, final String bacino) {
-        if(routename.equals("METRO")) {
-            return Route.Type.METRO;
-        }
-
-        switch (bacino) {
-            case "U":
-                return Route.Type.BUS;
-            case "F":
-                return Route.Type.RAILWAY;
-            case "E":
-                return Route.Type.LONG_DISTANCE_BUS;
-            default:
-                return Route.Type.BUS;
-        }
-
-
     }
 
 }

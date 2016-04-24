@@ -10,61 +10,47 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16sp"
+        android:layout_marginStart="16sp"
         android:layout_marginRight="16sp"
+        android:layout_marginEnd="16sp"
+        android:layout_marginTop="2sp"
+        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
         android:layout_toLeftOf="@+id/busStopID"
         android:layout_toStartOf="@+id/busStopID"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/blue_500" /> <!--android:text= "Bus Stop Name" -->
-
-    <TextView
-        android:id="@+id/vehicleIcon"
-        android:layout_width="20dip"
-        android:layout_height="20dip"
-        android:background="@drawable/bus"
-        android:layout_below="@+id/busStopName"
-        android:layout_alignLeft="@id/busStopName"
-        android:layout_alignStart="@id/busStopName"
-        android:layout_marginTop="1sp" />
-
-    <TextView
-        android:id="@+id/routeTimetable"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="2sp"
-        android:layout_marginStart="2sp"
-        android:layout_marginTop="3sp"
-        android:layout_marginRight="16sp"
-        android:layout_marginEnd="16sp"
-        android:layout_below="@+id/busStopName"
-        android:layout_toLeftOf="@+id/busStopID"
-        android:layout_toStartOf="@+id/busStopID"
-        android:layout_toRightOf="@+id/vehicleIcon"
-        android:layout_toEndOf="@+id/vehicleIcon"
-        android:gravity="center_vertical"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="@color/blue_700" /> <!-- android:text="Bus Line Names" -->
+        android:textColor="@color/blue_500"/>
 
     <TextView
         android:id="@+id/busStopLocality"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="2sp"
-        android:layout_marginStart="2sp"
-        android:layout_marginTop="3sp"
+        android:layout_marginLeft="16sp"
+        android:layout_marginStart="16sp"
         android:layout_marginRight="16sp"
         android:layout_marginEnd="16sp"
-        android:layout_below="@+id/routeTimetable"
+        android:layout_below="@id/busStopName"
         android:layout_toLeftOf="@+id/busStopID"
         android:layout_toStartOf="@+id/busStopID"
-        android:layout_toRightOf="@+id/vehicleIcon"
-        android:layout_toEndOf="@+id/vehicleIcon"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:textColor="@color/grey_600"
+        android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+    <TextView
+        android:id="@+id/routesThatStopHere"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/busStopLocality"
+        android:layout_marginLeft="16sp"
+        android:layout_marginStart="16sp"
+        android:layout_marginRight="16sp"
+        android:layout_marginEnd="16sp"
         android:gravity="center_vertical"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="@color/blue_700"
-        /> <!-- android:text="busStopLocality" -->
+        android:textColor="@color/grey_600"/>
+
 
     <TextView
         android:id="@+id/busStopID"
@@ -79,6 +65,6 @@
         android:background="@drawable/bus_stop_background"
         android:gravity="center"
         android:textColor="@color/grey_100"
-        android:textSize="21sp" /> <!-- android:text="BusStopID" -->
+        android:textSize="21sp"/>
 
 </RelativeLayout>

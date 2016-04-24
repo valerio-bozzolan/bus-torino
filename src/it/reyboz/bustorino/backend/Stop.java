@@ -26,10 +26,12 @@ public class Stop {
     public final @NonNull String ID;
     public final @NonNull String name;
     public final @Nullable String location;
+    public final @Nullable Route.Type type;
 
-    public Stop(final @NonNull String name, final @NonNull String ID, @Nullable final String location) {
+    public Stop(final @NonNull String name, final @NonNull String ID, @Nullable final String location, @Nullable final Route.Type type) {
         this.ID = ID;
         this.name = name;
         this.location = (location != null && location.length() == 0) ? null : location;
+        this.type = type;
     }
 }

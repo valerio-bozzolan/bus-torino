@@ -150,4 +150,23 @@ public abstract class FiveTNormalizer {
         return StopID;
     }
 
+    public static Route.Type decodeType(final String routename, final String bacino) {
+        if(routename.equals("METRO")) {
+            return Route.Type.METRO;
+        }
+
+        switch (bacino) {
+            case "U":
+                return Route.Type.BUS;
+            case "F":
+                return Route.Type.RAILWAY;
+            case "E":
+                return Route.Type.LONG_DISTANCE_BUS;
+            default:
+                return Route.Type.BUS;
+        }
+
+
+    }
+
 }

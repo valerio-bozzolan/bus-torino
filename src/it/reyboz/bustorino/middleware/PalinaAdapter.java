@@ -59,7 +59,6 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
     }
 
     public PalinaAdapter(Context context, Palina p) {
-        // TODO: find a more efficient way if there's one
         super(context, row_layout, p.queryAllRoutes());
         li = LayoutInflater.from(context);
     }
@@ -86,7 +85,7 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
             vh = new ViewHolder();
             vh.rowStopIcon = (TextView) convertView.findViewById(R.id.routeID);
             vh.rowRouteDestination = (TextView) convertView.findViewById(R.id.routeDestination);
-            vh.rowRouteTimetable = (TextView) convertView.findViewById(R.id.routeTimetable);
+            vh.rowRouteTimetable = (TextView) convertView.findViewById(R.id.routesThatStopHere);
 
             // STORE VIEWHOLDER IN\ON\OVER\UNDER\ABOVE\BESIDE THE VIEW!
             convertView.setTag(vh);

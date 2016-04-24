@@ -27,8 +27,9 @@ public interface Fetcher {
      * SERVER_ERROR: the server replied anything other than HTTP 200, basically<br>
      * PARSER_ERROR: the server replied something that can't be parsed, probably it's not the data we're looking for (e.g. "PHP: Fatal Error")<br>
      * EMPTY_RESULT_SET: the response is valid and indicates there are no stops\routes\"passaggi"\results for your query<br>
+     * QUERY_TOO_SHORT: input more characters and retry.
      */
     enum result {
-        OK, CLIENT_OFFLINE, SERVER_ERROR, PARSER_ERROR, EMPTY_RESULT_SET
+        OK, CLIENT_OFFLINE, SERVER_ERROR, PARSER_ERROR, EMPTY_RESULT_SET, QUERY_TOO_SHORT
     }
 }

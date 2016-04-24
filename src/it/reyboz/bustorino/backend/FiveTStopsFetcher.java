@@ -45,6 +45,11 @@ public class FiveTStopsFetcher implements StopsFinderByName {
         String stopLocation;
         //Stop busStop;
 
+        if(name.length() < 3) {
+            res.set(result.QUERY_TOO_SHORT);
+            return busStops;
+        }
+
         String responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas;
         URL u;
         try {
@@ -91,7 +96,7 @@ public class FiveTStopsFetcher implements StopsFinderByName {
                 stopLocation = null;
             }
 
-            busStops.add(new Stop(stopName, stopID, stopLocation));
+            busStops.add(new Stop(stopName, stopID, stopLocation, null));
         }
 
         if(busStops.size() == 0) {
