@@ -21,6 +21,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -48,22 +50,27 @@ import com.google.zxing.integration.android.IntentResult;
 import com.melnykov.fab.FloatingActionButton;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 import it.reyboz.bustorino.backend.ArrivalsFetcher;
 import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.FiveTScraperFetcher;
+import it.reyboz.bustorino.backend.FiveTStopsFetcher;
 import it.reyboz.bustorino.backend.GTTJSONFetcher;
 import it.reyboz.bustorino.backend.Palina;
+import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.backend.StopsFinderByName;
 import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
 import it.reyboz.bustorino.lab.MyDB;
-import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
 import it.reyboz.bustorino.lab.asyncwget.AsyncWgetBusStopSuggestions;
 import it.reyboz.bustorino.middleware.AsyncArrivalsFetcherAll;
+import it.reyboz.bustorino.middleware.AsyncStopsFinderByName;
 import it.reyboz.bustorino.middleware.PalinaAdapter;
+import it.reyboz.bustorino.middleware.StopAdapter;
 
 public class ActivityMain extends AppCompatActivity {
 
-    public class RecursionHelper {
+    private class RecursionHelper {
         private int pos = 0;
         public AsyncTask<?, ?, ?> RunningInstance = null; // the only one that hasn't been cancelled
 
@@ -81,6 +88,12 @@ public class ActivityMain extends AppCompatActivity {
         public int getPos() {
             return pos;
         }
+    }
+
+    private boolean isConnected() {
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
     }
 
     /*
@@ -115,8 +128,6 @@ public class ActivityMain extends AppCompatActivity {
      */
     private String lastSuccessfullySearchedBusStopID = null;
 
-    AsyncWgetBusStopSuggestions asyncWgetBusStopSuggestions;
-
     /* // useful for testing:
     public class MockFetcher implements ArrivalsFetcher {
         @Override
@@ -140,6 +151,9 @@ public class ActivityMain extends AppCompatActivity {
       */
     private ArrivalsFetcher[] ArrivalFetchers = {new GTTJSONFetcher(), new FiveTScraperFetcher()};
     private RecursionHelper ArrivalFetchersRecursionHelper = new RecursionHelper();
+
+    private StopsFinderByName[] StopsFindersByName = {new FiveTStopsFetcher()};
+    private RecursionHelper StopsFindersByNameRecursionHelper = new RecursionHelper();
 
     private SQLiteDatabase db;
 
@@ -340,7 +354,7 @@ public class ActivityMain extends AppCompatActivity {
             asyncWgetBusStopFromBusStopID(busStopID, true);
         } else { // searchMode == SEARCH_BY_NAME
             String query = busStopSearchByNameEditText.getText().toString();
-            asyncWgetBusStopSuggestions(query);
+            asyncWgetBusStopSuggestions(query, true);
         }
     }
 
@@ -394,69 +408,95 @@ public class ActivityMain extends AppCompatActivity {
         }
     }
 
-    ////////////////////// STOPS FINDER BY NAME (NEEDS REFACTORING) ////////////////////////////////
+    ///////////////////////////////// STOPS FINDER BY NAME /////////////////////////////////////////
 
     /**
-     * It's pure magic <3
-     *
-     * @param query Part of the busStopName
+     * See the other asyncWget method for documentation\comments.
      */
-    private void asyncWgetBusStopSuggestions(String query) {
-        if (query == null || query.length() == 0) {
+    private void asyncWgetBusStopSuggestions(String query, boolean reset) {
+        toggleSpinner(true); // TODO: remove whatever else is starting the spinner before this
+
+        if(reset) {
+            StopsFindersByNameRecursionHelper.reset();
+        }
+
+        if(query == null || query.length() == 0) {
             Toast.makeText(getApplicationContext(),
                     R.string.insert_bus_stop_name_error, Toast.LENGTH_SHORT).show();
             toggleSpinner(false);
             return;
         }
-        if (!NetworkTools.isConnected(getApplicationContext())) {
-            NetworkTools.showNetworkError(getApplicationContext());
+
+        // TODO: implement offline search (it's possibile.)
+//        if (!NetworkTools.isConnected(getApplicationContext())) {
+//            NetworkTools.showNetworkError(getApplicationContext());
+//            toggleSpinner(false);
+//            return;
+//        }
+
+
+        if(StopsFindersByNameRecursionHelper.getPos() >= ArrivalFetchers.length) {
+            // TODO: error message (tryed every fetcher and failed)
+            StopsFindersByNameRecursionHelper.reset();
             toggleSpinner(false);
             return;
         }
-        if (asyncWgetBusStopSuggestions != null) {
-            asyncWgetBusStopSuggestions.cancel(true);
-            asyncWgetBusStopSuggestions = null;
+
+        if(StopsFindersByNameRecursionHelper.RunningInstance != null) {
+            StopsFindersByNameRecursionHelper.RunningInstance.cancel(true);
         }
-        try {
-            asyncWgetBusStopSuggestions = new AsyncWgetBusStopSuggestions(query) {
-                public void onReceivedBusStopNames(BusStop[] busStops, int status) {
-                    toggleSpinner(false);
 
-                    switch (status) {
-                        case AsyncWgetBusStopSuggestions.ERROR_EMPTY_DOM:
-                        case AsyncWgetBusStopSuggestions.ERROR_DOM:
-                            Toast.makeText(getApplicationContext(),
-                                    R.string.parsing_error, Toast.LENGTH_SHORT).show();
-                            break;
+        StopsFindersByNameRecursionHelper.RunningInstance = new AsyncStopsFinderByName(StopsFindersByName[StopsFindersByNameRecursionHelper.getPos()], query, new AsyncStopsFinderByNameCallbackImplementation()).execute();
+    }
 
-                        case AsyncWgetBusStopSuggestions.ERROR_NONE:
-                            if (busStops.length == 0) {
-                                Toast.makeText(getApplicationContext(),
-                                        R.string.no_bus_stop_have_this_name, Toast.LENGTH_SHORT).show();
-                            } else {
-                                for (BusStop busStop : busStops) {
-                                    MyDB.DBBusStop.addBusStop(db, busStop);
-                                }
-                                populateBusStopsLayout(busStops);
-                            }
-                            break;
+    private class AsyncStopsFinderByNameCallbackImplementation implements AsyncStopsFinderByName.AsyncStopsFinderByNameCallback {
+        public void call(List<Stop> stops, Fetcher.result res, String query) {
+            toggleSpinner(false);
+
+            switch (res) {
+                case CLIENT_OFFLINE:
+                    Toast.makeText(getApplicationContext(),
+                            R.string.network_error, Toast.LENGTH_SHORT).show();
+                    break; // goto recursion
+                case SERVER_ERROR: // TODO: better error message for this case
+                    if(isConnected()) {
+                        Toast.makeText(getApplicationContext(),
+                                R.string.parsing_error, Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                R.string.network_error, Toast.LENGTH_SHORT).show();
                     }
-                }
-            };
-        } catch (UnsupportedEncodingException e) {
-            Toast.makeText(getApplicationContext(),
-                    R.string.encoding_error, Toast.LENGTH_SHORT).show();
+                    break;
+                case PARSER_ERROR:
+                    Toast.makeText(getApplicationContext(),
+                            R.string.parsing_error, Toast.LENGTH_SHORT).show();
+                    break; // goto recursion
+                case EMPTY_RESULT_SET:
+                    Toast.makeText(getApplicationContext(),
+                            R.string.no_bus_stop_have_this_name, Toast.LENGTH_SHORT).show();
+                    break; // goto recursion
+                case OK:
+                    //for (BusStop busStop : busStops) {
+                    //    MyDB.DBBusStop.addBusStop(db, busStop);
+                    //}
+
+                    populateBusStopsLayout(stops);
+                    toggleSpinner(false); // recursion terminated, remove spinner
+                    return; // RETURN.
+            }
+            ArrivalFetchersRecursionHelper.increment();
+            asyncWgetBusStopFromBusStopID(query, false);
         }
     }
 
-    private void populateBusStopsLayout(BusStop[] busStops) {
-        busStopNameTextView.setVisibility(View.GONE);
-
+    private void populateBusStopsLayout(List<Stop> busStops) {
         hideKeyboard();
+
+        busStopNameTextView.setVisibility(View.GONE);
 
         prepareGUIForBusStops();
 
-        resultsListView.setAdapter(new AdapterBusStops(this, R.layout.entry_bus_stop, busStops));
+        resultsListView.setAdapter(new StopAdapter(this, busStops));
         resultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
@@ -465,16 +505,14 @@ public class ActivityMain extends AppCompatActivity {
                  * Casting because of Javamerda
                  * @url http://stackoverflow.com/questions/30549485/androids-list-view-parameterized-type-in-adapterview-onitemclicklistener
                  */
-                BusStop busStop = (BusStop) parent.getItemAtPosition(position);
+                Stop busStop = (Stop) parent.getItemAtPosition(position);
 
-                Intent intent = new Intent(ActivityMain.this,
-                        ActivityMain.class);
+                Intent intent = new Intent(ActivityMain.this, ActivityMain.class);
 
                 Bundle b = new Bundle();
-                b.putString("bus-stop-ID", busStop.getBusStopID());
+                b.putString("bus-stop-ID", busStop.ID);
                 intent.putExtras(b);
                 startActivity(intent);
-
             }
         });
     }
@@ -501,13 +539,6 @@ public class ActivityMain extends AppCompatActivity {
             return;
         }
 
-        // TODO: remove this once we're sure fetchers can handle this case
-        if (!NetworkTools.isConnected(getApplicationContext())) {
-            NetworkTools.showNetworkError(getApplicationContext());
-            toggleSpinner(false);
-            return;
-        }
-
         if(ArrivalFetchersRecursionHelper.getPos() >= ArrivalFetchers.length) {
             // TODO: error message (tryed every fetcher and failed)
             ArrivalFetchersRecursionHelper.reset();
@@ -529,11 +560,18 @@ public class ActivityMain extends AppCompatActivity {
         public void call(Palina p, Fetcher.result res, String stopID) {
             switch (res) {
                 case CLIENT_OFFLINE:
-                    if (!NetworkTools.isConnected(getApplicationContext())) {
-                        NetworkTools.showNetworkError(getApplicationContext());
-                    }
+                    Toast.makeText(getApplicationContext(),
+                            R.string.network_error, Toast.LENGTH_SHORT).show();
                     break; // goto recursion
                 case SERVER_ERROR: // TODO: better error message for this case
+                    if(isConnected()) {
+                        Toast.makeText(getApplicationContext(),
+                                R.string.parsing_error, Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                R.string.network_error, Toast.LENGTH_SHORT).show();
+                    }
+                    break;
                 case PARSER_ERROR:
                     Toast.makeText(getApplicationContext(),
                             R.string.parsing_error, Toast.LENGTH_SHORT).show();
@@ -573,6 +611,8 @@ public class ActivityMain extends AppCompatActivity {
         } else {
             busStopNameDisplay = String.valueOf(busStopID);
         }*/
+
+        hideKeyboard();
 
         busStopNameTextView.setText(String.format(
                 getString(R.string.passages), p.getStopName().length() == 0 ? stopID : stopID.concat(" - ").concat(p.getStopName())));

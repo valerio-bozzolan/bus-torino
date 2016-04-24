@@ -97,7 +97,11 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
 
         Route route = getItem(position);
         vh.rowStopIcon.setText(route.name);
-        vh.rowRouteDestination.setText(route.destinazione);
+        if(route.destinazione.length() == 0) {
+            vh.rowRouteDestination.setVisibility(View.GONE);
+        } else {
+            vh.rowRouteDestination.setText(route.destinazione);
+        }
 
         switch (route.type) {
             case BUS:

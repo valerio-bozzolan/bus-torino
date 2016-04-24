@@ -19,6 +19,7 @@
 package it.reyboz.bustorino.backend;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public interface StopsFinderByRoute extends Fetcher {
     /**
@@ -28,5 +29,5 @@ public interface StopsFinderByRoute extends Fetcher {
      * @return list of stops, in normalized form.
      * @see FiveTNormalizer
      */
-    List<String> FindByRoute(String routeID);
+    List<String> FindByRoute(String routeID, AtomicReference<result> res);
 }

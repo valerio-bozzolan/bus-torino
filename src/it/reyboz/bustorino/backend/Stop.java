@@ -16,19 +16,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 package it.reyboz.bustorino.backend;
 
-public interface Fetcher {
-    /**
-     * Status codes.<br>
-     *<br>
-     * OK: got a response, parsed correctly, obtained some data<br>
-     * CLIENT_OFFLINE: can't connect to the internet<br>
-     * SERVER_ERROR: the server replied anything other than HTTP 200, basically<br>
-     * PARSER_ERROR: the server replied something that can't be parsed, probably it's not the data we're looking for (e.g. "PHP: Fatal Error")<br>
-     * EMPTY_RESULT_SET: the response is valid and indicates there are no stops\routes\"passaggi"\results for your query<br>
-     */
-    enum result {
-        OK, CLIENT_OFFLINE, SERVER_ERROR, PARSER_ERROR, EMPTY_RESULT_SET
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+public class Stop {
+    public final @NonNull String ID;
+    public final @NonNull String name;
+    public final @Nullable String location;
+
+    public Stop(final @NonNull String name, final @NonNull String ID, @Nullable final String location) {
+        this.ID = ID;
+        this.name = name;
+        this.location = (location != null && location.length() == 0) ? null : location;
     }
 }

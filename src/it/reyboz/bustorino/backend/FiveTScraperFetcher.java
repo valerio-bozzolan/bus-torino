@@ -18,12 +18,7 @@
 
 package it.reyboz.bustorino.backend;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -42,7 +37,7 @@ import org.jsoup.select.Elements;
  * <br>
  * @author Valerio Bozzolan
  */
-public class FiveTScraperFetcher extends FiveTNormalizer implements ArrivalsFetcher {
+public class FiveTScraperFetcher implements ArrivalsFetcher {
     /**
      * Execute regexes.
      *
@@ -60,63 +55,19 @@ public class FiveTScraperFetcher extends FiveTNormalizer implements ArrivalsFetc
         return matched;
     }
 
-    /**
-     * Javammerda! Lasciami null senza suicidarti!
-     */
-    public static Integer string2Integer(String str) {
-        try {
-            return Integer.parseInt(str);
-        } catch(NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private String getDOM(final String routeID, final AtomicReference<result> res) {
-        //Log.d("asyncwget", "Catching URL in background: " + uri[0]);
-        HttpURLConnection urlConnection;
-        StringBuilder result = null;
-        try {
-            URL url = new URL("http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + routeID);
-            urlConnection = (HttpURLConnection) url.openConnection();
-        } catch(IOException e) {
-            res.set(Fetcher.result.CLIENT_OFFLINE);
-            return null;
-        }
-
-        try {
-            InputStream in = new BufferedInputStream(
-                    urlConnection.getInputStream());
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(in));
-            result = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                result.append(line);
-            }
-        } catch (Exception e) {
-            //Log.e("asyncwget", e.getMessage());
-        } finally {
-            if (urlConnection != null) {
-                urlConnection.disconnect();
-            }
-        }
-
-        if (result == null) {
-            res.set(Fetcher.result.PARSER_ERROR);
-            return null;
-        }
-
-        res.set(Fetcher.result.SERVER_ERROR); // will be set to "OK" later, this is a safety net in case StringBuilder returns null, the website returns an HTTP 204 or something like that.
-        return result.toString();
-    }
-
     @Override
     public Palina ReadArrivalTimesAll(final String routeID, final AtomicReference<result> res) {
         Palina p = new Palina();
         int routeIndex;
 
-        String responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas = getDOM(routeID, res);
+        String responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas = null;
+        try {
+            responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas = networkTools.getDOM(new URL("http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + routeID), res);
+        } catch (MalformedURLException e) {
+            res.set(result.PARSER_ERROR);
+        }
         if(responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas == null) {
+            // result already set in getDOM()
             return p;
         }
 

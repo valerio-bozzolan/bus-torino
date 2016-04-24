@@ -19,6 +19,7 @@
 package it.reyboz.bustorino.backend;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public interface StopsFinderByName extends Fetcher {
     /**
@@ -28,5 +29,5 @@ public interface StopsFinderByName extends Fetcher {
      * @return list of stops, in normalized form.
      * @see FiveTNormalizer
      */
-    List<String> FindByName(String name);
+    List<Stop> FindByName(String name, AtomicReference<result> res);
 }
