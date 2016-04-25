@@ -166,7 +166,86 @@ public abstract class FiveTNormalizer {
                 return Route.Type.BUS;
         }
 
+    }
 
+    /**
+     * Converts a route ID from internal format to display format, returns null if it has the same name.
+     *
+     * @return string with display name, null if unchanged
+     */
+    public static String routeInternalToDisplay(String routeID) {
+        switch(routeID) {
+            case "1C":
+                return "1 Chieri";
+            case "1N":
+                return "1 Nichelino";
+            case "OB1":
+                return "1 Orbassano";
+            case "2C":
+                return "2 Chieri";
+            case "RV2":
+                return "2 Rivalta";
+            case "5B":
+                return "5 /";
+            case "CO1":
+                return "Circolare Collegno";
+            case "79":
+                return "Cremagliera Sassi-Superga";
+            case "W01":
+                return "Night Buster 1 arancio";
+            case "N10":
+                return "Night Buster 10 gialla";
+            case "W15":
+                return "Night Buster 15 rosa";
+            case "S18":
+                return "Night Buster 18 blu";
+            case "S04":
+                return "Night Buster 4 azzurra";
+            case "N4":
+                return "Night Buster 4 rossa";
+            case "N57":
+                return "Night Buster 57 oro";
+            case "W60":
+                return "Night Buster 60 argento";
+            case "E68":
+                return "Night Buster verde 68";
+            case "S05":
+                return "Night Buster viola 5";
+            case "ST1":
+                return "Star 1";
+            case "ST2":
+                return "Star 2";
+            case "10N":
+                return "10 navetta";
+            case "17B":
+                return "17 /";
+            case "35N":
+                return "35 navetta";
+            case "36N":
+                return "36 navetta";
+            case "45B":
+                return "45 /";
+            case "46N":
+                return "46 navetta";
+            case "58B":
+                return "58 /";
+            case "59B":
+                return "59 /";
+            case "63B":
+                return "63 /";
+            case "72B":
+                return "72 /";
+            case "79B":
+                return "79 /";
+            case "93B":
+                return "93 /";
+            case "101":
+                return "101 Metrobus";
+            case "95B":
+                return "95 /";
+            default:
+                return null;
+        }
     }
 
 }

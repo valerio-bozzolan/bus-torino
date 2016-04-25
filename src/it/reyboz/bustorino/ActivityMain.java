@@ -54,11 +54,13 @@ import java.util.List;
 
 import it.reyboz.bustorino.backend.ArrivalsFetcher;
 import it.reyboz.bustorino.backend.Fetcher;
+import it.reyboz.bustorino.backend.FiveTNormalizer;
 import it.reyboz.bustorino.backend.FiveTScraperFetcher;
 import it.reyboz.bustorino.backend.FiveTStopsFetcher;
 import it.reyboz.bustorino.backend.GTTJSONFetcher;
 import it.reyboz.bustorino.backend.GTTStopsFetcher;
 import it.reyboz.bustorino.backend.Palina;
+import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.StopsFinderByName;
 import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
@@ -634,20 +636,26 @@ public class ActivityMain extends AppCompatActivity {
 
         resultsListView.setAdapter(new PalinaAdapter(this, p));
 
-        // TODO: do something useful on click (e.g. refresh timetables and show only that route)
-        /*resultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        resultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                *//*
-                 * Casting because of Javamerda
-                 * @url http://stackoverflow.com/questions/30549485/androids-list-view-parameterized-type-in-adapterview-onitemclicklistener
-                 *//*
-                BusLine busLine = (BusLine) parent.getItemAtPosition(position);
+                String routeName;
 
-                Log.i("ActivityMain", "Tapped busLine " + busLine.toString());
+                Route r = (Route) parent.getItemAtPosition(position);
+                routeName = FiveTNormalizer.routeInternalToDisplay(r.name);
+                if(routeName == null) {
+                    routeName = r.name;
+                }
+                if(r.destinazione == null || r.destinazione.length() == 0) {
+                    Toast.makeText(getApplicationContext(),
+                            getString(R.string.route_towards_unknown, routeName), Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getString(R.string.route_towards_destination, routeName, r.destinazione), Toast.LENGTH_SHORT).show();
+                }
             }
-        });*/
+        });
     }
 
     ///////////////////////////////// OTHER STUFF //////////////////////////////////////////////////
