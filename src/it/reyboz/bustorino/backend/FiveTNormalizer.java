@@ -153,6 +153,8 @@ public abstract class FiveTNormalizer {
     public static Route.Type decodeType(final String routename, final String bacino) {
         if(routename.equals("METRO")) {
             return Route.Type.METRO;
+        } else if(routename.equals("79")) {
+            return Route.Type.RAILWAY;
         }
 
         switch (bacino) {
@@ -174,7 +176,11 @@ public abstract class FiveTNormalizer {
      * @param routeID ID in "internal" and normalized format
      * @return string with display name, null if unchanged
      */
-    public static String routeInternalToDisplay(String routeID) {
+    public static String routeInternalToDisplay(final String routeID) {
+        if(routeID.length() == 3 && routeID.charAt(2) == 'B') {
+            return routeID.substring(0,2).concat("/");
+        }
+
         switch(routeID) {
             case "1C":
                 return "1 Chieri";
@@ -186,8 +192,6 @@ public abstract class FiveTNormalizer {
                 return "2 Chieri";
             case "RV2":
                 return "2 Rivalta";
-            case "5B":
-                return "5 /";
             case "CO1":
                 return "Circolare Collegno";
             case "79":
@@ -218,32 +222,12 @@ public abstract class FiveTNormalizer {
                 return "Star 2";
             case "10N":
                 return "10 navetta";
-            case "17B":
-                return "17 /";
             case "35N":
                 return "35 navetta";
             case "36N":
                 return "36 navetta";
-            case "45B":
-                return "45 /";
             case "46N":
                 return "46 navetta";
-            case "58B":
-                return "58 /";
-            case "59B":
-                return "59 /";
-            case "63B":
-                return "63 /";
-            case "72B":
-                return "72 /";
-            case "79B":
-                return "79 /";
-            case "93B":
-                return "93 /";
-            case "101":
-                return "101 Metrobus";
-            case "95B":
-                return "95 /";
             default:
                 return null;
         }

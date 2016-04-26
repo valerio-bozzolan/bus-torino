@@ -55,7 +55,7 @@ public final class Passaggio implements Comparable<Passaggio> {
 
         diff = failsafeParseInt(altro.hh) - failsafeParseInt(this.hh);
 
-        // an attempt to correctly sort times around midnight (e.g. 23.59 should come before 00.01)
+        // an attempt to correctly sortRoutes times around midnight (e.g. 23.59 should come before 00.01)
         if(diff > 12) { // TODO: see if this works in practice
             diff = -(24 - diff);
         } else if(diff < -12) {

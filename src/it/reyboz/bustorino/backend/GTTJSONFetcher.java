@@ -115,6 +115,7 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
             return p;
         }
 
+        p.sortRoutes();
         res.set(result.OK);
         return p;
     }

@@ -18,6 +18,7 @@
 
 package it.reyboz.bustorino.backend;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -138,6 +139,10 @@ public class Palina {
      */
     public List<Route> queryAllRoutes() {
         return this.routes;
+    }
+
+    public void sortRoutes() {
+        Collections.sort(this.routes);
     }
 
 //    /**

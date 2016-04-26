@@ -157,6 +157,7 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
             }
         }
 
+        p.sortRoutes();
         res.set(result.OK);
         return p;
     }
