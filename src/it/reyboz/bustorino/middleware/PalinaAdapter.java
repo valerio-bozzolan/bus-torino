@@ -45,6 +45,7 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
     private LayoutInflater li;
     private static int row_layout = R.layout.entry_bus_line_passage;
     private static final int metroBg = R.drawable.route_background_metro;
+    private static final int busBg = R.drawable.route_background_bus;
     private static final int extraurbanoBg = R.drawable.route_background_bus_long_distance;
     private static final int busIcon = R.drawable.bus;
     private static final int trainIcon = R.drawable.subway;
@@ -105,6 +106,8 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
         switch (route.type) {
             case BUS:
             default:
+                // convertView could contain another background, reset it
+                vh.rowStopIcon.setBackgroundResource(busBg);
                 vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
                 break;
             case LONG_DISTANCE_BUS:
@@ -117,9 +120,11 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
                 vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(trainIcon, 0, 0, 0);
                 break;
             case RAILWAY:
+                vh.rowStopIcon.setBackgroundResource(busBg);
                 vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(trainIcon, 0, 0, 0);
                 break;
             case TRAM: // never used but whatever.
+                vh.rowStopIcon.setBackgroundResource(busBg);
                 vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(tramIcon, 0, 0, 0);
                 break;
         }

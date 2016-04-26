@@ -171,6 +171,7 @@ public abstract class FiveTNormalizer {
     /**
      * Converts a route ID from internal format to display format, returns null if it has the same name.
      *
+     * @param routeID ID in "internal" and normalized format
      * @return string with display name, null if unchanged
      */
     public static String routeInternalToDisplay(String routeID) {

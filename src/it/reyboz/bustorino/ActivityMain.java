@@ -345,7 +345,6 @@ public class ActivityMain extends AppCompatActivity {
      * @param v View clicked
      */
     public void onSearchClick(View v) {
-        // TODO: do we need toggleSpinner(true) here?
         if (searchMode == SEARCH_BY_ID) {
             String busStopID = busStopSearchByIDEditText.getText().toString();
             asyncWgetBusStopFromBusStopID(busStopID, true);
@@ -411,7 +410,7 @@ public class ActivityMain extends AppCompatActivity {
      * See the other asyncWget method for documentation\comments.
      */
     private void asyncWgetBusStopSuggestions(String query, boolean reset) {
-        toggleSpinner(true); // TODO: remove whatever else is starting the spinner before this
+        toggleSpinner(true);
 
         if(reset) {
             StopsFindersByNameRecursionHelper.reset();
@@ -589,12 +588,10 @@ public class ActivityMain extends AppCompatActivity {
                 case OK:
                     lastSuccessfullySearchedBusStopID = stopID;
                     hideKeyboard();
-                    //MyDB.DBBusStop.addBusStop(db, busStop); // TODO: determine why this was needed
                     populateBusLinesLayout(p, stopID);
                     toggleSpinner(false); // recursion terminated, remove spinner
                     return; // RETURN.
             }
-            // TODO: what do we do if a fetcher says no such stop/route exists? try next fetcher or give up?
             // indirect recursion through a callback. ...yeha.
             ArrivalFetchersRecursionHelper.increment();
             asyncWgetBusStopFromBusStopID(stopID, false);
@@ -602,13 +599,6 @@ public class ActivityMain extends AppCompatActivity {
     }
 
     private void populateBusLinesLayout(Palina p, String stopID) {
-
-         /* TODO: determine if there was a reason to store everything in the database, other than
-          * showing the last timetable when "resuming" the app (which wasn't currently done, I think
-          * it just fetches new timetables every time)
-          */
-        //BusStop dbBusStop = MyDB.DBBusStop.getBusStop(db, busStop.getBusStopID());
-
         // TODO: implement favorites username
         /*if(dbBusStop != null && dbBusStop.getBusStopUsername() != null) {
             busStopNameDisplay = dbBusStop.getBusStopUsername();
