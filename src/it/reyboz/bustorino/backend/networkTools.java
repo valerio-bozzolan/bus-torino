@@ -112,4 +112,12 @@ public abstract class networkTools {
         Scanner s = new Scanner(is, "UTF-8").useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
     }
+
+    static int failsafeParseInt(String str) {
+        try {
+            return Integer.parseInt(str);
+        } catch(NumberFormatException e) {
+            return 0;
+        }
+    }
 }

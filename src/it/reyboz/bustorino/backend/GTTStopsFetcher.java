@@ -26,7 +26,8 @@ import org.json.JSONObject;
 
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -34,7 +35,9 @@ public class GTTStopsFetcher implements StopsFinderByName  {
     @Override @NonNull
     public List<Stop> FindByName(String name, AtomicReference<result> res) {
         URL url;
-        List<Stop> s = new LinkedList<>();
+        // sorting an ArrayList should be faster than a LinkedList and the API is limited to 15 results
+        List<Stop> s = new ArrayList<>(15);
+        List<Stop> s2 = new ArrayList<>(15);
         String fullname;
         String content;
         String bacino;
@@ -117,8 +120,65 @@ public class GTTStopsFetcher implements StopsFinderByName  {
             return s;
         }
 
+        if(s.size() < 1) {
+            // shouldn't happen but prevents the next part from catching fire
+            res.set(result.EMPTY_RESULT_SET);
+            return s;
+        }
+
+        Collections.sort(s);
+
+        // the next loop won't work with less than 2 items
+        if(s.size() < 2) {
+            res.set(result.OK);
+            return s;
+        }
+
+        /* There are some duplicate stops returned by this API.
+         * Long distance buses have stop IDs with 5 digits. Always. They are zero-padded if there
+         * aren't enough. E.g. stop 631 becomes 00631.
+         *
+         * Unfortunately you can't use padded stops to query any API.
+         * Fortunately, unpadded stops return both normal and long distance bus timetables.
+         * FiveTNormalizer is already removing padding (there may be some padded stops for which the
+         * API doesn't return an unpadded equivalent), here we'll remove duplicates by skipping
+         * padded stops, which also never have a location.
+         *
+         * I had to draw a finite state machine on a piece of paper to understand how to implement
+         * this loop.
+         */
+        for(i = 1; i < howManyStops; ) {
+            Stop current = s.get(i);
+            Stop previous = s.get(i-1);
+
+            // same stop: let's see which one to keep...
+            if(current.ID.equals(previous.ID)) {
+                if(previous.location == null) {
+                    // previous one is useless: discard it, increment
+                    i++;
+                } else if(current.location == null) {
+                    // this one is useless: add previous and skip one
+                    s2.add(previous);
+                    i += 2;
+                } else {
+                    // they aren't really identical: to err on the side of caution, keep them both.
+                    s2.add(previous);
+                    i++;
+                }
+            } else {
+                // different: add previous, increment
+                s2.add(previous);
+                i++;
+            }
+        }
+
+        // unless the last one was garbage (i would be howManyStops+1 in that case), add it
+        if(i == howManyStops) {
+            s2.add(s.get(i-1));
+        }
+
         res.set(result.OK);
-        return s;
+        return s2;
     }
 
 }

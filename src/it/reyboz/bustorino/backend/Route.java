@@ -28,28 +28,6 @@ public class Route implements Comparable<Route> {
     public final List<Passaggio> passaggi;
     public final Type type;
 
-    @Override
-    public int compareTo(@NonNull Route other) {
-        int res;
-
-        res = this.name.compareTo(other.name);
-        if(res != 0) {
-            return res;
-        }
-
-        res = this.destinazione.compareTo(other.destinazione);
-        if(res != 0) {
-            return res;
-        }
-
-        if(this.type != other.type) {
-            // ordinal() is evil or whatever, who cares.
-            return this.type.ordinal() - other.type.ordinal();
-        }
-
-        return 0;
-    }
-
     public enum Type { // "long distance" sono gli extraurbani.
         BUS, LONG_DISTANCE_BUS, METRO, RAILWAY, TRAM
     }
@@ -87,4 +65,26 @@ public class Route implements Comparable<Route> {
      public void addPassaggio(String TimeGTT) {
          this.passaggi.add(new Passaggio(TimeGTT));
      }
+
+    @Override
+    public int compareTo(@NonNull Route other) {
+        int res;
+
+        res = this.name.compareTo(other.name);
+        if(res != 0) {
+            return res;
+        }
+
+        res = this.destinazione.compareTo(other.destinazione);
+        if(res != 0) {
+            return res;
+        }
+
+        if(this.type != other.type) {
+            // ordinal() is evil or whatever, who cares.
+            return this.type.ordinal() - other.type.ordinal();
+        }
+
+        return 0;
+    }
 }

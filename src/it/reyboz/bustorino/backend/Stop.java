@@ -22,7 +22,7 @@ package it.reyboz.bustorino.backend;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-public class Stop {
+public class Stop implements Comparable<Stop> {
     public final @NonNull String ID;
     public final @NonNull String name;
     public final @Nullable String location;
@@ -33,5 +33,31 @@ public class Stop {
         this.name = name;
         this.location = (location != null && location.length() == 0) ? null : location;
         this.type = type;
+    }
+
+    @Override
+    public int compareTo(@NonNull Stop other) {
+        int res;
+        int thisAsInt = networkTools.failsafeParseInt(this.ID);
+        int otherAsInt = networkTools.failsafeParseInt(other.ID);
+
+        // numeric stop IDs
+        if(thisAsInt != 0 && otherAsInt != 0) {
+            return thisAsInt - otherAsInt;
+        } else {
+            // non-numeric
+            res = this.ID.compareTo(other.ID);
+            if (res != 0) {
+                return res;
+            }
+        }
+
+        // try with name, then
+
+        res = this.name.compareTo(other.name);
+
+        // and give up
+
+        return res;
     }
 }

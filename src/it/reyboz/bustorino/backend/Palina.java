@@ -18,9 +18,9 @@
 
 package it.reyboz.bustorino.backend;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * Timetable for multiple routes.<br>

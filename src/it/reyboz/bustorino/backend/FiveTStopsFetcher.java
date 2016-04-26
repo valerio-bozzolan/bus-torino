@@ -26,6 +26,7 @@ import org.jsoup.select.Elements;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -39,7 +40,8 @@ public class FiveTStopsFetcher implements StopsFinderByName {
 
     @Override
     public List<Stop> FindByName(String name, AtomicReference<result> res) {
-        ArrayList<Stop> busStops = new ArrayList<>();
+        // TODO: limit?
+        ArrayList<Stop> busStops = new ArrayList<>(15);
         String stopID;
         String stopName;
         String stopLocation;
@@ -104,6 +106,8 @@ public class FiveTStopsFetcher implements StopsFinderByName {
         } else {
             res.set(result.OK);
         }
+
+        Collections.sort(busStops);
 
         return busStops;
     }
