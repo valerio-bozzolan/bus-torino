@@ -69,10 +69,21 @@ public class Route implements Comparable<Route> {
     @Override
     public int compareTo(@NonNull Route other) {
         int res;
+        int thisAsInt = networkTools.failsafeParseInt(this.name);
+        int otherAsInt = networkTools.failsafeParseInt(other.name);
 
-        res = this.name.compareTo(other.name);
-        if(res != 0) {
-            return res;
+        // numeric route IDs
+        if(thisAsInt != 0 && otherAsInt != 0) {
+            res = thisAsInt - otherAsInt;
+            if(res != 0) {
+                return res;
+            }
+        } else {
+            // non-numeric
+            res = this.name.compareTo(other.name);
+            if (res != 0) {
+                return res;
+            }
         }
 
         res = this.destinazione.compareTo(other.destinazione);

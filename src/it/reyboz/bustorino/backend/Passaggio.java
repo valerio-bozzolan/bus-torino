@@ -53,7 +53,7 @@ public final class Passaggio implements Comparable<Passaggio> {
     @Override public int compareTo(@NonNull Passaggio altro) {
         int diff;
 
-        diff = failsafeParseInt(altro.hh) - failsafeParseInt(this.hh);
+        diff = networkTools.failsafeParseInt(altro.hh) - networkTools.failsafeParseInt(this.hh);
 
         // an attempt to correctly sortRoutes times around midnight (e.g. 23.59 should come before 00.01)
         if(diff > 12) { // TODO: see if this works in practice
@@ -64,7 +64,7 @@ public final class Passaggio implements Comparable<Passaggio> {
 
         diff *= 60;
 
-        diff += failsafeParseInt(altro.mm) - failsafeParseInt(this.mm);
+        diff += networkTools.failsafeParseInt(altro.mm) - networkTools.failsafeParseInt(this.mm);
 
         // we should take into account if one is in real time and the other isn't, shouldn't we?
         if(altro.isInRealTime) {
@@ -84,20 +84,6 @@ public final class Passaggio implements Comparable<Passaggio> {
             return resultString.concat("*");
         } else {
             return resultString;
-        }
-    }
-
-    /**
-     * Parses without blowing up.
-     *
-     * @param str the number as a string
-     * @return the number as an integer
-     */
-    private static int failsafeParseInt(String str) {
-        try {
-            return Integer.parseInt(str);
-        } catch(NumberFormatException e) {
-            return 0;
         }
     }
 }
