@@ -40,8 +40,8 @@ public class FiveTStopsFetcher implements StopsFinderByName {
 
     @Override
     public List<Stop> FindByName(String name, AtomicReference<result> res) {
-        // TODO: limit?
-        ArrayList<Stop> busStops = new ArrayList<>(15);
+        // API apparently limited to 20 results
+        ArrayList<Stop> busStops = new ArrayList<>(20);
         String stopID;
         String stopName;
         String stopLocation;
@@ -108,6 +108,7 @@ public class FiveTStopsFetcher implements StopsFinderByName {
         }
 
         Collections.sort(busStops);
+        // TODO: remove duplicates? (see GTTStopsFetcher)
 
         return busStops;
     }
