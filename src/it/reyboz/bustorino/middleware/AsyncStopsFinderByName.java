@@ -28,27 +28,41 @@ import it.reyboz.bustorino.backend.ArrivalsFetcher;
 import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.backend.StopsDBInterface;
 import it.reyboz.bustorino.backend.StopsFinderByName;
 
 public class AsyncStopsFinderByName extends AsyncTask<Void, Void, List<Stop>> {
     private final StopsFinderByName sf;
     private AtomicReference<Fetcher.result> result;
+    private final StopsDB db;
     private final String query;
     private final AsyncStopsFinderByNameCallback callback;
 
-    public AsyncStopsFinderByName(@NonNull StopsFinderByName sf, @NonNull String query, @NonNull AsyncStopsFinderByNameCallback callback) {
+    /**
+     * Run a StopsFinderByName in a background thread
+     *
+     * @param sf some concrete implementation of StopsFinderByName
+     * @param query the string to search for
+     * @param callback callback (you don't say)
+     * @param sdb StopsDB
+     */
+    public AsyncStopsFinderByName(@NonNull StopsFinderByName sf, @NonNull String query, @NonNull AsyncStopsFinderByNameCallback callback, @NonNull StopsDB sdb) {
         this.sf = sf;
         this.query = query;
         this.callback = callback;
         this.result = new AtomicReference<>();
+        this.db = sdb;
     }
 
     @Override protected List<Stop> doInBackground(Void... useless) {
-        return sf.FindByName(this.query, this.result);
+        this.db.openIfNeeded();
+        List<Stop> ret = sf.FindByName(this.query, this.db, this.result);
+        this.db.closeIfNeeded();
+        return ret;
     }
 
     @Override protected void onPostExecute(List<Stop> stops) {
-        if(!this.isCancelled()) { // is this really needed?
+        if(!this.isCancelled()) {
             this.callback.call(stops, result.get(), this.query);
         }
     }

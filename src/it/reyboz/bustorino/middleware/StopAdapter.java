@@ -43,7 +43,7 @@ public class StopAdapter extends ArrayAdapter<Stop> {
     static class ViewHolder {
         TextView busStopIDTextView;
         TextView busStopNameTextView;
-        TextView busLineVehicleIcon;
+        //TextView busLineVehicleIcon;
         TextView busStopLinesTextView;
         TextView busStopLocaLityTextView;
     }
@@ -75,21 +75,12 @@ public class StopAdapter extends ArrayAdapter<Stop> {
         // NOTE: intentionally ignoring stop username: if it's in the favorites, why are you searching for it?
         vh.busStopNameTextView.setText(stop.name);
 
-// TODO: implement this
-//        TextView busStopLinesTextView = (TextView) convertView.findViewById(R.id.routeTimetable);
-//        if(busStop.getBusLines() != null) {
-//            String busLines = "";
-//            for(BusLine busLine: busStop.getBusLines()) {
-//                if(busLines.length() > 0) {
-//                    busLines += ", ";
-//                }
-//                busLines += busLine.getBusLineName();
-//            }
-            vh.busStopLinesTextView.setText("TEST TEST TEST");
-//        } else {
-//            busStopLinesTextView.setVisibility(View.GONE);
-//            busLineVehicleIcon.setVisibility(View.INVISIBLE);
-//        }
+        String whatStopsHere = stop.routesThatStopHereToString();
+        if(whatStopsHere == null) {
+            vh.busStopLinesTextView.setVisibility(View.GONE);
+        } else {
+            vh.busStopLinesTextView.setText(whatStopsHere);
+        }
 
         if(stop.type == null) {
             vh.busStopLinesTextView.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);

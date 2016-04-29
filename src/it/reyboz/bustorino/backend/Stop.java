@@ -16,23 +16,71 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 package it.reyboz.bustorino.backend;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+
+import java.util.List;
 
 public class Stop implements Comparable<Stop> {
     public final @NonNull String ID;
     public final @NonNull String name;
     public final @Nullable String location;
     public final @Nullable Route.Type type;
+    private @Nullable String routesThatStopHereString = null;
+    private final @Nullable List<String> routesThatStopHere;
 
+    /**
+     * Hey, look, method overloading!
+     */
+    public Stop(final @NonNull String name, final @NonNull String ID, @Nullable final String location, @Nullable final Route.Type type, @Nullable final List<String> routesThatStopHere) {
+        this.ID = ID;
+        this.name = name;
+        this.location = (location != null && location.length() == 0) ? null : location;
+        this.type = type;
+        this.routesThatStopHere = routesThatStopHere;
+    }
+
+    /**
+     * Hey, look, method overloading!
+     */
     public Stop(final @NonNull String name, final @NonNull String ID, @Nullable final String location, @Nullable final Route.Type type) {
         this.ID = ID;
         this.name = name;
         this.location = (location != null && location.length() == 0) ? null : location;
         this.type = type;
+        this.routesThatStopHere = null;
+    }
+
+    public @Nullable String routesThatStopHereToString() {
+        // M E M O I Z A T I O N
+        if(this.routesThatStopHereString != null) {
+            return this.routesThatStopHereString;
+        }
+
+        // no string yet? build it!
+        return buildString();
+    }
+    private @Nullable String buildString() {
+        // no routes => no string
+        if(this.routesThatStopHere == null || this.routesThatStopHere.size() == 0) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        int i, lenMinusOne = routesThatStopHere.size() - 1;
+
+        for (i = 0; i < lenMinusOne; i++) {
+            sb.append(routesThatStopHere.get(i)).append(", ");
+        }
+
+        // last one:
+        sb.append(routesThatStopHere.get(i));
+
+        this.routesThatStopHereString = sb.toString();
+
+        return this.routesThatStopHereString;
     }
 
     @Override

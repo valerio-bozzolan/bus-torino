@@ -69,8 +69,14 @@ public class Route implements Comparable<Route> {
     @Override
     public int compareTo(@NonNull Route other) {
         int res;
-        int thisAsInt = networkTools.failsafeParseInt(this.name);
-        int otherAsInt = networkTools.failsafeParseInt(other.name);
+        int thisAsInt, otherAsInt;
+
+        // sorting by numbers alone yields a far more "natural" result (36N goes before 2024, 95B next to 95, and the like)
+
+        thisAsInt = networkTools.failsafeParseInt(this.name.replaceAll("[^0-9]", ""));
+        otherAsInt = networkTools.failsafeParseInt(other.name.replaceAll("[^0-9]", ""));
+
+        // compare.
 
         // numeric route IDs
         if(thisAsInt != 0 && otherAsInt != 0) {
@@ -86,10 +92,14 @@ public class Route implements Comparable<Route> {
             }
         }
 
+        // try comparing their destination
+
         res = this.destinazione.compareTo(other.destinazione);
         if(res != 0) {
             return res;
         }
+
+        // probably useless, but... last attempt.
 
         if(this.type != other.type) {
             // ordinal() is evil or whatever, who cares.

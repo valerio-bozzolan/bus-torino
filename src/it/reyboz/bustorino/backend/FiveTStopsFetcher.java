@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class FiveTStopsFetcher implements StopsFinderByName {
 
     @Override
-    public List<Stop> FindByName(String name, AtomicReference<result> res) {
+    public List<Stop> FindByName(String name, StopsDBInterface db, AtomicReference<result> res) {
         // API apparently limited to 20 results
         ArrayList<Stop> busStops = new ArrayList<>(20);
         String stopID;
@@ -98,7 +98,7 @@ public class FiveTStopsFetcher implements StopsFinderByName {
                 stopLocation = null;
             }
 
-            busStops.add(new Stop(stopName, stopID, stopLocation, null));
+            busStops.add(new Stop(stopName, stopID, stopLocation, null, db.getRoutesByStop(stopID)));
         }
 
         if(busStops.size() == 0) {

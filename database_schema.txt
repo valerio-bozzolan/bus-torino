@@ -1,0 +1,7 @@
+CREATE TABLE routemap
+(
+    route TEXT NOT NULL,
+    stop TEXT NOT NULL
+);
+CREATE INDEX route_index ON routemap(route);
+CREATE INDEX stop_index ON routemap(stop);

@@ -19,15 +19,17 @@
 package it.reyboz.bustorino.backend;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
-public interface StopsFinderByName extends Fetcher {
+/**
+ * No reference to SQLite whatsoever, here.
+ * Don't get StopsDB inside the backend, use this interface instead.
+ */
+public interface StopsDBInterface {
     /**
-     * Finds stops by name. Don't call this in UI thread!
+     * Given a stop ID, get which routes stop there (as strings, there's no sane way to determine their destination\terminus from the database)
      *
-     * @param name the string to search for
-     * @return list of stops, in normalized form.
-     * @see FiveTNormalizer
+     * @param stopID stop ID
+     * @return list of routes or null if none
      */
-    List<Stop> FindByName(String name, StopsDBInterface db, AtomicReference<result> res);
+    List<String> getRoutesByStop(String stopID);
 }
