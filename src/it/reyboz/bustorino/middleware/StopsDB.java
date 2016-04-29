@@ -151,6 +151,10 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
         String[] uselessArray = {stopID};
         int count;
 
+        if(db == null) {
+            return null;
+        }
+
         Cursor result = db.rawQuery("SELECT route FROM routemap WHERE stop = ?", uselessArray);
 
         count = result.getCount();
