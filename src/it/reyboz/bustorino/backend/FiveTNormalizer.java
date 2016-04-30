@@ -47,108 +47,108 @@ public abstract class FiveTNormalizer {
         return RouteID;
     }
 
-    public static String FiveTNormalizeStop(String StopID) {
-        StopID = FiveTNormalizeRoute(StopID);
-        // is this faster than a regex?
-        if (StopID.length() == 5 && StopID.startsWith("ST") && Character.isLetter(StopID.charAt(2)) && Character.isLetter(StopID.charAt(3)) && Character.isLetter(StopID.charAt(4))) {
-            switch (StopID) {
-                case "STFER":
-                    return "8210";
-                case "STPAR":
-                    return "8211";
-                case "STMAR":
-                    return "8212";
-                case "STMAS":
-                    return "8213";
-                case "STPOS":
-                    return "8214";
-                case "STMGR":
-                    return "8215";
-                case "STRIV":
-                    return "8216";
-                case "STRAC":
-                    return "8217";
-                case "STBER":
-                    return "8218";
-                case "STPDA":
-                    return "8219";
-                case "STDOD":
-                    return "8220";
-                case "STPSU":
-                    return "8221";
-                case "STVIN":
-                    return "8222";
-                case "STREU":
-                    return "8223";
-                case "STPNU":
-                    return "8224";
-                case "STMCI":
-                    return "8225";
-                case "STNIZ":
-                    return "8226";
-                case "STDAN":
-                    return "8227";
-                case "STCAR":
-                    return "8228";
-                case "STSPE":
-                    return "8229";
-                case "STLGO":
-                    return "8230";
-            }
-        }
-        return StopID;
-    }
-
-    public static String NormalizedToFiveT(final String StopID) {
-        if(StopID.startsWith("82") && StopID.length() == 4) {
-            switch (StopID) {
-                case "8230":
-                    return "STLGO";
-                case "8229":
-                    return "STSPE";
-                case "8228":
-                    return "STCAR";
-                case "8227":
-                    return "STDAN";
-                case "8226":
-                    return "STNIZ";
-                case "8225":
-                    return "STMCI";
-                case "8224":
-                    return "STPNU";
-                case "8223":
-                    return "STREU";
-                case "8222":
-                    return "STVIN";
-                case "8221":
-                    return "STPSU";
-                case "8220":
-                    return "STDOD";
-                case "8219":
-                    return "STPDA";
-                case "8218":
-                    return "STBER";
-                case "8217":
-                    return "STRAC";
-                case "8216":
-                    return "STRIV";
-                case "8215":
-                    return "STMGR";
-                case "8214":
-                    return "STPOS";
-                case "8213":
-                    return "STMAS";
-                case "8212":
-                    return "STMAR";
-                case "8211":
-                    return "STPAR";
-                case "8210":
-                    return "STFER";
-            }
-        }
-
-        return StopID;
-    }
+//    public static String FiveTNormalizeStop(String StopID) {
+//        StopID = FiveTNormalizeRoute(StopID);
+//        // is this faster than a regex?
+//        if (StopID.length() == 5 && StopID.startsWith("ST") && Character.isLetter(StopID.charAt(2)) && Character.isLetter(StopID.charAt(3)) && Character.isLetter(StopID.charAt(4))) {
+//            switch (StopID) {
+//                case "STFER":
+//                    return "8210";
+//                case "STPAR":
+//                    return "8211";
+//                case "STMAR":
+//                    return "8212";
+//                case "STMAS":
+//                    return "8213";
+//                case "STPOS":
+//                    return "8214";
+//                case "STMGR":
+//                    return "8215";
+//                case "STRIV":
+//                    return "8216";
+//                case "STRAC":
+//                    return "8217";
+//                case "STBER":
+//                    return "8218";
+//                case "STPDA":
+//                    return "8219";
+//                case "STDOD":
+//                    return "8220";
+//                case "STPSU":
+//                    return "8221";
+//                case "STVIN":
+//                    return "8222";
+//                case "STREU":
+//                    return "8223";
+//                case "STPNU":
+//                    return "8224";
+//                case "STMCI":
+//                    return "8225";
+//                case "STNIZ":
+//                    return "8226";
+//                case "STDAN":
+//                    return "8227";
+//                case "STCAR":
+//                    return "8228";
+//                case "STSPE":
+//                    return "8229";
+//                case "STLGO":
+//                    return "8230";
+//            }
+//        }
+//        return StopID;
+//    }
+//
+//    public static String NormalizedToFiveT(final String StopID) {
+//        if(StopID.startsWith("82") && StopID.length() == 4) {
+//            switch (StopID) {
+//                case "8230":
+//                    return "STLGO";
+//                case "8229":
+//                    return "STSPE";
+//                case "8228":
+//                    return "STCAR";
+//                case "8227":
+//                    return "STDAN";
+//                case "8226":
+//                    return "STNIZ";
+//                case "8225":
+//                    return "STMCI";
+//                case "8224":
+//                    return "STPNU";
+//                case "8223":
+//                    return "STREU";
+//                case "8222":
+//                    return "STVIN";
+//                case "8221":
+//                    return "STPSU";
+//                case "8220":
+//                    return "STDOD";
+//                case "8219":
+//                    return "STPDA";
+//                case "8218":
+//                    return "STBER";
+//                case "8217":
+//                    return "STRAC";
+//                case "8216":
+//                    return "STRIV";
+//                case "8215":
+//                    return "STMGR";
+//                case "8214":
+//                    return "STPOS";
+//                case "8213":
+//                    return "STMAS";
+//                case "8212":
+//                    return "STMAR";
+//                case "8211":
+//                    return "STPAR";
+//                case "8210":
+//                    return "STFER";
+//            }
+//        }
+//
+//        return StopID;
+//    }
 
     public static Route.Type decodeType(final String routename, final String bacino) {
         if(routename.equals("METRO")) {
