@@ -24,12 +24,15 @@ import android.support.annotation.Nullable;
 import java.util.List;
 
 public class Stop implements Comparable<Stop> {
+    // remove "final" in case you need to set these from outside the parser\scrapers\fetchers
     public final @NonNull String ID;
-    public final @NonNull String name;
+    public @NonNull String name;
     public final @Nullable String location;
     public final @Nullable Route.Type type;
-    private @Nullable String routesThatStopHereString = null;
     private final @Nullable List<String> routesThatStopHere;
+
+    // leave this non-final
+    private @Nullable String routesThatStopHereString = null;
 
     /**
      * Hey, look, method overloading!
@@ -45,11 +48,11 @@ public class Stop implements Comparable<Stop> {
     /**
      * Hey, look, method overloading!
      */
-    public Stop(final @NonNull String name, final @NonNull String ID, @Nullable final String location, @Nullable final Route.Type type) {
+    public Stop(final @NonNull String ID) {
         this.ID = ID;
-        this.name = name;
-        this.location = (location != null && location.length() == 0) ? null : location;
-        this.type = type;
+        this.name = "";
+        this.location = null;
+        this.type = null;
         this.routesThatStopHere = null;
     }
 

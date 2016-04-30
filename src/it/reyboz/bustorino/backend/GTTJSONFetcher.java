@@ -30,9 +30,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class GTTJSONFetcher implements ArrivalsFetcher  {
     @Override @NonNull
-    public Palina ReadArrivalTimesAll(String routeID, AtomicReference<result> res) {
+    public Palina ReadArrivalTimesAll(String stopID, AtomicReference<result> res) {
         URL url;
-        Palina p = new Palina();
+        Palina p = new Palina(stopID);
         String routename;
         String bacino;
         String content;
@@ -42,7 +42,7 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         JSONArray passaggi;
 
         try {
-            url = new URL("http://www.gtt.to.it/cms/index.php?option=com_gtt&task=palina.getTransiti&palina=" + URLEncoder.encode(routeID, "utf-8") + "&realtime=true");
+            url = new URL("http://www.gtt.to.it/cms/index.php?option=com_gtt&task=palina.getTransiti&palina=" + URLEncoder.encode(stopID, "utf-8") + "&realtime=true");
         } catch (Exception e) {
             res.set(result.PARSER_ERROR);
             return p;

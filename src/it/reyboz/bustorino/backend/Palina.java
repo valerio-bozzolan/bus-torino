@@ -18,6 +18,8 @@
 
 package it.reyboz.bustorino.backend;
 
+import android.support.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,21 +30,19 @@ import java.util.List;
  * Apparently "palina" and a bunch of other terms can't really be translated into English.<br>
  * Not in a way that makes sense and keeps the code readable, at least.
  */
-public class Palina { // TODO: extend Stop, maybe?
-    //private final String stopID;
-    private String stopName = "";
+public class Palina extends Stop {
     private ArrayList<Route> routes = new ArrayList<>();
 
-//    public Palina(String stopID) {
-//        this.stopID = stopID;
-//    }
+    public Palina(String stopID) {
+        super(stopID);
+    }
 
-    public final void setStopName(String name) {
-        this.stopName = name;
+    public final void setStopName(@NonNull String name) {
+        this.name = name;
     }
 
     public final String getStopName() {
-        return stopName;
+        return this.name;
     }
 
     /**
@@ -107,30 +107,30 @@ public class Palina { // TODO: extend Stop, maybe?
 //        }
 //    }
 
-    /**
-     * Gets the current timetable for a route. Returns null if the route doesn't exist.
-     * This is slower than queryRouteByIndex.
-     *
-     * @return timetable (passaggi)
-     */
-    public List<Passaggio> queryRoute(String routeID) {
-        for(Route r : this.routes) {
-            if(routeID.equals(r.name)) {
-                return r.getPassaggi();
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets the current timetable for this route, from its index in the array.
-     *
-     * @return timetable (passaggi)
-     */
-    public List<Passaggio> queryRouteByIndex(int index) {
-        return this.routes.get(index).getPassaggi();
-    }
+//    /**
+//     * Gets the current timetable for a route. Returns null if the route doesn't exist.
+//     * This is slower than queryRouteByIndex.
+//     *
+//     * @return timetable (passaggi)
+//     */
+//    public List<Passaggio> queryRoute(String routeID) {
+//        for(Route r : this.routes) {
+//            if(routeID.equals(r.name)) {
+//                return r.getPassaggi();
+//            }
+//        }
+//
+//        return null;
+//    }
+//
+//    /**
+//     * Gets the current timetable for this route, from its index in the array.
+//     *
+//     * @return timetable (passaggi)
+//     */
+//    public List<Passaggio> queryRouteByIndex(int index) {
+//        return this.routes.get(index).getPassaggi();
+//    }
 
     /**
      * Gets every route and its timetable.

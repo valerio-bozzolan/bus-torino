@@ -45,7 +45,7 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
      * @param haystack Entire string
      * @return Matched string
      */
-    public static String grep(String needle, String haystack) {
+    private static String grep(String needle, String haystack) {
         String matched = null;
         Matcher matcher = Pattern.compile(
                 needle).matcher(haystack);
@@ -56,13 +56,13 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
     }
 
     @Override
-    public Palina ReadArrivalTimesAll(final String routeID, final AtomicReference<result> res) {
-        Palina p = new Palina();
+    public Palina ReadArrivalTimesAll(final String stopID, final AtomicReference<result> res) {
+        Palina p = new Palina(stopID);
         int routeIndex;
 
         String responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas = null;
         try {
-            responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas = networkTools.getDOM(new URL("http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + URLEncoder.encode(routeID, "utf-8")), res);
+            responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas = networkTools.getDOM(new URL("http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + URLEncoder.encode(stopID, "utf-8")), res);
         } catch (Exception e) {
             res.set(result.PARSER_ERROR);
         }

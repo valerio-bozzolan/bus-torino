@@ -40,11 +40,11 @@ public interface ArrivalsFetcher extends Fetcher {
      * Reads arrival times from a (hopefully) real-time source, e.g. the GTT website.
      * Don't call this in UI thread!
      *
-     * @param routeID route ID, in normalized form.
+     * @param stopID stop ID, in normalized form.
      * @param res result code (will be set by this method)
      * @return arrival times
      * @see it.reyboz.bustorino.backend.Fetcher.result
      * @see FiveTNormalizer
      */
-    Palina ReadArrivalTimesAll(String routeID, AtomicReference<result> res);
+    Palina ReadArrivalTimesAll(String stopID, AtomicReference<result> res);
 }
