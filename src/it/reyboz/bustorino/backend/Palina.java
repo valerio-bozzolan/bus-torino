@@ -28,7 +28,7 @@ import java.util.List;
  * Apparently "palina" and a bunch of other terms can't really be translated into English.<br>
  * Not in a way that makes sense and keeps the code readable, at least.
  */
-public class Palina {
+public class Palina { // TODO: extend Stop, maybe?
     //private final String stopID;
     private String stopName = "";
     private ArrayList<Route> routes = new ArrayList<>();

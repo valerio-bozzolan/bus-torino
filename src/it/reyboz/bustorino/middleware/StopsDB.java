@@ -25,6 +25,8 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.Nullable;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,38 +46,57 @@ import it.reyboz.bustorino.backend.StopsDBInterface;
  */
 public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
     private final Context c;
-    private final String PATH;
     private static String DB_NAME = "busto.sqlite";
     private static int DB_VERSION = 1;
+    private final File filename;
     private SQLiteDatabase db;
     private AtomicInteger openCounter = new AtomicInteger();
 
     public StopsDB(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
         this.c = context;
-        this.PATH = this.c.getFilesDir().getPath();
+        this.filename = new File(this.c.getFilesDir(), DB_NAME);
     }
 
     private void createDb() {
-        try {
-            this.getReadableDatabase();
-            copyTables();
-        } catch (IOException ignored) {}
-    }
+        //this.getReadableDatabase();
 
-    private void copyTables() throws IOException {
-        InputStream is = c.getAssets().open(DB_NAME);
-        OutputStream os = new FileOutputStream(this.PATH.concat(DB_NAME));
+        InputStream is;
+        OutputStream os;
+
+        try {
+            is = c.getAssets().open(DB_NAME);
+        } catch(IOException e) {
+            /* in case an upgrade is failing, nuke everything rather than leaving an old database
+             * in place (should save us lots of headaches related to absurd non-reproducible bugs)
+             */
+            //noinspection ResultOfMethodCallIgnored
+            filename.delete();
+            return;
+        }
+
+        try {
+            os = new FileOutputStream(filename);
+        } catch(FileNotFoundException e) {
+            //noinspection ResultOfMethodCallIgnored
+            filename.delete();
+            return;
+        }
 
         byte[] buffer = new byte[1024];
         int length;
-        while ((length = is.read(buffer)) > 0) {
-            os.write(buffer, 0, length);
-        }
 
-        os.flush();
-        os.close();
-        is.close();
+        try {
+            while ((length = is.read(buffer)) > 0) {
+                os.write(buffer, 0, length);
+            }
+            os.flush();
+            os.close();
+            is.close();
+        } catch(IOException e) {
+            //noinspection ResultOfMethodCallIgnored
+            filename.delete();
+        }
     }
 
     /**
@@ -103,7 +124,11 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
     @Nullable
     private SQLiteDatabase openRecursive(boolean retrying) {
         try {
-            return SQLiteDatabase.openDatabase(this.PATH.concat(DB_NAME), null, SQLiteDatabase.OPEN_READONLY);
+            /* I have no idea why it worked without NO_LOCALIZED_COLLATORS, since it's mandatory
+             * unless you place some Android-specific metadata tables that aren't that well documented...
+             * Also, apparently there's no openDatabase() method that takes a File.
+             */
+            return SQLiteDatabase.openDatabase(this.filename.getPath(), null, SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
         } catch(SQLiteException e) {
             if(retrying) {
                 // failed a 2nd time, give up
@@ -133,29 +158,37 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // TODO: implement (do we even need to do anything?)
+        // copy database (new install)
+        createDb();
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // TODO: implement
+        // destroy old database, replace with new
+        createDb();
     }
 
     @Override
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // TODO: implement
+        // destroy new database, replace with old
+        createDb();
     }
 
     @Override
     public List<String> getRoutesByStop(String stopID) {
         String[] uselessArray = {stopID};
         int count;
+        Cursor result;
 
         if(db == null) {
             return null;
         }
 
-        Cursor result = db.rawQuery("SELECT route FROM routemap WHERE stop = ?", uselessArray);
+        try {
+            result = db.rawQuery("SELECT route FROM routemap WHERE stop = ?", uselessArray);
+        } catch(SQLiteException e) {
+            return null;
+        }
 
         count = result.getCount();
         if(count == 0) {
@@ -171,5 +204,35 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
         result.close();
 
         return routes;
+    }
+
+    @Override
+    public String getNameFromID(String stopID) {
+        String[] uselessArray = {stopID};
+        int count;
+        String name;
+        Cursor result;
+
+        if(db == null) {
+            return null;
+        }
+
+        try {
+            result = db.rawQuery("SELECT name FROM stops WHERE ID = ?", uselessArray);
+        } catch(SQLiteException e) {
+            return null;
+        }
+
+        count = result.getCount();
+        if(count == 0) {
+            return null;
+        }
+
+        result.moveToNext();
+        name = result.getString(0);
+
+        result.close();
+
+        return name;
     }
 }

@@ -27,6 +27,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -127,6 +128,7 @@ public class ActivityMain extends AppCompatActivity {
      * Last successfully searched bus stop ID
      */
     private String lastSuccessfullySearchedBusStopID = null;
+    private String lastSuccessfullySearchedBusStopDisplayName = null; // TODO: set to null when renaming a stop
 
     /* // useful for testing:
     public class MockFetcher implements ArrivalsFetcher {
@@ -580,11 +582,8 @@ public class ActivityMain extends AppCompatActivity {
                             R.string.no_passages, Toast.LENGTH_SHORT).show();
                     break; // goto recursion
                 case OK:
-                    lastSuccessfullySearchedBusStopID = stopID;
-                    hideKeyboard();
-                    populateBusLinesLayout(p, stopID);
-                    toggleSpinner(false); // recursion terminated, remove spinner
-                    return; // RETURN.
+                    new populateBusLinesLayout(p, stopID).execute();
+                    return; // RETURN. populateBusLinesLayout will do the rest.
             }
             // indirect recursion through a callback. ...yeha.
             ArrivalFetchersRecursionHelper.increment();
@@ -592,52 +591,108 @@ public class ActivityMain extends AppCompatActivity {
         }
     }
 
-    private void populateBusLinesLayout(Palina p, String stopID) {
-        // TODO: implement favorites username
-        /*if(dbBusStop != null && dbBusStop.getBusStopUsername() != null) {
-            busStopNameDisplay = dbBusStop.getBusStopUsername();
-        } else if (busStop.getBusStopName() != null) {
-            busStopNameDisplay = busStop.getBusStopName();
-        } else {
-            busStopNameDisplay = String.valueOf(busStopID);
-        }*/
+    private class populateBusLinesLayout extends AsyncTask<Void, Void, String> {
+        private final Palina p;
+        private final String stopID;
+        private String stopName;
+        private final Context c;
 
-        hideKeyboard();
-
-        busStopNameTextView.setText(String.format(
-                getString(R.string.passages), p.getStopName().length() == 0 ? stopID : stopID.concat(" - ").concat(p.getStopName())));
-
-        // Shows hints
-        if(getOption(OPTION_SHOW_LEGEND, true)) {
-            showHints();
-        } else {
-            hideHints();
+        populateBusLinesLayout(@NonNull Palina p, @NonNull String stopID) {
+            this.p = p;
+            this.stopID = stopID;
+            this.c = getApplicationContext();
+            if(stopID.equals(lastSuccessfullySearchedBusStopID)) {
+                this.stopName = lastSuccessfullySearchedBusStopDisplayName;
+            }
         }
 
-        prepareGUIForBusLines();
-
-        resultsListView.setAdapter(new PalinaAdapter(this, p));
-
-        resultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String routeName;
-
-                Route r = (Route) parent.getItemAtPosition(position);
-                routeName = FiveTNormalizer.routeInternalToDisplay(r.name);
-                if(routeName == null) {
-                    routeName = r.name;
-                }
-                if(r.destinazione == null || r.destinazione.length() == 0) {
-                    Toast.makeText(getApplicationContext(),
-                            getString(R.string.route_towards_unknown, routeName), Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getApplicationContext(),
-                            getString(R.string.route_towards_destination, routeName, r.destinazione), Toast.LENGTH_SHORT).show();
-                }
+        @Override
+        protected String doInBackground(Void... useless) {
+            // extreme memoization techniques.
+            if(this.stopName != null) {
+                return this.stopName;
             }
-        });
+
+            // TODO: search favorites, get (user)name if set, set this.stopName, p.setStopName() and lastSuccessfullySearchedBusStopDisplayName, return
+
+            String nameMaybe = p.getStopName();
+
+            if(nameMaybe != null && nameMaybe.length() > 0) {
+                this.stopName = nameMaybe;
+                lastSuccessfullySearchedBusStopDisplayName = nameMaybe;
+                return this.stopName;
+            }
+
+            // Palina doesn't know anything, let's see what the database has to say...
+
+            StopsDB db = new StopsDB(this.c);
+
+            db.openIfNeeded();
+            nameMaybe = db.getNameFromID(this.stopID);
+            db.closeIfNeeded();
+
+            if(nameMaybe != null && nameMaybe.length() > 0) {
+                p.setStopName(nameMaybe);
+                this.stopName = nameMaybe;
+                lastSuccessfullySearchedBusStopDisplayName = nameMaybe;
+                return this.stopName;
+            }
+
+            p.setStopName("");
+            lastSuccessfullySearchedBusStopDisplayName = "";
+            return "";
+        }
+
+        @Override
+        protected void onPostExecute(String displayName) {
+            hideKeyboard();
+            String displayStuff;
+
+            if(displayName != null && displayName.length() > 0) {
+                displayStuff = stopID.concat(" - ").concat(p.getStopName());
+            } else {
+                displayStuff = stopID;
+            }
+
+            busStopNameTextView.setText(String.format(
+                    getString(R.string.passages), displayStuff));
+
+            // Shows hints
+            if(getOption(OPTION_SHOW_LEGEND, true)) {
+                showHints();
+            } else {
+                hideHints();
+            }
+
+            prepareGUIForBusLines();
+
+            resultsListView.setAdapter(new PalinaAdapter(this.c, p));
+
+            resultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    String routeName;
+
+                    Route r = (Route) parent.getItemAtPosition(position);
+                    routeName = FiveTNormalizer.routeInternalToDisplay(r.name);
+                    if(routeName == null) {
+                        routeName = r.name;
+                    }
+                    if(r.destinazione == null || r.destinazione.length() == 0) {
+                        Toast.makeText(getApplicationContext(),
+                                getString(R.string.route_towards_unknown, routeName), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                getString(R.string.route_towards_destination, routeName, r.destinazione), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+            lastSuccessfullySearchedBusStopID = stopID;
+
+            toggleSpinner(false);
+        }
     }
 
     ///////////////////////////////// OTHER STUFF //////////////////////////////////////////////////

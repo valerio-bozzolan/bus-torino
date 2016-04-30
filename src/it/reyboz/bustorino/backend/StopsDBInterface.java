@@ -32,4 +32,13 @@ public interface StopsDBInterface {
      * @return list of routes or null if none
      */
     List<String> getRoutesByStop(String stopID);
+
+    /**
+     * Stop ID goes in, stop name comes out.
+     * GTT API doesn't return this useful piece of information, so here we go, get it from the database!
+     *
+     * @param stopID stop ID, in normalized form
+     * @return stop name or null if not found
+     */
+    String getNameFromID(String stopID);
 }
