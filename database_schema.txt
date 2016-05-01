@@ -7,3 +7,5 @@ CREATE INDEX route_index ON routemap(route);
 CREATE INDEX stop_index ON routemap(stop);
 CREATE UNIQUE INDEX double_index ON routemap(route, stop);
 CREATE TABLE stops (ID TEXT PRIMARY KEY, name TEXT, location TEXT, type TEXT, lat DOUBLE, lon DOUBLE);
+
+CREATE TABLE favorites (ID TEXT PRIMARY KEY NOT NULL, username TEXT);

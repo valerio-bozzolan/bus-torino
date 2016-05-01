@@ -17,17 +17,16 @@
  */
 package it.reyboz.bustorino;
 
+import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
+import it.reyboz.bustorino.middleware.StopAdapter;
 import it.reyboz.bustorino.middleware.UserDB;
-import it.reyboz.bustorino.middleware.UserDB.DBBusStop;
-import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -43,10 +42,10 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
+import java.util.List;
+
 public class ActivityFavorites extends AppCompatActivity {
     private ListView favoriteListView;
-
-    private SQLiteDatabase db;
 
     private EditText bus_stop_name;
 
@@ -59,9 +58,6 @@ public class ActivityFavorites extends AppCompatActivity {
         assert ab != null;
         ab.setIcon(R.drawable.ic_launcher);
         ab.setDisplayHomeAsUpEnabled(true); // Back button
-
-        UserDB mDbHelper = new UserDB(this);
-        db = mDbHelper.getWritableDatabase();
 
         favoriteListView = (ListView) findViewById(R.id.favoriteListView);
 
@@ -98,8 +94,9 @@ public class ActivityFavorites extends AppCompatActivity {
 
         switch (item.getItemId()) {
             case R.id.action_favourite_entry_delete:
-                busStop.setIsFavorite(false);
-                UserDB.DBBusStop.addBusStop(db, busStop);
+                // TODO: implement
+                //busStop.setIsFavorite(false);
+                //UserDB.DBBusStop.addBusStop(db, busStop);
                 createFavoriteList();
                 return true;
             case R.id.action_rename_bus_stop_username:
@@ -111,10 +108,13 @@ public class ActivityFavorites extends AppCompatActivity {
     }
 
     void createFavoriteList() {
-        BusStop[] busStops = UserDB.DBBusStop.getFavoriteBusStops(db);
+        UserDB userDB = new UserDB(getApplicationContext());
+        SQLiteDatabase db = userDB.getReadableDatabase();
+        List<Stop> busStops = UserDB.getFavorites(db);
+        // TODO: close connection
 
         // If no data is found show a friendly message
-        if (busStops.length == 0) {
+        if (busStops.size() == 0) {
             favoriteListView.setVisibility(View.INVISIBLE);
             TextView favoriteTipTextView = (TextView) findViewById(R.id.favoriteTipTextView);
             assert favoriteTipTextView != null;
@@ -122,7 +122,7 @@ public class ActivityFavorites extends AppCompatActivity {
         }
 
         // Show results
-        favoriteListView.setAdapter(new AdapterBusStops(this, R.layout.entry_bus_stop, busStops));
+        favoriteListView.setAdapter(new StopAdapter(this, busStops));
         favoriteListView
                 .setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -130,19 +130,16 @@ public class ActivityFavorites extends AppCompatActivity {
                          * Casting because of Javamerda
                          * @url http://stackoverflow.com/questions/30549485/androids-list-view-parameterized-type-in-adapterview-onitemclicklistener
                          */
-                        BusStop busStop = (BusStop) parent.getItemAtPosition(position);
+                        Stop busStop = (Stop) parent.getItemAtPosition(position);
 
                         Intent intent = new Intent(ActivityFavorites.this,
                                 ActivityMain.class);
 
                         Bundle b = new Bundle();
-                        b.putString("bus-stop-ID", busStop.getBusStopID());
+                        b.putString("bus-stop-ID", busStop.ID);
                         intent.putExtras(b);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
                                 | Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                        Log.d("FavoritesActivity", "Tapped on bus stop: "
-                                + busStop.getBusStopID());
 
                         startActivity(intent);
 
@@ -186,7 +183,8 @@ public class ActivityFavorites extends AppCompatActivity {
                 }
 
                 super.busStop.setBusStopUsername(busStopUsername);
-                UserDB.DBBusStop.addBusStop(db, super.busStop, DBBusStop.FORCE_NULL_BUSSTOP_USERNAME);
+                // TODO: implement
+                //UserDB.DBBusStop.addBusStop(db, super.busStop, DBBusStop.FORCE_NULL_BUSSTOP_USERNAME);
 
                 createFavoriteList();
             }
@@ -201,7 +199,8 @@ public class ActivityFavorites extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 super.busStop.setBusStopUsername(null);
-                UserDB.DBBusStop.addBusStop(db, super.busStop, DBBusStop.FORCE_NULL_BUSSTOP_USERNAME);
+                // TODO: implement
+                //UserDB.DBBusStop.addBusStop(db, super.busStop, DBBusStop.FORCE_NULL_BUSSTOP_USERNAME);
 
                 createFavoriteList();
             }

@@ -100,8 +100,6 @@ public class ActivityMain extends AppCompatActivity {
      */
     private final String OPTION_SHOW_LEGEND = "show_legend";
 
-    private StopsDB stopsDB;
-
     /**
      * Last successfully searched bus stop ID
      */
@@ -121,7 +119,8 @@ public class ActivityMain extends AppCompatActivity {
     private RecursionHelper<ArrivalsFetcher> ArrivalFetchersRecursionHelper = new RecursionHelper<>(new ArrivalsFetcher[] {new GTTJSONFetcher(), new FiveTScraperFetcher()});
     private RecursionHelper<StopsFinderByName> StopsFindersByNameRecursionHelper = new RecursionHelper<>(new StopsFinderByName[] {new GTTStopsFetcher(), new FiveTStopsFetcher()});
 
-    private SQLiteDatabase db;
+    private StopsDB stopsDB;
+    private UserDB userDB;
 
     ///////////////////////////////// EVENT HANDLERS ///////////////////////////////////////////////
 
@@ -144,6 +143,7 @@ public class ActivityMain extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.stopsDB = new StopsDB(getApplicationContext());
+        this.userDB = new UserDB(getApplicationContext());
         setContentView(R.layout.activity_main);
         busStopSearchByIDEditText = (EditText) findViewById(R.id.busStopSearchByIDEditText);
         busStopSearchByNameEditText = (EditText) findViewById(R.id.busStopSearchByNameEditText);
@@ -185,10 +185,6 @@ public class ActivityMain extends AppCompatActivity {
                         return false;
                     }
                 });
-
-        // Get database in write mode
-        UserDB mDbHelper = new UserDB(this);
-        db = mDbHelper.getWritableDatabase();
 
         // Called when the layout is pulled down
         swipeRefreshLayout
@@ -690,36 +686,23 @@ public class ActivityMain extends AppCompatActivity {
         return networkInfo != null && networkInfo.isConnected();
     }
 
-    // TODO: try to move these 3 methods to a separate class
-
     public void addInFavorites(View v) {
-        // TODO: fix this
-//        if (lastSuccessfullySearchedBusStop != null) {
-//            MyDB.DBBusStop.addBusStop(db, lastSuccessfullySearchedBusStop);
-//
-//            BusStop dbBusStop = MyDB.DBBusStop.getBusStop(db, busStop.getBusStopID());
-//            if (dbBusStop == null || dbBusStop.getBusStopLocality() == null) {
-//                // This will also scrape the busStopLocality
-//                try {
-//                    new AsyncWgetBusStopSuggestions(busStop.getBusStopID()) {
-//                        @Override
-//                        public void onReceivedBusStopNames(BusStop[] busStops, int status) {
-//                            if (status == AsyncWgetBusStopSuggestions.ERROR_NONE) {
-//                                for (BusStop busStop : busStops) {
-//                                    MyDB.DBBusStop.addBusStop(db, busStop);
-//                                }
-//                            }
-//                        }
-//                    };
-//                } catch (UnsupportedEncodingException e) {
-//                    e.printStackTrace();
-//                }
-//            }
+        boolean result;
+        if(lastSuccessfullySearchedBusStop != null) {
+            // TODO: move to background thread
+            SQLiteDatabase db = userDB.getWritableDatabase();
+            result = userDB.addOrUpdate(lastSuccessfullySearchedBusStop, db);
+            db.close();
 
-            Toast.makeText(getApplicationContext(),
-                    R.string.added_in_favorites, Toast.LENGTH_SHORT).show();
-        //}
+            if(result) {
+                Toast.makeText(getApplicationContext(), R.string.added_in_favorites, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "NON VA, DANNAZIONE!", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
+
+    // TODO: try to move these 2 methods to a separate class
 
     private void setOption(String optionName, boolean value) {
         SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
