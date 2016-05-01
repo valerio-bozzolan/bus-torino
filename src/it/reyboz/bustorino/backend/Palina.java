@@ -37,14 +37,6 @@ public class Palina extends Stop {
         super(stopID);
     }
 
-    public final void setStopName(@NonNull String name) {
-        this.name = name;
-    }
-
-    public final String getStopName() {
-        return this.name;
-    }
-
     /**
      * Adds a route to the timetable.
      *

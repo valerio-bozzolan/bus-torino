@@ -78,5 +78,6 @@
     <string name="query_too_short">Nome troppo corto, digita più caratteri e riprova</string>
     <string name="route_towards_destination">%1$s verso %2$s</string>
     <string name="route_towards_unknown">%s (destinazione sconosciuta)</string>
+    <string name="internal_error">Errore interno inaspettato che non dovrebbe mai accadere!</string>
 
 </resources>

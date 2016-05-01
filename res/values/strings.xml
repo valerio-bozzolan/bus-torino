@@ -22,6 +22,7 @@
     <string name="lines">Lines: %1$s</string>
     <string name="no_passages">No passages</string>
     <string name="no_qrcode">No QR code</string>
+    <string name="internal_error">Unexpected internal error that should never happen!</string>
     <string name="action_favorites">Favorites</string>
     <string name="action_help">Help</string>
     <string name="action_about">About</string>

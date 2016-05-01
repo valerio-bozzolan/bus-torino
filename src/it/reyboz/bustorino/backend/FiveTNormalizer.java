@@ -194,28 +194,31 @@ public abstract class FiveTNormalizer {
                 return "2 Rivalta";
             case "CO1":
                 return "Circolare Collegno";
+            case "SE1":
+                // TODO: determine why GTT calls this "SE1" while other absurd names have a human readable name too.
+                return "1 Settimo";
             case "79":
                 return "Cremagliera Sassi-Superga";
             case "W01":
-                return "Night Buster 1 arancio";
+                return "Night Buster 1 Arancio";
             case "N10":
-                return "Night Buster 10 gialla";
+                return "Night Buster 10 Gialla";
             case "W15":
-                return "Night Buster 15 rosa";
+                return "Night Buster 15 Rosa";
             case "S18":
-                return "Night Buster 18 blu";
+                return "Night Buster 18 Blu";
             case "S04":
-                return "Night Buster 4 azzurra";
+                return "Night Buster 4 Azzurra";
             case "N4":
-                return "Night Buster 4 rossa";
+                return "Night Buster 4 Rossa";
             case "N57":
-                return "Night Buster 57 oro";
+                return "Night Buster 57 Oro";
             case "W60":
-                return "Night Buster 60 argento";
+                return "Night Buster 60 Argento";
             case "E68":
-                return "Night Buster verde 68";
+                return "Night Buster 68 Verde";
             case "S05":
-                return "Night Buster viola 5";
+                return "Night Buster 5 Viola";
             case "ST1":
                 return "Star 1";
             case "ST2":

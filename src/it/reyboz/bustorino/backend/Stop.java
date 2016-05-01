@@ -26,7 +26,7 @@ import java.util.List;
 public class Stop implements Comparable<Stop> {
     // remove "final" in case you need to set these from outside the parser\scrapers\fetchers
     public final @NonNull String ID;
-    public @NonNull String name;
+    private @Nullable String name;
     public final @Nullable String location;
     public final @Nullable Route.Type type;
     private final @Nullable List<String> routesThatStopHere;
@@ -37,7 +37,7 @@ public class Stop implements Comparable<Stop> {
     /**
      * Hey, look, method overloading!
      */
-    public Stop(final @NonNull String name, final @NonNull String ID, @Nullable final String location, @Nullable final Route.Type type, @Nullable final List<String> routesThatStopHere) {
+    public Stop(final @Nullable String name, final @NonNull String ID, @Nullable final String location, @Nullable final Route.Type type, @Nullable final List<String> routesThatStopHere) {
         this.ID = ID;
         this.name = name;
         this.location = (location != null && location.length() == 0) ? null : location;
@@ -50,7 +50,7 @@ public class Stop implements Comparable<Stop> {
      */
     public Stop(final @NonNull String ID) {
         this.ID = ID;
-        this.name = "";
+        this.name = null;
         this.location = null;
         this.type = null;
         this.routesThatStopHere = null;
@@ -105,10 +105,33 @@ public class Stop implements Comparable<Stop> {
 
         // try with name, then
 
-        res = this.name.compareTo(other.name);
+        if(this.name != null && other.name != null) {
+            res = this.name.compareTo(other.name);
+        }
 
         // and give up
 
         return res;
+    }
+
+    /**
+     * Sets a name.
+     *
+     * @param name stop name as string (not null)
+     */
+    public final void setStopName(@NonNull String name) {
+        this.name = name;
+    }
+
+    /**
+     * Returns stop name.<br>
+     * - empty string means "already searched everywhere, can't find it"<br>
+     * - null means "didn't search, yet. Maybe you should try."<br>
+     * - string means "here's the name.", obviously.<br>
+     *
+     * @return string if known, null if still unknown
+     */
+    public final @Nullable String getStopName() {
+        return this.name;
     }
 }
