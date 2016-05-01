@@ -18,8 +18,8 @@
 package it.reyboz.bustorino;
 
 import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
-import it.reyboz.bustorino.lab.MyDB;
-import it.reyboz.bustorino.lab.MyDB.DBBusStop;
+import it.reyboz.bustorino.middleware.UserDB;
+import it.reyboz.bustorino.middleware.UserDB.DBBusStop;
 import it.reyboz.bustorino.lab.adapters.AdapterBusStops;
 
 import android.app.AlertDialog;
@@ -60,7 +60,7 @@ public class ActivityFavorites extends AppCompatActivity {
         ab.setIcon(R.drawable.ic_launcher);
         ab.setDisplayHomeAsUpEnabled(true); // Back button
 
-        MyDB mDbHelper = new MyDB(this);
+        UserDB mDbHelper = new UserDB(this);
         db = mDbHelper.getWritableDatabase();
 
         favoriteListView = (ListView) findViewById(R.id.favoriteListView);
@@ -99,7 +99,7 @@ public class ActivityFavorites extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.action_favourite_entry_delete:
                 busStop.setIsFavorite(false);
-                MyDB.DBBusStop.addBusStop(db, busStop);
+                UserDB.DBBusStop.addBusStop(db, busStop);
                 createFavoriteList();
                 return true;
             case R.id.action_rename_bus_stop_username:
@@ -111,7 +111,7 @@ public class ActivityFavorites extends AppCompatActivity {
     }
 
     void createFavoriteList() {
-        BusStop[] busStops = MyDB.DBBusStop.getFavoriteBusStops(db);
+        BusStop[] busStops = UserDB.DBBusStop.getFavoriteBusStops(db);
 
         // If no data is found show a friendly message
         if (busStops.length == 0) {
@@ -186,7 +186,7 @@ public class ActivityFavorites extends AppCompatActivity {
                 }
 
                 super.busStop.setBusStopUsername(busStopUsername);
-                MyDB.DBBusStop.addBusStop(db, super.busStop, DBBusStop.FORCE_NULL_BUSSTOP_USERNAME);
+                UserDB.DBBusStop.addBusStop(db, super.busStop, DBBusStop.FORCE_NULL_BUSSTOP_USERNAME);
 
                 createFavoriteList();
             }
@@ -201,7 +201,7 @@ public class ActivityFavorites extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 super.busStop.setBusStopUsername(null);
-                MyDB.DBBusStop.addBusStop(db, super.busStop, DBBusStop.FORCE_NULL_BUSSTOP_USERNAME);
+                UserDB.DBBusStop.addBusStop(db, super.busStop, DBBusStop.FORCE_NULL_BUSSTOP_USERNAME);
 
                 createFavoriteList();
             }

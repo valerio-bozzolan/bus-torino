@@ -64,7 +64,7 @@ import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.StopsFinderByName;
-import it.reyboz.bustorino.lab.MyDB;
+import it.reyboz.bustorino.middleware.UserDB;
 import it.reyboz.bustorino.middleware.AsyncWget;
 import it.reyboz.bustorino.middleware.PalinaAdapter;
 import it.reyboz.bustorino.middleware.RecursionHelper;
@@ -187,7 +187,7 @@ public class ActivityMain extends AppCompatActivity {
                 });
 
         // Get database in write mode
-        MyDB mDbHelper = new MyDB(this);
+        UserDB mDbHelper = new UserDB(this);
         db = mDbHelper.getWritableDatabase();
 
         // Called when the layout is pulled down

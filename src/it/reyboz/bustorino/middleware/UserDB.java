@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.reyboz.bustorino.lab;
+package it.reyboz.bustorino.middleware;
 
 import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
 import it.reyboz.bustorino.lab.GTTSiteSucker.BusLine;
@@ -36,7 +36,7 @@ import java.util.ArrayList;
  * 
  * @author Valerio Bozzolan
  */
-public class MyDB extends SQLiteOpenHelper {
+public class UserDB extends SQLiteOpenHelper {
 
 	// If you change the database schema, you must increment the database
 	// version.
@@ -79,7 +79,7 @@ public class MyDB extends SQLiteOpenHelper {
 		return " " + columnName + "=?";
 	}
 
-	public MyDB(Context context) {
+	public UserDB(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
 	}
 
@@ -219,7 +219,7 @@ public class MyDB extends SQLiteOpenHelper {
         public static BusStop[] getFavoriteBusStops(SQLiteDatabase db) {
             ArrayList<BusStop> busStops = new ArrayList<BusStop>();
 
-            String query = MyDB.SELECT_ALL_FROM
+            String query = UserDB.SELECT_ALL_FROM
                     + TABLE_NAME
                     + WHERE
                     + somethingEqualsWithoutQuotes(COLUMN_NAME_BUSSTOP_ISFAVORITE)
@@ -249,7 +249,7 @@ public class MyDB extends SQLiteOpenHelper {
         public static BusStop getBusStop(SQLiteDatabase db, String searchBusStopID) {
             BusStop busStop = null;
 
-            String query = MyDB.SELECT_ALL_FROM
+            String query = UserDB.SELECT_ALL_FROM
                     + TABLE_NAME
                     + WHERE
                     + somethingEqualsWithoutQuotes(COLUMN_NAME_BUSSTOP_ID);
