@@ -72,7 +72,7 @@ public abstract class networkTools {
     @Nullable
     static String queryURL(URL url, AtomicReference<Fetcher.result> res) {
         HttpURLConnection urlConnection;
-        InputStream in = null;
+        InputStream in;
         String s;
 
         try {
@@ -82,6 +82,9 @@ public abstract class networkTools {
             return null;
         }
 
+        // TODO: make this configurable?
+        urlConnection.setConnectTimeout(5000);
+        urlConnection.setReadTimeout(10000);
         res.set(Fetcher.result.PARSER_ERROR); // will be set to OK later
 
         try {

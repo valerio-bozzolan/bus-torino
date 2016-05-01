@@ -35,6 +35,7 @@ public class UserDB extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "user.db";
     private final Context c; // needed during upgrade
     private static String[] usernameColumnNameAsArray = {"username"};
+    private static String[] getFavoritesColumnNamesAsArray = {"ID", "standardname", "username"};
 
 	public UserDB(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -172,25 +173,41 @@ public class UserDB extends SQLiteOpenHelper {
     public static List<Stop> getFavorites(SQLiteDatabase db) {
         List<Stop> l = new ArrayList<>();
 
-        // TODO: implement
-        l.add(new Stop("TEST asd", "123", null, null, null));
-        l.add(new Stop("TEST lel", "456", null, null, null));
-        l.add(new Stop("asdasdasd asdsaad", "67", null, null, null));
+        try {
+            Cursor c = db.query("favorites", getFavoritesColumnNamesAsArray, null, null, null, null, null, null);
+            int colID = c.getColumnIndex("ID");
+            int colStandard = c.getColumnIndex("standardname");
+            int colUser = c.getColumnIndex("username");
+
+            if(c.moveToNext()) {
+                String name = c.getString(colUser);
+                if(name == null || name.length() <= 0) {
+                    l.add(new Stop(c.getString(colStandard), c.getString(colID), null, null, null));
+                } else {
+                    l.add(new Stop(name, c.getString(colID), null, null, null));
+                }
+            }
+
+            c.close();
+        } catch(SQLiteException ignored) {}
 
         return l;
     }
 
     public boolean addOrUpdate(Stop s, SQLiteDatabase db) {
-        Cursor c;
         String username;
 
         username = getStopUserName(db, s.ID);
-        String[] arr = {s.ID, s.getStopName(), username};
 
-        // UPSERT.
         try {
-            db.rawQuery("INSERT OR IGNORE INTO favorites(ID, standardname, username) VALUES (?, ?, ?)", arr).close();
-            db.rawQuery("UPDATE favorites SET standardname = ? WHERE ID = ?", new String[]{arr[1], arr[0]}).close();
+            if(username == null) {
+                db.rawQuery("INSERT INTO favorites(ID, standardname, username) VALUES (?, ?, null)", new String[] {s.ID, s.getStopName()}).close();
+            } else {
+                db.rawQuery("INSERT INTO favorites(ID, standardname, username) VALUES (?, ?, ?)", new String[] {s.ID, s.getStopName(), username}).close();
+            }
+            // UPSERT.
+            // standardname is the only field that could have changed...
+            db.rawQuery("UPDATE favorites SET standardname = ? WHERE ID = ?", new String[]{s.getStopName(), s.ID}).close();
         } catch(SQLiteException e) {
             return false;
         }

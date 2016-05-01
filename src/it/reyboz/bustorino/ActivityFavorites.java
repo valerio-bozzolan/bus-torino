@@ -18,7 +18,6 @@
 package it.reyboz.bustorino;
 
 import it.reyboz.bustorino.backend.Stop;
-import it.reyboz.bustorino.lab.GTTSiteSucker.BusStop;
 import it.reyboz.bustorino.middleware.StopAdapter;
 import it.reyboz.bustorino.middleware.UserDB;
 
@@ -90,7 +89,7 @@ public class ActivityFavorites extends AppCompatActivity {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
                 .getMenuInfo();
 
-        BusStop busStop = (BusStop) favoriteListView.getItemAtPosition(info.position);
+        Stop busStop = (Stop) favoriteListView.getItemAtPosition(info.position);
 
         switch (item.getItemId()) {
             case R.id.action_favourite_entry_delete:
@@ -150,9 +149,9 @@ public class ActivityFavorites extends AppCompatActivity {
     }
 
     private class BusStopUsernameOnClickListener implements DialogInterface.OnClickListener {
-        private BusStop busStop;
+        private Stop busStop;
 
-        BusStopUsernameOnClickListener(BusStop busStop) {
+        BusStopUsernameOnClickListener(Stop busStop) {
             this.busStop = busStop;
         }
 
@@ -162,15 +161,16 @@ public class ActivityFavorites extends AppCompatActivity {
         }
     }
 
-    public void showBusStopUsernameInputDialog(BusStop busStop) {
+    public void showBusStopUsernameInputDialog(Stop busStop) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         LayoutInflater inflater = this.getLayoutInflater();
         View renameDialogLayout = inflater.inflate(R.layout.rename_dialog, null);
 
         bus_stop_name = (EditText) renameDialogLayout.findViewById(R.id.rename_dialog_bus_stop_name);
-        bus_stop_name.setText(busStop.getBusStopUsername());
-        bus_stop_name.setHint(busStop.getBusStopName());
+        bus_stop_name.setText(busStop.getStopName());
+        // TODO: default name as hint
+        //bus_stop_name.setHint(busStop.getBusStopName());
 
         builder.setTitle(getString(R.string.dialog_rename_bus_stop_username_title));
         builder.setView(renameDialogLayout);
@@ -182,7 +182,7 @@ public class ActivityFavorites extends AppCompatActivity {
                     busStopUsername = null;
                 }
 
-                super.busStop.setBusStopUsername(busStopUsername);
+                //super.busStop.setBusStopUsername(busStopUsername);
                 // TODO: implement
                 //UserDB.DBBusStop.addBusStop(db, super.busStop, DBBusStop.FORCE_NULL_BUSSTOP_USERNAME);
 
@@ -198,7 +198,7 @@ public class ActivityFavorites extends AppCompatActivity {
         builder.setNeutralButton(R.string.dialog_rename_bus_stop_username_reset_button, new BusStopUsernameOnClickListener(busStop) {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                super.busStop.setBusStopUsername(null);
+                //super.busStop.setBusStopUsername(null);
                 // TODO: implement
                 //UserDB.DBBusStop.addBusStop(db, super.busStop, DBBusStop.FORCE_NULL_BUSSTOP_USERNAME);
 
