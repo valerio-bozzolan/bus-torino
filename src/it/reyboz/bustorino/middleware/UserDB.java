@@ -210,7 +210,7 @@ public class UserDB extends SQLiteOpenHelper {
         return l;
     }
 
-    public boolean addOrUpdate(Stop s, SQLiteDatabase db) {
+    public static boolean addOrUpdate(Stop s, SQLiteDatabase db) {
         ContentValues cv = new ContentValues();
         long result = -1;
         cv.put("ID", s.ID);
@@ -223,6 +223,7 @@ public class UserDB extends SQLiteOpenHelper {
         if(result == -1) {
             try {
                 cv = new ContentValues();
+                cv.put("username", getStopUserName(db, s.ID));
                 db.update("favorites", cv, "ID = ?", new String[]{s.ID});
             } catch(SQLiteException e) {
                 return false;

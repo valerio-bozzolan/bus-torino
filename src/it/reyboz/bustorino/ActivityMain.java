@@ -697,6 +697,7 @@ public class ActivityMain extends AppCompatActivity {
             if(result) {
                 Toast.makeText(getApplicationContext(), R.string.added_in_favorites, Toast.LENGTH_SHORT).show();
             } else {
+                // TODO: error message
                 Toast.makeText(getApplicationContext(), "NON VA, DANNAZIONE!", Toast.LENGTH_SHORT).show();
             }
         }
