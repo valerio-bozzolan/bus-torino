@@ -210,7 +210,7 @@ public class UserDB extends SQLiteOpenHelper {
         return l;
     }
 
-    public static boolean addOrUpdate(Stop s, SQLiteDatabase db) {
+    public static boolean addOrUpdateStop(Stop s, SQLiteDatabase db) {
         ContentValues cv = new ContentValues();
         long result = -1;
         cv.put("ID", s.ID);
@@ -218,19 +218,20 @@ public class UserDB extends SQLiteOpenHelper {
 
         try {
             result = db.insert("favorites", null, cv);
-        } catch(SQLiteException ignored) {}
+        } catch (SQLiteException ignored) {}
 
-        if(result == -1) {
-            try {
-                cv = new ContentValues();
-                cv.put("username", getStopUserName(db, s.ID));
-                db.update("favorites", cv, "ID = ?", new String[]{s.ID});
-            } catch(SQLiteException e) {
-                return false;
-            }
+        // Android Studio suggested this unreadable replacement: return true if insert succeeded (!= -1), or try to update and return
+        return (result != -1) || updateStop(s, db);
+    }
+
+    public static boolean updateStop(Stop s, SQLiteDatabase db) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("username", s.getStopName());
+            db.update("favorites", cv, "ID = ?", new String[]{s.ID});
             return true;
+        } catch(SQLiteException e) {
+            return false;
         }
-
-        return true;
     }
 }

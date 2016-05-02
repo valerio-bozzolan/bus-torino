@@ -691,7 +691,7 @@ public class ActivityMain extends AppCompatActivity {
         if(lastSuccessfullySearchedBusStop != null) {
             // TODO: move to background thread
             SQLiteDatabase db = userDB.getWritableDatabase();
-            result = userDB.addOrUpdate(lastSuccessfullySearchedBusStop, db);
+            result = userDB.addOrUpdateStop(lastSuccessfullySearchedBusStop, db);
             db.close();
 
             if(result) {

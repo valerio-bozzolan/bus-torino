@@ -147,7 +147,7 @@ public class ActivityFavorites extends AppCompatActivity {
                     busStop.setStopName(busStopUsername);
                 }
 
-                UserDB.addOrUpdate(busStop, userDB);
+                UserDB.updateStop(busStop, userDB);
 
                 createFavoriteList();
             }
@@ -163,7 +163,7 @@ public class ActivityFavorites extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 // TODO: do something.
                 busStop.setStopName("DEFAULT TEST TEST");
-                UserDB.addOrUpdate(busStop, userDB);
+                UserDB.updateStop(busStop, userDB);
 
                 createFavoriteList();
             }
