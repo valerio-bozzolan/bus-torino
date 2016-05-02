@@ -21,7 +21,9 @@ package it.reyboz.bustorino.backend;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.net.URLEncoder;
 import java.util.List;
+import java.util.Locale;
 
 public class Stop implements Comparable<Stop> {
     // remove "final" in case you need to set these from outside the parser\scrapers\fetchers
@@ -30,6 +32,8 @@ public class Stop implements Comparable<Stop> {
     public final @Nullable String location;
     public final @Nullable Route.Type type;
     private final @Nullable List<String> routesThatStopHere;
+    private final @Nullable Double lat;
+    private final @Nullable Double lon;
 
     // leave this non-final
     private @Nullable String routesThatStopHereString = null;
@@ -43,6 +47,8 @@ public class Stop implements Comparable<Stop> {
         this.location = (location != null && location.length() == 0) ? null : location;
         this.type = type;
         this.routesThatStopHere = routesThatStopHere;
+        this.lat = null;
+        this.lon = null;
     }
 
     /**
@@ -54,6 +60,21 @@ public class Stop implements Comparable<Stop> {
         this.location = null;
         this.type = null;
         this.routesThatStopHere = null;
+        this.lat = null;
+        this.lon = null;
+    }
+
+    /**
+     * Constructor that sets EVERYTHING.
+     */
+    public Stop(@NonNull String ID, @Nullable String name, @Nullable String location, @Nullable Route.Type type, @Nullable List<String> routesThatStopHere, @Nullable Double lat, @Nullable Double lon) {
+        this.ID = ID;
+        this.name = name;
+        this.location = location;
+        this.type = type;
+        this.routesThatStopHere = routesThatStopHere;
+        this.lat = lat;
+        this.lon = lon;
     }
 
     public @Nullable String routesThatStopHereToString() {
@@ -133,5 +154,31 @@ public class Stop implements Comparable<Stop> {
      */
     public final @Nullable String getStopName() {
         return this.name;
+    }
+
+    public final @Nullable String getGeoURL() {
+        if(this.lat == null || this.lon == null) {
+            return null;
+        }
+
+        // Android documentation suggests US for machine readable output (use dot as decimal separator)
+        return String.format(Locale.US, "geo:%f,%f", this.lon, this.lat);
+    }
+
+    public final @Nullable String getGeoURLWithAddress() {
+        String url = getGeoURL();
+
+        if(url == null) {
+            return null;
+        }
+
+        if(this.location != null) {
+            try {
+                String addThis = "?q=".concat(URLEncoder.encode(this.location, "utf-8"));
+                return url.concat(addThis);
+            } catch (Exception ignored) {}
+        }
+
+        return url;
     }
 }

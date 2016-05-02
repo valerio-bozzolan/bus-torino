@@ -23,6 +23,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.io.File;
@@ -35,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import it.reyboz.bustorino.backend.Route;
+import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.StopsDBInterface;
 
 /**
@@ -175,17 +178,17 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
     }
 
     @Override
-    public List<String> getRoutesByStop(String stopID) {
+    public List<String> getRoutesByStop(@NonNull String stopID) {
         String[] uselessArray = {stopID};
         int count;
         Cursor result;
 
-        if(db == null) {
+        if(this.db == null) {
             return null;
         }
 
         try {
-            result = db.rawQuery("SELECT route FROM routemap WHERE stop = ?", uselessArray);
+            result = this.db.rawQuery("SELECT route FROM routemap WHERE stop = ?", uselessArray);
         } catch(SQLiteException e) {
             return null;
         }
@@ -207,18 +210,18 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
     }
 
     @Override
-    public String getNameFromID(String stopID) {
+    public String getNameFromID(@NonNull String stopID) {
         String[] uselessArray = {stopID};
         int count;
         String name;
         Cursor result;
 
-        if(db == null) {
+        if(this.db == null) {
             return null;
         }
 
         try {
-            result = db.rawQuery("SELECT name FROM stops WHERE ID = ?", uselessArray);
+            result = this.db.rawQuery("SELECT name FROM stops WHERE ID = ?", uselessArray);
         } catch(SQLiteException e) {
             return null;
         }
@@ -234,5 +237,54 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
         result.close();
 
         return name;
+    }
+
+    @Override
+    public Stop getAllFromID(@NonNull String stopID) {
+        Cursor result;
+        int count;
+        Stop s;
+
+        if(this.db == null) {
+            return null;
+        }
+
+        try {
+            result = this.db.query("stops", new String[] {"name", "location", "type", "lat", "lon"}, "ID = ?", new String[] {stopID}, null, null, null, "1");
+            int colName = result.getColumnIndex("name");
+            int colLocation = result.getColumnIndex("location");
+            int colType = result.getColumnIndex("type");
+            int colLat = result.getColumnIndex("lat");
+            int colLon = result.getColumnIndex("lat");
+
+            count = result.getCount();
+            if(count == 0) {
+                return null;
+            }
+
+            result.moveToNext();
+
+            Route.Type type;
+            switch(result.getString(colType)) {
+                case "B":
+                default:
+                    type = Route.Type.BUS;
+                    break;
+                case "M":
+                    type = Route.Type.METRO;
+                    break;
+                case "T":
+                    type = Route.Type.RAILWAY;
+                    break;
+            }
+
+            s = new Stop(stopID, result.getString(colName), result.getString(colLocation), type, getRoutesByStop(stopID), result.getDouble(colLat), result.getDouble(colLon));
+        } catch(SQLiteException e) {
+            return null;
+        }
+
+        result.close();
+
+        return s;
     }
 }

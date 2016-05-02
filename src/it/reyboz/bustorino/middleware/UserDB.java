@@ -18,6 +18,7 @@
 
 package it.reyboz.bustorino.middleware;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -29,13 +30,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.backend.StopsDBInterface;
 
 public class UserDB extends SQLiteOpenHelper {
 	public static final int DATABASE_VERSION = 1;
 	private static final String DATABASE_NAME = "user.db";
     private final Context c; // needed during upgrade
     private static String[] usernameColumnNameAsArray = {"username"};
-    private static String[] getFavoritesColumnNamesAsArray = {"ID", "standardname", "username"};
+    private static String[] getFavoritesColumnNamesAsArray = {"ID", "username"};
 
 	public UserDB(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -45,11 +47,11 @@ public class UserDB extends SQLiteOpenHelper {
     @Override
 	public void onCreate(SQLiteDatabase db) {
         // exception intentionally left unhandled
-		db.execSQL("CREATE TABLE favorites (ID TEXT PRIMARY KEY NOT NULL, standardname TEXT, username TEXT)");
+		db.execSQL("CREATE TABLE favorites (ID TEXT PRIMARY KEY NOT NULL, username TEXT)");
 
-        if(OldDB.doesItExist(this.c)) {
-            upgradeFromOldDatabase();
-        }
+        //if(OldDB.doesItExist(this.c)) {
+        upgradeFromOldDatabase();
+        //}
 	}
 
     private void upgradeFromOldDatabase() {
@@ -120,8 +122,12 @@ public class UserDB extends SQLiteOpenHelper {
                 newdb.beginTransaction();
 
                 try {
+                    ContentValues cv;
                     for (int i = 0; i < len; i++) {
-                        newdb.rawQuery("INSERT INTO favorites(ID, standardname, username) VALUES (?, ?, ?)", new String[]{ID.get(i), name.get(i), username.get(i)});
+                        cv = new ContentValues();
+                        cv.put("username", username.get(i));
+                        cv.put("ID", ID.get(i));
+                        newdb.insert("favorites", null, cv);
                     }
                     newdb.setTransactionSuccessful();
                 } finally {
@@ -170,21 +176,31 @@ public class UserDB extends SQLiteOpenHelper {
         return username;
     }
 
-    public static List<Stop> getFavorites(SQLiteDatabase db) {
+    public static List<Stop> getFavorites(SQLiteDatabase db, StopsDBInterface dbi) {
         List<Stop> l = new ArrayList<>();
+        Stop s;
+        String stopID, stopUserName;
 
         try {
             Cursor c = db.query("favorites", getFavoritesColumnNamesAsArray, null, null, null, null, null, null);
             int colID = c.getColumnIndex("ID");
-            int colStandard = c.getColumnIndex("standardname");
             int colUser = c.getColumnIndex("username");
 
-            if(c.moveToNext()) {
-                String name = c.getString(colUser);
-                if(name == null || name.length() <= 0) {
-                    l.add(new Stop(c.getString(colStandard), c.getString(colID), null, null, null));
+            while(c.moveToNext()) {
+                String userName = c.getString(colUser);
+                stopID = c.getString(colID);
+                stopUserName = c.getString(colUser);
+
+                s = dbi.getAllFromID(stopID);
+
+                if(s == null) {
+                    // can't find it in database
+                    l.add(new Stop(userName, stopID, null, null, null));
                 } else {
-                    l.add(new Stop(name, c.getString(colID), null, null, null));
+                    if(stopUserName != null && stopUserName.length() > 0) {
+                        s.setStopName(stopUserName);
+                    }
+                    l.add(s);
                 }
             }
 
@@ -195,21 +211,23 @@ public class UserDB extends SQLiteOpenHelper {
     }
 
     public boolean addOrUpdate(Stop s, SQLiteDatabase db) {
-        String username;
-
-        username = getStopUserName(db, s.ID);
+        ContentValues cv = new ContentValues();
+        long result = -1;
+        cv.put("ID", s.ID);
+        cv.put("username", getStopUserName(db, s.ID));
 
         try {
-            if(username == null) {
-                db.rawQuery("INSERT INTO favorites(ID, standardname, username) VALUES (?, ?, null)", new String[] {s.ID, s.getStopName()}).close();
-            } else {
-                db.rawQuery("INSERT INTO favorites(ID, standardname, username) VALUES (?, ?, ?)", new String[] {s.ID, s.getStopName(), username}).close();
+            result = db.insert("favorites", null, cv);
+        } catch(SQLiteException ignored) {}
+
+        if(result == -1) {
+            try {
+                cv = new ContentValues();
+                db.update("favorites", cv, "ID = ?", new String[]{s.ID});
+            } catch(SQLiteException e) {
+                return false;
             }
-            // UPSERT.
-            // standardname is the only field that could have changed...
-            db.rawQuery("UPDATE favorites SET standardname = ? WHERE ID = ?", new String[]{s.getStopName(), s.ID}).close();
-        } catch(SQLiteException e) {
-            return false;
+            return true;
         }
 
         return true;

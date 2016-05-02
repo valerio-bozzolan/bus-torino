@@ -18,6 +18,9 @@
 
 package it.reyboz.bustorino.backend;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import java.util.List;
 
 /**
@@ -29,16 +32,25 @@ public interface StopsDBInterface {
      * Given a stop ID, get which routes stop there (as strings, there's no sane way to determine their destination\terminus from the database)
      *
      * @param stopID stop ID
-     * @return list of routes or null if none
+     * @return list of routes or null if none (or database closed)
      */
-    List<String> getRoutesByStop(String stopID);
+    @Nullable List<String> getRoutesByStop(@NonNull String stopID);
 
     /**
      * Stop ID goes in, stop name comes out.
      * GTT API doesn't return this useful piece of information, so here we go, get it from the database!
      *
      * @param stopID stop ID, in normalized form
-     * @return stop name or null if not found
+     * @return stop name or null if not found (or database closed)
      */
-    String getNameFromID(String stopID);
+    @Nullable String getNameFromID(@NonNull String stopID);
+
+    /**
+     * SELECT * FROM ...<br>
+     * (No, it doesn't really use *)
+     *
+     * @param stopID stop ID
+     * @return Stop with every available piece of data set or null if not found (or database closed)
+     */
+    @Nullable Stop getAllFromID(@NonNull String stopID);
 }
