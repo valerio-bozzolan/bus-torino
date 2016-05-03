@@ -99,9 +99,7 @@ public class ActivityFavorites extends AppCompatActivity {
 
         switch (item.getItemId()) {
             case R.id.action_favourite_entry_delete:
-                // TODO: implement
-                //busStop.setIsFavorite(false);
-                //UserDB.DBBusStop.addBusStop(db, busStop);
+                UserDB.deleteStop(busStop, this.userDB);
                 createFavoriteList();
                 return true;
             case R.id.action_rename_bus_stop_username:
@@ -236,7 +234,10 @@ public class ActivityFavorites extends AppCompatActivity {
                                     ActivityMain.class);
 
                             Bundle b = new Bundle();
+                            // TODO: is passing a serialized object a good idea? Or rather, is it reasonably fast?
+                            //b.putSerializable("bus-stop-serialized", busStop);
                             b.putString("bus-stop-ID", busStop.ID);
+                            b.putString("bus-stop-display-name", busStop.getStopDisplayName());
                             intent.putExtras(b);
                             //intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             intent.setFlags(Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP);

@@ -208,6 +208,7 @@ public class ActivityMain extends AppCompatActivity {
         boolean tryedFromIntent = false;
 
         String busStopID = null;
+        String busStopDisplayName = null;
         Uri data = getIntent().getData();
         if (data != null) {
             busStopID = getBusStopIDFromUri(data);
@@ -219,6 +220,7 @@ public class ActivityMain extends AppCompatActivity {
             Bundle b = getIntent().getExtras();
             if (b != null) {
                 busStopID = b.getString("bus-stop-ID");
+                busStopDisplayName = b.getString("bus-stop-display-name");
 
                 /**
                  * I'm not very sure if you are coming from an Intent.
@@ -238,12 +240,16 @@ public class ActivityMain extends AppCompatActivity {
             if (tryedFromIntent) {
 
                 // This shows a luser warning
-                // TODO: did I accidentally remove the warning?
                 ArrivalFetchersRecursionHelper.reset();
+                Toast.makeText(getApplicationContext(),
+                        R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT).show();
             }
         } else {
             // If you are here an intent has worked successfully
             setBusStopSearchByIDEditText(busStopID);
+            this.lastSuccessfullySearchedBusStop = new Stop(busStopID);
+            // forcing it as user name even though it could be standard name, it doesn't really matter
+            this.lastSuccessfullySearchedBusStop.setStopUserName(busStopDisplayName);
             new asyncWgetBusStopFromBusStopID(busStopID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
         }
 
@@ -699,7 +705,7 @@ public class ActivityMain extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), R.string.added_in_favorites, Toast.LENGTH_SHORT).show();
             } else {
                 // TODO: error message
-                Toast.makeText(getApplicationContext(), "NON VA, DANNAZIONE!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), R.string.cant_add_to_favorites, Toast.LENGTH_SHORT).show();
             }
         }
     }

@@ -29,6 +29,7 @@
     <string name="action_licence">Licenza</string>
     <string name="action_author">Incontra l\'autore</string>
     <string name="added_in_favorites">Fermata aggiunta ai preferiti</string>
+    <string name="cant_add_to_favorites">Impossibile aggiungere ai preferiti (memoria piena o database corrotto?)!</string>
     <string name="title_activity_favorites">Preferiti</string>
     <string name="tip_add_favorite">Tocca il nome di una fermata per aggiungerla in questa lista</string>
     <string name="action_remove_from_favourites">Rimuovi</string>
@@ -44,7 +45,7 @@
         
         <p>Grazie per aver scelto BusTO, un\'app \"politicamente\" <b>indipendente</b> da GTT/5T, per spostarsi a Torino attraverso <b>software libero</b>:</p>
 		
-		<p>Perchè usare BusTO?</p>
+		<p>Perché usare BusTO?</p>
 		<p>
         - Non sei <b>monitorato</b><br>
         - Non ci sono <b>pubblicità</b><br>
@@ -78,6 +79,6 @@
     <string name="query_too_short">Nome troppo corto, digita più caratteri e riprova</string>
     <string name="route_towards_destination">%1$s verso %2$s</string>
     <string name="route_towards_unknown">%s (destinazione sconosciuta)</string>
-    <string name="internal_error">Errore interno inaspettato che non dovrebbe mai accadere!</string>
+    <string name="internal_error">Errore interno inaspettato, impossibile estrarre dati dal sito GTT\5T</string>
 
 </resources>

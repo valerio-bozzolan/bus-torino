@@ -38,7 +38,7 @@ public abstract class networkTools {
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
         } catch(IOException e) {
-            res.set(Fetcher.result.CLIENT_OFFLINE);
+            res.set(Fetcher.result.SERVER_ERROR);
             return null;
         }
 
@@ -61,11 +61,11 @@ public abstract class networkTools {
         }
 
         if (result == null) {
-            res.set(Fetcher.result.PARSER_ERROR);
+            res.set(Fetcher.result.SERVER_ERROR);
             return null;
         }
 
-        res.set(Fetcher.result.SERVER_ERROR); // will be set to "OK" later, this is a safety net in case StringBuilder returns null, the website returns an HTTP 204 or something like that.
+        res.set(Fetcher.result.PARSER_ERROR); // will be set to "OK" later, this is a safety net in case StringBuilder returns null, the website returns an HTTP 204 or something like that.
         return result.toString();
     }
 
@@ -78,14 +78,14 @@ public abstract class networkTools {
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
         } catch(IOException e) {
-            res.set(Fetcher.result.SERVER_ERROR); // TODO: can we assume this is CLIENT_OFFLINE?
+            res.set(Fetcher.result.SERVER_ERROR); // even when offline, urlConnection works fine. WHY.
             return null;
         }
 
         // TODO: make this configurable?
         urlConnection.setConnectTimeout(5000);
         urlConnection.setReadTimeout(10000);
-        res.set(Fetcher.result.PARSER_ERROR); // will be set to OK later
+        res.set(Fetcher.result.SERVER_ERROR); // will be set to OK later
 
         try {
             in = urlConnection.getInputStream();

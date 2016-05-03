@@ -22,8 +22,7 @@
     <string name="lines">Lines: %1$s</string>
     <string name="no_passages">No passages</string>
     <string name="no_qrcode">No QR code</string>
-    <string name="internal_error">Unexpected internal error that should never happen!</string>
-    <string name="action_favorites">Favorites</string>
+    <string name="internal_error">Unexpected internal error, cannot extract data from GTT\5T website</string>
     <string name="action_help">Help</string>
     <string name="action_about">About</string>
     <string name="action_about_more">More about</string>
@@ -33,6 +32,7 @@
     <string name="action_licence">Licence</string>
     <string name="action_author">Meet the author</string>
     <string name="added_in_favorites">Bus stop is now in your favorites</string>
+    <string name="action_favorites">Favorites</string>
     <string name="title_activity_favorites">Favorites</string>
     <string name="tip_add_favorite">Press on a bus stop name to populate this list</string>
     <string name="action_remove_from_favourites">Delete</string>
@@ -79,4 +79,5 @@
 		<p>Get involved! :)</p>
     ]]>
     </string>
+    <string name="cant_add_to_favorites">Cannot add to favorites (no more space or corrupted database?)!</string>
 </resources>

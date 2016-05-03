@@ -22,8 +22,6 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
-import it.reyboz.bustorino.R;
-
 /**
  * Call this.execute() right after the constructor. Or in the constructor itself, if you're
  * overriding it (also call super() constructor in that case).
@@ -85,7 +83,7 @@ public abstract class AsyncWget<FetcherKind> extends AsyncTask<Void, Integer, Vo
     abstract protected boolean tryFetcher(FetcherKind f);
 
     /**
-     * Shows a toast.
+     * Shows a toast. Or more than one toast.
      *
      * @param toastz resources from R, containing a message
      */

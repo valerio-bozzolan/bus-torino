@@ -232,4 +232,13 @@ public class UserDB extends SQLiteOpenHelper {
             return false;
         }
     }
+
+    public static boolean deleteStop(Stop s, SQLiteDatabase db) {
+        try {
+            db.delete("favorites", "ID = ?", new String[]{s.ID});
+            return true;
+        } catch(SQLiteException e) {
+            return false;
+        }
+    }
 }
