@@ -49,9 +49,9 @@ public class UserDB extends SQLiteOpenHelper {
         // exception intentionally left unhandled
 		db.execSQL("CREATE TABLE favorites (ID TEXT PRIMARY KEY NOT NULL, username TEXT)");
 
-        //if(OldDB.doesItExist(this.c)) {
-        upgradeFromOldDatabase();
-        //}
+        if(OldDB.doesItExist(this.c)) {
+            upgradeFromOldDatabase();
+        }
 	}
 
     private void upgradeFromOldDatabase() {
@@ -69,34 +69,34 @@ public class UserDB extends SQLiteOpenHelper {
          * has crashed midway through the upgrade and the user is retrying, that should never show
          * up here. And if it does, try to recover favorites anyway.
          * Versions < 8 already got dropped during the update process, so let's do the same.
+         *
+         * Update: Android runs getOldVersion() then, after a while, onUpgrade(). Just to make it
+         * more complicated. Workaround in OldDB anyway.
          */
         if(ver >= 8) {
             ArrayList<String> ID = new ArrayList<>();
-            ArrayList<String> name = new ArrayList<>();
             ArrayList<String> username = new ArrayList<>();
             int len;
             int len2;
 
             try {
-                Cursor c = old.getReadableDatabase().rawQuery("SELECT busstop_ID, busstop_name, busstop_username FROM busstop WHERE busstop_isfavorite = 1 ORDER BY busstop_name ASC", new String[] {});
+                Cursor c = old.getReadableDatabase().rawQuery("SELECT busstop_ID, busstop_username FROM busstop WHERE busstop_isfavorite = 1 ORDER BY busstop_name ASC", new String[] {});
 
                 int zero = c.getColumnIndex("busstop_ID");
-                int one = c.getColumnIndex("busstop_name");
-                int two = c.getColumnIndex("busstop_username");
+                int one = c.getColumnIndex("busstop_username");
 
                 while(c.moveToNext()) {
-                    ID.add(c.getString(zero));
-
-                    if(c.getString(one).length() <= 0) {
-                        name.add(null);
-                    } else {
-                        name.add(c.getString(one));
+                    try {
+                        ID.add(c.getString(zero));
+                    } catch(Exception e) {
+                        // no ID = can't add this
+                        continue;
                     }
 
-                    if(c.getString(two).length() <= 0) {
+                    if(c.getString(one) == null || c.getString(one).length() <= 0) {
                         username.add(null);
                     } else {
-                        username.add(c.getString(two));
+                        username.add(c.getString(one));
                     }
                 }
 
@@ -107,10 +107,6 @@ public class UserDB extends SQLiteOpenHelper {
             }
 
             len = ID.size();
-            len2 = name.size();
-            if(len2 < len) {
-                len = len2;
-            }
             len2 = username.size();
             if(len2 < len) {
                 len = len2;
@@ -118,7 +114,7 @@ public class UserDB extends SQLiteOpenHelper {
 
 
             if (len > 0) {
-                SQLiteDatabase newdb = this.getWritableDatabase();
+                SQLiteDatabase newdb = this.getWritableDatabase(); // TODO: this crashes WITHOUT ERROR MESSAGES OF ANY KIND.
                 newdb.beginTransaction();
 
                 try {

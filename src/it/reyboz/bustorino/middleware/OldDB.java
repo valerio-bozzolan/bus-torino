@@ -39,23 +39,29 @@ public class OldDB extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldV, int newV) {
-        // needed to determine what version this database was. Probably 6 or 7.
+        // needed to determine what version this database was. Probably 8.
         this.oldVersion = oldV;
     }
 
     public int getOldVersion() {
         if(this.oldVersion == -1) {
-            return getReadableDatabase().getVersion();
+            int newVersion = getReadableDatabase().getVersion();
+            // getReadableDatabase might call onUpgrade
+            if(this.oldVersion != -1) {
+                return this.oldVersion;
+            } else {
+                return newVersion;
+            }
         } else {
             return this.oldVersion;
         }
     }
 
     public static boolean doesItExist(Context context) {
-        return new File(context.getFilesDir(), DATABASE_NAME_OLD).exists();
+        return context.getDatabasePath(DATABASE_NAME_OLD).exists();
     }
 
     public static boolean destroy(Context context) {
-        return new File(context.getFilesDir(), DATABASE_NAME_OLD).delete();
+        return context.getDatabasePath(DATABASE_NAME_OLD).delete();
     }
 }
