@@ -278,7 +278,7 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
                     break;
             }
 
-            s = new Stop(stopID, result.getString(colName), result.getString(colLocation), type, getRoutesByStop(stopID), result.getDouble(colLat), result.getDouble(colLon));
+            s = new Stop(stopID, result.getString(colName), null, result.getString(colLocation), type, getRoutesByStop(stopID), result.getDouble(colLat), result.getDouble(colLon));
         } catch(SQLiteException e) {
             return null;
         }

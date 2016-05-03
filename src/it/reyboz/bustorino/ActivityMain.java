@@ -554,14 +554,14 @@ public class ActivityMain extends AppCompatActivity {
                             getNameOrGetRekt();
                         } else {
                             // searched and it's the same
-                            String sn = lastSearchedBusStop.getStopName();
+                            String sn = lastSearchedBusStop.getStopDisplayName();
                             if(sn == null) {
                                 // something really bad happened, start from scratch
                                 this.lastSearchedBusStop = null;
                                 getNameOrGetRekt();
                             } else {
                                 // "merge" Stop over Palina and we're good to go
-                                this.p.setStopName(sn);
+                                this.p.mergeNameFrom(lastSearchedBusStop);
                             }
                         }
                     } else {
@@ -579,10 +579,11 @@ public class ActivityMain extends AppCompatActivity {
         private void getNameOrGetRekt() {
             String nameMaybe;
 
+
             // TODO: search favorites, get (user)name if set, set what's needed, return
 
             // does it already have a name (for fetchers that support it)?
-            nameMaybe = this.p.getStopName();
+            nameMaybe = this.p.getStopDisplayName();
             if(nameMaybe != null && nameMaybe.length() > 0) {
                 return;
             }
@@ -627,7 +628,7 @@ public class ActivityMain extends AppCompatActivity {
                 lastSuccessfullySearchedBusStop = this.p;
             }
 
-            String displayName = p.getStopName();
+            String displayName = p.getStopDisplayName();
             String displayStuff;
 
             if (displayName != null && displayName.length() > 0) {
@@ -691,7 +692,7 @@ public class ActivityMain extends AppCompatActivity {
         if(lastSuccessfullySearchedBusStop != null) {
             // TODO: move to background thread
             SQLiteDatabase db = userDB.getWritableDatabase();
-            result = userDB.addOrUpdateStop(lastSuccessfullySearchedBusStop, db);
+            result = UserDB.addOrUpdateStop(lastSuccessfullySearchedBusStop, db);
             db.close();
 
             if(result) {

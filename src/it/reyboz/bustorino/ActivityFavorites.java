@@ -113,14 +113,8 @@ public class ActivityFavorites extends AppCompatActivity {
     }
 
     void createFavoriteList() {
+        // TODO: memoize default list, query only user names every time?
         new AsyncGetFavorites(getApplicationContext(), this.userDB).execute();
-    }
-
-    private class BusStopUsernameOnClickListener implements DialogInterface.OnClickListener {
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-
-        }
     }
 
     public void showBusStopUsernameInputDialog(final Stop busStop) {
@@ -130,26 +124,33 @@ public class ActivityFavorites extends AppCompatActivity {
         View renameDialogLayout = inflater.inflate(R.layout.rename_dialog, null);
 
         bus_stop_name = (EditText) renameDialogLayout.findViewById(R.id.rename_dialog_bus_stop_name);
-        bus_stop_name.setText(busStop.getStopName());
-        bus_stop_name.setHint(busStop.getStopName()); // TODO: store default name somewhere just for this purpose?
+        bus_stop_name.setText(busStop.getStopDisplayName());
+        bus_stop_name.setHint(busStop.getStopDefaultName());
 
         builder.setTitle(getString(R.string.dialog_rename_bus_stop_username_title));
         builder.setView(renameDialogLayout);
-        builder.setPositiveButton(getString(android.R.string.ok), new BusStopUsernameOnClickListener() {
+        builder.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String busStopUsername = bus_stop_name.getText().toString();
-                if (busStopUsername.length() == 0) {
-                    // is this a closure?
-                    // TODO: do something.
-                    busStop.setStopName("DELETED TEST TEST");
-                } else {
-                    busStop.setStopName(busStopUsername);
+                String oldUserName = busStop.getStopUserName();
+
+                // changed to none
+                if(busStopUsername.length() == 0) {
+                    // unless it was already empty, set new
+                    if(oldUserName != null) {
+                        busStop.setStopUserName(null);
+                        UserDB.updateStop(busStop, userDB);
+                        createFavoriteList();
+                    }
+                } else { // changed to something
+                    // something different?
+                    if(oldUserName == null || !busStopUsername.equals(oldUserName)) {
+                        busStop.setStopUserName(busStopUsername);
+                        UserDB.updateStop(busStop, userDB);
+                        createFavoriteList();
+                    }
                 }
-
-                UserDB.updateStop(busStop, userDB);
-
-                createFavoriteList();
             }
         });
         builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -158,11 +159,11 @@ public class ActivityFavorites extends AppCompatActivity {
                 dialog.cancel();
             }
         });
-        builder.setNeutralButton(R.string.dialog_rename_bus_stop_username_reset_button, new BusStopUsernameOnClickListener() {
+        builder.setNeutralButton(R.string.dialog_rename_bus_stop_username_reset_button, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                // TODO: do something.
-                busStop.setStopName("DEFAULT TEST TEST");
+                // delete user name from database
+                busStop.setStopUserName(null);
                 UserDB.updateStop(busStop, userDB);
 
                 createFavoriteList();
@@ -210,6 +211,16 @@ public class ActivityFavorites extends AppCompatActivity {
                 assert favoriteTipTextView != null;
                 favoriteTipTextView.setVisibility(View.VISIBLE);
             }
+
+            /* There's a nice method called notifyDataSetChanged() to avoid building the ListView
+             * all over again. This method exists in a billion answers on Stack Overflow, but
+             * it's nowhere to be seen around here, Android Studio can't find it no matter what.
+             * Anyway, it only works from Android 2.3 onward (which is why it refuses to appear, I
+             * guess) and requires to modify the list with .add() and .clear() and some other
+             * methods, so to update a single stop we need to completely rebuild the list for no
+             * reason. It would probably end up as "slow" as throwing away the old ListView and
+             * redrwaing everything.
+             */
 
             // Show results
             favoriteListView.setAdapter(new StopAdapter(this.c, busStops));

@@ -47,7 +47,8 @@ public interface StopsDBInterface {
 
     /**
      * SELECT * FROM ...<br>
-     * (No, it doesn't really use *)
+     * (No, it doesn't really use *)<br>
+     * Doesn't set user name, since it's not a default information, but stil...
      *
      * @param stopID stop ID
      * @return Stop with every available piece of data set or null if not found (or database closed)

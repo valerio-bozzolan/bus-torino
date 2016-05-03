@@ -187,19 +187,17 @@ public class UserDB extends SQLiteOpenHelper {
             int colUser = c.getColumnIndex("username");
 
             while(c.moveToNext()) {
-                String userName = c.getString(colUser);
-                stopID = c.getString(colID);
                 stopUserName = c.getString(colUser);
+                stopID = c.getString(colID);
 
                 s = dbi.getAllFromID(stopID);
 
                 if(s == null) {
                     // can't find it in database
-                    l.add(new Stop(userName, stopID, null, null, null));
+                    l.add(new Stop(stopUserName, stopID, null, null, null));
                 } else {
-                    if(stopUserName != null && stopUserName.length() > 0) {
-                        s.setStopName(stopUserName);
-                    }
+                    // setStopName() already does sanity checks
+                    s.setStopUserName(stopUserName);
                     l.add(s);
                 }
             }
@@ -227,7 +225,7 @@ public class UserDB extends SQLiteOpenHelper {
     public static boolean updateStop(Stop s, SQLiteDatabase db) {
         try {
             ContentValues cv = new ContentValues();
-            cv.put("username", s.getStopName());
+            cv.put("username", s.getStopUserName());
             db.update("favorites", cv, "ID = ?", new String[]{s.ID});
             return true;
         } catch(SQLiteException e) {

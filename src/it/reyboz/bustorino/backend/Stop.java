@@ -29,6 +29,7 @@ public class Stop implements Comparable<Stop> {
     // remove "final" in case you need to set these from outside the parser\scrapers\fetchers
     public final @NonNull String ID;
     private @Nullable String name;
+    private @Nullable String username;
     public final @Nullable String location;
     public final @Nullable Route.Type type;
     private final @Nullable List<String> routesThatStopHere;
@@ -44,6 +45,7 @@ public class Stop implements Comparable<Stop> {
     public Stop(final @Nullable String name, final @NonNull String ID, @Nullable final String location, @Nullable final Route.Type type, @Nullable final List<String> routesThatStopHere) {
         this.ID = ID;
         this.name = name;
+        this.username = null;
         this.location = (location != null && location.length() == 0) ? null : location;
         this.type = type;
         this.routesThatStopHere = routesThatStopHere;
@@ -57,6 +59,7 @@ public class Stop implements Comparable<Stop> {
     public Stop(final @NonNull String ID) {
         this.ID = ID;
         this.name = null;
+        this.username = null;
         this.location = null;
         this.type = null;
         this.routesThatStopHere = null;
@@ -67,9 +70,10 @@ public class Stop implements Comparable<Stop> {
     /**
      * Constructor that sets EVERYTHING.
      */
-    public Stop(@NonNull String ID, @Nullable String name, @Nullable String location, @Nullable Route.Type type, @Nullable List<String> routesThatStopHere, @Nullable Double lat, @Nullable Double lon) {
+    public Stop(@NonNull String ID, @Nullable String name, @Nullable String userName, @Nullable String location, @Nullable Route.Type type, @Nullable List<String> routesThatStopHere, @Nullable Double lat, @Nullable Double lon) {
         this.ID = ID;
         this.name = name;
+        this.username = userName;
         this.location = location;
         this.type = type;
         this.routesThatStopHere = routesThatStopHere;
@@ -145,15 +149,77 @@ public class Stop implements Comparable<Stop> {
     }
 
     /**
-     * Returns stop name.<br>
+     * Sets user name. Empty string is converted to null.
+     *
+     * @param name a string of non-zero length, or null
+     */
+    public final void setStopUserName(@Nullable String name) {
+        if(name == null) {
+            this.username = null;
+        } else if(name.length() == 0) {
+            this.username = null;
+        } else {
+            this.username = name;
+        }
+    }
+
+    /**
+     * Returns stop name or username (if set).<br>
      * - empty string means "already searched everywhere, can't find it"<br>
      * - null means "didn't search, yet. Maybe you should try."<br>
      * - string means "here's the name.", obviously.<br>
      *
      * @return string if known, null if still unknown
      */
-    public final @Nullable String getStopName() {
+    public final @Nullable String getStopDisplayName() {
+        if(this.username == null) {
+            return this.name;
+        } else {
+            return this.username;
+        }
+    }
+
+    /**
+     * Same as getStopDisplayName, only returns default name.<br>
+     * I'd use an @see tag, but Android Studio is incapable of understanding that getStopDefaultName
+     * refers to the method exactly above this one and not some arcane and esoteric unknown symbol.
+     */
+    public final @Nullable String getStopDefaultName() {
         return this.name;
+    }
+
+    /**
+     * Same as getStopDisplayName, only returns user name.<br>
+     * Also, never and empty string.
+     */
+    public final @Nullable String getStopUserName() {
+        return this.username;
+    }
+
+    /**
+     * Gets username and name from other stop if they exist, sets itself accordingly.
+     *
+     * @param other another Stop
+     * @return did we actually set/change anything?
+     */
+    public final boolean mergeNameFrom(Stop other) {
+        boolean ret = false;
+
+        if(other.name != null) {
+            if(this.name == null || !this.name.equals(other.name)) {
+                this.name = other.name;
+                ret = true;
+            }
+        }
+
+        if(other.username != null) {
+            if(this.username == null || !this.username.equals(other.username)) {
+                this.username = other.username;
+                ret = true;
+            }
+        }
+
+        return ret;
     }
 
     public final @Nullable String getGeoURL() {

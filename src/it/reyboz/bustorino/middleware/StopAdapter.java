@@ -73,7 +73,7 @@ public class StopAdapter extends ArrayAdapter<Stop> {
         vh.busStopIDTextView.setText(stop.ID);
 
         // NOTE: intentionally ignoring stop username: if it's in the favorites, why are you searching for it?
-        vh.busStopNameTextView.setText(stop.getStopName());
+        vh.busStopNameTextView.setText(stop.getStopDisplayName());
 
         String whatStopsHere = stop.routesThatStopHereToString();
         if(whatStopsHere == null) {
