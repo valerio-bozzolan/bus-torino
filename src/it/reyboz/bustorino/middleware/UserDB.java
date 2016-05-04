@@ -27,6 +27,7 @@ import android.content.Context;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import it.reyboz.bustorino.backend.Stop;
@@ -195,6 +196,9 @@ public class UserDB extends SQLiteOpenHelper {
 
             c.close();
         } catch(SQLiteException ignored) {}
+
+        // comparison rules are too complicated to let SQLite do this (e.g. it outputs: 3234, 34, 576, 67, 8222) and stop name is in another database
+        Collections.sort(l);
 
         return l;
     }

@@ -240,6 +240,7 @@ public class ActivityFavorites extends AppCompatActivity {
                             b.putString("bus-stop-display-name", busStop.getStopDisplayName());
                             intent.putExtras(b);
                             //intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            // Intent.FLAG_ACTIVITY_CLEAR_TASK isn't supported in API < 11 and we're targeting API 7...
                             intent.setFlags(Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP);
 
                             startActivity(intent);

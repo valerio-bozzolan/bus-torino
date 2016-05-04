@@ -255,7 +255,7 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
             int colLocation = result.getColumnIndex("location");
             int colType = result.getColumnIndex("type");
             int colLat = result.getColumnIndex("lat");
-            int colLon = result.getColumnIndex("lat");
+            int colLon = result.getColumnIndex("lon");
 
             count = result.getCount();
             if(count == 0) {
@@ -278,7 +278,12 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
                     break;
             }
 
-            s = new Stop(stopID, result.getString(colName), null, result.getString(colLocation), type, getRoutesByStop(stopID), result.getDouble(colLat), result.getDouble(colLon));
+            String locationWhichSometimesIsAnEmptyString = result.getString(colLocation);
+            if(locationWhichSometimesIsAnEmptyString.length() <= 0) {
+                locationWhichSometimesIsAnEmptyString = null;
+            }
+
+            s = new Stop(stopID, result.getString(colName), null, locationWhichSometimesIsAnEmptyString, type, getRoutesByStop(stopID), result.getDouble(colLat), result.getDouble(colLon));
         } catch(SQLiteException e) {
             return null;
         }
