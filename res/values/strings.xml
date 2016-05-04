@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name" translatable="false">BusTO</string>
-    <string name="app_description">You're using the latest in technology when it comes to respecting your privacy.</string>
+    <string name="app_description">You\'re using the latest in technology when it comes to respecting your privacy.</string>
     <string name="search">Search</string>
     <string name="qrcode">Scan QR Code</string>
     <string name="insert_bus_stop_number">Bus stop number</string>

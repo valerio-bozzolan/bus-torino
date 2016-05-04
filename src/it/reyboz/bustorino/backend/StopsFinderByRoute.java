@@ -29,5 +29,5 @@ public interface StopsFinderByRoute extends Fetcher {
      * @return list of stops, in normalized form.
      * @see FiveTNormalizer
      */
-    List<String> FindByRoute(String routeID, AtomicReference<result> res);
+    List<String> FindByRoute(String routeID, StopsDBInterface db, AtomicReference<result> res);
 }

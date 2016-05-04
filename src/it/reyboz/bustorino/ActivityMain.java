@@ -584,17 +584,24 @@ public class ActivityMain extends AppCompatActivity {
          */
         private void getNameOrGetRekt() {
             String nameMaybe;
+            SQLiteDatabase udb = userDB.getReadableDatabase();
 
-
-            // TODO: search favorites, get (user)name if set, set what's needed, return
-
-            // does it already have a name (for fetchers that support it)?
+            // does it already have a name (for fetchers that support it, or already got from favorites)?
             nameMaybe = this.p.getStopDisplayName();
             if(nameMaybe != null && nameMaybe.length() > 0) {
                 return;
             }
 
-            // let's try StopsDB
+            // ok, let's search favorites.
+
+            String usernameMaybe = UserDB.getStopUserName(udb, this.p.ID);
+            if(usernameMaybe != null && usernameMaybe.length() > 0) {
+                this.p.setStopUserName(usernameMaybe);
+                return;
+            }
+
+
+            // let's try StopsDB, then.
 
             StopsDB db = new StopsDB(this.c);
 
@@ -704,7 +711,6 @@ public class ActivityMain extends AppCompatActivity {
             if(result) {
                 Toast.makeText(getApplicationContext(), R.string.added_in_favorites, Toast.LENGTH_SHORT).show();
             } else {
-                // TODO: error message
                 Toast.makeText(getApplicationContext(), R.string.cant_add_to_favorites, Toast.LENGTH_SHORT).show();
             }
         }

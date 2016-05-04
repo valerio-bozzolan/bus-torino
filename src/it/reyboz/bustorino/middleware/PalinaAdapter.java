@@ -76,7 +76,6 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder vh;
 
-        // TODO: determine why this is called twice with null and twice with a convertView, to display 2 rows.
         if(convertView == null) {
             // INFLATE!
             // setting a parent here is not supported and causes a fatal exception, apparently.

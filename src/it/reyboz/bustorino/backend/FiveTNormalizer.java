@@ -195,7 +195,7 @@ public abstract class FiveTNormalizer {
             case "CO1":
                 return "Circolare Collegno";
             case "SE1":
-                // TODO: determine why GTT calls this "SE1" while other absurd names have a human readable name too.
+                // I wonder why GTT calls this "SE1" while other absurd names have a human readable name too.
                 return "1 Settimo";
             case "79":
                 return "Cremagliera Sassi-Superga";
