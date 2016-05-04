@@ -833,7 +833,15 @@ public class ActivityMain extends AppCompatActivity {
      */
     public static String getBusStopIDFromUri(Uri uri) {
         String busStopID;
-        switch (uri.getHost()) {
+
+        // everithing catches fire when passing null to a switch.
+        String host = uri.getHost();
+        if(host == null) {
+            Log.e("ActivityMain", "Not an URL: " + uri);
+            return null;
+        }
+
+        switch(host) {
             case "m.gtt.to.it":
                 // http://m.gtt.to.it/m/it/arrivi.jsp?n=1254
                 busStopID = uri.getQueryParameter("n");
