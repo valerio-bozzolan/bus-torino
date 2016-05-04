@@ -228,7 +228,7 @@ public class Stop implements Comparable<Stop> {
         }
 
         // Android documentation suggests US for machine readable output (use dot as decimal separator)
-        return String.format(Locale.US, "geo:%f,%f", this.lon, this.lat);
+        return String.format(Locale.US, "geo:%f,%f", this.lat, this.lon);
     }
 
     public final @Nullable String getGeoURLWithAddress() {

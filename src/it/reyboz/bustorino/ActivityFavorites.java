@@ -25,6 +25,7 @@ import it.reyboz.bustorino.middleware.UserDB;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
@@ -104,6 +105,11 @@ public class ActivityFavorites extends AppCompatActivity {
                 return true;
             case R.id.action_rename_bus_stop_username:
                 showBusStopUsernameInputDialog(busStop);
+                return true;
+            case R.id.action_view_on_map:
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(busStop.getGeoURL()));
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
                 return true;
             default:
                 return super.onContextItemSelected(item);

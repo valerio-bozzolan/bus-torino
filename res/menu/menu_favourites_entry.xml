@@ -7,4 +7,7 @@
     <item
         android:id="@+id/action_rename_bus_stop_username"
         android:title="@string/action_rename_bus_stop_username"/>
+    <item
+        android:id="@+id/action_view_on_map"
+        android:title="@string/action_view_on_map"/>
 </menu>

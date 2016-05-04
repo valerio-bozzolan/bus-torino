@@ -78,5 +78,6 @@
     <string name="route_towards_destination">%1$s verso %2$s</string>
     <string name="route_towards_unknown">%s (destinazione sconosciuta)</string>
     <string name="internal_error">Errore interno inaspettato, impossibile estrarre dati dal sito GTT/5T</string>
+    <string name="action_view_on_map">Visualizza sulla mappa</string>
 
 </resources>

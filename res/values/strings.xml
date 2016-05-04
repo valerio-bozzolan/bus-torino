@@ -78,4 +78,5 @@
     ]]>
     </string>
     <string name="cant_add_to_favorites">Cannot add to favorites (storage full or corrupted database?)!</string>
+    <string name="action_view_on_map">View on a map</string>
 </resources>
