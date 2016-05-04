@@ -35,6 +35,7 @@ import it.reyboz.bustorino.backend.StopsDBInterface;
 public class UserDB extends SQLiteOpenHelper {
 	public static final int DATABASE_VERSION = 1;
 	private static final String DATABASE_NAME = "user.db";
+    private static final String TABLE_NAME = "favorites";
     private final Context c; // needed during upgrade
     private static String[] usernameColumnNameAsArray = {"username"};
     private static String[] getFavoritesColumnNamesAsArray = {"ID", "username"};
@@ -50,11 +51,11 @@ public class UserDB extends SQLiteOpenHelper {
 		db.execSQL("CREATE TABLE favorites (ID TEXT PRIMARY KEY NOT NULL, username TEXT)");
 
         if(OldDB.doesItExist(this.c)) {
-            upgradeFromOldDatabase();
+            upgradeFromOldDatabase(db);
         }
 	}
 
-    private void upgradeFromOldDatabase() {
+    private void upgradeFromOldDatabase(SQLiteDatabase newdb) {
         OldDB old;
         try {
             old = new OldDB(this.c);
@@ -70,8 +71,8 @@ public class UserDB extends SQLiteOpenHelper {
          * up here. And if it does, try to recover favorites anyway.
          * Versions < 8 already got dropped during the update process, so let's do the same.
          *
-         * Update: Android runs getOldVersion() then, after a while, onUpgrade(). Just to make it
-         * more complicated. Workaround in OldDB anyway.
+         * Edit: Android runs getOldVersion() then, after a while, onUpgrade(). Just to make it
+         * more complicated. Workaround added in OldDB.
          */
         if(ver >= 8) {
             ArrayList<String> ID = new ArrayList<>();
@@ -114,16 +115,16 @@ public class UserDB extends SQLiteOpenHelper {
 
 
             if (len > 0) {
-                SQLiteDatabase newdb = this.getWritableDatabase(); // TODO: this crashes WITHOUT ERROR MESSAGES OF ANY KIND.
                 newdb.beginTransaction();
 
                 try {
                     ContentValues cv;
+                    cv = new ContentValues();
                     for (int i = 0; i < len; i++) {
-                        cv = new ContentValues();
+                        cv.clear();
                         cv.put("username", username.get(i));
                         cv.put("ID", ID.get(i));
-                        newdb.insert("favorites", null, cv);
+                        newdb.insert(TABLE_NAME, null, cv);
                     }
                     newdb.setTransactionSuccessful();
                 } finally {
@@ -161,7 +162,7 @@ public class UserDB extends SQLiteOpenHelper {
         String username = null;
 
         try {
-            Cursor c = db.query("favorites", usernameColumnNameAsArray, "ID = ?", new String[] {stopID}, null, null, null, null);
+            Cursor c = db.query(TABLE_NAME, usernameColumnNameAsArray, "ID = ?", new String[] {stopID}, null, null, null, null);
 
             if(c.moveToNext()) {
                 username = c.getString(c.getColumnIndex("username"));
@@ -178,7 +179,7 @@ public class UserDB extends SQLiteOpenHelper {
         String stopID, stopUserName;
 
         try {
-            Cursor c = db.query("favorites", getFavoritesColumnNamesAsArray, null, null, null, null, null, null);
+            Cursor c = db.query(TABLE_NAME, getFavoritesColumnNamesAsArray, null, null, null, null, null, null);
             int colID = c.getColumnIndex("ID");
             int colUser = c.getColumnIndex("username");
 
@@ -211,7 +212,7 @@ public class UserDB extends SQLiteOpenHelper {
         cv.put("username", getStopUserName(db, s.ID));
 
         try {
-            result = db.insert("favorites", null, cv);
+            result = db.insert(TABLE_NAME, null, cv);
         } catch (SQLiteException ignored) {}
 
         // Android Studio suggested this unreadable replacement: return true if insert succeeded (!= -1), or try to update and return
@@ -222,7 +223,7 @@ public class UserDB extends SQLiteOpenHelper {
         try {
             ContentValues cv = new ContentValues();
             cv.put("username", s.getStopUserName());
-            db.update("favorites", cv, "ID = ?", new String[]{s.ID});
+            db.update(TABLE_NAME, cv, "ID = ?", new String[]{s.ID});
             return true;
         } catch(SQLiteException e) {
             return false;
@@ -231,7 +232,7 @@ public class UserDB extends SQLiteOpenHelper {
 
     public static boolean deleteStop(Stop s, SQLiteDatabase db) {
         try {
-            db.delete("favorites", "ID = ?", new String[]{s.ID});
+            db.delete(TABLE_NAME, "ID = ?", new String[]{s.ID});
             return true;
         } catch(SQLiteException e) {
             return false;
