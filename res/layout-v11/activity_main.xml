@@ -112,7 +112,7 @@
         android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:gravity="center_vertical"
-        android:onClick="addInFavorites"
+        android:onClick="addToFavorites"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:visibility="gone" />
 

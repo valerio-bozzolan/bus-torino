@@ -24,6 +24,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -700,18 +701,36 @@ public class ActivityMain extends AppCompatActivity {
         return networkInfo != null && networkInfo.isConnected();
     }
 
-    public void addInFavorites(View v) {
-        boolean result;
+    public void addToFavorites(View v) {
         if(lastSuccessfullySearchedBusStop != null) {
-            // TODO: move to background thread
+            new AsyncAddToFavorites(this).execute();
+        }
+    }
+
+    private class AsyncAddToFavorites extends AsyncTask<Void, Void, Boolean> {
+        Context c;
+
+        public AsyncAddToFavorites(Context c) {
+            this.c = c;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
             SQLiteDatabase db = userDB.getWritableDatabase();
-            result = UserDB.addOrUpdateStop(lastSuccessfullySearchedBusStop, db);
+            Boolean result = UserDB.addOrUpdateStop(lastSuccessfullySearchedBusStop, db);
             db.close();
 
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
+
             if(result) {
-                Toast.makeText(getApplicationContext(), R.string.added_in_favorites, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this.c, R.string.added_in_favorites, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(getApplicationContext(), R.string.cant_add_to_favorites, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this.c, R.string.cant_add_to_favorites, Toast.LENGTH_SHORT).show();
             }
         }
     }
