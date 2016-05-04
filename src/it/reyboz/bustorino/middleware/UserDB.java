@@ -115,23 +115,17 @@ public class UserDB extends SQLiteOpenHelper {
 
 
             if (len > 0) {
-                newdb.beginTransaction();
 
                 try {
-                    ContentValues cv;
-                    cv = new ContentValues();
+                    Stop stopStopStopStopStop;
                     for (int i = 0; i < len; i++) {
-                        cv.clear();
-                        cv.put("username", username.get(i));
-                        cv.put("ID", ID.get(i));
-                        newdb.insert(TABLE_NAME, null, cv);
+                        stopStopStopStopStop = new Stop(ID.get(i));
+                        stopStopStopStopStop.setStopUserName(username.get(i));
+                        addOrUpdateStop(stopStopStopStopStop, newdb);
                     }
-                    newdb.setTransactionSuccessful();
-                } finally {
-                    newdb.endTransaction();
+                } catch(Exception ignored) {
+                    // partial data is better than no data at all, no transactions here
                 }
-
-                newdb.close();
             }
         }
 
@@ -208,8 +202,17 @@ public class UserDB extends SQLiteOpenHelper {
     public static boolean addOrUpdateStop(Stop s, SQLiteDatabase db) {
         ContentValues cv = new ContentValues();
         long result = -1;
+        String un = s.getStopUserName();
+
         cv.put("ID", s.ID);
-        cv.put("username", getStopUserName(db, s.ID));
+        // is there an username?
+        if(un == null) {
+            // no: see if it's in the database
+            cv.put("username", getStopUserName(db, s.ID));
+        } else {
+            // yes: use it
+            cv.put("username", un);
+        }
 
         try {
             result = db.insert(TABLE_NAME, null, cv);

@@ -190,7 +190,7 @@ public class Stop implements Comparable<Stop> {
 
     /**
      * Same as getStopDisplayName, only returns user name.<br>
-     * Also, never and empty string.
+     * Also, never an empty string.
      */
     public final @Nullable String getStopUserName() {
         return this.username;
