@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name" translatable="false">BusTO</string>
-    <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string><!-- TODO: translate this -->
+    <string name="app_description">You're using the latest in technology when it comes to respecting your privacy.</string>
     <string name="search">Search</string>
     <string name="qrcode">Scan QR Code</string>
     <string name="insert_bus_stop_number">Bus stop number</string>
@@ -11,16 +11,14 @@
     <string name="insert_bus_stop_name_error">Insert bus stop name</string>
     <string name="route_towards_destination">%1$s towards %2$s</string>
     <string name="route_towards_unknown">%s (unknown destination)</string>
-    <string name="encoding_error">Sorry but you are using not allowed characters</string>
-    <string name="network_error">Verify the state of your Internet connection!</string>
-    <string name="no_arrival_times">No bus is supposed to arrive at this stop</string>
+    <string name="network_error">Verify your Internet connection!</string>
     <string name="no_bus_stop_have_this_name">Seems that no bus stop have this name</string>
     <string name="parsing_error">Error parsing the 5T/GTT website (damn site!)</string>
     <string name="query_too_short">Name too short, type more characters and retry</string> <!-- TODO: carry out experiments to determine the best wording for this message and publish a paper with the findings -->
     <string name="passages">Arrivals at: %1$s</string>
     <string name="results">Choose the bus stop…</string>
     <string name="lines">Lines: %1$s</string>
-    <string name="no_passages">No passages</string>
+    <string name="no_passages">No timetable found</string>
     <string name="no_qrcode">No QR code</string>
     <string name="internal_error">Unexpected internal error, cannot extract data from GTT/5T website</string>
     <string name="action_help">Help</string>
@@ -40,7 +38,7 @@
     <string name="dialog_rename_bus_stop_username_title">Rename the bus stop</string>
     <string name="dialog_rename_bus_stop_username_reset_button">Reset</string>
     <string name="about">About</string>
-    <string name="howDoesItWork"><b>Tap the bus stop name</b> to add it to the favourites\n\n<b>How to read timelines:</b>\n<b>&#160;&#160;&#160;12:56*</b> Real time arrival\n<b>&#160;&#160;&#160;12:56</b> &#160; Scheduled time of arrival\n\n<b>Pull down to refresh</b> the timetable</string>
+    <string name="howDoesItWork"><b>Tap the bus stop name</b> to add it to the favourites\n\n<b>How to read timelines:</b>\n<b>&#160;&#160;&#160;12:56*</b> Real-time arrivals\n<b>&#160;&#160;&#160;12:56</b> &#160; Scheduled arrivals\n\n<b>Pull down to refresh</b> the timetable</string>
     <string name="hint_button">GOT IT!</string>
     <string name="about_history">
 <![CDATA[
@@ -48,7 +46,7 @@
 
         <p>Thanks for using BusTO, a "politically" <b>independent</b> app useful to move around Torino using a <b>Free/Libre software</b>.</p>
 
-        <p>Why using this app?</p>
+        <p>Why use this app?</p>
 		<p>
         - You\'ll never be <b>tracked</b><br>
         - You\'ll never see boring <b>ads</b><br>
@@ -57,7 +55,7 @@
         </p>
 
         <h2>How does it work?</h2>
-        <p>This app will show you the timetable of the buses using the information published on the site <b>www.5t.torino.it</b>.</p>
+        <p>This app will show you bus timetables gathering data from <b>www.gtt.to.it</b> or <b>www.5t.torino.it</b> "for personal use".</p>
 
 		<p>Who worked on BusTO:<br>
 		- <b>Valerio Bozzolan</b> main developer.<br>
@@ -79,5 +77,5 @@
 		<p>Get involved! :)</p>
     ]]>
     </string>
-    <string name="cant_add_to_favorites">Cannot add to favorites (no more space or corrupted database?)!</string>
+    <string name="cant_add_to_favorites">Cannot add to favorites (storage full or corrupted database?)!</string>
 </resources>

@@ -9,9 +9,7 @@
     <string name="insert_bus_stop_name">Nome fermata</string>
     <string name="insert_bus_stop_number_error">Inserisci il numero della fermata</string>
     <string name="insert_bus_stop_name_error">Inserisci il nome della fermata</string>
-    <string name="encoding_error">Alcuni caratteri non sono stati riconosciuti</string>
     <string name="network_error">Verifica l\'accesso ad Internet!</string>
-    <string name="no_arrival_times">Nessun arrivo previsto per questa fermata</string>
     <string name="no_bus_stop_have_this_name">Sembra che nessuna fermata abbia questo nome</string>
     <string name="parsing_error">Errore di lettura del sito 5T/GTT (dannato sito!)</string>
     <string name="passages">Fermata: %1$s</string>
@@ -54,7 +52,7 @@
         </p>
 
         <h2>Come Funziona?</h2>
-        <p>Quest\'app ottiene i passaggi dei bus in tempo reale filtrando i dati forniti pubblicamente sul sito <i>www.5t.torino.it</i> «per uso personale».</p>
+        <p>Quest\'app ottiene i passaggi dei bus in tempo reale filtrando i dati forniti pubblicamente sul sito <b>www.gtt.to.it</b> o <i>www.5t.torino.it</i> "per uso personale".</p>
 
 		<p>Ingredienti:<br>
 		- <b>Valerio Bozzolan</b> sviluppatore principale.<br>
