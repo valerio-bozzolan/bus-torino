@@ -10,8 +10,7 @@ buildscript {
 apply plugin: 'com.android.application'
 android {
     compileSdkVersion 23
-    // DO NOT UPDATE TO 23.0.3, it blows up for no goddamn reason claiming "aidl is missing".
-    buildToolsVersion '23.0.2'
+    buildToolsVersion '23.0.3'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
