@@ -223,6 +223,8 @@ public abstract class FiveTNormalizer {
                 return "Star 1";
             case "ST2":
                 return "Star 2";
+            case "4N":
+                return "4 Navetta";
             case "10N":
                 return "10 navetta";
             case "35N":
