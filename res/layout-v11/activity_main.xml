@@ -96,42 +96,20 @@
         android:visibility="gone" />
 
     <TextView
-        android:id="@+id/busStopNameTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="48dip"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/searchButton"
-        android:layout_marginEnd="16dp"
-        android:layout_marginLeft="16dip"
-        android:layout_marginRight="16dp"
-        android:layout_marginStart="16dip"
-        android:layout_marginTop="10dp"
-        android:background="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:gravity="center_vertical"
-        android:onClick="addToFavorites"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/howDoesItWorkTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/busStopNameTextView"
-        android:layout_marginBottom="10dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginLeft="16dip"
-        android:layout_marginRight="16dp"
-        android:layout_marginStart="16dip"
-        android:layout_toLeftOf="@+id/hideHintButton"
-        android:layout_toStartOf="@+id/hideHintButton"
-        android:text="@string/howDoesItWork"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="@color/blue_500"
-        android:visibility="gone" />
+            android:id="@+id/howDoesItWorkTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginLeft="16dip"
+            android:layout_marginRight="16dp"
+            android:layout_marginStart="16dip"
+            android:layout_toLeftOf="@+id/hideHintButton"
+            android:layout_toStartOf="@+id/hideHintButton"
+            android:text="@string/howDoesItWork"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/blue_500"
+            android:visibility="gone" android:layout_below="@+id/searchButton"/>
 
     <Button
         android:id="@+id/hideHintButton"
@@ -151,7 +129,7 @@
         android:visibility="gone" />
 
     <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/swipeRefreshLayout"
+        android:id="@+id/listRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentEnd="true"
@@ -160,31 +138,27 @@
         android:animateLayoutChanges="true"
         android:visibility="gone">
 
-        <ListView
-            android:id="@+id/resultsListView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true"
-            android:descendantFocusability="blocksDescendants"
-            android:visibility="gone" />
-
+        <FrameLayout
+                android:layout_width="match_parent"
+                android:id="@+id/resultFrame"
+                android:layout_height="fill_parent"
+                android:layout_alignParentLeft="true" android:layout_alignParentStart="true"/>
     </android.support.v4.widget.SwipeRefreshLayout>
 
     <com.melnykov.fab.FloatingActionButton
-        android:id="@+id/floatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:onClick="onToggleKeyboardLayout"
-        android:src="@drawable/alphabetical"
-        fab:fab_colorNormal="@color/teal_500"
-        fab:fab_colorPressed="@color/teal_300"
-        fab:fab_colorRipple="@color/teal_300"
-        fab:fab_shadow="true"
-        fab:fab_type="normal" />
-
+            android:id="@+id/floatingActionButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="16dp"
+            android:onClick="onToggleKeyboardLayout"
+            android:src="@drawable/alphabetical"
+            fab:fab_colorNormal="@color/teal_500"
+            fab:fab_colorPressed="@color/teal_300"
+            fab:fab_colorRipple="@color/teal_300"
+            fab:fab_shadow="true"
+            fab:fab_type="normal" />
 </RelativeLayout>

@@ -2,7 +2,8 @@
 <resources>
 
     <string name="app_name" translatable="false">BusTO</string>
-    <string name="app_description">You\'re using the latest in technology when it comes to respecting your privacy.</string>
+    <string name="app_description">You\'re using the latest in technology when it comes to respecting your privacy.
+    </string>
     <string name="search">Search</string>
     <string name="qrcode">Scan QR Code</string>
     <string name="insert_bus_stop_number">Bus stop number</string>
@@ -14,7 +15,8 @@
     <string name="network_error">Verify your Internet connection!</string>
     <string name="no_bus_stop_have_this_name">Seems that no bus stop have this name</string>
     <string name="parsing_error">Error parsing the 5T/GTT website (damn site!)</string>
-    <string name="query_too_short">Name too short, type more characters and retry</string> <!-- TODO: carry out experiments to determine the best wording for this message and publish a paper with the findings -->
+    <string name="query_too_short">Name too short, type more characters and retry
+    </string> <!-- TODO: carry out experiments to determine the best wording for this message and publish a paper with the findings -->
     <string name="passages">Arrivals at: %1$s</string>
     <string name="results">Choose the bus stop…</string>
     <string name="lines">Lines: %1$s</string>
@@ -38,10 +40,14 @@
     <string name="dialog_rename_bus_stop_username_title">Rename the bus stop</string>
     <string name="dialog_rename_bus_stop_username_reset_button">Reset</string>
     <string name="about">About</string>
-    <string name="howDoesItWork"><b>Tap the bus stop name</b> to add it to the favourites\n\n<b>How to read timelines:</b>\n<b>&#160;&#160;&#160;12:56*</b> Real-time arrivals\n<b>&#160;&#160;&#160;12:56</b> &#160; Scheduled arrivals\n\n<b>Pull down to refresh</b> the timetable</string>
+    <string name="howDoesItWork">
+        <b>Tap the bus stop name</b>
+        to add it to the favourites\n\n<b>How to read timelines:</b>\n<b>&#160;&#160;&#160;12:56*</b> Real-time
+        arrivals\n<b>&#160;&#160;&#160;12:56</b> &#160; Scheduled arrivals\n\n<b>Pull down to refresh</b> the timetable
+    </string>
     <string name="hint_button">GOT IT!</string>
     <string name="about_history">
-<![CDATA[
+        <![CDATA[
         <h1>Welcome!</h1>
 
         <p>Thanks for using BusTO, a "politically" <b>independent</b> app useful to move around Torino using a <b>Free/Libre software</b>.</p>
@@ -79,4 +85,6 @@
     </string>
     <string name="cant_add_to_favorites">Cannot add to favorites (storage full or corrupted database?)!</string>
     <string name="action_view_on_map">View on a map</string>
+
+    <string name="list_fragment_debug" translatable="false">ListFragment - BusTO</string>
 </resources>
