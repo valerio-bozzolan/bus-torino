@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class Stop implements Comparable<Stop> {
+
+
     // remove "final" in case you need to set these from outside the parser\scrapers\fetchers
     public final @NonNull String ID;
     private @Nullable String name;

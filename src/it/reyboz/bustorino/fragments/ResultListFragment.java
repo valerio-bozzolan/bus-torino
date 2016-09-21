@@ -21,7 +21,6 @@ package it.reyboz.bustorino.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
@@ -37,7 +36,6 @@ import it.reyboz.bustorino.backend.FiveTNormalizer;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.middleware.AsyncAddToFavorites;
-import it.reyboz.bustorino.middleware.UserDB;
 
 /**
  *  This is a generalized fragment that can be used both for
@@ -50,11 +48,11 @@ public class ResultListFragment extends Fragment {
     public static final String TYPE_LINES ="lines";
     public static final String TYPE_STOPS = "fermate";
 
-    private static final String VIEW_TEXT="textview";
+    private static final String MESSAGE_TEXT_VIEW ="message_text_view";
     private String adapterType;
 
 
-    private OnFragmentInteractionListener mListener;
+    private ResultFragmentListener mListener;
     private TextView messageTextView;
 
     FloatingActionButton fabutton;
@@ -106,7 +104,7 @@ public class ResultListFragment extends Fragment {
 
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    /**
+                    /*
                      * Casting because of Javamerda
                      * @url http://stackoverflow.com/questions/30549485/androids-list-view-parameterized-type-in-adapterview-onitemclicklistener
                      */
@@ -134,29 +132,24 @@ public class ResultListFragment extends Fragment {
                         }
                     }
                 });
+            String  probablemessage = getArguments().getString(MESSAGE_TEXT_VIEW);
+            if(probablemessage!=null) {
+                //Log.d("BusTO fragment " + this.getTag(), "We have a possible message here in the savedInstaceState: " + probablemessage);
+                messageTextView.setText(probablemessage);
+                messageTextView.setVisibility(View.VISIBLE);
+            }
+            fabutton.attachToListView(resultsListView);
+
         } else
             Log.d(getString(R.string.list_fragment_debug), "No content root for fragment");
         return root;
     }
 
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        if(savedInstanceState!=null){
-            messageTextView.setText(savedInstanceState.getCharSequence(VIEW_TEXT));
-        }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putCharSequence(VIEW_TEXT,messageTextView.getText());
-    }
 
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(getString(R.string.list_fragment_debug),"Fragment restored, saved listAdapter is "+(mListAdapter));
+        //Log.d(getString(R.string.list_fragment_debug),"Fragment restored, saved listAdapter is "+(mListAdapter));
         if(mListAdapter!=null){
 
             ListAdapter adapter = mListAdapter;
@@ -166,14 +159,24 @@ public class ResultListFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        if(adapterType.equals(TYPE_LINES)) {
+            SwipeRefreshLayout reflay = (SwipeRefreshLayout) getActivity().findViewById(R.id.listRefreshLayout);
+            reflay.setEnabled(false);
+            Log.d("BusTO Fragment " + this.getTag(), "RefreshLayout disabled");
+        }
+        super.onPause();
+    }
+
+    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+        if (context instanceof ResultFragmentListener) {
+            mListener = (ResultFragmentListener) context;
             fabutton = (FloatingActionButton) getActivity().findViewById(R.id.floatingActionButton);
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement ResultFragmentListener");
         }
     }
 
@@ -190,6 +193,7 @@ public class ResultListFragment extends Fragment {
     public void onDestroyView() {
         resultsListView = null;
         //Log.d(getString(R.string.list_fragment_debug), "called onDestroyView");
+        getArguments().putString(MESSAGE_TEXT_VIEW, messageTextView.getText().toString());
         super.onDestroyView();
     }
 
@@ -241,7 +245,7 @@ public class ResultListFragment extends Fragment {
      * This interface is useful for communicating with the activity
      * The name has been automatically generated (do not blame me)
      */
-    public interface OnFragmentInteractionListener {
+    public interface ResultFragmentListener {
         /**
          * Houston, we need another fragment!
          * @param ID the Stop ID
@@ -272,7 +276,7 @@ public class ResultListFragment extends Fragment {
                 enable = firstItemVisible && topOfFirstItemVisible;
             }
             refreshLayout.setEnabled(enable);
-            //Log.d(getString(R.string.list_fragment_debug),"onScroll active, first item visible: "+firstVisibleItem+", refreshlayout enabled: "+enable);
+            Log.d(getString(R.string.list_fragment_debug),"onScroll active, first item visible: "+firstVisibleItem+", refreshlayout enabled: "+enable);
         }
     }
 }

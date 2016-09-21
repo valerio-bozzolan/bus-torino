@@ -28,6 +28,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NavUtils;
@@ -61,7 +62,7 @@ import it.reyboz.bustorino.backend.StopsFinderByName;
 import it.reyboz.bustorino.fragments.ResultListFragment;
 import it.reyboz.bustorino.middleware.*;
 
-public class ActivityMain extends AppCompatActivity implements ResultListFragment.OnFragmentInteractionListener{
+public class ActivityMain extends AppCompatActivity implements ResultListFragment.ResultFragmentListener {
 
     /*
      * Layout elements
@@ -514,6 +515,7 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
         private AtomicReference<Fetcher.result> res;
         private Palina p;
         String fragmentTag;
+        boolean sameBusStopAsBefore = false;
         /**
          * Begins its life as a copy of lastSuccessfullySearchedBusStop, ends as null if it needs
          * replacing or stays the same if it stayed the same
@@ -535,7 +537,6 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
                 toggleSpinner(false);
             } else {
                 //In case the query works, the fragment tag is the stop ID
-                fragmentTag = stopID;
                 this.execute();
             }
 
@@ -571,7 +572,7 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
 
                     // did we search for anything?
                     if(this.lastSearchedBusStop != null) {
-                        // check if we have the same stop
+                        // check that we don't have the same stop
                         if(!this.lastSearchedBusStop.ID.equals(p.ID)) {
                             // remove it, get new name
                             this.lastSearchedBusStop = null;
@@ -638,6 +639,8 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
 
         @Override
         protected void onPostExecute(Void useless) {
+
+            boolean refreshing = false;
             // something really bad happened
             if(this.isCancelled() || !this.terminated || this.p == null) {
                 toggleSpinner(false);
@@ -652,20 +655,38 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
                 return;
             }
 
-            hideKeyboard();
 
-            //DO THE FRAGMENT TRANSACTION
-            FragmentTransaction transaction = framan.beginTransaction();
-            ResultListFragment listfragment = ResultListFragment.newInstance(ResultListFragment.TYPE_LINES);
-            transaction.replace(R.id.resultFrame,listfragment, fragmentTag);
-            transaction.addToBackStack(fragmentTag);
-            transaction.commit();
-            //Apparently, the fragment creation is asynchronous, but we need the fragment, NOW!
-            framan.executePendingTransactions();
+            hideKeyboard();
+            ResultListFragment listFragment;
+            //Detect if we need to update the data rather than create a new fragment for a new stop
+            if(swipeRefreshLayout.isRefreshing())
+                refreshing=true;
+            else if(framan.findFragmentById(R.id.resultFrame) instanceof ResultListFragment) {
+                listFragment = (ResultListFragment) framan.findFragmentById(R.id.resultFrame);
+                if (listFragment.getResultsListView().getAdapter() instanceof PalinaAdapter && listFragment.getTag().equals(p.ID))
+                    refreshing = true;
+            } else refreshing = false;
+
 
             if(this.lastSearchedBusStop == null) {
                 // did we gather any new information about this Stop? Then update it (casting from Palina)
                 lastSuccessfullySearchedBusStop = this.p;
+            }
+
+
+            fragmentTag = p.ID;
+            //DO THE FRAGMENT TRANSACTION
+            if(!refreshing) {
+                FragmentTransaction transaction = framan.beginTransaction();
+                listFragment = ResultListFragment.newInstance(ResultListFragment.TYPE_LINES);
+                transaction.replace(R.id.resultFrame, listFragment, fragmentTag);
+                transaction.addToBackStack(fragmentTag);
+                transaction.commit();
+                //Apparently, the fragment creation is asynchronous, but we need the fragment, NOW!
+                framan.executePendingTransactions();
+            } else {
+                Log.d("BusTO", "Same bus stop, accessing existing fragment");
+                listFragment = (ResultListFragment) framan.findFragmentByTag(fragmentTag);
             }
 
             String displayName = p.getStopDisplayName();
@@ -676,9 +697,8 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
             } else {
                 displayStuff = p.ID;
             }
-            listfragment.setTextViewMessage(String.format(
+            listFragment.setTextViewMessage(String.format(
                     getString(R.string.passages), displayStuff));
-
             // Shows hints
             if (getOption(OPTION_SHOW_LEGEND, true)) {
                 showHints();
@@ -688,8 +708,9 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
 
             prepareGUIForBusLines();
 
-            listfragment.setListAdapter(new PalinaAdapter(this.c, p));
-            listfragment.attachFABToListView();
+            listFragment.setListAdapter(new PalinaAdapter(this.c, p));
+            if(!sameBusStopAsBefore)
+            listFragment.attachFABToListView();
 
             toggleSpinner(false);
         }
