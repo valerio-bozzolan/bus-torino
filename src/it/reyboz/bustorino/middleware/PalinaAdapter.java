@@ -99,6 +99,8 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
         if(route.destinazione.length() == 0) {
             vh.rowRouteDestination.setVisibility(View.GONE);
         } else {
+            // View Holder Pattern(R) renders each element from a previous one: if the other one had an invisible rowRouteDestination, we need to make it visible.
+            vh.rowRouteDestination.setVisibility(View.VISIBLE);
             vh.rowRouteDestination.setText(route.destinazione);
         }
 

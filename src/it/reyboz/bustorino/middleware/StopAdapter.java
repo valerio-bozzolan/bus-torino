@@ -80,6 +80,7 @@ public class StopAdapter extends ArrayAdapter<Stop> {
             vh.busStopLinesTextView.setVisibility(View.GONE);
         } else {
             vh.busStopLinesTextView.setText(whatStopsHere);
+            vh.busStopLinesTextView.setVisibility(View.VISIBLE); // might be GONE due to View Holder Pattern
         }
 
         if(stop.type == null) {
@@ -107,6 +108,7 @@ public class StopAdapter extends ArrayAdapter<Stop> {
             vh.busStopLocaLityTextView.setVisibility(View.GONE);
         } else {
             vh.busStopLocaLityTextView.setText(stop.location);
+            vh.busStopLocaLityTextView.setVisibility(View.VISIBLE); // might be GONE due to View Holder Pattern
         }
 
         return convertView;
