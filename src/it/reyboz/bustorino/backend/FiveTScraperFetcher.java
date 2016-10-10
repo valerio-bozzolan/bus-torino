@@ -73,7 +73,13 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
 
         Document doc = Jsoup.parse(responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas);
 
+        // Tried in rete Edisu (it does Man In The Middle... asd)
         Element span = doc.select("span").first();
+        if(span == null) {
+            res.set(result.SERVER_ERROR);
+            return p;
+        }
+
         String busStopID = grep("^(.+)&nbsp;", span.html());
         if (busStopID == null) {
             //Log.e("BusStop", "Empty busStopID from " + span.html());
