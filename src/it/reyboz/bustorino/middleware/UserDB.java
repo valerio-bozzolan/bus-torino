@@ -157,7 +157,7 @@ public class UserDB extends SQLiteOpenHelper {
         String username = null;
 
         try {
-            Cursor c = db.query(TABLE_NAME, usernameColumnNameAsArray, "ID = ?", new String[] {stopID}, null, null, null, null);
+            Cursor c = db.query(TABLE_NAME, usernameColumnNameAsArray, "ID = ?", new String[] {stopID}, null, null, null);
 
             if(c.moveToNext()) {
                 username = c.getString(c.getColumnIndex("username"));
