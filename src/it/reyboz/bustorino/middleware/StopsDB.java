@@ -22,16 +22,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -40,66 +35,24 @@ import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.StopsDBInterface;
 
-/**
- * There's just one single difference between this and SQLiteAssetHelper: this implementation works,
- * instead of crashing the app without any error message or exception whatsoever as soon as you try
- * to open the database.
- *
- * @see <a href="http://blog.reigndesign.com/blog/using-your-own-sqlite-database-in-android-applications/">http://blog.reigndesign.com/blog/using-your-own-sqlite-database-in-android-applications/</a>
- */
-public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
-    private final Context c;
-    private static String DB_NAME = "busto.sqlite";
+
+public class StopsDB extends SQLiteAssetHelper implements StopsDBInterface {
+    private static String QUERY_TABLE_stops = "stops";
+    private static String QUERY_WHERE_ID = "ID = ?";
+    private static String[] QUERY_COLUMN_name = {"name"};
+    private static String[] QUERY_COLUMN_location = {"location"};
+    private static String[] QUERY_COLUMN_route = {"route"};
+    private static String[] QUERY_COLUMN_everything = {"name", "location", "type", "lat", "lon"};
+
+    private static String DB_NAME = "stops.sqlite";
     private static int DB_VERSION = 1;
-    private final File filename;
     private SQLiteDatabase db;
     private AtomicInteger openCounter = new AtomicInteger();
 
     public StopsDB(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
-        this.c = context;
-        this.filename = new File(this.c.getFilesDir(), DB_NAME);
-    }
-
-    private void createDb() {
-        //this.getReadableDatabase();
-
-        InputStream is;
-        OutputStream os;
-
-        try {
-            is = c.getAssets().open(DB_NAME);
-        } catch(IOException e) {
-            /* in case an upgrade is failing, nuke everything rather than leaving an old database
-             * in place (should save us lots of headaches related to absurd non-reproducible bugs)
-             */
-            //noinspection ResultOfMethodCallIgnored
-            filename.delete();
-            return;
-        }
-
-        try {
-            os = new FileOutputStream(filename);
-        } catch(FileNotFoundException e) {
-            //noinspection ResultOfMethodCallIgnored
-            filename.delete();
-            return;
-        }
-
-        byte[] buffer = new byte[1024];
-        int length;
-
-        try {
-            while ((length = is.read(buffer)) > 0) {
-                os.write(buffer, 0, length);
-            }
-            os.flush();
-            os.close();
-            is.close();
-        } catch(IOException e) {
-            //noinspection ResultOfMethodCallIgnored
-            filename.delete();
-        }
+        // WARNING: do not remove the following line, do not save anything in this database, it will be overwritten on every update!
+        setForcedUpgrade();
     }
 
     /**
@@ -111,37 +64,8 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
     @Nullable
     public synchronized SQLiteDatabase openIfNeeded() {
         openCounter.incrementAndGet();
-
-        if(this.db == null) {
-            this.db = openRecursive(false);
-        }
+        this.db = getReadableDatabase();
         return this.db;
-    }
-
-    /**
-     * Making this function recursive is just a pointless exercise in style, since it calls itself exactly once.
-     *
-     * @param retrying set to true during recursion
-     * @return SQLiteDatabase or null
-     */
-    @Nullable
-    private SQLiteDatabase openRecursive(boolean retrying) {
-        try {
-            /* I have no idea why it worked without NO_LOCALIZED_COLLATORS, since it's mandatory
-             * unless you place some Android-specific metadata tables that aren't that well documented...
-             * Also, apparently there's no openDatabase() method that takes a File.
-             */
-            return SQLiteDatabase.openDatabase(this.filename.getPath(), null, SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
-        } catch(SQLiteException e) {
-            if(retrying) {
-                // failed a 2nd time, give up
-                return null;
-            } else {
-                // create it
-                createDb();
-                return openRecursive(true);
-            }
-        }
     }
 
     /**
@@ -151,33 +75,11 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
     public synchronized void closeIfNeeded() {
         // is anybody still using the database or can we close it?
         if(openCounter.decrementAndGet() <= 0) {
-            if (this.db != null && this.db.isOpen()) {
-                this.db.close();
-            }
             super.close();
             this.db = null;
         }
     }
 
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-        // copy database (new install)
-        createDb();
-    }
-
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // destroy old database, replace with new
-        createDb();
-    }
-
-    @Override
-    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // destroy new database, replace with old
-        createDb();
-    }
-
-    @Override
     public List<String> getRoutesByStop(@NonNull String stopID) {
         String[] uselessArray = {stopID};
         int count;
@@ -188,7 +90,7 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
         }
 
         try {
-            result = this.db.rawQuery("SELECT route FROM routemap WHERE stop = ?", uselessArray);
+            result = this.db.query("routemap", QUERY_COLUMN_route, "stop = ?", uselessArray, null, null, null);
         } catch(SQLiteException e) {
             return null;
         }
@@ -209,7 +111,6 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
         return routes;
     }
 
-    @Override
     public String getNameFromID(@NonNull String stopID) {
         String[] uselessArray = {stopID};
         int count;
@@ -221,7 +122,7 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
         }
 
         try {
-            result = this.db.rawQuery("SELECT name FROM stops WHERE ID = ?", uselessArray);
+            result = this.db.query(QUERY_TABLE_stops, QUERY_COLUMN_name, QUERY_WHERE_ID, uselessArray, null, null, null);
         } catch(SQLiteException e) {
             return null;
         }
@@ -239,7 +140,6 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
         return name;
     }
 
-    @Override
     public Stop getAllFromID(@NonNull String stopID) {
         Cursor result;
         int count;
@@ -250,7 +150,7 @@ public class StopsDB extends SQLiteOpenHelper implements StopsDBInterface {
         }
 
         try {
-            result = this.db.query("stops", new String[] {"name", "location", "type", "lat", "lon"}, "ID = ?", new String[] {stopID}, null, null, null, "1");
+            result = this.db.query(QUERY_TABLE_stops, QUERY_COLUMN_everything, QUERY_WHERE_ID, new String[] {stopID}, null, null, null);
             int colName = result.getColumnIndex("name");
             int colLocation = result.getColumnIndex("location");
             int colType = result.getColumnIndex("type");
