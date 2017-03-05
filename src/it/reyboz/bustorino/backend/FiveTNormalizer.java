@@ -226,13 +226,21 @@ public abstract class FiveTNormalizer {
             case "4N":
                 return "4 Navetta";
             case "10N":
-                return "10 navetta";
+                return "10 Navetta";
+            case "13N":
+                return "13 Navetta";
             case "35N":
-                return "35 navetta";
+                return "35 Navetta";
             case "36N":
-                return "36 navetta";
+                return "36 Navetta";
+            case "36S":
+                return "36 Speciale";
+            case "38S":
+                return "38 Speciale";
+            case "44S":
+                return "44 Scolastico";
             case "46N":
-                return "46 navetta";
+                return "46 Navetta";
             default:
                 return null;
         }
