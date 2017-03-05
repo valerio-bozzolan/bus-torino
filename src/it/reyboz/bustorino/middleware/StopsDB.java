@@ -27,6 +27,7 @@ import android.support.annotation.Nullable;
 
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -53,6 +54,13 @@ public class StopsDB extends SQLiteAssetHelper implements StopsDBInterface {
         super(context, DB_NAME, null, DB_VERSION);
         // WARNING: do not remove the following line, do not save anything in this database, it will be overwritten on every update!
         setForcedUpgrade();
+
+        // remove old database (BusTo version 1.8.5 and below)
+        File filename = new File(context.getFilesDir(), "busto.sqlite");
+        if(filename.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            filename.delete();
+        }
     }
 
     /**
