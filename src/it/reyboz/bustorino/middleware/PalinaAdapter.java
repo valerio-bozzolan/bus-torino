@@ -18,6 +18,7 @@
 package it.reyboz.bustorino.middleware;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -53,7 +54,7 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
     //private static final int cityIcon = R.drawable.city;
 
     // hey look, a pattern!
-    static class ViewHolder {
+    private static class ViewHolder {
         TextView rowStopIcon;
         TextView rowRouteDestination;
         TextView rowRouteTimetable;
@@ -72,8 +73,9 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
      * And some other bits and bobs TIRATI FUORI DAL NULLA CON L'INTUIZIONE INTELLETTUALE PERCHÉ
      * SEMBRA CHE NESSUNO ABBIA LA MINIMA IDEA DI COME FUNZIONA UN ADAPTER SU ANDROID.
      */
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         ViewHolder vh;
 
         if(convertView == null) {

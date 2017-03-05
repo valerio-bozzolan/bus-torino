@@ -46,6 +46,15 @@ public interface StopsDBInterface {
     @Nullable String getNameFromID(@NonNull String stopID);
 
     /**
+     * Stop ID goes in, stop location comes out.
+     * This is sometimes missing in GTT API, but database contains meaningful locations for nearly every stop...
+     *
+     * @param stopID stop ID, in normalized form
+     * @return stop location or null if not found (or database closed)
+     */
+    @Nullable String getLocationFromID(@NonNull String stopID);
+
+    /**
      * SELECT * FROM ...<br>
      * (No, it doesn't really use *)<br>
      * Doesn't set user name, since it's not a default information, but stil...

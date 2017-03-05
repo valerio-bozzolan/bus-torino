@@ -408,7 +408,7 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
         private StopsDB db;
         String fragTag;
 
-        public asyncWgetBusStopSuggestions(@Nullable String query, @NonNull StopsDB sdb, @NonNull RecursionHelper<StopsFinderByName> r) {
+        asyncWgetBusStopSuggestions(@Nullable String query, @NonNull StopsDB sdb, @NonNull RecursionHelper<StopsFinderByName> r) {
             super(getApplicationContext(), r);
 
             toggleSpinner(true);
@@ -434,6 +434,8 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
             this.db.openIfNeeded();
             this.stopList = f.FindByName(this.query, this.db, this.res);
             this.db.closeIfNeeded();
+
+            // TODO: handle errors in a clearer/cleaner way (users see some random toasts after a while and sometimes still get results from a fetcher)
 
             switch (this.res.get()) {
                 case CLIENT_OFFLINE:

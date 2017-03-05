@@ -86,6 +86,7 @@ public class GTTStopsFetcher implements StopsFinderByName  {
             for(i = 0; i < howManyStops; i++) {
                 thisstop = json.getJSONObject(i);
                 fullname = thisstop.getString("data");
+                String ID = thisstop.getString("value");
 
                 try {
                     localita = thisstop.getString("localita");
@@ -94,6 +95,9 @@ public class GTTStopsFetcher implements StopsFinderByName  {
                     }
                 } catch(JSONException e) {
                     localita = null;
+                }
+                if(localita == null || localita.length() == 0) {
+                    localita = db.getLocationFromID(ID);
                 }
 
                 try {
@@ -112,7 +116,6 @@ public class GTTStopsFetcher implements StopsFinderByName  {
                     type = FiveTNormalizer.decodeType("", bacino);
                 }
 
-                String ID = thisstop.getString("value");
                 s.add(new Stop(fullname, ID, localita, type, db.getRoutesByStop(ID)));
 
             }

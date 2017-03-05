@@ -97,6 +97,9 @@ public class FiveTStopsFetcher implements StopsFinderByName {
                 //Log.e("Suggestions", "Empty busStopLocation");
                 stopLocation = null;
             }
+            if(stopLocation == null || stopLocation.length() == 0) {
+                stopLocation = db.getLocationFromID(stopID);
+            }
 
             busStops.add(new Stop(stopName, stopID, stopLocation, null, db.getRoutesByStop(stopID)));
         }

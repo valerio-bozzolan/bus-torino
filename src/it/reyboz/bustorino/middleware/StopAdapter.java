@@ -18,6 +18,7 @@
 package it.reyboz.bustorino.middleware;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,7 +41,7 @@ public class StopAdapter extends ArrayAdapter<Stop> {
     private static final int tramIcon = R.drawable.tram;
     private static final int cityIcon = R.drawable.city;
 
-    static class ViewHolder {
+    private static class ViewHolder {
         TextView busStopIDTextView;
         TextView busStopNameTextView;
         //TextView busLineVehicleIcon;
@@ -53,8 +54,9 @@ public class StopAdapter extends ArrayAdapter<Stop> {
         li = LayoutInflater.from(context);
     }
 
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         ViewHolder vh;
 
         if(convertView == null) {
