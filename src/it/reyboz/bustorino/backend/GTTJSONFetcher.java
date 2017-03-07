@@ -86,27 +86,15 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
 
                 pos = p.addRoute(routename, thisroute.getString("Direzione"), FiveTNormalizer.decodeType(routename, bacino));
 
-                /*
-                 * Okay, this is just absurd.
-                 * The underground always has 4 non-real-time timetable entries; however, the first
-                 * two are old\stale\bogus, as they're in the past. The other two are exactly the
-                 * same ones that appear on the screens in the stations.
-                 */
-                if(routename.equals("METRO")) {
-                    j = 2;
-                } else {
-                    j = 0;
-                }
-
                 passaggi = thisroute.getJSONArray("PassaggiRT");
                 howManyPassaggi = passaggi.length();
-                for(; j < howManyPassaggi; j++) {
+                for(j = 0; j < howManyPassaggi; j++) {
                     p.addPassaggio(passaggi.getString(j).concat("*"), pos);
                 }
 
                 passaggi = thisroute.getJSONArray("Passaggi"); // now the non-real-time ones
                 howManyPassaggi = passaggi.length();
-                for(; j < howManyPassaggi; j++) {
+                for(j = 0; j < howManyPassaggi; j++) {
                     p.addPassaggio(passaggi.getString(j), pos);
                 }
             }
