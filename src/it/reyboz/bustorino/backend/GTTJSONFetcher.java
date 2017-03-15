@@ -42,7 +42,7 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         JSONArray passaggi;
 
         try {
-            url = new URL("http://www.gtt.to.it/cms/index.php?option=com_gtt&task=palina.getTransiti&palina=" + URLEncoder.encode(stopID, "utf-8") + "&realtime=true");
+            url = new URL("http://www.gtt.to.it/cms/index.php?option=com_gtt&task=palina.getTransitiOld&palina=" + URLEncoder.encode(stopID, "utf-8") + "&realtime=true");
         } catch (Exception e) {
             res.set(result.PARSER_ERROR);
             return p;
@@ -104,7 +104,7 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
                     p.addPassaggio(passaggi.getString(j).concat("*"), pos);
                 }
 
-                passaggi = thisroute.getJSONArray("Passaggi"); // now the non-real-time ones
+                passaggi = thisroute.getJSONArray("PassaggiPR"); // now the non-real-time ones
                 howManyPassaggi = passaggi.length();
                 for(; j < howManyPassaggi; j++) {
                     p.addPassaggio(passaggi.getString(j), pos);
