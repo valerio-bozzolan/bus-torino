@@ -29,7 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.*;
-import com.melnykov.fab.FloatingActionButton;
+import android.support.design.widget.FloatingActionButton;
 import it.reyboz.bustorino.ActivityMain;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.FiveTNormalizer;
@@ -95,24 +95,35 @@ public class ResultListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        hideMyFAB mInterface = new hideMyFAB() {
+            @Override
+            public void showFloatingActionButton(boolean show) {
+                if (fabutton!=null){
+                    if(show) fabutton.show();
+                    else fabutton.hide();
+                }
+            }
+        };
         View root = inflater.inflate(R.layout.fragment_list_view, container, false);
         messageTextView = (TextView) root.findViewById(R.id.messageTextView);
         if(adapterType!=null) {
             resultsListView = (ListView) root.findViewById(R.id.resultsListView);
-            if(adapterType.equals(TYPE_STOPS))
+            if(adapterType.equals(TYPE_STOPS)) {
                 resultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     /*
                      * Casting because of Javamerda
                      * @url http://stackoverflow.com/questions/30549485/androids-list-view-parameterized-type-in-adapterview-onitemclicklistener
                      */
-                    Stop busStop = (Stop) parent.getItemAtPosition(position);
-                    mListener.createFragmentForStop(busStop.ID);
-                }
+                        Stop busStop = (Stop) parent.getItemAtPosition(position);
+                        mListener.createFragmentForStop(busStop.ID);
+                    }
                 });
-            else if(adapterType.equals(TYPE_LINES))
+                resultsListView.setOnScrollListener(new ListFragmentScrollListener(false,mInterface));
+            }
+            else if(adapterType.equals(TYPE_LINES)) {
                 resultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -132,13 +143,14 @@ public class ResultListFragment extends Fragment {
                         }
                     }
                 });
+                resultsListView.setOnScrollListener(new ListFragmentScrollListener(true,mInterface));
+            }
             String  probablemessage = getArguments().getString(MESSAGE_TEXT_VIEW);
             if(probablemessage!=null) {
                 //Log.d("BusTO fragment " + this.getTag(), "We have a possible message here in the savedInstaceState: " + probablemessage);
                 messageTextView.setText(probablemessage);
                 messageTextView.setVisibility(View.VISIBLE);
             }
-            fabutton.attachToListView(resultsListView);
 
         } else
             Log.d(getString(R.string.list_fragment_debug), "No content root for fragment");
@@ -184,7 +196,7 @@ public class ResultListFragment extends Fragment {
     public void onDetach() {
         mListener = null;
         if(fabutton!=null)
-            fabutton.show(true);
+            fabutton.show();
         super.onDetach();
     }
 
@@ -209,6 +221,7 @@ public class ResultListFragment extends Fragment {
     /**
      * This method attaches the FloatingActionButton to the current ListView
      */
+    /* TODO REWORKING
     public void attachFABToListView(){
         if(resultsListView!=null)
             switch(adapterType){
@@ -220,6 +233,7 @@ public class ResultListFragment extends Fragment {
                     break;
             }
     }
+    */
     public void setTextViewMessage(String message){
         messageTextView.setText(message);
         switch (adapterType){
@@ -253,7 +267,18 @@ public class ResultListFragment extends Fragment {
         void createFragmentForStop(String ID);
     }
 
-    private class ListFragmentScrollListener implements AbsListView.OnScrollListener{
+    /**
+     * Classe per gestire gli scroll
+     *
+     */
+    class ListFragmentScrollListener implements AbsListView.OnScrollListener{
+        boolean enableRefreshLayout,lastScrollUp=false;
+        int mLastFirstVisibleItem;
+        hideMyFAB fabInterface;
+        public ListFragmentScrollListener(boolean enableRefreshLayout, hideMyFAB iface){
+            this.enableRefreshLayout = enableRefreshLayout;
+            this.fabInterface = iface;
+        }
         @Override
         public void onScrollStateChanged(AbsListView view, int scrollState) {
             /*
@@ -263,9 +288,20 @@ public class ResultListFragment extends Fragment {
 
         @Override
         public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+            if (firstVisibleItem!=0) {
+                if (mLastFirstVisibleItem < firstVisibleItem) {
+                    Log.i("Busto", "Scrolling DOWN");
+                    fabInterface.showFloatingActionButton(false);
+                    //lastScrollUp = true;
+                } else if (mLastFirstVisibleItem > firstVisibleItem) {
+                    Log.i("Busto", "Scrolling UP");
+                    fabInterface.showFloatingActionButton(true);
+                    //lastScrollUp =  false;
+                }
+                mLastFirstVisibleItem = firstVisibleItem;
+            }
+            if(enableRefreshLayout){
             SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) getActivity().findViewById(R.id.listRefreshLayout);
-            //if(firstVisibleItem == 0) refreshLayout.setEnabled(true);
-            //else refreshLayout.setEnabled(false);
             boolean enable = false;
             if(view != null && view.getChildCount() > 0){
                 // check if the first item of the list is visible
@@ -277,6 +313,10 @@ public class ResultListFragment extends Fragment {
             }
             refreshLayout.setEnabled(enable);
             Log.d(getString(R.string.list_fragment_debug),"onScroll active, first item visible: "+firstVisibleItem+", refreshlayout enabled: "+enable);
-        }
+        }}
     }
+
+}
+interface hideMyFAB {
+    void showFloatingActionButton(boolean show);
 }

@@ -45,7 +45,8 @@ import android.widget.*;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
-import com.melnykov.fab.FloatingActionButton;
+//import com.melnykov.fab.FloatingActionButton;
+import android.support.design.widget.FloatingActionButton;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -343,6 +344,7 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
     }
 
 
+
     /**
      * QR scan button clicked
      *
@@ -495,7 +497,7 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
 
             listfragment.setTextViewMessage(getString(R.string.results));
             listfragment.setListAdapter(new StopAdapter(this.c, this.stopList));
-            listfragment.attachFABToListView();
+            //listfragment.attachFABToListView(); TODO
 
             toggleSpinner(false);
         }
@@ -712,7 +714,7 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
 
             listFragment.setListAdapter(new PalinaAdapter(this.c, p));
             if(!sameBusStopAsBefore)
-            listFragment.attachFABToListView();
+            //listFragment.attachFABToListView(); TODO
 
             toggleSpinner(false);
         }
