@@ -32,6 +32,9 @@ import it.reyboz.bustorino.middleware.*;
 
 import java.util.List;
 
+/**
+ * Helper class to manage the fragments and their needs
+ */
 public class FragmentHelper {
     GeneralActivity act;
     private Stop lastSuccessfullySearchedBusStop;
@@ -61,6 +64,10 @@ public class FragmentHelper {
         this.lastSuccessfullySearchedBusStop = stop;
     }
 
+    /**
+     * Called when you need to create a fragment for a specified Palina
+     * @param p the Stop that needs to be displayed
+     */
     public void createOrUpdateStopFragment(Palina p){
         boolean refreshing;
         ResultListFragment listFragment;
@@ -106,6 +113,12 @@ public class FragmentHelper {
 
         toggleSpinner(false);
     }
+
+    /**
+     * Called when you need to display the results of a search of stops
+     * @param resultList the List of stops found
+     * @param query String queried
+     */
     public void createFragmentFor(List<Stop> resultList,String query){
         act.hideKeyboard();
         ResultListFragment listfragment = ResultListFragment.newInstance(ResultListFragment.TYPE_STOPS);
@@ -115,6 +128,11 @@ public class FragmentHelper {
         toggleSpinner(false);
 
     }
+
+    /**
+     * Wrapper for toggleSpinner in Activity
+     * @param on new status of spinner system
+     */
     public void toggleSpinner(boolean on){
         if (act instanceof FragmentListener)
             ((FragmentListener) act).toggleSpinner(on);
@@ -123,6 +141,14 @@ public class FragmentHelper {
             srl.setRefreshing(false);
         }
     }
+
+    /**
+     * Attach a new fragment to a cointainer
+     * @param fm the FragmentManager
+     * @param fragment the Fragment
+     * @param sendToSecondaryFrame needs to be displayed in secondary frame or not
+     * @param tag tag for the fragment
+     */
     private void attachFragmentToContainer(FragmentManager fm,Fragment fragment, boolean sendToSecondaryFrame, String tag){
         FragmentTransaction ft = fm.beginTransaction();
         if(sendToSecondaryFrame && secondaryFrameLayout!=NO_FRAME)
@@ -133,15 +159,16 @@ public class FragmentHelper {
         ft.commit();
         //fm.executePendingTransactions();
     }
-    public boolean isActivityReferenceNull(){
-        return act==null;
-    }
 
     //Find a way to open databases
     public SQLiteDatabase openStopsDB(){
         return stopsDB.openIfNeeded();
     }
 
+    /**
+     * Wrapper to show the errors/status that happened
+     * @param res result from Fetcher
+     */
     public void showErrorMessage(Fetcher.result res){
         //TODO: implement a common set of errors for all fragments
         switch (res){
