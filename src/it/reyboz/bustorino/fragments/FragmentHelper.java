@@ -159,12 +159,25 @@ public class FragmentHelper {
         ft.commit();
         //fm.executePendingTransactions();
     }
-
+    /*
+        Set of methods to "wrap" database operations
+     */
     //Find a way to open databases
-    public SQLiteDatabase openStopsDB(){
-        return stopsDB.openIfNeeded();
+    public void openStopsDB(){
+        stopsDB.openIfNeeded();
     }
-
+    public String getLocationFromDB(Stop p){
+        return stopsDB.getLocationFromID(p.ID);
+    }
+    public List<String> getStopRoutesFromDB(String stopID){
+        return stopsDB.getRoutesByStop(stopID);
+    }
+    public void closeDBIfNeeded(){
+        stopsDB.closeIfNeeded();
+    }
+    public String getStopNamefromDB(String stopID){
+        return stopsDB.getNameFromID(stopID);
+    }
     /**
      * Wrapper to show the errors/status that happened
      * @param res result from Fetcher

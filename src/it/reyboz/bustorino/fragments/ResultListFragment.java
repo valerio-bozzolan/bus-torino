@@ -268,7 +268,7 @@ public class ResultListFragment extends Fragment {
                 messageTextView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        new AsyncAddToFavorites(getContext()).execute(activ.getLastSuccessfullySearchedBusStop());
+                        mListener.addLastStopToFavorites();
                     }
                 });
                 break;
@@ -293,14 +293,16 @@ public class ResultListFragment extends Fragment {
      * This interface is useful for communicating with the activity
      * The name has been automatically generated (do not blame me)
      */
-    public interface ResultFragmentListener extends FragmentListener{
+    public interface ResultFragmentListener extends FragmentListener {
         /**
          * Houston, we need another fragment!
+         *
          * @param ID the Stop ID
          */
         void createFragmentForStop(String ID);
-    }
 
+        void addLastStopToFavorites();
+    }
     /**
      * Classe per gestire gli scroll
      *

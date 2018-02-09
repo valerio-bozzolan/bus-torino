@@ -79,11 +79,6 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
      */
     private final String OPTION_SHOW_LEGEND = "show_legend";
 
-    /**
-     * Last successfully searched bus stop ID
-     */
-    public @Nullable Stop lastSuccessfullySearchedBusStop = null;
-
     /* // useful for testing:
     public class MockFetcher implements ArrivalsFetcher {
         @Override
@@ -227,9 +222,15 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
         } else {
             // If you are here an intent has worked successfully
             setBusStopSearchByIDEditText(busStopID);
-            this.lastSuccessfullySearchedBusStop = new Stop(busStopID);
+            /*
+            //THIS PART SHOULDN'T BE NECESSARY SINCE THE LAST SUCCESSFULLY SEARCHED BUS
+            // STOP IS ADDED AUTOMATICALLY
+            Stop nextStop = new Stop(busStopID);
             // forcing it as user name even though it could be standard name, it doesn't really matter
-            this.lastSuccessfullySearchedBusStop.setStopUserName(busStopDisplayName);
+            nextStop.setStopUserName(busStopDisplayName);
+            //set stop as last succe
+            fh.setLastSuccessfullySearchedBusStop(nextStop);
+            */
             createFragmentForStop(busStopID);
         }
 
@@ -242,9 +243,9 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        Log.d("ActivityMain", "onPostResume fired. Last successfully bus stop ID: " + lastSuccessfullySearchedBusStop);
-        if (searchMode == SEARCH_BY_ID && lastSuccessfullySearchedBusStop != null) {
-            setBusStopSearchByIDEditText(lastSuccessfullySearchedBusStop.ID);
+        Log.d("ActivityMain", "onPostResume fired. Last successfully bus stop ID: " + fh.getLastSuccessfullySearchedBusStop());
+        if (searchMode == SEARCH_BY_ID && fh.getLastSuccessfullySearchedBusStop() != null) {
+            setBusStopSearchByIDEditText(fh.getLastSuccessfullySearchedBusStop().ID);
             //new asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStop.ID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
             new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute();
         }
@@ -321,16 +322,6 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
         }
     }
 
-    /**
-     * @author Fabio Mazza
-     * This is necessary for the fragment to update the StopDB
-     * @return the last succeffuly searched bus stop, if not null
-     */
-    public Stop getLastSuccessfullySearchedBusStop() {
-        if(lastSuccessfullySearchedBusStop!=null)
-        return lastSuccessfullySearchedBusStop;
-        else return null;
-    }
 
     @Override
     public void createFragmentForStop(String ID) {
@@ -401,13 +392,11 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
     ///////////////////////////////// OTHER STUFF //////////////////////////////////////////////////
 
 
-    /**
-     * This method is not really necessary anymore...
-     */
-    @Deprecated
-    public void addToFavorites(View v) {
-        if(lastSuccessfullySearchedBusStop != null) {
-            new AsyncAddToFavorites(this).execute(lastSuccessfullySearchedBusStop);
+
+    @Override
+    public void addLastStopToFavorites() {
+        if(fh.getLastSuccessfullySearchedBusStop() != null) {
+            new AsyncAddToFavorites(this).execute(fh.getLastSuccessfullySearchedBusStop());
         }
     }
 

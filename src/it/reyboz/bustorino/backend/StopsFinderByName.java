@@ -29,5 +29,5 @@ public interface StopsFinderByName extends Fetcher {
      * @return list of stops, in normalized form.
      * @see FiveTNormalizer
      */
-    List<Stop> FindByName(String name, StopsDBInterface db, AtomicReference<result> res);
+    List<Stop> FindByName(String name, AtomicReference<result> res);
 }

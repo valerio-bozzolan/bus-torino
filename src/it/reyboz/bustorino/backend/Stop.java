@@ -32,9 +32,9 @@ public class Stop implements Comparable<Stop> {
     public final @NonNull String ID;
     private @Nullable String name;
     private @Nullable String username;
-    public final @Nullable String location;
+    public @Nullable String location;
     public final @Nullable Route.Type type;
-    private final @Nullable List<String> routesThatStopHere;
+    private @Nullable List<String> routesThatStopHere;
     private final @Nullable Double lat;
     private final @Nullable Double lon;
 
@@ -92,6 +92,11 @@ public class Stop implements Comparable<Stop> {
         // no string yet? build it!
         return buildString();
     }
+
+    public void setRoutesThatStopHere(@Nullable List<String> routesThatStopHere) {
+        this.routesThatStopHere = routesThatStopHere;
+    }
+
     private @Nullable String buildString() {
         // no routes => no string
         if(this.routesThatStopHere == null || this.routesThatStopHere.size() == 0) {

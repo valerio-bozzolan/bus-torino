@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class GTTStopsFetcher implements StopsFinderByName  {
     @Override @NonNull
-    public List<Stop> FindByName(String name, StopsDBInterface db, AtomicReference<result> res) {
+    public List<Stop> FindByName(String name, AtomicReference<result> res) {
         URL url;
         // sorting an ArrayList should be faster than a LinkedList and the API is limited to 15 results
         List<Stop> s = new ArrayList<>(15);
@@ -119,7 +119,7 @@ public class GTTStopsFetcher implements StopsFinderByName  {
                     type = FiveTNormalizer.decodeType("", bacino);
                 }
                 //TODO: refactor using content provider
-                s.add(new Stop(fullname, ID, localita, type, db.getRoutesByStop(ID)));
+                s.add(new Stop(fullname, ID, localita, type,null));
 
             }
         } catch (JSONException e) {

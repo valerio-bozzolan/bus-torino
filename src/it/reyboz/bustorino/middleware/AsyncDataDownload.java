@@ -94,6 +94,13 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                         return null;
                     }
                     publishProgress(res.get());
+                    //Try to find the name of the stop inside StopsDB
+                    fh.openStopsDB();
+                    if(p.getStopDisplayName() == null){
+                        p.setStopName(fh.getStopNamefromDB(p.ID));
+                    }
+                    fh.closeDBIfNeeded();
+                    //TODO: use ContentProvider when ready
                     /*
                     if(lastSearchedBusStop != null && res.get()== Fetcher.result.OK) {
                         // check that we don't have the same stop
@@ -118,16 +125,21 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                     */
                     result = p;
                     Log.d(TAG,"Using the ArrivalsFetcher: "+f.getClass());
-                    //TODO: SEND THE RESULT TO THE ACT
                     //TODO: find a way to avoid overloading the user with toasts
                     break;
                 case STOPS:
                     StopsFinderByName finder = (StopsFinderByName) r.getAndMoveForward();
-                    db.openIfNeeded();
-                    result = finder.FindByName(params[0], this.db, this.res); //it's a List<Stop>
-                    db.closeIfNeeded();
+
+                    List<Stop> resultList= finder.FindByName(params[0], this.res); //it's a List<Stop>
+                    fh.openStopsDB();
+                    for (Stop stop : resultList){
+                        if(stop.location == null) stop.location = fh.getLocationFromDB(stop);
+                        stop.setRoutesThatStopHere(fh.getStopRoutesFromDB(stop.ID));
+                    }
+                    fh.closeDBIfNeeded();
                     Log.d(TAG,"Using the StopFinderByName: "+finder.getClass());
                     query =params[0];
+                    result = resultList; //dummy result
                     break;
                 default:
                     result = null;
@@ -163,6 +175,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
 
         if(failedAll || o == null || fh == null){
             //everything went bad
+            if(fh!=null) fh.toggleSpinner(false);
             cancel(true);
             return;
         }
