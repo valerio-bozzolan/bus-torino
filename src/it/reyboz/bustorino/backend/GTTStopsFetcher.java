@@ -96,9 +96,12 @@ public class GTTStopsFetcher implements StopsFinderByName  {
                 } catch(JSONException e) {
                     localita = null;
                 }
+                /*
                 if(localita == null || localita.length() == 0) {
                     localita = db.getLocationFromID(ID);
                 }
+                //TODO: find località by ContentProvider
+                */
 
                 try {
                     bacino = thisstop.getString("bacino");
@@ -115,7 +118,7 @@ public class GTTStopsFetcher implements StopsFinderByName  {
                 } else {
                     type = FiveTNormalizer.decodeType("", bacino);
                 }
-
+                //TODO: refactor using content provider
                 s.add(new Stop(fullname, ID, localita, type, db.getRoutesByStop(ID)));
 
             }

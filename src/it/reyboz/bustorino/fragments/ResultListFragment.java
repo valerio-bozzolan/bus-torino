@@ -33,9 +33,11 @@ import android.support.design.widget.FloatingActionButton;
 import it.reyboz.bustorino.ActivityMain;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.FiveTNormalizer;
+import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.middleware.AsyncAddToFavorites;
+import it.reyboz.bustorino.middleware.PalinaAdapter;
 
 /**
  *  This is a generalized fragment that can be used both for
@@ -45,13 +47,16 @@ import it.reyboz.bustorino.middleware.AsyncAddToFavorites;
 public class ResultListFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String LIST_TYPE = "list-type";
+    private static final String STOP_TITLE = "messageExtra";
+
+
     public static final String TYPE_LINES ="lines";
     public static final String TYPE_STOPS = "fermate";
 
     private static final String MESSAGE_TEXT_VIEW ="message_text_view";
     private String adapterType;
 
-
+    private boolean adapterSet = false;
     private ResultFragmentListener mListener;
     private TextView messageTextView;
 
@@ -74,14 +79,18 @@ public class ResultListFragment extends Fragment {
      * @param listType whether the list is used for STOPS or LINES (Orari)
      * @return A new instance of fragment ResultListFragment.
      */
-    public static ResultListFragment newInstance(String listType) {
+    public static ResultListFragment newInstance(String listType,String eventualStopTitle) {
         ResultListFragment fragment = new ResultListFragment();
         Bundle args = new Bundle();
         args.putString(LIST_TYPE, listType);
+        if(eventualStopTitle!=null)
+            args.putString(STOP_TITLE,eventualStopTitle);
         fragment.setArguments(args);
         return fragment;
     }
-
+    public static ResultListFragment newInstance(String listType){
+        return newInstance(listType,null);
+    }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,6 +131,9 @@ public class ResultListFragment extends Fragment {
                     }
                 });
                 resultsListView.setOnScrollListener(new ListFragmentScrollListener(false,mInterface));
+
+                //set the textviewMessage
+                setTextViewMessage(getString(R.string.results));
             }
             else if(adapterType.equals(TYPE_LINES)) {
                 resultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -143,6 +155,9 @@ public class ResultListFragment extends Fragment {
                         }
                     }
                 });
+                String displayName = getArguments().getString(STOP_TITLE);
+                setTextViewMessage(String.format(
+                        getString(R.string.passages), displayName));
                 resultsListView.setOnScrollListener(new ListFragmentScrollListener(true,mInterface));
             }
             String  probablemessage = getArguments().getString(MESSAGE_TEXT_VIEW);
@@ -156,6 +171,12 @@ public class ResultListFragment extends Fragment {
             Log.d(getString(R.string.list_fragment_debug), "No content root for fragment");
         return root;
     }
+    public boolean isFragmentForTheSameStop(Palina p){
+        return adapterType.equals(TYPE_LINES) && getTag().equals(getFragmentTag(p));
+    }
+    public static String getFragmentTag(Palina p){
+        return p.ID;
+    }
 
 
     @Override
@@ -168,6 +189,8 @@ public class ResultListFragment extends Fragment {
             mListAdapter = null;
             setListAdapter(adapter);
         }
+        mListener.readyGUIfor(adapterType);
+
     }
 
     @Override
@@ -190,6 +213,8 @@ public class ResultListFragment extends Fragment {
             throw new RuntimeException(context.toString()
                     + " must implement ResultFragmentListener");
         }
+
+
     }
 
     @Override
@@ -256,10 +281,19 @@ public class ResultListFragment extends Fragment {
     }
 
     /**
+     * This methods sets both the adapter and the textviewMessage
+     * Do not call when the fragment shows a list of stops
+     * @param p the palina to get the info from
+     *          TODO: overload it so that it can be used also by the STOPS
+     */
+
+
+
+    /**
      * This interface is useful for communicating with the activity
      * The name has been automatically generated (do not blame me)
      */
-    public interface ResultFragmentListener {
+    public interface ResultFragmentListener extends FragmentListener{
         /**
          * Houston, we need another fragment!
          * @param ID the Stop ID

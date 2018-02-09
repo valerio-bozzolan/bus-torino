@@ -19,21 +19,13 @@ package it.reyboz.bustorino;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NavUtils;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -48,22 +40,18 @@ import com.google.zxing.integration.android.IntentResult;
 //import com.melnykov.fab.FloatingActionButton;
 import android.support.design.widget.FloatingActionButton;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
 import it.reyboz.bustorino.backend.ArrivalsFetcher;
-import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.FiveTScraperFetcher;
 import it.reyboz.bustorino.backend.FiveTStopsFetcher;
 import it.reyboz.bustorino.backend.GTTJSONFetcher;
 import it.reyboz.bustorino.backend.GTTStopsFetcher;
-import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.StopsFinderByName;
+import it.reyboz.bustorino.fragments.FragmentHelper;
 import it.reyboz.bustorino.fragments.ResultListFragment;
 import it.reyboz.bustorino.middleware.*;
 
-public class ActivityMain extends AppCompatActivity implements ResultListFragment.ResultFragmentListener {
+public class ActivityMain extends GeneralActivity implements ResultListFragment.ResultFragmentListener {
 
     /*
      * Layout elements
@@ -112,7 +100,7 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
 
     private StopsDB stopsDB;
     private UserDB userDB;
-
+    private FragmentHelper fh;
     ///////////////////////////////// EVENT HANDLERS ///////////////////////////////////////////////
 
     /*
@@ -121,12 +109,7 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
     private Handler handler = new Handler();
     private final Runnable refreshing = new Runnable() {
         public void run() {
-            if (lastSuccessfullySearchedBusStop == null) {
-                Toast.makeText(getApplicationContext(),
-                        R.string.query_too_short, Toast.LENGTH_SHORT).show();
-            } else {
-                new asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStop.ID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
-            }
+                new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute();
         }
     };
 
@@ -194,8 +177,9 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
         /**
          * @author Marco Gagino!!!
          */
-        swipeRefreshLayout.setColorSchemeColors(R.color.blue_500, R.color.orange_500); // setColorScheme is deprecated, setColorSchemeColors isn't
-
+        //swipeRefreshLayout.setColorSchemeColors(R.color.blue_500, R.color.orange_500); // setColorScheme is deprecated, setColorSchemeColors isn't
+        swipeRefreshLayout.setColorSchemeResources(R.color.blue_500,R.color.orange_500);
+        fh = new FragmentHelper(this,R.id.listRefreshLayout,R.id.resultFrame,FragmentHelper.NO_FRAME);
         setSearchModeBusStopID();
 
         //---------------------------- START INTENT CHECK QUEUE ------------------------------------
@@ -246,7 +230,7 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
             this.lastSuccessfullySearchedBusStop = new Stop(busStopID);
             // forcing it as user name even though it could be standard name, it doesn't really matter
             this.lastSuccessfullySearchedBusStop.setStopUserName(busStopDisplayName);
-            new asyncWgetBusStopFromBusStopID(busStopID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
+            createFragmentForStop(busStopID);
         }
 
         Log.d("MainActivity", "Created");
@@ -261,8 +245,10 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
         Log.d("ActivityMain", "onPostResume fired. Last successfully bus stop ID: " + lastSuccessfullySearchedBusStop);
         if (searchMode == SEARCH_BY_ID && lastSuccessfullySearchedBusStop != null) {
             setBusStopSearchByIDEditText(lastSuccessfullySearchedBusStop.ID);
-            new asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStop.ID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
+            //new asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStop.ID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
+            new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute();
         }
+
     }
 
     @Override
@@ -320,10 +306,18 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
     public void onSearchClick(View v) {
         if (searchMode == SEARCH_BY_ID) {
             String busStopID = busStopSearchByIDEditText.getText().toString();
-            new asyncWgetBusStopFromBusStopID(busStopID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
+            //OLD ASYNCTASK
+            //new asyncWgetBusStopFromBusStopID(busStopID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
+
+            if(busStopID == null || busStopID.length() <= 0) {
+                showMessage(R.string.insert_bus_stop_number_error);
+                toggleSpinner(false);
+            } else
+            new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute(busStopID);
         } else { // searchMode == SEARCH_BY_NAME
             String query = busStopSearchByNameEditText.getText().toString();
-            new asyncWgetBusStopSuggestions(query, stopsDB, StopsFindersByNameRecursionHelper);
+            //new asyncWgetBusStopSuggestions(query, stopsDB, StopsFindersByNameRecursionHelper);
+            new AsyncDataDownload(AsyncDataDownload.RequestType.STOPS,fh).execute(query);
         }
     }
 
@@ -340,7 +334,13 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
 
     @Override
     public void createFragmentForStop(String ID) {
-        new asyncWgetBusStopFromBusStopID(ID, ArrivalFetchersRecursionHelper,lastSuccessfullySearchedBusStop);
+        //new asyncWgetBusStopFromBusStopID(ID, ArrivalFetchersRecursionHelper,lastSuccessfullySearchedBusStop);
+        if(ID == null || ID.length() <= 0) {
+            // we're still in UI thread, no need to mess with Progress
+            showMessage(R.string.insert_bus_stop_number_error);
+            toggleSpinner(false);
+        } else
+        new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute(ID);
     }
 
 
@@ -373,7 +373,7 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
 
         String busStopID = getBusStopIDFromUri(uri);
         busStopSearchByIDEditText.setText(busStopID);
-        new asyncWgetBusStopFromBusStopID(busStopID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
+        createFragmentForStop(busStopID);
     }
 
     public void onHideHint(View v) {
@@ -397,340 +397,9 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
 
 
 
-    /*
-    *****************************************************************************************
-    ****                            STOP FINDER BY NAME                                  ****
-    *****************************************************************************************
-    */
-
-    private class asyncWgetBusStopSuggestions extends AsyncWget<StopsFinderByName> {
-        private final String query;
-        private AtomicReference<Fetcher.result> res;
-        private List<Stop> stopList;
-        private StopsDB db;
-        String fragTag;
-
-        asyncWgetBusStopSuggestions(@Nullable String query, @NonNull StopsDB sdb, @NonNull RecursionHelper<StopsFinderByName> r) {
-            super(getApplicationContext(), r);
-
-            toggleSpinner(true);
-            this.query = query;
-            this.res = new AtomicReference<>();
-            this.db = sdb;
-
-            r.reset();
-
-            if(query == null || query.length() <= 0) {
-                Toast.makeText(this.c,
-                        R.string.insert_bus_stop_name_error, Toast.LENGTH_SHORT).show();
-                toggleSpinner(false);
-            } else {
-                fragTag = "stop_search_"+query;
-                this.execute();
-            }
-        }
-
-        @Override
-        protected boolean tryFetcher(StopsFinderByName f) {
-            // gets opened multiple times, whatever.
-            this.db.openIfNeeded();
-            this.stopList = f.FindByName(this.query, this.db, this.res);
-            this.db.closeIfNeeded();
-
-            // TODO: handle errors in a clearer/cleaner way (users see some random toasts after a while and sometimes still get results from a fetcher)
-
-            switch (this.res.get()) {
-                case CLIENT_OFFLINE:
-                    publishProgress(R.string.network_error);
-                    return false;
-                case SERVER_ERROR:
-                    if (isConnected()) {
-                        publishProgress(R.string.parsing_error);
-                    } else {
-                        publishProgress(R.string.network_error);
-                    }
-                    return false;
-                case PARSER_ERROR:
-                default:
-                    publishProgress(R.string.internal_error);
-                    return false;
-                case QUERY_TOO_SHORT:
-                    publishProgress(R.string.query_too_short);
-                    return false;
-                case EMPTY_RESULT_SET:
-                    publishProgress(R.string.no_bus_stop_have_this_name);
-                    return false;
-                case OK:
-                    return true;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Void useless) {
-            // something really bad happened
-            if(this.isCancelled() || !this.terminated || this.stopList == null) {
-                toggleSpinner(false);
-                this.onCancelled();
-
-                return;
-            }
-
-            // no results
-            if(this.failedAll) {
-                toggleSpinner(false);
-                // TODO: an error message would be a good idea, here
-                return;
-            }
-
-            hideKeyboard();
-
-            //CREATE THE FRAGMENT
-            FragmentTransaction transaction = framan.beginTransaction();
-            ResultListFragment listfragment = ResultListFragment.newInstance(ResultListFragment.TYPE_STOPS);
-            transaction.replace(R.id.resultFrame,listfragment, fragTag);
-            transaction.addToBackStack(fragTag);
-            transaction.commit();
-            //Apparently, the fragment creation is asynchronous, but we need the fragment, NOW!
-            framan.executePendingTransactions();
-
-            prepareGUIForBusStops();
-
-            listfragment.setTextViewMessage(getString(R.string.results));
-            listfragment.setListAdapter(new StopAdapter(this.c, this.stopList));
-            //listfragment.attachFABToListView(); TODO
-
-            toggleSpinner(false);
-        }
-
-        @Override
-        protected void onCancelled() {
-            toggleSpinner(false);
-        }
-    }
-
-    /*
-    *****************************************************************************************
-    ****                            ARRIVALS FETCHER                                     ****
-    *****************************************************************************************
-    */
-
-    private class asyncWgetBusStopFromBusStopID extends AsyncWget<ArrivalsFetcher> {
-        private final String stopID;
-        private AtomicReference<Fetcher.result> res;
-        private Palina p;
-        String fragmentTag;
-        boolean sameBusStopAsBefore = false;
-        /**
-         * Begins its life as a copy of lastSuccessfullySearchedBusStop, ends as null if it needs
-         * replacing or stays the same if it stayed the same
-         */
-        private Stop lastSearchedBusStop;
-
-        asyncWgetBusStopFromBusStopID(@Nullable String stopID, @NonNull RecursionHelper<ArrivalsFetcher> r, @Nullable Stop lastSearchedBusStop) {
-            super(getApplicationContext(), r);
-
-            toggleSpinner(true);
-            this.stopID = stopID;
-            this.lastSearchedBusStop = lastSearchedBusStop;
-            this.res = new AtomicReference<>();
-
-            if(stopID == null || stopID.length() <= 0) {
-                // we're still in UI thread, no need to mess with Progress
-                Toast.makeText(this.c,
-                        R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT).show();
-                toggleSpinner(false);
-            } else {
-                //In case the query works, the fragment tag is the stop ID
-                this.execute();
-            }
-
-        }
-
-        @Override
-        protected boolean tryFetcher(ArrivalsFetcher fetcher) {
-            this.p = fetcher.ReadArrivalTimesAll(this.stopID, this.res);
-
-            switch(this.res.get()) {
-                case CLIENT_OFFLINE:
-                    publishProgress(R.string.network_error);
-                    return false;
-                case SERVER_ERROR:
-                    if(isConnected()) {
-                        publishProgress(R.string.parsing_error);
-                    } else {
-                        publishProgress(R.string.network_error);
-                    }
-                    return false;
-                case QUERY_TOO_SHORT: // should never happen here, but to err on the side of caution...
-                    publishProgress(R.string.query_too_short);
-                    return false;
-                case PARSER_ERROR:
-                default: // there are no other cases but Android Studio is still complaining...
-                    publishProgress(R.string.internal_error);
-                    return false;
-                case EMPTY_RESULT_SET:
-                    publishProgress(R.string.no_passages);
-                    return false;
-                case OK:
-                    // WARNING: lots of branches ahead.
-
-                    // did we search for anything?
-                    if(this.lastSearchedBusStop != null) {
-                        // check that we don't have the same stop
-                        if(!this.lastSearchedBusStop.ID.equals(p.ID)) {
-                            // remove it, get new name
-                            this.lastSearchedBusStop = null;
-                            getNameOrGetRekt();
-                        } else {
-                            // searched and it's the same
-                            String sn = lastSearchedBusStop.getStopDisplayName();
-                            if(sn == null) {
-                                // something really bad happened, start from scratch
-                                this.lastSearchedBusStop = null;
-                                getNameOrGetRekt();
-                            } else {
-                                // "merge" Stop over Palina and we're good to go
-                                this.p.mergeNameFrom(lastSearchedBusStop);
-                            }
-                        }
-                    } else {
-                        // we haven't searched anything yet
-                        getNameOrGetRekt();
-                    }
-                    return true;
-            }
-        }
-
-        /**
-         * Run this in a background thread.<br>
-         * Sets a stop name for this.palina, guaranteed not to be null!
-         */
-        private void getNameOrGetRekt() {
-            String nameMaybe;
-            SQLiteDatabase udb = userDB.getReadableDatabase();
-
-            // does it already have a name (for fetchers that support it, or already got from favorites)?
-            nameMaybe = this.p.getStopDisplayName();
-            if(nameMaybe != null && nameMaybe.length() > 0) {
-                return;
-            }
-
-            // ok, let's search favorites.
-
-            String usernameMaybe = UserDB.getStopUserName(udb, this.p.ID);
-            if(usernameMaybe != null && usernameMaybe.length() > 0) {
-                this.p.setStopUserName(usernameMaybe);
-                return;
-            }
-
-
-            // let's try StopsDB, then.
-
-            StopsDB db = new StopsDB(this.c);
-
-            db.openIfNeeded();
-            nameMaybe = db.getNameFromID(this.p.ID);
-            db.closeIfNeeded();
-
-            if(nameMaybe != null && nameMaybe.length() > 0) {
-                this.p.setStopName(nameMaybe);
-                return;
-            }
-
-            // no name to be found anywhere, don't bother searching it next time
-            this.p.setStopName("");
-        }
-
-        @Override
-        protected void onPostExecute(Void useless) {
-
-            boolean refreshing = false;
-            // something really bad happened
-            if(this.isCancelled() || !this.terminated || this.p == null) {
-                toggleSpinner(false);
-                this.onCancelled();
-                return;
-            }
-
-            // no results
-            if(this.failedAll) {
-                toggleSpinner(false);
-                // TODO: an error message would be a good idea, here
-                return;
-            }
-
-
-            hideKeyboard();
-            ResultListFragment listFragment;
-            //Detect if we need to update the data rather than create a new fragment for a new stop
-            if(swipeRefreshLayout.isRefreshing())
-                refreshing=true;
-            else if(framan.findFragmentById(R.id.resultFrame) instanceof ResultListFragment) {
-                listFragment = (ResultListFragment) framan.findFragmentById(R.id.resultFrame);
-                if (listFragment.getResultsListView().getAdapter() instanceof PalinaAdapter && listFragment.getTag().equals(p.ID))
-                    refreshing = true;
-            } else refreshing = false;
-
-
-            if(this.lastSearchedBusStop == null) {
-                // did we gather any new information about this Stop? Then update it (casting from Palina)
-                lastSuccessfullySearchedBusStop = this.p;
-            }
-
-
-            fragmentTag = p.ID;
-            //DO THE FRAGMENT TRANSACTION
-            if(!refreshing) {
-                FragmentTransaction transaction = framan.beginTransaction();
-                listFragment = ResultListFragment.newInstance(ResultListFragment.TYPE_LINES);
-                transaction.replace(R.id.resultFrame, listFragment, fragmentTag);
-                transaction.addToBackStack(fragmentTag);
-                transaction.commit();
-                //Apparently, the fragment creation is asynchronous, but we need the fragment, NOW!
-                framan.executePendingTransactions();
-            } else {
-                Log.d("BusTO", "Same bus stop, accessing existing fragment");
-                listFragment = (ResultListFragment) framan.findFragmentByTag(fragmentTag);
-            }
-
-            String displayName = p.getStopDisplayName();
-            String displayStuff;
-
-            if (displayName != null && displayName.length() > 0) {
-                displayStuff = p.ID.concat(" - ").concat(displayName);
-            } else {
-                displayStuff = p.ID;
-            }
-            listFragment.setTextViewMessage(String.format(
-                    getString(R.string.passages), displayStuff));
-            // Shows hints
-            if (getOption(OPTION_SHOW_LEGEND, true)) {
-                showHints();
-            } //else {
-              //  hideHints();
-            //}
-
-            prepareGUIForBusLines();
-
-            listFragment.setListAdapter(new PalinaAdapter(this.c, p));
-            if(!sameBusStopAsBefore)
-            //listFragment.attachFABToListView(); TODO
-
-            toggleSpinner(false);
-        }
-
-        @Override
-        protected void onCancelled() {
-            toggleSpinner(false);
-        }
-    }
 
     ///////////////////////////////// OTHER STUFF //////////////////////////////////////////////////
-    private boolean isConnected() {
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnected();
-    }
+
 
     /**
      * This method is not really necessary anymore...
@@ -743,34 +412,17 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
     }
 
 
-    // TODO: try to move these 2 methods to a separate class
-
-    private void setOption(String optionName, boolean value) {
-        SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
-        editor.putBoolean(optionName, value);
-        editor.commit();
-    }
-
-    private boolean getOption(String optionName, boolean optDefault) {
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        return preferences.getBoolean(optionName, optDefault);
-    }
-
     ////////////////////////////////////// GUI HELPERS /////////////////////////////////////////////
-
-    private void showKeyboard() {
+    @Override
+    public void showKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         View view = searchMode == SEARCH_BY_ID ? busStopSearchByIDEditText : busStopSearchByNameEditText;
         imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
     }
 
-    private void hideKeyboard() {
-        View view = getCurrentFocus();
-        if (view != null) {
-            ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE))
-                    .hideSoftInputFromWindow(view.getWindowToken(),
-                            InputMethodManager.HIDE_NOT_ALWAYS);
-        }
+    @Override
+    public void showMessage(int messageID) {
+        Toast.makeText(getApplicationContext(), messageID, Toast.LENGTH_SHORT).show();
     }
 
     private void setSearchModeBusStopID() {
@@ -809,8 +461,10 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
         hideHintButton.setVisibility(View.GONE);
         actionHelpMenuItem.setVisible(true);
     }
+
     //TODO: toggle spinner from mainActivity
-    private void toggleSpinner(boolean enable) {
+    @Override
+    public void toggleSpinner(boolean enable) {
         if (enable) {
             //already set by the RefreshListener when needed
             //swipeRefreshLayout.setRefreshing(true);
@@ -833,6 +487,33 @@ public class ActivityMain extends AppCompatActivity implements ResultListFragmen
         actionHelpMenuItem.setVisible(false);
     }
 
+    /**
+     * This provides a temporary fix to make the transition
+     * to a single asynctask go smoother
+     * @param fragmentType the type of fragment created
+     */
+    @Override
+    public void readyGUIfor(String fragmentType) {
+        hideKeyboard();
+        if(fragmentType==null) Log.e("ActivityMain","Problem with fragmentType");
+        else
+        switch (fragmentType){
+            case ResultListFragment.TYPE_LINES:
+                prepareGUIForBusLines();
+                if (getOption(OPTION_SHOW_LEGEND, true)) {
+                    showHints();
+                }
+                break;
+            case ResultListFragment.TYPE_STOPS:
+                prepareGUIForBusStops();
+                break;
+            default:
+                Log.e("BusTO Activity","Called readyGUI with unsupported type of Fragment");
+                return;
+        }
+        // Shows hints
+
+    }
 
     /**
      * Open an URL in the default browser.

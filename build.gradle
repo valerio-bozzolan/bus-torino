@@ -5,13 +5,13 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.2'
+        classpath 'com.android.tools.build:gradle:2.3.1'
     }
 }
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 25
     buildToolsVersion '25.0.2'
 
     compileOptions {
@@ -41,9 +41,9 @@ android {
     }
 
     dependencies {
-        compile 'com.android.support:support-v4:23.4.0'
-        compile 'com.android.support:appcompat-v7:23.4.0'
-        compile 'com.android.support:design:23.4.0'
+        compile 'com.android.support:support-v4:25.3.1'
+        compile 'com.android.support:appcompat-v7:25.3.1'
+        compile 'com.android.support:design:25.3.1'
         compile 'org.jsoup:jsoup:1.7.3'
         compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
     }
