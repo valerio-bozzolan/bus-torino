@@ -38,6 +38,7 @@ import java.util.List;
 public class FragmentHelper {
     GeneralActivity act;
     private Stop lastSuccessfullySearchedBusStop;
+    //support for multiple frames
     private int  primaryFrameLayout,secondaryFrameLayout, swipeRefID;
     public static final int NO_FRAME = -3;
     UserDB userDB;
@@ -79,7 +80,6 @@ public class FragmentHelper {
 
         SwipeRefreshLayout srl = (SwipeRefreshLayout) act.findViewById(swipeRefID);
         FragmentManager fm = act.getSupportFragmentManager();
-        //DON'T UNDERSTAND WHY BUT IT SAYS IT'S NULL REFERENCE
         if(srl.isRefreshing())
             refreshing=true;
         else if(fm.findFragmentById(R.id.resultFrame) instanceof ResultListFragment) {

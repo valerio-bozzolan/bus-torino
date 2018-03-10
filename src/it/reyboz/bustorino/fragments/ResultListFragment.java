@@ -348,7 +348,7 @@ public class ResultListFragment extends Fragment {
                 enable = firstItemVisible && topOfFirstItemVisible;
             }
             refreshLayout.setEnabled(enable);
-            Log.d(getString(R.string.list_fragment_debug),"onScroll active, first item visible: "+firstVisibleItem+", refreshlayout enabled: "+enable);
+            //Log.d(getString(R.string.list_fragment_debug),"onScroll active, first item visible: "+firstVisibleItem+", refreshlayout enabled: "+enable);
         }}
     }
 

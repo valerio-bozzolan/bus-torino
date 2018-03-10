@@ -98,7 +98,7 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
 
         Route route = getItem(position);
         vh.rowStopIcon.setText(route.name);
-        if(route.destinazione.length() == 0) {
+        if(route.destinazione==null || route.destinazione.length() == 0) {
             vh.rowRouteDestination.setVisibility(View.GONE);
         } else {
             // View Holder Pattern(R) renders each element from a previous one: if the other one had an invisible rowRouteDestination, we need to make it visible.

@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -68,9 +69,12 @@ public abstract class networkTools {
         res.set(Fetcher.result.PARSER_ERROR); // will be set to "OK" later, this is a safety net in case StringBuilder returns null, the website returns an HTTP 204 or something like that.
         return result.toString();
     }
-
     @Nullable
-    static String queryURL(URL url, AtomicReference<Fetcher.result> res) {
+    static String queryURL(URL url, AtomicReference<Fetcher.result> res){
+        return queryURL(url,res,null);
+    }
+    @Nullable
+    static String queryURL(URL url, AtomicReference<Fetcher.result> res, Map<String,String> headers) {
         HttpURLConnection urlConnection;
         InputStream in;
         String s;
@@ -85,12 +89,24 @@ public abstract class networkTools {
         // TODO: make this configurable?
         urlConnection.setConnectTimeout(5000);
         urlConnection.setReadTimeout(10000);
+        if(headers!= null){
+            for(String key : headers.keySet()){
+                urlConnection.setRequestProperty(key,headers.get(key));
+            }
+        }
         res.set(Fetcher.result.SERVER_ERROR); // will be set to OK later
 
         try {
             in = urlConnection.getInputStream();
         } catch (Exception e) {
+            try {
+                if(urlConnection.getResponseCode()==404)
+                    res.set(Fetcher.result.SERVER_ERROR_404);
+            } catch (IOException e2) {
+                e2.printStackTrace();
+            }
             return null;
+
         }
 
         s = streamToString(in);
@@ -114,6 +130,27 @@ public abstract class networkTools {
     static String streamToString(InputStream is) {
         Scanner s = new Scanner(is, "UTF-8").useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
+    }
+
+    /**
+     * New method, maybe faster, to read inputStream
+     * also see https://stackoverflow.com/a/5445161
+     * @param is what to read
+     * @return the String Read
+     * @throws IOException from the InputStreamReader
+     */
+    static String parseStreamToString(InputStream is) throws IOException{
+        final int bufferSize = 1024;
+        final char[] buffer = new char[bufferSize];
+        final StringBuilder out = new StringBuilder();
+        InputStreamReader in = new InputStreamReader(is, "UTF-8");
+        int rsz= in.read(buffer, 0, buffer.length);
+        while( rsz >0) {
+            out.append(buffer, 0, rsz);
+            rsz = in.read(buffer, 0, buffer.length);
+        }
+        return out.toString();
+
     }
 
     static int failsafeParseInt(String str) {

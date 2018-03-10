@@ -20,6 +20,7 @@ package it.reyboz.bustorino.backend;
 
 import android.support.annotation.NonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Route implements Comparable<Route> {
@@ -27,6 +28,7 @@ public class Route implements Comparable<Route> {
     public final String destinazione;
     public final List<Passaggio> passaggi;
     public final Type type;
+    public final String description;
 
     public enum Type { // "long distance" sono gli extraurbani.
         BUS, LONG_DISTANCE_BUS, METRO, RAILWAY, TRAM
@@ -46,6 +48,21 @@ public class Route implements Comparable<Route> {
         this.destinazione = destinazione;
         this.passaggi = passaggi;
         this.type = type;
+        this.description = null;
+    }
+
+    /**
+     * Constructor used by the new Api
+     * @param name stop Name
+     * @param t optional type
+     * @param description line rough description
+     */
+    public Route(String name,Type t,String description){
+        this.name = name;
+        this.type = t;
+        this.passaggi = new ArrayList<>();
+        this.destinazione = null;
+        this.description = description;
     }
 
     /**
@@ -64,6 +81,17 @@ public class Route implements Comparable<Route> {
      */
      public void addPassaggio(String TimeGTT) {
          this.passaggi.add(new Passaggio(TimeGTT));
+     }
+
+     public static String getPassageString(String input,boolean realtime){
+         String time = input.trim();
+         if(time.contains("*")){
+             if(realtime) return time;
+             else return time.substring(0,time.length()-1);
+         } else{
+             if(realtime) return time.concat("*");
+             else return time;
+         }
      }
 
     @Override
@@ -93,10 +121,11 @@ public class Route implements Comparable<Route> {
         }
 
         // try comparing their destination
-
-        res = this.destinazione.compareTo(other.destinazione);
-        if(res != 0) {
-            return res;
+        if(this.destinazione!=null){
+            res = this.destinazione.compareTo(other.destinazione);
+            if(res != 0) {
+                return res;
+            }
         }
 
         // probably useless, but... last attempt.

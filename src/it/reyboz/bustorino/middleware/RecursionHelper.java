@@ -51,6 +51,14 @@ public class RecursionHelper<FetcherKind> {
     }
 
     /**
+     * Have we reached the end of the fetchers
+     * @return
+     */
+    public boolean isLast(){
+        return this.pos ==len-1;
+    }
+
+    /**
      * Give me a fetcher (use valid() to check that it exists BEFORE requesting it), move to next
      *
      * @return the fetcher\finder\whatever

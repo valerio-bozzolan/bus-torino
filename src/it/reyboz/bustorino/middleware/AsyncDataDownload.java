@@ -56,7 +56,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
         Object result;
         switch (t){
             case ARRIVALS:
-                r = new RecursionHelper<>(new ArrivalsFetcher[] {new GTTJSONFetcher(), new FiveTScraperFetcher()});
+                r = new RecursionHelper<>(new ArrivalsFetcher[] {new FiveTAPIFetcher(),new GTTJSONFetcher(), new FiveTScraperFetcher()});
                 break;
             case STOPS:
                 r = new RecursionHelper<>(new StopsFinderByName[] {new GTTStopsFetcher(), new FiveTStopsFetcher()});
@@ -66,16 +66,14 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                 cancel(true);
                 return null;
         }
-        //res.get()!= Fetcher.result.OK
         FragmentHelper fh = helperRef.get();
+        //If the FragmentHelper is null, that means the activity doesn't exist anymore
         if (fh == null){
-            cancel(true);
             return null;
         }
 
         //Log.d(TAG,"refresh layout reference is: "+fh.isRefreshLayoutReferenceTrue());
         while(r.valid()) {
-            //If the FragmentHelper is null, that means the activity doesn't exist anymore
             if(this.isCancelled()) {
                 return null;
             }

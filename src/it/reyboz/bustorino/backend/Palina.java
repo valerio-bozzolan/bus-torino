@@ -49,6 +49,10 @@ public class Palina extends Stop {
         this.routes.add(new Route(routeID, destinazione, type, new ArrayList<Passaggio>(6)));
         return this.routes.size() - 1; // last inserted element and pray that direct access to ArrayList elements really is direct
     }
+    public int addRoute(Route r){
+        this.routes.add(r);
+        return this.routes.size()-1;
+    }
 
     /**
      * Adds a timetable entry to a route.
@@ -60,6 +64,18 @@ public class Palina extends Stop {
         this.routes.get(arrayIndex).addPassaggio(TimeGTT);
     }
 
+    /**
+     * Count routes with missing directions
+     * @return number
+     */
+    public int countRoutesWithMissingDirections(){
+        int i = 0;
+        for (Route r : routes){
+            if(r.destinazione==null||r.destinazione.equals(""))
+                i++;
+        }
+        return i;
+    }
 //    /**
 //     * Clears a route timetable (or creates an empty route) and returns its index
 //     *

@@ -25,11 +25,12 @@ public interface Fetcher {
      * OK: got a response, parsed correctly, obtained some data<br>
      * CLIENT_OFFLINE: can't connect to the internet<br>
      * SERVER_ERROR: the server replied anything other than HTTP 200, basically<br>
+     *              for 404 special constant (see @FiveTAPIFetcher)
      * PARSER_ERROR: the server replied something that can't be parsed, probably it's not the data we're looking for (e.g. "PHP: Fatal Error")<br>
      * EMPTY_RESULT_SET: the response is valid and indicates there are no stops\routes\"passaggi"\results for your query<br>
      * QUERY_TOO_SHORT: input more characters and retry.
      */
     enum result {
-        OK, CLIENT_OFFLINE, SERVER_ERROR, PARSER_ERROR, EMPTY_RESULT_SET, QUERY_TOO_SHORT
+        OK, CLIENT_OFFLINE, SERVER_ERROR, PARSER_ERROR, EMPTY_RESULT_SET, QUERY_TOO_SHORT,SERVER_ERROR_404
     }
 }

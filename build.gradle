@@ -30,6 +30,12 @@ android {
             assets.srcDirs = ['assets']
         }
     }
+    buildTypes{
+        debug{
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-dev"
+        }
+    }
 
     lintOptions {
         abortOnError false
