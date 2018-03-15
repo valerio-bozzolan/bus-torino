@@ -83,14 +83,16 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                     ArrivalsFetcher f = (ArrivalsFetcher) r.getAndMoveForward();
                     Stop lastSearchedBusStop = fh.getLastSuccessfullySearchedBusStop();
                     Palina p;
+                    String stopID;
                     if(params.length>0)
-                        p = f.ReadArrivalTimesAll(params[0],res); //(it's a Palina)
+                        stopID=params[0]; //(it's a Palina)
                     else if(lastSearchedBusStop!=null)
-                        p = f.ReadArrivalTimesAll(lastSearchedBusStop.ID,res); //(it's a Palina)
+                        stopID = lastSearchedBusStop.ID; //(it's a Palina)
                     else {
                         publishProgress(Fetcher.result.QUERY_TOO_SHORT);
                         return null;
                     }
+                    p= f.ReadArrivalTimesAll(stopID,res);
                     publishProgress(res.get());
                     //Try to find the name of the stop inside StopsDB
                     fh.openStopsDB();
@@ -98,6 +100,14 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                         p.setStopName(fh.getStopNamefromDB(p.ID));
                     }
                     fh.closeDBIfNeeded();
+                    if(f instanceof FiveTAPIFetcher){
+                        AtomicReference<Fetcher.result> gres = new AtomicReference<>();
+                        List<Route> branches = ((FiveTAPIFetcher) f).getDirectionsForStop(params[0],gres);
+                        if(res.get() == Fetcher.result.OK){
+                            p.addInfoFromRoutes(branches);
+                        }
+                        //put updated values into Database
+                    }
                     //TODO: use ContentProvider when ready
                     /*
                     if(lastSearchedBusStop != null && res.get()== Fetcher.result.OK) {

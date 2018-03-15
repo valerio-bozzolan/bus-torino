@@ -1,3 +1,20 @@
+/*
+	BusTO  - Backend components
+    Copyright (C) 2018 Fabio Mazza
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package it.reyboz.bustorino.backend;
 
 import android.support.annotation.Nullable;
@@ -12,15 +29,15 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Hashtable;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class FiveTAPIFetcher implements ArrivalsFetcher {
+public class FiveTAPIFetcher implements ArrivalsFetcher{
 
     private static final String SECRET_KEY="759C97DC7D115966C30FD9169BB200D9";
     private static final String DEBUG_NAME = "FiveTAPIFetcher";
+    final static LinkedList<String> apiDays = new LinkedList<>(Arrays.asList("dom","lun","mar","mer","gio","ven","sab"));
+
 
     @Override
     public Palina ReadArrivalTimesAll(String stopID, AtomicReference<result> res) {
@@ -56,26 +73,20 @@ public class FiveTAPIFetcher implements ArrivalsFetcher {
                 JSONObject lineJSON = arr.getJSONObject(i);
                 type = lineJSON.getString("lineType");
                 String lineName=lineJSON.getString("name");
-                /*String[] lineNameExploded = lineJSON.getString("name").split(" ");
-                if(lineNameExploded.length==1) lineName=lineNameExploded[0];
 
-                else {
-                    //if(lineNameExploded[lineNameExploded.length-1].equals("/")) lineNameExploded[lineNameExploded.length-1] = "B";
-                    StringBuilder sb = new StringBuilder();
-                    for(String el:lineNameExploded) sb.append(el);
-                    lineName = sb.toString();
-                }*/
                 //set the type of line
                 if(type.equals("EXTRA"))
                     routetype = Route.Type.LONG_DISTANCE_BUS;
                 else routetype = Route.Type.BUS;
+                //Cut out the spaces in the line Name
+                //TODO: parse the line description
                 Route r = new Route(lineName.replace(" ",""),routetype,lineJSON.getString("longName"));
                 Log.d(DEBUG_NAME,"Creating line with name "+lineJSON.getString("name")+" and description "+lineJSON.getString("longName"));
                 JSONArray passagesJSON = lineJSON.getJSONArray("departures");
                 for(int j=0;j<passagesJSON.length();j++){
                     JSONObject arrival = passagesJSON.getJSONObject(j);
                     r.addPassaggio(Route.getPassageString(arrival.getString("time"),arrival.getBoolean("rt")));
-                    Log.d(DEBUG_NAME,"Adding passage with time "+arrival.getString("time")+"\nrealtime="+arrival.getBoolean("rt"));
+                    //Log.d(DEBUG_NAME,"Adding passage with time "+arrival.getString("time")+"\nrealtime="+arrival.getBoolean("rt"));
                 }
                 p.addRoute(r);
             }
@@ -90,6 +101,78 @@ public class FiveTAPIFetcher implements ArrivalsFetcher {
         return p;
     }
 
+    public List<Route> getDirectionsForStop(String stopID, AtomicReference<result> res) {
+
+        String response = performAPIRequest(QueryType.DETAILS,stopID,res);
+        if(response == null) return null;
+        ArrayList<Route> routes = new ArrayList<>(10);
+
+        try {
+            JSONArray lines =new JSONArray(response);
+            for(int i=0; i<lines.length();i++){
+                int festivo=-2;
+                JSONObject branchJSON = lines.getJSONObject(i);
+                int branchid = branchJSON.getInt("branch");
+                String description = branchJSON.getString("description");
+                String direction = branchJSON.getString("direction");
+                String stops = branchJSON.getJSONObject("branchDetail").getString("stops");
+                String lineName = branchJSON.getString("lineName");
+                Route.Type t = null;
+                //parsing description
+                String[] exploded = description.split(",");
+                description = exploded[exploded.length-1]; //the real description
+                int[]  serviceDays = {};
+                if(exploded.length > 1) {
+                    String secondo = exploded[exploded.length-2];
+                    if (secondo.contains("festivo")) {
+                        festivo = 1;
+                    } else if (secondo.contains("feriale")) {
+                        festivo = 0;
+                    } else if(secondo.contains("lun. - ven")) {
+                        serviceDays = Route.reduced_week;
+                    } else if(secondo.contains("sab - fest.")){
+                        serviceDays = Route.weekend;
+                        festivo = 1;
+                    } else {
+                        Log.d(DEBUG_NAME,"Parsing details of line "+lineName+" branchid "+branchid+":\n\t"+
+                            "Couldn't find a the service days\n"+
+                            "Description: "+secondo+","+description
+                        );
+                    }
+                    if(exploded.length>2){
+                        switch (exploded[exploded.length-3].trim()) {
+                            case "bus":
+                                t = Route.Type.BUS;
+                                break;
+                            case "tram":
+                                //never happened, but if it could happen you can get it
+                                t = Route.Type.TRAM;
+                                break;
+                            default:
+                                //nothing
+                        }
+
+                    }
+                }
+                if(lineName.trim().equals("10")|| lineName.trim().equals("15")) t= Route.Type.TRAM;
+                Route r = new Route(lineName.trim(),direction.trim(),t,null);
+                if(serviceDays.length>0) r.serviceDays = serviceDays;
+                r.festivo = Route.FestiveInfo.returnTypefromCode(festivo);
+                r.branchid = branchid;
+                r.description = description.trim();
+                r.setStopsList(Arrays.asList(stops.split(",")));
+
+                routes.add(r);
+                res.set(result.OK);
+            }
+        } catch (JSONException e) {
+            res.set(result.PARSER_ERROR);
+            e.printStackTrace();
+            return null;
+        }
+        return routes;
+    }
+
     /**
      * Create and perform the network request. This method adds parameters and returns the result
      * @param t type of request to be performed
@@ -98,13 +181,14 @@ public class FiveTAPIFetcher implements ArrivalsFetcher {
      * @return a String which contains the result of the query, to be parsed
      */
     @Nullable
-    static String performAPIRequest(QueryType t,@Nullable String stopID, AtomicReference<result> res){
+    public static String performAPIRequest(QueryType t,@Nullable String stopID, AtomicReference<result> res){
         Date d = new Date();
         URL u;
         Hashtable<String,String> param = new Hashtable<>();
 
         try {
             String address  = getURLForOperation(t,stopID);
+            //Log.d(DEBUG_NAME,"The address to query is: "+address);
             param.put("TOKEN",getAccessToken(address,d));
             param.put("TIMESTAMP",String.valueOf(d.getTime()));
             param.put("Accept-Encoding","gzip");
@@ -132,7 +216,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher {
      * @throws NoSuchAlgorithmException if the system doesn't support MD5
      * @throws UnsupportedEncodingException if we made mistakes in writing utf-8
      */
-    static String getAccessToken(String URL,Date d) throws NoSuchAlgorithmException,UnsupportedEncodingException{
+    private static String getAccessToken(String URL,Date d) throws NoSuchAlgorithmException,UnsupportedEncodingException{
         MessageDigest md = MessageDigest.getInstance("MD5");
         String strippedQuery = URL.replace("http://www.5t.torino.it/proxyws","");
         //return the time in milliseconds
@@ -142,6 +226,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher {
         sb.append(timeMilli);
         sb.append(SECRET_KEY);
         String stringToBeHashed =  sb.toString();
+        //Log.d(DEBUG_NAME,"Hashing string: "+stringToBeHashed);
         md.reset();
         byte[] data = md.digest(stringToBeHashed.getBytes("UTF-8"));
         sb = new StringBuilder();
@@ -149,7 +234,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher {
             sb.append(String.format("%02x",b));
         }
         String result = sb.toString();
-        Log.d(DEBUG_NAME,"getting token:\n\treduced URL: "+strippedQuery+"\n\ttimestamp: "+timeMilli+"\nTOKEN:"+result.toLowerCase());
+        //Log.d(DEBUG_NAME,"getting token:\n\treduced URL: "+strippedQuery+"\n\ttimestamp: "+timeMilli+"\nTOKEN:"+result.toLowerCase());
         return result.toLowerCase();
     }
 
@@ -172,7 +257,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher {
                 sb.append(URLEncoder.encode(stopID,"utf-8"));
                 sb.append("/branches/details");
                 break;
-            case STOPS:
+            case STOPS_ALL:
                 sb.append("all");
                 break;
             case STOPS_VERSION:
@@ -182,7 +267,9 @@ public class FiveTAPIFetcher implements ArrivalsFetcher {
         return sb.toString();
     }
 
+
+
     enum QueryType {
-        ARRIVALS, DETAILS,STOPS, STOPS_VERSION
+        ARRIVALS, DETAILS,STOPS_ALL, STOPS_VERSION
     }
 }

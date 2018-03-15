@@ -18,9 +18,8 @@
 
 package it.reyboz.bustorino.backend;
 
-import android.support.annotation.NonNull;
-
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
@@ -151,6 +150,62 @@ public class Palina extends Stop {
 
     public void sortRoutes() {
         Collections.sort(this.routes);
+    }
+
+    public int addInfoFromRoutes(List<Route> additionalRoutes){
+        if(routes == null || routes.size()==0) {
+            this.routes = new ArrayList<>(additionalRoutes);
+            return routes.size();
+        }
+        int count=0;
+        for(Route r:routes) {
+            int j = 0;
+            boolean correct = false;
+            Route selected = null;
+            while (!correct) {
+                while (j < additionalRoutes.size() && !r.name.equals(additionalRoutes.get(j).name)) {
+                    j++;
+                }
+                if (j == additionalRoutes.size()) break; //no match has been found
+                //should have found the first occurrence of the line
+                selected = additionalRoutes.get(j);
+
+                Calendar c = Calendar.getInstance();
+                int to = c.get(Calendar.DAY_OF_WEEK);
+
+                if (selected.serviceDays != null && selected.serviceDays.length > 0) {
+                    //check it is in service
+                    for (int d : selected.serviceDays) {
+                        if (d == to) {
+                            correct = true;
+                            break;
+                        }
+                    }
+                } else if (r.festivo != null) {
+                    switch (r.festivo) {
+                        case FERIALE:
+                            //Domenica = 1 --> Saturday=7
+                            if (to <= 7 && to > 1) correct = true;
+                            break;
+                        case FESTIVO:
+                            if (to == 1) correct = true; //TODO: implement way to recognize all holidays
+                            break;
+                        case UNKNOWN:
+                            correct = true;
+                    }
+                } else {
+                    //case a: there is no info because the line is always active
+                    //case b: there is no info because the information is missing
+                    correct = true;
+                }
+            }
+            if (correct == false || selected == null) continue; //we didn't find any match, should we point it out?
+            //found the correct correspondance
+            //MERGE INFO
+
+            if(r.mergeRouteWithAnother(selected)) count++;
+        }
+        return count;
     }
 
 //    /**

@@ -21,18 +21,57 @@ package it.reyboz.bustorino.backend;
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 
 public class Route implements Comparable<Route> {
+    final static int[] reduced_week = {Calendar.MONDAY,Calendar.TUESDAY,Calendar.WEDNESDAY,Calendar.THURSDAY,Calendar.FRIDAY};
+    final static int[] feriali = {Calendar.MONDAY,Calendar.TUESDAY,Calendar.WEDNESDAY,Calendar.THURSDAY,Calendar.FRIDAY,Calendar.SATURDAY};
+    final static int[] weekend = {Calendar.SUNDAY,Calendar.SATURDAY};
+    final static int BRANCHID_MISSING = -1;
+
     public final String name;
-    public final String destinazione;
+    public String destinazione;
     public final List<Passaggio> passaggi;
     public final Type type;
-    public final String description;
+    public String description;
+    //ordered list of stops, from beginning to end of line
+    private List<String> stopsList = null;
+    public int branchid = BRANCHID_MISSING;
+    public int[] serviceDays ={};
+    //0=>feriale, 1=>festivo -2=>unknown
+    public FestiveInfo festivo = FestiveInfo.UNKNOWN;
+
 
     public enum Type { // "long distance" sono gli extraurbani.
         BUS, LONG_DISTANCE_BUS, METRO, RAILWAY, TRAM
     }
+    public enum FestiveInfo{
+        FESTIVO(1),FERIALE(0),UNKNOWN(-2);
+
+        private int code;
+        FestiveInfo(int code){
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
+        public static FestiveInfo returnTypefromCode(int i){
+            switch (i){
+                case -2:
+                    return UNKNOWN;
+                case 0:
+                    return FERIALE;
+                case 1:
+                    return FESTIVO;
+                default:
+                    return UNKNOWN;
+            }
+        }
+    }
+
 
     /**
      * Constructor.
@@ -74,6 +113,13 @@ public class Route implements Comparable<Route> {
         return this.passaggi;
     }
 
+    public void setStopsList(List<String> stopsList) {
+        this.stopsList = Collections.unmodifiableList(stopsList);
+    }
+    public List<String> getStopsList(){
+        return this.stopsList;
+    }
+
     /**
      * Adds a time (passaggio) to the timetable for this route
      *
@@ -106,7 +152,7 @@ public class Route implements Comparable<Route> {
 
         // compare.
 
-        // numeric route IDs
+        // numeric route IDs (names)
         if(thisAsInt != 0 && otherAsInt != 0) {
             res = thisAsInt - otherAsInt;
             if(res != 0) {
@@ -128,6 +174,15 @@ public class Route implements Comparable<Route> {
             }
         }
 
+        //compare the lines
+        if(this.stopsList!=null && other.stopsList!=null){
+            int d = this.stopsList.size()-other.stopsList.size();
+            if(d!=0) return d;
+            else {
+                //the two have the same number of stops
+
+            }
+        }
         // probably useless, but... last attempt.
 
         if(this.type != other.type) {
@@ -137,4 +192,67 @@ public class Route implements Comparable<Route> {
 
         return 0;
     }
+
+    public boolean isBranchIdValid(){
+         return branchid!=BRANCHID_MISSING;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+         if(obj instanceof Route){
+             Route r = (Route) obj;
+             boolean result  = false;
+             if(this.name.equals(r.name) && this.branchid == r.branchid){
+                 if(this.stopsList!=null && r.stopsList!=null){
+                     int d = this.stopsList.size()-r.stopsList.size();
+                     if(d!=0) {
+                         result = false;
+                     } else {
+                         result = true;
+                         for(int j=0; j<this.stopsList.size();j++){
+                             if(!this.stopsList.get(j).equals(r.stopsList.get(j))) {
+                                result = false;
+                                break;
+                             }
+                        }
+                     }
+                 }
+             }
+             return result;
+
+         } else return false;
+    }
+
+    /**
+     * Merge informations from another route
+     * NO CONSISTENCY CHECKS, DO BEFORE CALLING THIS METHOD
+     * @param other the other route
+     * @return if there have been changes
+     */
+    public boolean mergeRouteWithAnother(Route other){
+         boolean adjusted = false;
+        if ((other.serviceDays!=null && this.serviceDays!=null && this.serviceDays.length==0)
+                || (other.serviceDays!=null && this.serviceDays==null)) {
+            this.serviceDays = other.serviceDays;
+            adjusted = true;
+        }
+        //if (selected.getStopsList() != null && r.getStopsList() == null)
+        //    r.setStopsList(selected.getStopsList());
+        if(this.destinazione == null && other.destinazione!=null) {
+            this.destinazione = other.destinazione;
+            adjusted = true;
+        }
+        if(!this.isBranchIdValid() && other.isBranchIdValid()) {
+            this.branchid = other.branchid;
+            adjusted = true;
+        }
+        if(this.festivo == Route.FestiveInfo.UNKNOWN && other.festivo!= Route.FestiveInfo.UNKNOWN){
+            this.festivo = other.festivo;
+            adjusted = true;
+        }
+
+
+         return adjusted;
+    }
+
 }

@@ -20,6 +20,8 @@ package it.reyboz.bustorino.backend;
 
 // "arrivals" è più usato di "transit" o simili, e chi sono io per mettermi a dibattere con gli inglesi?
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public interface ArrivalsFetcher extends Fetcher {
