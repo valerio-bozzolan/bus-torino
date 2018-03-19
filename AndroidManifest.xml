@@ -11,6 +11,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
             android:allowBackup="true"
@@ -83,6 +85,18 @@
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value=".ActivityMain"/>
         </activity>
+
+        <provider
+                android:name=".middleware.AppDataProvider"
+                android:authorities="it.reyboz.bustorino.provider"
+                android:enabled="false"
+                android:exported="false">
+        </provider>
+
+        <service
+                android:name=".middleware.DatabaseUpdateService"
+                android:exported="false">
+        </service>
     </application>
 
 </manifest>

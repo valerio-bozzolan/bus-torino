@@ -236,8 +236,8 @@ public class Route implements Comparable<Route> {
             this.serviceDays = other.serviceDays;
             adjusted = true;
         }
-        //if (selected.getStopsList() != null && r.getStopsList() == null)
-        //    r.setStopsList(selected.getStopsList());
+        if (other.getStopsList() != null && this.getStopsList() == null)
+            this.setStopsList(other.getStopsList());
         if(this.destinazione == null && other.destinazione!=null) {
             this.destinazione = other.destinazione;
             adjusted = true;
@@ -250,7 +250,11 @@ public class Route implements Comparable<Route> {
             this.festivo = other.festivo;
             adjusted = true;
         }
-
+        if(other.description!=null&&
+                ((this.festivo == FestiveInfo.FERIALE && this.description.contains("festivo")) ||
+                        (this.festivo == FestiveInfo.FESTIVO && this.description.contains("feriale")))) {
+            this.description = other.description;
+        }
 
          return adjusted;
     }

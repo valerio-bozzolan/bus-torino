@@ -40,6 +40,7 @@ public class Stop implements Comparable<Stop> {
 
     // leave this non-final
     private @Nullable String routesThatStopHereString = null;
+    private @Nullable String absurdGTTPlaceName = null;
 
     /**
      * Hey, look, method overloading!
@@ -83,6 +84,7 @@ public class Stop implements Comparable<Stop> {
         this.lon = lon;
     }
 
+
     public @Nullable String routesThatStopHereToString() {
         // M E M O I Z A T I O N
         if(this.routesThatStopHereString != null) {
@@ -91,6 +93,15 @@ public class Stop implements Comparable<Stop> {
 
         // no string yet? build it!
         return buildString();
+    }
+
+    @Nullable
+    public String getAbsurdGTTPlaceName() {
+        return absurdGTTPlaceName;
+    }
+
+    public void setAbsurdGTTPlaceName(@NonNull String absurdGTTPlaceName) {
+        this.absurdGTTPlaceName = absurdGTTPlaceName;
     }
 
     public void setRoutesThatStopHere(@Nullable List<String> routesThatStopHere) {

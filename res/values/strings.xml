@@ -87,4 +87,5 @@
     <string name="action_view_on_map">View on a map</string>
 
     <string name="list_fragment_debug" translatable="false">ListFragment - BusTO</string>
+    <string name="mainSharedPreferences" translatable="false">it.reyboz.bustorino.preferences</string>
 </resources>

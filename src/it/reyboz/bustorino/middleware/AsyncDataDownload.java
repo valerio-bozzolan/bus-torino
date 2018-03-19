@@ -63,7 +63,6 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                 break;
             default:
                 //TODO put error message
-                cancel(true);
                 return null;
         }
         FragmentHelper fh = helperRef.get();
@@ -94,33 +93,30 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                     }
                     p= f.ReadArrivalTimesAll(stopID,res);
                     publishProgress(res.get());
-                    //Try to find the name of the stop inside StopsDB
-                    fh.openStopsDB();
-                    if(p.getStopDisplayName() == null){
-                        p.setStopName(fh.getStopNamefromDB(p.ID));
-                    }
-                    fh.closeDBIfNeeded();
+
                     if(f instanceof FiveTAPIFetcher){
                         AtomicReference<Fetcher.result> gres = new AtomicReference<>();
-                        List<Route> branches = ((FiveTAPIFetcher) f).getDirectionsForStop(params[0],gres);
-                        if(res.get() == Fetcher.result.OK){
+                        List<Route> branches = ((FiveTAPIFetcher) f).getDirectionsForStop(stopID,gres);
+                        if(gres.get() == Fetcher.result.OK){
                             p.addInfoFromRoutes(branches);
                         }
                         //put updated values into Database
                     }
                     //TODO: use ContentProvider when ready
-                    /*
+
                     if(lastSearchedBusStop != null && res.get()== Fetcher.result.OK) {
                         // check that we don't have the same stop
                         if(!lastSearchedBusStop.ID.equals(p.ID)) {
                             // remove it, get new name
-                            getNameOrGetRekt();
+                            //getNameOrGetRekt();
+                            //TODO
                         } else {
                             // searched and it's the same
                             String sn = lastSearchedBusStop.getStopDisplayName();
                             if(sn == null) {
                                 // something really bad happened, start from scratch
-                                getNameOrGetRekt();
+                                //getNameOrGetRekt();
+                                //TODO
                             } else {
                                 // "merge" Stop over Palina and we're good to go
                                 p.mergeNameFrom(lastSearchedBusStop);
@@ -128,9 +124,17 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                         }
                     } else if(res.get()== Fetcher.result.OK) {
                         // we haven't searched anything yet
-                        getNameOrGetRekt();
+                        //getNameOrGetRekt();
                     }
-                    */
+
+                    //Try to find the name of the stop inside StopsDB
+
+                    if(p.getStopDisplayName() == null){
+                        fh.openStopsDB();
+                        p.setStopName(fh.getStopNamefromDB(p.ID));
+                        fh.closeDBIfNeeded();
+                    }
+
                     result = p;
                     Log.d(TAG,"Using the ArrivalsFetcher: "+f.getClass());
                     //TODO: find a way to avoid overloading the user with toasts

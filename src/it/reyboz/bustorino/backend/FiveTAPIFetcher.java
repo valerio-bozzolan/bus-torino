@@ -47,8 +47,12 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
 
         //request parameters
         String response = performAPIRequest(QueryType.ARRIVALS,stopID,res);
-        if(response==null){
-            //an error has occured, details in res.get()
+
+        if(response==null) {
+            if(res.get()==result.SERVER_ERROR_404) {
+                Log.w(DEBUG_NAME,"Got 404, either the server failed, or the stop was not found, or the hack is not working anymore");
+                res.set(result.EMPTY_RESULT_SET);
+            };
             return p;
         }
 
@@ -79,8 +83,10 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                     routetype = Route.Type.LONG_DISTANCE_BUS;
                 else routetype = Route.Type.BUS;
                 //Cut out the spaces in the line Name
+                //temporary fix
+                lineName = lineName.replace(" ","").replace("/","B");
                 //TODO: parse the line description
-                Route r = new Route(lineName.replace(" ",""),routetype,lineJSON.getString("longName"));
+                Route r = new Route(lineName,routetype,lineJSON.getString("longName"));
                 Log.d(DEBUG_NAME,"Creating line with name "+lineJSON.getString("name")+" and description "+lineJSON.getString("longName"));
                 JSONArray passagesJSON = lineJSON.getJSONArray("departures");
                 for(int j=0;j<passagesJSON.length();j++){
@@ -110,8 +116,8 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         try {
             JSONArray lines =new JSONArray(response);
             for(int i=0; i<lines.length();i++){
-                int festivo=-2;
-                JSONObject branchJSON = lines.getJSONObject(i);
+                Route.FestiveInfo festivo = Route.FestiveInfo.UNKNOWN;
+                final JSONObject branchJSON = lines.getJSONObject(i);
                 int branchid = branchJSON.getInt("branch");
                 String description = branchJSON.getString("description");
                 String direction = branchJSON.getString("direction");
@@ -125,14 +131,14 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                 if(exploded.length > 1) {
                     String secondo = exploded[exploded.length-2];
                     if (secondo.contains("festivo")) {
-                        festivo = 1;
+                        festivo = Route.FestiveInfo.FESTIVO;
                     } else if (secondo.contains("feriale")) {
-                        festivo = 0;
+                        festivo = Route.FestiveInfo.FERIALE;
                     } else if(secondo.contains("lun. - ven")) {
                         serviceDays = Route.reduced_week;
                     } else if(secondo.contains("sab - fest.")){
                         serviceDays = Route.weekend;
-                        festivo = 1;
+                        festivo = Route.FestiveInfo.FESTIVO;
                     } else {
                         Log.d(DEBUG_NAME,"Parsing details of line "+lineName+" branchid "+branchid+":\n\t"+
                             "Couldn't find a the service days\n"+
@@ -153,24 +159,81 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                         }
 
                     }
-                }
+                } else //only one piece
+                    if(description.contains("festivo")){
+                        festivo = Route.FestiveInfo.FESTIVO;
+                    } else if(description.contains("feriale")){
+                        festivo = Route.FestiveInfo.FERIALE;
+                    }
                 if(lineName.trim().equals("10")|| lineName.trim().equals("15")) t= Route.Type.TRAM;
+                if(direction.contains("-")){
+                    //
+                    direction = direction.split("-")[1];
+                }
                 Route r = new Route(lineName.trim(),direction.trim(),t,null);
                 if(serviceDays.length>0) r.serviceDays = serviceDays;
-                r.festivo = Route.FestiveInfo.returnTypefromCode(festivo);
+                r.festivo = festivo;
                 r.branchid = branchid;
                 r.description = description.trim();
                 r.setStopsList(Arrays.asList(stops.split(",")));
 
                 routes.add(r);
-                res.set(result.OK);
             }
+
+            res.set(result.OK);
+
         } catch (JSONException e) {
             res.set(result.PARSER_ERROR);
             e.printStackTrace();
             return null;
         }
         return routes;
+    }
+    public List<Stop> getAllStopsFromGTT(AtomicReference<result> res){
+
+        String response = performAPIRequest(QueryType.STOPS_ALL,null,res);
+        ArrayList<Stop> stopslist = null;
+        try{
+            JSONArray stops = new JSONArray(response);
+            stopslist = new ArrayList<>(stops.length());
+            for (int i=0;i<stops.length();i++){
+                JSONObject currentStop = stops.getJSONObject(i);
+                String location = currentStop.getString("location");
+                if(location.trim().equals("_")) location = null;
+                String placeName = currentStop.getString("placeName");
+                if(placeName.trim().equals("_")) placeName = null;
+                String[] lines = currentStop.getString("lines").split(",");
+                Route.Type t;
+                    switch (currentStop.getString("type")){
+                        case "BUS":
+                            t = Route.Type.BUS;
+                            break;
+                        case "METRO":
+                            t = Route.Type.METRO;
+                            break;
+                        case "TRENO":
+                            t = Route.Type.RAILWAY;
+                            break;
+                        default:
+                            t = null;
+                    }
+                Stop s = new Stop(currentStop.getString("id"),
+                        currentStop.getString("name"),null,location,t,Arrays.asList(lines),
+                        Double.parseDouble(currentStop.getString("lat")),
+                        Double.parseDouble(currentStop.getString("lng")));
+                if(placeName!=null)
+                s.setAbsurdGTTPlaceName(placeName);
+                stopslist.add(s);
+            }
+            res.set(result.OK);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            res.set(result.PARSER_ERROR);
+            return null;
+        }
+
+        return stopslist;
     }
 
     /**
@@ -200,12 +263,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
             return null;
         }
         String response = networkTools.queryURL(u,res,param);
-        if(response==null) {
-            if(res.get()==result.SERVER_ERROR_404) {
-                Log.w(DEBUG_NAME,"Got 404, either the server failed, or the stop was not found, or the hack is not working anymore");
-                res.set(result.EMPTY_RESULT_SET);
-            };
-        }
+
         return response;
     }
 
@@ -269,7 +327,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
 
 
 
-    enum QueryType {
+    public enum QueryType {
         ARRIVALS, DETAILS,STOPS_ALL, STOPS_VERSION
     }
 }

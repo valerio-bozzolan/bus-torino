@@ -170,6 +170,7 @@ public abstract class FiveTNormalizer {
 
     }
 
+    //TODO: DO THE OPPOSITE FOR FIVETAPIFETCHER
     /**
      * Converts a route ID from internal format to display format, returns null if it has the same name.
      *
@@ -243,6 +244,42 @@ public abstract class FiveTNormalizer {
                 return "46 Navetta";
             default:
                 return null;
+        }
+    }
+
+    public static String routeDisplayToInternal(String displayName){
+        if(displayName.trim().charAt(displayName.length()-1)=='/'){
+            return displayName.replace(" ","").replace("/","B");
+        }
+        switch (displayName.trim().toLowerCase()){
+            case "star 1":
+                return "ST1";
+            case "star 2":
+                return "ST2";
+            case "night buster 1 arancio":
+                return "W01";
+            case "night buster 10 gialla":
+                return "N10";
+            case "night buster 15 rosa":
+                return "W15";
+            case "night buster 18 blu":
+                return "S18";
+            case "night buster 4 azzurra":
+                return "S04";
+            case "night buster 4 rossa":
+                return "N4";
+            case "night buster 57 oro":
+                return "N57";
+            case "night buster 60 argento":
+                return "W60";
+            case "night buster 68 verde":
+                return "E68";
+            case "night buster 5 viola":
+                return "S05";
+            case "1 nichelino":
+                return "1N";
+            default:
+                return displayName.trim();
         }
     }
 
