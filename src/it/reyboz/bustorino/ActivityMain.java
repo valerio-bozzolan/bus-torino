@@ -233,7 +233,9 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
             */
             createFragmentForStop(busStopID);
         }
-
+        //Try (hopefully) database update
+        //TODO: Start the service in foreground, check last time it ran before
+        DatabaseUpdateService.startDBUpdate(getApplicationContext());
         Log.d("MainActivity", "Created");
     }
 

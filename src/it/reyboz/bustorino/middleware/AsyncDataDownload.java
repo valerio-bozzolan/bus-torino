@@ -17,17 +17,23 @@
  */
 package it.reyboz.bustorino.middleware;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.fragments.FragmentHelper;
+import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.Calendar;
 
 /**
  * This should be used to download data, but not to display it
@@ -41,6 +47,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
     private RequestType t;
     private String query;
     WeakReference<FragmentHelper> helperRef;
+    private ArrayList<Thread> otherActivities = new ArrayList<>();
 
 
     public AsyncDataDownload(RequestType type,FragmentHelper fh) {
@@ -99,6 +106,10 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                         List<Route> branches = ((FiveTAPIFetcher) f).getDirectionsForStop(stopID,gres);
                         if(gres.get() == Fetcher.result.OK){
                             p.addInfoFromRoutes(branches);
+                            Thread t = new Thread(new BranchInserter(branches,fh,stopID));
+                            t.start();
+                            otherActivities.add(t);
+
                         }
                         //put updated values into Database
                     }
@@ -158,6 +169,13 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
             }
             //find if it went well
             if(res.get()== Fetcher.result.OK) {
+                for(Thread t: otherActivities){
+                    try {
+                        t.join();
+                    } catch (InterruptedException e) {
+                        //do nothing
+                    }
+                }
                 return result;
             }
 
@@ -200,9 +218,9 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
             case STOPS:
                 //this should never be a problem
                 List<Stop> stopList = (List<Stop>) o;
-                if(query!=null)
-                fh.createFragmentFor(stopList,query);
-                else Log.e(TAG,"QUERY NULL, COULD NOT CREATE FRAGMENT");
+                if(query!=null) {
+                    fh.createFragmentFor(stopList,query);
+                } else Log.e(TAG,"QUERY NULL, COULD NOT CREATE FRAGMENT");
                 break;
             case DBUPDATE:
                 break;
@@ -265,4 +283,85 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
         p.setStopName("");
     }*/
 
+    public class BranchInserter implements Runnable{
+        private List<Route> routesToInsert;
+
+        private String stopID;
+        private FragmentHelper fragmentHelper;
+
+        public BranchInserter(List<Route> routesToInsert,FragmentHelper fh,String stopID) {
+            this.routesToInsert = routesToInsert;
+            this.stopID = stopID;
+            this.fragmentHelper = fh;
+        }
+
+        @Override
+        public void run() {
+            ContentValues[] values = new ContentValues[routesToInsert.size()];
+            ArrayList<ContentValues> connectionsVals = new ArrayList<>(routesToInsert.size()*4);
+            long starttime,endtime;
+            for (Route r:routesToInsert){
+                //if it has received an interrupt, stop
+                if(Thread.interrupted()) return;
+                //otherwise, build contentValues
+                final ContentValues cv = new ContentValues();
+                cv.put(BranchesTable.COL_BRANCHID,r.branchid);
+                cv.put(LinesTable.COLUMN_NAME,r.name);
+                cv.put(BranchesTable.COL_DIRECTION,r.destinazione);
+                cv.put(BranchesTable.COL_DESCRIPTION,r.description);
+                for (int day :r.serviceDays) {
+                    switch (day){
+                        case Calendar.MONDAY:
+                            cv.put(BranchesTable.COL_LUN,1);
+                            break;
+                        case Calendar.TUESDAY:
+                            cv.put(BranchesTable.COL_MAR,1);
+                            break;
+                        case Calendar.WEDNESDAY:
+                            cv.put(BranchesTable.COL_MER,1);
+                            break;
+                        case Calendar.THURSDAY:
+                            cv.put(BranchesTable.COL_GIO,1);
+                            break;
+                        case Calendar.FRIDAY:
+                            cv.put(BranchesTable.COL_VEN,1);
+                            break;
+                        case Calendar.SATURDAY:
+                            cv.put(BranchesTable.COL_SAB,1);
+                            break;
+                        case Calendar.SUNDAY:
+                            cv.put(BranchesTable.COL_DOM,1);
+                            break;
+                    }
+                }
+                if(r.type!=null) cv.put(BranchesTable.COL_TYPE, r.type.getCode());
+                cv.put(BranchesTable.COL_FESTIVO, r.festivo.getCode());
+
+                values[routesToInsert.indexOf(r)] = cv;
+                for(int i=0; i<r.getStopsList().size();i++){
+                    String stop = r.getStopsList().get(i);
+                    final ContentValues connVal = new ContentValues();
+                    connVal.put(ConnectionsTable.COLUMN_STOP_ID,stop);
+                    connVal.put(ConnectionsTable.COLUMN_ORDER,i);
+                    connVal.put(ConnectionsTable.COLUMN_BRANCH,r.branchid);
+
+                    //add to global connVals
+                    connectionsVals.add(connVal);
+                }
+            }
+            starttime = System.currentTimeMillis();
+            ContentResolver cr = fragmentHelper.getContentResolver();
+            cr.bulkInsert(Uri.parse("content://"+AppDataProvider.AUTHORITY+"/branches/"),values);
+            endtime = System.currentTimeMillis();
+            Log.d("DataDownload","Inserted branches, took "+(endtime-starttime)+" ms");
+
+
+            starttime = System.currentTimeMillis();
+            ContentValues[] vas = connectionsVals.toArray(new ContentValues[0]);
+            Log.d("DataDownloadInsert","inserting "+vas.length+" connections");
+            int rows = fragmentHelper.insertBatchDataInNextGenDB(vas,ConnectionsTable.TABLE_NAME);
+            endtime = System.currentTimeMillis();
+            Log.d("DataDownload","Inserted connections found, took "+(endtime-starttime)+" ms, inserted "+rows+" rows");
+        }
+    }
 }

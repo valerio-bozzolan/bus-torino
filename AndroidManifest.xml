@@ -89,7 +89,7 @@
         <provider
                 android:name=".middleware.AppDataProvider"
                 android:authorities="it.reyboz.bustorino.provider"
-                android:enabled="false"
+                android:enabled="true"
                 android:exported="false">
         </provider>
 

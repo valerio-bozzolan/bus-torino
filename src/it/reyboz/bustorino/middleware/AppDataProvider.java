@@ -22,10 +22,12 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.Log;
 
-import java.net.URI;
+import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 
 public class AppDataProvider extends ContentProvider {
 
@@ -37,6 +39,7 @@ public class AppDataProvider extends ContentProvider {
     private static final int MANY_STOPS = 5;
     private static final int ADD_UPDATE_BRANCHES = 6;
     private static final int LINE_INSERT_OP = 7;
+    private static final int CONNECTIONS = 8;
 
     private NextGenDB appDBHelper;
     private SQLiteDatabase db;
@@ -63,12 +66,23 @@ public class AppDataProvider extends ContentProvider {
         sUriMatcher.addURI(AUTHORITY,"branch/#",BRANCH_OP);
         sUriMatcher.addURI(AUTHORITY,"line/insert",LINE_INSERT_OP);
 
-        sUriMatcher.addURI(AUTHORITY,"updatebranches/",ADD_UPDATE_BRANCHES);
+        sUriMatcher.addURI(AUTHORITY,"branches",ADD_UPDATE_BRANCHES);
+        sUriMatcher.addURI(AUTHORITY,"connections",CONNECTIONS);
     }
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         // Implement this to handle requests to delete one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+        db = appDBHelper.getWritableDatabase();
+        int rows;
+        switch (sUriMatcher.match(uri)){
+            case MANY_STOPS:
+                rows = db.delete(NextGenDB.Contract.StopsTable.TABLE_NAME,null,null);
+                break;
+            default:
+                throw new UnsupportedOperationException("Not yet implemented");
+
+        }
+        return rows;
     }
 
     @Override
@@ -84,28 +98,67 @@ public class AppDataProvider extends ContentProvider {
         //throw new UnsupportedOperationException("Not yet implemented");
         db = appDBHelper.getWritableDatabase();
         Uri finalUri = null;
-        long last_rowid;
+        long last_rowid = -1;
         switch (sUriMatcher.match(uri)){
             case ADD_UPDATE_BRANCHES:
+                Log.d("InsBranchWithProvider","new Insert request");
+
                 String line_name = values.getAsString(NextGenDB.Contract.LinesTable.COLUMN_NAME);
                 if(line_name==null) throw new IllegalArgumentException("No line name given");
-                values.remove(NextGenDB.Contract.LinesTable.COLUMN_NAME);
-                Cursor c = db.query(NextGenDB.Contract.LinesTable.TABLE_NAME,
-                        new String[]{NextGenDB.Contract.LinesTable._ID},NextGenDB.Contract.LinesTable.COLUMN_NAME+"like ?s",
+                long lineid = -1;
+                Cursor c = db.query(LinesTable.TABLE_NAME,
+                        new String[]{LinesTable._ID,LinesTable.COLUMN_NAME,LinesTable.COLUMN_DESCRIPTION},NextGenDB.Contract.LinesTable.COLUMN_NAME +" =?",
                         new String[]{line_name},null,null,null);
-                long lineid = c.getInt(0);
-                c.close();
-                values.put(NextGenDB.Contract.BranchesTable.COL_LINE,lineid);
-                long rowid = db.insertWithOnConflict(NextGenDB.Contract.BranchesTable.TABLE_NAME,null,values,SQLiteDatabase.CONFLICT_REPLACE);
-                finalUri= Uri.parse("content://"+AUTHORITY+"/branches/"+rowid);
+                Log.d("InsBranchWithProvider","finding line in the database: "+c.getCount()+" matches");
+                if(c.getCount() == 0){
+                    //There are no lines, insert?
+                    //NOPE
+                    /*
+                    c.close();
+                    ContentValues cv = new ContentValues();
+                    cv.put(LinesTable.COLUMN_NAME,line_name);
+                    lineid = db.insert(LinesTable.TABLE_NAME,null,cv);
+                    */
+                    break;
+                }else {
+                    c.moveToFirst();
+                    /*
+                    while(c.moveToNext()){
+                        Log.d("InsBranchWithProvider","line: "+c.getString(c.getColumnIndex(LinesTable.COLUMN_NAME))+"\n"
+                        +c.getString(c.getColumnIndex(LinesTable.COLUMN_DESCRIPTION)));
+                    }*/
+                    lineid = c.getInt(c.getColumnIndex(NextGenDB.Contract.LinesTable._ID));
+                    c.close();
+                }
+                values.remove(NextGenDB.Contract.LinesTable.COLUMN_NAME);
+
+                values.put(BranchesTable.COL_LINE,lineid);
+
+                last_rowid = db.insertWithOnConflict(NextGenDB.Contract.BranchesTable.TABLE_NAME,null,values,SQLiteDatabase.CONFLICT_REPLACE);
                 break;
             case MANY_STOPS:
-                last_rowid = db.insertOrThrow(NextGenDB.Contract.StopsTable.TABLE_NAME,null,values);
-                finalUri = ContentUris.withAppendedId(uri,last_rowid);
+                //Log.d("AppDataProvider_busTO","New stop insert request");
+                try{
+                    last_rowid = db.insertOrThrow(NextGenDB.Contract.StopsTable.TABLE_NAME,null,values);
+                } catch (SQLiteConstraintException e){
+                    Log.w("AppDataProvider_busTO","Insert failed because of constraint");
+                    last_rowid = -1;
+                    e.printStackTrace();
+                }
+                break;
+            case CONNECTIONS:
+                try{
+                    last_rowid = db.insertOrThrow(NextGenDB.Contract.ConnectionsTable.TABLE_NAME,null,values);
+                } catch (SQLiteConstraintException e){
+                    Log.w("AppDataProvider_busTO","Insert failed because of constraint");
+                    last_rowid = -1;
+                    e.printStackTrace();
+                }
                 break;
             default:
                 throw new IllegalArgumentException("Invalid parameters");
         }
+        finalUri = ContentUris.withAppendedId(uri,last_rowid);
         return finalUri;
     }
 

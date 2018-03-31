@@ -265,4 +265,14 @@ public class Stop implements Comparable<Stop> {
 
         return url;
     }
+
+    @Nullable
+    public Double getLatitude() {
+        return lat;
+    }
+
+    @Nullable
+    public Double getLongitude() {
+        return lon;
+    }
 }

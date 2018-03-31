@@ -248,10 +248,11 @@ public abstract class FiveTNormalizer {
     }
 
     public static String routeDisplayToInternal(String displayName){
-        if(displayName.trim().charAt(displayName.length()-1)=='/'){
+        String name = displayName.trim();
+        if(name.charAt(displayName.length()-1)=='/'){
             return displayName.replace(" ","").replace("/","B");
         }
-        switch (displayName.trim().toLowerCase()){
+        switch (name.toLowerCase()){
             case "star 1":
                 return "ST1";
             case "star 2":
@@ -278,8 +279,26 @@ public abstract class FiveTNormalizer {
                 return "S05";
             case "1 nichelino":
                 return "1N";
+            case "1 chieri":
+                return "1C";
+            case "1 orbassano":
+                return  "OB1";
+            case "2 chieri":
+                return "2C";
+            case "2 rivalta":
+                return "RV2";
+
             default:
-                return displayName.trim();
+               // return displayName.trim();
+        }
+        String[] arr = name.toLowerCase().split("\\s+");
+        try {
+            if (arr.length == 2 && arr[1].trim().equals("navetta") && Integer.decode(arr[0]) > 0)
+                return arr[0].trim().concat("N");
+            else return name;
+        } catch (NumberFormatException e){
+            //It's not "# navetta"
+            return name;
         }
     }
 

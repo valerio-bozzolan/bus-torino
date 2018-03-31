@@ -19,6 +19,7 @@
 package it.reyboz.bustorino.backend;
 
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -108,8 +109,17 @@ public abstract class networkTools {
             return null;
 
         }
+        //s = streamToString(in);
+        try {
+            final long startTime = System.currentTimeMillis();
+            s = parseStreamToString(in);
+            final long endtime = System.currentTimeMillis();
+            Log.d("NetworkTools-queryURL","reading response took "+(endtime-startTime)+" millisec");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
 
-        s = streamToString(in);
 
         try {
             in.close();

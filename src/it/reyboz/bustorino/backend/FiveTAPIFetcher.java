@@ -189,12 +189,14 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         }
         return routes;
     }
-    public List<Stop> getAllStopsFromGTT(AtomicReference<result> res){
+    public ArrayList<Stop> getAllStopsFromGTT(AtomicReference<result> res){
 
         String response = performAPIRequest(QueryType.STOPS_ALL,null,res);
+        if(response==null) return null;
         ArrayList<Stop> stopslist = null;
         try{
-            JSONArray stops = new JSONArray(response);
+            JSONObject responseJSON = new JSONObject(response);
+            JSONArray stops = responseJSON.getJSONArray("stops");
             stopslist = new ArrayList<>(stops.length());
             for (int i=0;i<stops.length();i++){
                 JSONObject currentStop = stops.getJSONObject(i);
@@ -203,6 +205,9 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                 String placeName = currentStop.getString("placeName");
                 if(placeName.trim().equals("_")) placeName = null;
                 String[] lines = currentStop.getString("lines").split(",");
+                for(int l = 0; l<lines.length;l++){
+                    lines[l] = FiveTNormalizer.routeDisplayToInternal(lines[l]);
+                }
                 Route.Type t;
                     switch (currentStop.getString("type")){
                         case "BUS":
@@ -235,6 +240,48 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
 
         return stopslist;
     }
+    @Nullable
+    public ArrayList<Route> getAllLinesFromGTT(AtomicReference<result> res){
+
+        String resp = performAPIRequest(QueryType.LINES,null,res);
+        if(resp==null) {
+            return null;
+        }
+
+        ArrayList<Route> routes = null;
+        try {
+            JSONArray lines = new JSONArray(resp);
+            routes = new ArrayList<>(lines.length());
+            for(int i = 0; i<lines.length(); i++) {
+                JSONObject lineJ = lines.getJSONObject(i);
+                Route.Type t = null;
+                switch(lineJ.getString("azienda")){
+                    case "EXTRA":
+                        t = Route.Type.LONG_DISTANCE_BUS;
+                        break;
+                    case "URBANO":
+                        t = Route.Type.BUS;
+                        break;
+                    case "FERRO":
+                        t = Route.Type.RAILWAY;
+                        break;
+                }
+                String name = lineJ.getString("name");
+                routes.add(new Route(name,t,lineJ.getString("longName")));
+
+            }
+            //finish
+            res.set(result.OK);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            res.set(result.PARSER_ERROR);
+            return routes;
+        }
+
+        return routes;
+    }
+
+
 
     /**
      * Create and perform the network request. This method adds parameters and returns the result
@@ -303,9 +350,10 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
      * @return the Url to go to
      * @throws UnsupportedEncodingException if it cannot be converted to utf-8
      */
-    public static String getURLForOperation(QueryType t,@Nullable String stopID) throws UnsupportedEncodingException {
+    private static String getURLForOperation(QueryType t,@Nullable String stopID) throws UnsupportedEncodingException {
         final StringBuilder sb = new StringBuilder();
-        sb.append("http://www.5t.torino.it/proxyws/ws2.1/rest/stops/");
+        sb.append("http://www.5t.torino.it/proxyws/ws2.1/rest/");
+        if(t!=QueryType.LINES) sb.append("stops/");
         switch (t){
             case ARRIVALS:
                 sb.append(URLEncoder.encode(stopID,"utf-8"));
@@ -321,6 +369,9 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
             case STOPS_VERSION:
                 sb.append("version");
                 break;
+            case LINES:
+                sb.append("lines/all");
+                break;
         }
         return sb.toString();
     }
@@ -328,6 +379,6 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
 
 
     public enum QueryType {
-        ARRIVALS, DETAILS,STOPS_ALL, STOPS_VERSION
+        ARRIVALS, DETAILS,STOPS_ALL, STOPS_VERSION,LINES
     }
 }

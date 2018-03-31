@@ -19,6 +19,7 @@
 package it.reyboz.bustorino.backend;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -45,7 +46,32 @@ public class Route implements Comparable<Route> {
 
 
     public enum Type { // "long distance" sono gli extraurbani.
-        BUS, LONG_DISTANCE_BUS, METRO, RAILWAY, TRAM
+        BUS(1), LONG_DISTANCE_BUS(2), METRO(3), RAILWAY(4), TRAM(5);
+        //TODO: decide to give some special parameter to each field
+        private int code;
+        Type(int code){
+            this.code = code;
+        }
+        public int getCode(){
+            return this.code;
+        }
+        @Nullable
+        public static Type fromCode(int i){
+            switch (i){
+                case 1:
+                    return BUS;
+                case 2:
+                    return LONG_DISTANCE_BUS;
+                case 3:
+                    return METRO;
+                case 4:
+                    return RAILWAY;
+                case 5:
+                    return TRAM;
+                default:
+                    return null;
+            }
+        }
     }
     public enum FestiveInfo{
         FESTIVO(1),FERIALE(0),UNKNOWN(-2);
@@ -58,7 +84,7 @@ public class Route implements Comparable<Route> {
         public int getCode() {
             return code;
         }
-        public static FestiveInfo returnTypefromCode(int i){
+        public static FestiveInfo fromCode(int i){
             switch (i){
                 case -2:
                     return UNKNOWN;
@@ -227,7 +253,7 @@ public class Route implements Comparable<Route> {
      * Merge informations from another route
      * NO CONSISTENCY CHECKS, DO BEFORE CALLING THIS METHOD
      * @param other the other route
-     * @return if there have been changes
+     * @return true if there have been changes
      */
     public boolean mergeRouteWithAnother(Route other){
          boolean adjusted = false;

@@ -18,17 +18,22 @@
 package it.reyboz.bustorino.middleware;
 
 import android.app.IntentService;
-import android.content.Intent;
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.*;
+import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.util.Log;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.FiveTAPIFetcher;
+import it.reyboz.bustorino.backend.Route;
+import it.reyboz.bustorino.backend.Stop;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -46,6 +51,7 @@ public class DatabaseUpdateService extends IntentService {
         super("DatabaseUpdateService");
     }
 
+    private int updateTrial;
     /**
      * Starts this service to perform action Foo with the given parameters. If
      * the service is already performing a task this action will be queued.
@@ -67,55 +73,153 @@ public class DatabaseUpdateService extends IntentService {
         if (intent != null) {
             final String action = intent.getAction();
             if (ACTION_UPDATE.equals(action)) {
+                Log.d(DEBUG_TAG,"Started action update");
+                SharedPreferences shPr = getSharedPreferences(getString(R.string.mainSharedPreferences),MODE_PRIVATE);
+                int versionDB = shPr.getInt(DB_VERSION,-1);
                 final int trial = intent.getIntExtra(TRIAL,-1);
-                if(!isUpdateNeeded(trial)) return;
 
+                updateTrial = trial;
+
+                int newVersion = getNewVersion(trial);
+                Log.d(DEBUG_TAG,"newDBVersion: "+newVersion+" oldVersion: "+versionDB);
+                if(versionDB==-1 || newVersion>versionDB){
+                    Log.d(DEBUG_TAG,"Downloading the bus stops info");
+                    final AtomicReference<Fetcher.result> gres = new AtomicReference<>();
+                    getContentResolver().delete(Uri.parse("content://"+AppDataProvider.AUTHORITY+"/stops"),null,null);
+                    if(!performDBUpdate(gres)) restartDBUpdateifPossible(trial,gres);
+                        /*switch (gres.get()){
+                        case SERVER_ERROR:
+                            restartDBUpdateifPossible(trial);
+                            break;
+                        case PARSER_ERROR:
+
+                            break;
+                        case EMPTY_RESULT_SET:
+                            break;
+                        case QUERY_TOO_SHORT:
+                            break;
+                        case SERVER_ERROR_404:
+                            break;
+                    }*/
+                    else {
+                        SharedPreferences.Editor ed = shPr.edit();
+                        ed.putInt(DB_VERSION,newVersion);
+                        //  BY COMMENTING THIS, THE APP WILL CONTINUOUSLY UPDATE THE DATABASE
+                        ed.apply();
+                    }
+                } else {
+                    Log.d(DEBUG_TAG,"No update needed");
+                }
+
+
+                Log.d(DEBUG_TAG,"Finished update");
             }
         }
     }
 
-    public void performDBUpdate(){
+    public boolean performDBUpdate(AtomicReference<Fetcher.result> gres){
 
+        final FiveTAPIFetcher f = new FiveTAPIFetcher();
+        final ArrayList<Stop> stops = f.getAllStopsFromGTT(gres);
+        //final ArrayList<ContentProviderOperation> cpOp = new ArrayList<>();
+
+        if(gres.get()!= Fetcher.result.OK){
+            Log.w(DEBUG_TAG,"Something went wrong downloading");
+            return false;
+
+        }
+        final NextGenDB dbHelp = new NextGenDB(getApplicationContext());
+        final SQLiteDatabase db = dbHelp.getWritableDatabase();
+        //Empty the needed tables
+        db.beginTransaction();
+        db.execSQL("DELETE FROM "+StopsTable.TABLE_NAME);
+        db.delete(LinesTable.TABLE_NAME,null,null);
+
+        //put new data
+        long startTime = System.currentTimeMillis();
+
+        Log.d(DEBUG_TAG,"Inserting "+stops.size()+" stops");
+        for (final Stop s : stops) {
+            final ContentValues cv = new ContentValues();
+
+            cv.put(StopsTable.COL_ID, s.ID);
+            cv.put(StopsTable.COL_NAME, s.getStopDefaultName());
+            if (s.location != null)
+                cv.put(StopsTable.COL_LOCATION, s.location);
+            cv.put(StopsTable.COL_LAT, s.getLatitude());
+            cv.put(StopsTable.COL_LONG, s.getLongitude());
+            if (s.getAbsurdGTTPlaceName() != null) cv.put(StopsTable.COL_PLACE, s.getAbsurdGTTPlaceName());
+            cv.put(StopsTable.COL_LINES_STOPPING, s.routesThatStopHereToString());
+            if (s.type != null) cv.put(StopsTable.COL_TYPE, s.type.getCode());
+
+            //Log.d(DEBUG_TAG,cv.toString());
+            //cpOp.add(ContentProviderOperation.newInsert(uritobeused).withValues(cv).build());
+            //valuesArr[i] = cv;
+            db.insert(StopsTable.TABLE_NAME, null, cv);
+
+        }
+        db.setTransactionSuccessful();
+        db.endTransaction();
+        long endTime = System.currentTimeMillis();
+        Log.d(DEBUG_TAG,"Inserting stops took: "+((double) (endTime-startTime)/1000)+" s");
+
+        final ArrayList<Route> routes = f.getAllLinesFromGTT(gres);
+
+        if(routes==null){
+            Log.w(DEBUG_TAG,"Something went wrong downloading the lines");
+            return false;
+
+        }
+
+        db.beginTransaction();
+        startTime = System.currentTimeMillis();
+        for (Route r: routes){
+            final ContentValues cv = new ContentValues();
+            cv.put(LinesTable.COLUMN_NAME,r.name);
+            switch (r.type){
+                case BUS:
+                    cv.put(LinesTable.COLUMN_TYPE,"URBANO");
+                    break;
+                case RAILWAY:
+                    cv.put(LinesTable.COLUMN_TYPE,"FERROVIA");
+                    break;
+                case LONG_DISTANCE_BUS:
+                    cv.put(LinesTable.COLUMN_TYPE,"EXTRA");
+                    break;
+            }
+            cv.put(LinesTable.COLUMN_DESCRIPTION,r.description);
+
+            db.insert(LinesTable.TABLE_NAME,null,cv);
+        }
+        db.setTransactionSuccessful();
+        db.endTransaction();
+        endTime = System.currentTimeMillis();
+        Log.d(DEBUG_TAG,"Inserting lines took: "+((double) (endTime-startTime)/1000)+" s");
+
+        return true;
     }
-    private boolean isUpdateNeeded(int trial){
-        SharedPreferences shPr = getSharedPreferences(getString(R.string.mainSharedPreferences),MODE_PRIVATE);
-        int versionDB = shPr.getInt(DB_VERSION,-1);
-        if(versionDB==-1) return true;
+    private int getNewVersion(int trial){
         AtomicReference<Fetcher.result> gres = new AtomicReference<>();
         String networkRequest = FiveTAPIFetcher.performAPIRequest(FiveTAPIFetcher.QueryType.STOPS_VERSION,null,gres);
         if(networkRequest == null){
-            if(gres.get()!= Fetcher.result.PARSER_ERROR){
-              restartDBUpdateifPossible(trial);
-            }
-            return false;
+           restartDBUpdateifPossible(trial,gres);
+            return -2;
         }
 
         boolean needed;
         try {
             JSONObject resp = new JSONObject(networkRequest);
-            int ver = resp.getInt("id");
-            if(ver>versionDB) {
-                SharedPreferences.Editor editor = shPr.edit();
-                editor.putInt(DB_VERSION, ver);
-                //TODO: add the version date maybe?
-                editor.apply();
-                needed = true;
-            } else {
-                needed = false;
-            }
-
+            return resp.getInt("id");
         } catch (JSONException e) {
             e.printStackTrace();
-            restartDBUpdateifPossible(trial);
-            needed = false;
+            Log.e(DEBUG_TAG,"Error: wrong JSON response\nResponse:\t"+networkRequest);
+            return -2;
         }
-        return needed;
     }
-    private void restartDBUpdateifPossible(int currentTrial){
-        if (currentTrial<MAX_TRIALS){
+    private void restartDBUpdateifPossible(int currentTrial,AtomicReference<Fetcher.result> res){
+        if (currentTrial<MAX_TRIALS && res.get()!= Fetcher.result.PARSER_ERROR){
             Log.d(DEBUG_TAG,"Update failed, starting new trial ("+currentTrial+")");
             startDBUpdate(getApplicationContext(),++currentTrial);
         }
     }
-
 }

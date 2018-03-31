@@ -18,10 +18,13 @@
 package it.reyboz.bustorino.fragments;
 
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContentResolverCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import it.reyboz.bustorino.R;
@@ -43,6 +46,7 @@ public class FragmentHelper {
     public static final int NO_FRAME = -3;
     UserDB userDB;
     StopsDB stopsDB;
+    private NextGenDB newDB;
 
     public FragmentHelper(GeneralActivity act, int swipeRefID, int mainFrame) {
         this(act,swipeRefID,mainFrame,NO_FRAME);
@@ -55,6 +59,7 @@ public class FragmentHelper {
         this.secondaryFrameLayout = secondaryFrameLayout;
         stopsDB = new StopsDB(act);
         userDB = new UserDB(act);
+        newDB = new NextGenDB(act.getApplicationContext());
     }
 
     public Stop getLastSuccessfullySearchedBusStop() {
@@ -178,6 +183,17 @@ public class FragmentHelper {
     public String getStopNamefromDB(String stopID){
         return stopsDB.getNameFromID(stopID);
     }
+
+    synchronized public int insertBatchDataInNextGenDB(ContentValues[] valuesArr,String tableName){
+        if(newDB!=null)
+        return newDB.insertBatchContent(valuesArr,tableName);
+        else return -1;
+    }
+
+    synchronized public ContentResolver getContentResolver(){
+        return act.getContentResolver();
+    }
+
     /**
      * Wrapper to show the errors/status that happened
      * @param res result from Fetcher
