@@ -357,9 +357,9 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
 
 
             starttime = System.currentTimeMillis();
-            ContentValues[] vas = connectionsVals.toArray(new ContentValues[0]);
-            Log.d("DataDownloadInsert","inserting "+vas.length+" connections");
-            int rows = fragmentHelper.insertBatchDataInNextGenDB(vas,ConnectionsTable.TABLE_NAME);
+            ContentValues[] valArr = connectionsVals.toArray(new ContentValues[0]);
+            Log.d("DataDownloadInsert","inserting "+valArr.length+" connections");
+            int rows = fragmentHelper.insertBatchDataInNextGenDB(valArr,ConnectionsTable.TABLE_NAME);
             endtime = System.currentTimeMillis();
             Log.d("DataDownload","Inserted connections found, took "+(endtime-starttime)+" ms, inserted "+rows+" rows");
         }

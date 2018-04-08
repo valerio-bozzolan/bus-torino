@@ -19,10 +19,11 @@ package it.reyboz.bustorino;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -45,7 +46,6 @@ import it.reyboz.bustorino.backend.FiveTScraperFetcher;
 import it.reyboz.bustorino.backend.FiveTStopsFetcher;
 import it.reyboz.bustorino.backend.GTTJSONFetcher;
 import it.reyboz.bustorino.backend.GTTStopsFetcher;
-import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.StopsFinderByName;
 import it.reyboz.bustorino.fragments.FragmentHelper;
 import it.reyboz.bustorino.fragments.ResultListFragment;
@@ -78,6 +78,7 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
      * Options
      */
     private final String OPTION_SHOW_LEGEND = "show_legend";
+    private final String LOCATION_PERMISSION_GIVEN = "loc_permission";
 
     /* // useful for testing:
     public class MockFetcher implements ArrivalsFetcher {
@@ -96,6 +97,8 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
     private StopsDB stopsDB;
     private UserDB userDB;
     private FragmentHelper fh;
+
+    private GPSLocationAdapter locationHandler;
     ///////////////////////////////// EVENT HANDLERS ///////////////////////////////////////////////
 
     /*
@@ -236,6 +239,9 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
         //Try (hopefully) database update
         //TODO: Start the service in foreground, check last time it ran before
         DatabaseUpdateService.startDBUpdate(getApplicationContext());
+        assertLocationPermissions();
+        locationHandler = new GPSLocationAdapter(getApplicationContext());
+
         Log.d("MainActivity", "Created");
     }
 
@@ -250,6 +256,10 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
             setBusStopSearchByIDEditText(fh.getLastSuccessfullySearchedBusStop().ID);
             //new asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStop.ID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
             new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute();
+        } else {
+            //we have new activity or we don't have a new searched stop.
+            //Let's search stops nearby
+
         }
 
     }
@@ -324,6 +334,20 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode){
+            case PERMISSION_REQUEST_POSITION:
+                if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
+                    setOption(LOCATION_PERMISSION_GIVEN,true);
+                } else {
+                    //permission denied
+                    setOption(LOCATION_PERMISSION_GIVEN,false);
+                }
+            //add other cases for permissions
+        }
+
+    }
 
     @Override
     public void createFragmentForStop(String ID) {

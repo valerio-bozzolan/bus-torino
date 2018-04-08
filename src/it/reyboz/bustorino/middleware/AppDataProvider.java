@@ -29,6 +29,8 @@ import android.util.Log;
 
 import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 
+import java.util.List;
+
 public class AppDataProvider extends ContentProvider {
 
     public static final String AUTHORITY = "it.reyboz.bustorino.provider";
@@ -40,6 +42,7 @@ public class AppDataProvider extends ContentProvider {
     private static final int ADD_UPDATE_BRANCHES = 6;
     private static final int LINE_INSERT_OP = 7;
     private static final int CONNECTIONS = 8;
+    private static final int LOCATION_SEARCH = 9;
 
     private NextGenDB appDBHelper;
     private SQLiteDatabase db;
@@ -56,13 +59,13 @@ public class AppDataProvider extends ContentProvider {
 
         sUriMatcher.addURI(AUTHORITY, "stop/#", STOP_OP);
         sUriMatcher.addURI(AUTHORITY,"stops",MANY_STOPS);
-
+        sUriMatcher.addURI(AUTHORITY,"stops/location/*",LOCATION_SEARCH);
         /*
          * Sets the code for a single row to 2. In this case, the "#" wildcard is
          * used. "content://com.example.app.provider/table3/3" matches, but
          * "content://com.example.app.provider/table3 doesn't.
          */
-        sUriMatcher.addURI(AUTHORITY, "line/#/", LINE_OP);
+        sUriMatcher.addURI(AUTHORITY, "line/#", LINE_OP);
         sUriMatcher.addURI(AUTHORITY,"branch/#",BRANCH_OP);
         sUriMatcher.addURI(AUTHORITY,"line/insert",LINE_INSERT_OP);
 
@@ -89,13 +92,23 @@ public class AppDataProvider extends ContentProvider {
     public String getType(Uri uri) {
         // TODO: Implement this to handle requests for the MIME type of the data
         // at the given URI.
-        throw new UnsupportedOperationException("Not yet implemented");
+        int match = sUriMatcher.match(uri);
+        String baseTypedir = "vnd.android.cursor.dir/";
+        String baseTypeitem = "vnd.android.cursor.item/";
+        switch (match){
+            case LOCATION_SEARCH:
+                return baseTypedir+"stop";
+            case LINE_OP:
+                return baseTypeitem+"line";
+            case CONNECTIONS:
+                return baseTypedir+"stops";
+
+        }
+        return baseTypedir+"/item";
     }
 
     @Override
-    public Uri insert(Uri uri, ContentValues values) {
-        // TODO: Implement this to handle requests to insert a new row.
-        //throw new UnsupportedOperationException("Not yet implemented");
+    public Uri insert(Uri uri, ContentValues values) throws IllegalArgumentException{
         db = appDBHelper.getWritableDatabase();
         Uri finalUri = null;
         long last_rowid = -1;
@@ -166,13 +179,40 @@ public class AppDataProvider extends ContentProvider {
     public boolean onCreate() {
         // TODO: Implement this to initialize your content provider on startup.
         appDBHelper = new NextGenDB(getContext());
-        return false;
+        return true;
     }
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
-                        String[] selectionArgs, String sortOrder) {
+                        String[] selectionArgs, String sortOrder) throws UnsupportedOperationException,IllegalArgumentException{
         // TODO: Implement this to handle query requests from clients.
+        SQLiteDatabase  db = appDBHelper.getReadableDatabase();
+        List<String>  parts = uri.getPathSegments();
+        switch (sUriMatcher.match(uri)){
+            case LOCATION_SEARCH:
+                //authority/stops/location/"Lat"/"Lon"/"distance"
+                //distance in metres (integer)
+                if(parts.size()>=5 && "location".equals(parts.get(2))){
+                    Double latitude = Double.parseDouble(parts.get(3));
+                    Double longitude = Double.parseDouble(parts.get(4));
+                    //converting distance to a float to not lose precision
+                    Float distance = parts.size()>=6 ? Float.parseFloat(parts.get(5))/1000 : 0.1f;
+
+                    Double distasAngle = (distance/6371)*180/Math.PI; //small angles approximation, still valid for about 500 metres
+                    String[] cols = {StopsTable.COL_ID,StopsTable.COL_LAT,StopsTable.COL_LONG,
+                    StopsTable.COL_NAME,StopsTable.COL_TYPE,StopsTable.COL_LINES_STOPPING};
+                    String whereClause = "WHERE "+StopsTable.COL_LAT+ "< "+(latitude+distasAngle)+" AND "
+                            +StopsTable.COL_LAT +" > "+(latitude-distasAngle)+" AND "+
+                            StopsTable.COL_LONG+" < "+(longitude+distasAngle)+" AND "+StopsTable.COL_LONG+" > "+(longitude-distasAngle);
+                    Log.d("Provider-LOCSearch","Querying stops  by position, query args: \n"+whereClause);
+                    return db.query(StopsTable.TABLE_NAME,cols,whereClause,null,null,null,null);
+                    //return getStopsNearby(latitude,longitude,distance);
+                }
+                else throw new IllegalArgumentException("You must provide latitude and longitude");
+            default:
+                Log.d("DataProvider","got request "+uri.getPath()+" which doesn't match anything");
+            }
+
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
