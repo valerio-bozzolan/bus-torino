@@ -20,6 +20,7 @@ package it.reyboz.bustorino;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -239,9 +240,18 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
         //Try (hopefully) database update
         //TODO: Start the service in foreground, check last time it ran before
         DatabaseUpdateService.startDBUpdate(getApplicationContext());
-        assertLocationPermissions();
+        if(getOption(LOCATION_PERMISSION_GIVEN,false)==false){
+            assertLocationPermissions();
+        }
         locationHandler = new GPSLocationAdapter(getApplicationContext());
-
+        LocationManager locationManager = (LocationManager)
+                getSystemService(Context.LOCATION_SERVICE);
+        try {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationHandler);
+        } catch (SecurityException ec){
+            //ignored
+            Log.w("Busto","Position request failed even though user accepted permission: "+ec.getMessage());
+        }
         Log.d("MainActivity", "Created");
     }
 
@@ -340,6 +350,7 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
             case PERMISSION_REQUEST_POSITION:
                 if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
                     setOption(LOCATION_PERMISSION_GIVEN,true);
+                    locationHandler.startRequestingPosition();
                 } else {
                     //permission denied
                     setOption(LOCATION_PERMISSION_GIVEN,false);

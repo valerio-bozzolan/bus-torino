@@ -85,7 +85,6 @@ public class DatabaseUpdateService extends IntentService {
                 if(versionDB==-1 || newVersion>versionDB){
                     Log.d(DEBUG_TAG,"Downloading the bus stops info");
                     final AtomicReference<Fetcher.result> gres = new AtomicReference<>();
-                    getContentResolver().delete(Uri.parse("content://"+AppDataProvider.AUTHORITY+"/stops"),null,null);
                     if(!performDBUpdate(gres)) restartDBUpdateifPossible(trial,gres);
                         /*switch (gres.get()){
                         case SERVER_ERROR:
@@ -132,8 +131,8 @@ public class DatabaseUpdateService extends IntentService {
         final SQLiteDatabase db = dbHelp.getWritableDatabase();
         //Empty the needed tables
         db.beginTransaction();
-        db.execSQL("DELETE FROM "+StopsTable.TABLE_NAME);
-        db.delete(LinesTable.TABLE_NAME,null,null);
+        //db.execSQL("DELETE FROM "+StopsTable.TABLE_NAME);
+        //db.delete(LinesTable.TABLE_NAME,null,null);
 
         //put new data
         long startTime = System.currentTimeMillis();
@@ -155,7 +154,7 @@ public class DatabaseUpdateService extends IntentService {
             //Log.d(DEBUG_TAG,cv.toString());
             //cpOp.add(ContentProviderOperation.newInsert(uritobeused).withValues(cv).build());
             //valuesArr[i] = cv;
-            db.insert(StopsTable.TABLE_NAME, null, cv);
+            db.replace(StopsTable.TABLE_NAME,null,cv);
 
         }
         db.setTransactionSuccessful();
@@ -189,7 +188,11 @@ public class DatabaseUpdateService extends IntentService {
             }
             cv.put(LinesTable.COLUMN_DESCRIPTION,r.description);
 
-            db.insert(LinesTable.TABLE_NAME,null,cv);
+            //db.insert(LinesTable.TABLE_NAME,null,cv);
+            int rows = db.update(LinesTable.TABLE_NAME,cv,LinesTable.COLUMN_NAME+" = ?",new String[]{r.name});
+            if(rows<1){ //we haven't changed anything
+                db.insert(LinesTable.TABLE_NAME,null,cv);
+            }
         }
         db.setTransactionSuccessful();
         db.endTransaction();
