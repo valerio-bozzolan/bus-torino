@@ -18,6 +18,7 @@
 
 package it.reyboz.bustorino.backend;
 
+import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -274,5 +275,12 @@ public class Stop implements Comparable<Stop> {
     @Nullable
     public Double getLongitude() {
         return lon;
+    }
+
+
+    public Double getDistanceFromLocation(Location loc){
+        if(this.lat!=null && this.lon !=null)
+        return utils.measuredistanceBetween(this.lat,this.lon,loc.getLatitude(),loc.getLongitude());
+        else return Double.POSITIVE_INFINITY;
     }
 }

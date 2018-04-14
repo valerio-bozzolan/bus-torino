@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools" android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+    <TextView
+            android:id="@+id/busStopIDView"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@drawable/bus_stop_background"
+            android:gravity="center"
+            android:textColor="@color/grey_100"
+            android:textSize="21sp"
+            android:layout_alignParentTop="true" android:layout_centerHorizontal="true"/>
+    <TextView
+            android:text="TextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:id="@+id/stopNameView" tools:layout_width="match_parent"
+            android:paddingTop="5dp" android:textAlignment="center"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@color/blue_500" android:gravity="center" android:layout_below="@+id/busStopIDView"
+            android:layout_alignParentLeft="true" android:layout_alignParentStart="true"/>
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:id="@+id/routesStoppingTextView"
+            android:textAppearance="?android:textAppearanceSmall"
+            android:textColor="@color/grey_600" android:gravity="center"
+            android:layout_below="@+id/stopNameView" android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"/>
+    <TextView
+            android:text="distance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true" android:layout_alignParentEnd="true"
+            android:id="@+id/distanceTextView"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:gravity="end"
+            android:textAlignment="viewEnd"/>
+</RelativeLayout>

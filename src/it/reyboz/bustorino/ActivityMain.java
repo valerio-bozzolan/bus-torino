@@ -26,6 +26,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NavUtils;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
@@ -49,10 +50,12 @@ import it.reyboz.bustorino.backend.GTTJSONFetcher;
 import it.reyboz.bustorino.backend.GTTStopsFetcher;
 import it.reyboz.bustorino.backend.StopsFinderByName;
 import it.reyboz.bustorino.fragments.FragmentHelper;
+import it.reyboz.bustorino.fragments.FragmentListener;
+import it.reyboz.bustorino.fragments.NearbyStopsFragment;
 import it.reyboz.bustorino.fragments.ResultListFragment;
 import it.reyboz.bustorino.middleware.*;
 
-public class ActivityMain extends GeneralActivity implements ResultListFragment.ResultFragmentListener {
+public class ActivityMain extends GeneralActivity implements FragmentListener {
 
     /*
      * Layout elements
@@ -243,15 +246,9 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
         if(getOption(LOCATION_PERMISSION_GIVEN,false)==false){
             assertLocationPermissions();
         }
-        locationHandler = new GPSLocationAdapter(getApplicationContext());
-        LocationManager locationManager = (LocationManager)
-                getSystemService(Context.LOCATION_SERVICE);
-        try {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationHandler);
-        } catch (SecurityException ec){
-            //ignored
-            Log.w("Busto","Position request failed even though user accepted permission: "+ec.getMessage());
-        }
+        //locationHandler = new GPSLocationAdapter(getApplicationContext());
+
+
         Log.d("MainActivity", "Created");
     }
 
@@ -269,7 +266,12 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
         } else {
             //we have new activity or we don't have a new searched stop.
             //Let's search stops nearby
-
+            NearbyStopsFragment fr = NearbyStopsFragment.newInstance();
+            FragmentTransaction ft = framan.beginTransaction();
+            ft.add(R.id.resultFrame,fr,"Location");
+            ft.commitNow();
+            swipeRefreshLayout.setVisibility(View.VISIBLE);
+            swipeRefreshLayout.setEnabled(false);
         }
 
     }
@@ -435,6 +437,17 @@ public class ActivityMain extends GeneralActivity implements ResultListFragment.
         if(fh.getLastSuccessfullySearchedBusStop() != null) {
             new AsyncAddToFavorites(this).execute(fh.getLastSuccessfullySearchedBusStop());
         }
+    }
+
+    @Override
+    public void showFloatingActionButton(boolean yes) {
+        if(yes) floatingActionButton.show();
+        else floatingActionButton.hide();
+    }
+
+    @Override
+    public void enableRefreshLayout(boolean yes) {
+        swipeRefreshLayout.setEnabled(yes);
     }
 
 

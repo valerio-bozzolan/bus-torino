@@ -154,7 +154,7 @@ public class FragmentHelper {
      * @param sendToSecondaryFrame needs to be displayed in secondary frame or not
      * @param tag tag for the fragment
      */
-    private void attachFragmentToContainer(FragmentManager fm,Fragment fragment, boolean sendToSecondaryFrame, String tag){
+    public void attachFragmentToContainer(FragmentManager fm,Fragment fragment, boolean sendToSecondaryFrame, String tag){
         FragmentTransaction ft = fm.beginTransaction();
         if(sendToSecondaryFrame && secondaryFrameLayout!=NO_FRAME)
             ft.replace(secondaryFrameLayout,fragment,tag);

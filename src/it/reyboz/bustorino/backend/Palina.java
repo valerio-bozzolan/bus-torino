@@ -36,6 +36,7 @@ public class Palina extends Stop {
         super(stopID);
     }
 
+
     /**
      * Adds a route to the timetable.
      *

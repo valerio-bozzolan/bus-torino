@@ -44,6 +44,8 @@ public class AppDataProvider extends ContentProvider {
     private static final int CONNECTIONS = 8;
     private static final int LOCATION_SEARCH = 9;
 
+    private static final String DEBUG_TAG="AppDataProvider";
+
     private NextGenDB appDBHelper;
     private SQLiteDatabase db;
 
@@ -59,7 +61,7 @@ public class AppDataProvider extends ContentProvider {
 
         sUriMatcher.addURI(AUTHORITY, "stop/#", STOP_OP);
         sUriMatcher.addURI(AUTHORITY,"stops",MANY_STOPS);
-        sUriMatcher.addURI(AUTHORITY,"stops/location/*",LOCATION_SEARCH);
+        sUriMatcher.addURI(AUTHORITY,"stops/location/*/*/*",LOCATION_SEARCH);
         /*
          * Sets the code for a single row to 2. In this case, the "#" wildcard is
          * used. "content://com.example.app.provider/table3/3" matches, but
@@ -192,23 +194,27 @@ public class AppDataProvider extends ContentProvider {
             case LOCATION_SEARCH:
                 //authority/stops/location/"Lat"/"Lon"/"distance"
                 //distance in metres (integer)
-                if(parts.size()>=5 && "location".equals(parts.get(2))){
-                    Double latitude = Double.parseDouble(parts.get(3));
-                    Double longitude = Double.parseDouble(parts.get(4));
+                if(parts.size()>=4 && "location".equals(parts.get(1))){
+                    Double latitude = Double.parseDouble(parts.get(2));
+                    Double longitude = Double.parseDouble(parts.get(3));
                     //converting distance to a float to not lose precision
-                    Float distance = parts.size()>=6 ? Float.parseFloat(parts.get(5))/1000 : 0.1f;
-
+                    Float distance = parts.size()>=5 ? Float.parseFloat(parts.get(4))/1000 : 0.1f;
+                    if(parts.size()>=5)
+                    Log.d("LocationSearch"," given distance to search is "+parts.get(4)+" km");
                     Double distasAngle = (distance/6371)*180/Math.PI; //small angles approximation, still valid for about 500 metres
-                    String[] cols = {StopsTable.COL_ID,StopsTable.COL_LAT,StopsTable.COL_LONG,
-                    StopsTable.COL_NAME,StopsTable.COL_TYPE,StopsTable.COL_LINES_STOPPING};
-                    String whereClause = "WHERE "+StopsTable.COL_LAT+ "< "+(latitude+distasAngle)+" AND "
+
+                    String whereClause = StopsTable.COL_LAT+ "< "+(latitude+distasAngle)+" AND "
                             +StopsTable.COL_LAT +" > "+(latitude-distasAngle)+" AND "+
                             StopsTable.COL_LONG+" < "+(longitude+distasAngle)+" AND "+StopsTable.COL_LONG+" > "+(longitude-distasAngle);
                     Log.d("Provider-LOCSearch","Querying stops  by position, query args: \n"+whereClause);
-                    return db.query(StopsTable.TABLE_NAME,cols,whereClause,null,null,null,null);
+                    return db.query(StopsTable.TABLE_NAME,projection,whereClause,null,null,null,null);
                     //return getStopsNearby(latitude,longitude,distance);
                 }
-                else throw new IllegalArgumentException("You must provide latitude and longitude");
+                else {
+                    Log.w(DEBUG_TAG,"Not enough parameters");
+                    if(parts.size()>=5) for(String s:parts) Log.d(DEBUG_TAG,"\t element "+parts.indexOf(s)+" is: "+s);
+                    return null;
+                }
             default:
                 Log.d("DataProvider","got request "+uri.getPath()+" which doesn't match anything");
             }
@@ -223,5 +229,6 @@ public class AppDataProvider extends ContentProvider {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+   // public static Uri getBaseUriGivenOp(int operationType);
 
 }

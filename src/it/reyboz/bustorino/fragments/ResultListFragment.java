@@ -57,7 +57,7 @@ public class ResultListFragment extends Fragment {
     private String adapterType;
 
     private boolean adapterSet = false;
-    private ResultFragmentListener mListener;
+    private FragmentListener mListener;
     private TextView messageTextView;
 
     FloatingActionButton fabutton;
@@ -206,8 +206,8 @@ public class ResultListFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof ResultFragmentListener) {
-            mListener = (ResultFragmentListener) context;
+        if (context instanceof FragmentListener) {
+            mListener = (FragmentListener) context;
             fabutton = (FloatingActionButton) getActivity().findViewById(R.id.floatingActionButton);
         } else {
             throw new RuntimeException(context.toString()
@@ -289,20 +289,7 @@ public class ResultListFragment extends Fragment {
 
 
 
-    /**
-     * This interface is useful for communicating with the activity
-     * The name has been automatically generated (do not blame me)
-     */
-    public interface ResultFragmentListener extends FragmentListener {
-        /**
-         * Houston, we need another fragment!
-         *
-         * @param ID the Stop ID
-         */
-        void createFragmentForStop(String ID);
 
-        void addLastStopToFavorites();
-    }
     /**
      * Classe per gestire gli scroll
      *

@@ -1,7 +1,7 @@
 buildscript {
     repositories {
         mavenCentral()
-	    jcenter()
+        jcenter()
         google()
     }
 
@@ -31,8 +31,8 @@ android {
             assets.srcDirs = ['assets']
         }
     }
-    buildTypes{
-        debug{
+    buildTypes {
+        debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-dev"
         }
@@ -54,7 +54,5 @@ android {
         compile 'org.jsoup:jsoup:1.7.3'
         compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
     }
-}
-dependencies {
 }
 

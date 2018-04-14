@@ -76,7 +76,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
             for(int i =0; i<arr.length();i++){
                 JSONObject lineJSON = arr.getJSONObject(i);
                 type = lineJSON.getString("lineType");
-                String lineName=lineJSON.getString("name");
+                String lineName=FiveTNormalizer.routeDisplayToInternal(lineJSON.getString("name"));
 
                 //set the type of line
                 if(type.equals("EXTRA"))
@@ -84,7 +84,8 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                 else routetype = Route.Type.BUS;
                 //Cut out the spaces in the line Name
                 //temporary fix
-                lineName = lineName.replace(" ","").replace("/","B");
+                //lineName = lineName.replace(" ","").replace("/","B");
+
                 //TODO: parse the line description
                 Route r = new Route(lineName,routetype,lineJSON.getString("longName"));
                 Log.d(DEBUG_NAME,"Creating line with name "+lineJSON.getString("name")+" and description "+lineJSON.getString("longName"));

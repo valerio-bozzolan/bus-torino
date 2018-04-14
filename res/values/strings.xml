@@ -88,4 +88,6 @@
 
     <string name="list_fragment_debug" translatable="false">ListFragment - BusTO</string>
     <string name="mainSharedPreferences" translatable="false">it.reyboz.bustorino.preferences</string>
+
+    <string name="nearby_stops_message">Nearby stops</string>
 </resources>
