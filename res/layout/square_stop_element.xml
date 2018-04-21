@@ -30,10 +30,10 @@
     <TextView
             android:text="distance"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true" android:layout_alignParentEnd="true"
+            android:layout_height="wrap_content"
             android:id="@+id/distanceTextView"
             android:textAppearance="@style/TextAppearance.AppCompat"
             android:gravity="end"
-            android:textAlignment="viewEnd"/>
+            android:textAlignment="viewEnd" android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/busStopIDView" android:layout_toEndOf="@+id/busStopIDView"/>
 </RelativeLayout>

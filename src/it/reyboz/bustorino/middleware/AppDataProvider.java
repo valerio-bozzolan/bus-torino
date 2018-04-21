@@ -73,6 +73,7 @@ public class AppDataProvider extends ContentProvider {
 
         sUriMatcher.addURI(AUTHORITY,"branches",ADD_UPDATE_BRANCHES);
         sUriMatcher.addURI(AUTHORITY,"connections",CONNECTIONS);
+        sUriMatcher.addURI(AUTHORITY,"favorites",FAVORITES_OP);
     }
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
@@ -200,7 +201,7 @@ public class AppDataProvider extends ContentProvider {
                     //converting distance to a float to not lose precision
                     Float distance = parts.size()>=5 ? Float.parseFloat(parts.get(4))/1000 : 0.1f;
                     if(parts.size()>=5)
-                    Log.d("LocationSearch"," given distance to search is "+parts.get(4)+" km");
+                    Log.d("LocationSearch"," given distance to search is "+parts.get(4)+" m");
                     Double distasAngle = (distance/6371)*180/Math.PI; //small angles approximation, still valid for about 500 metres
 
                     String whereClause = StopsTable.COL_LAT+ "< "+(latitude+distasAngle)+" AND "
@@ -215,6 +216,10 @@ public class AppDataProvider extends ContentProvider {
                     if(parts.size()>=5) for(String s:parts) Log.d(DEBUG_TAG,"\t element "+parts.indexOf(s)+" is: "+s);
                     return null;
                 }
+
+            case FAVORITES_OP:
+
+                break;
             default:
                 Log.d("DataProvider","got request "+uri.getPath()+" which doesn't match anything");
             }

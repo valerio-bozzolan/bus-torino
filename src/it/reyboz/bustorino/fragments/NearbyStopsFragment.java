@@ -59,9 +59,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     private FragmentLocationListener locationListener;
     private final String[] PROJECTION = {StopsTable.COL_ID,StopsTable.COL_LAT,StopsTable.COL_LONG,
             StopsTable.COL_NAME,StopsTable.COL_TYPE,StopsTable.COL_LINES_STOPPING};
-    //needed for the @SimpleCursorAdapter
-    private final String[] bindFrom = {StopsTable.COL_ID,StopsTable.COL_NAME,StopsTable.COL_LINES_STOPPING};
-    private final int[] bindTo = {R.id.busStopIDView,R.id.stopNameView,R.id.routesStoppingTextView};
+    private final static String DEBUG_TAG = "NearbyStopsFragment";
+
     //data Bundle
     private final String BUNDLE_LOCATION =  "location";
     private final int LOADER_ID = 0;
@@ -133,6 +132,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         super.onPause();
         canStartUpdate = false;
         locManager.removeUpdates(locationListener);
+        gV.setAdapter(null);
+        Log.d(DEBUG_TAG,"On paused called");
     }
 
     @Override
@@ -145,6 +146,11 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             //ignored
             //try another location provider
         }
+        if(madapter!=null){
+            gV.setAdapter(madapter);
+            loadingProgressBar.setVisibility(View.GONE);
+        }
+        Log.d(DEBUG_TAG,"OnResume called");
     }
 
     @Override
@@ -196,13 +202,15 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         final int linesIndex = data.getColumnIndex(StopsTable.COL_LINES_STOPPING);
         for(int i=0; i<data.getCount();i++){
             String[] routes = data.getString(linesIndex).split(",");
+
             stopList.add(new Stop(data.getString(col_id),data.getString(nameindex),null,null,
-                            Route.Type.fromCode(data.getInt(typeIndex)), Arrays.asList(routes),
-                            data.getDouble(latInd),data.getDouble(lonInd)
+                    Route.Type.fromCode(data.getInt(typeIndex)),
+                    Arrays.asList(routes), //the routes should be compact, not normalized yet
+                    data.getDouble(latInd),data.getDouble(lonInd)
                     )
             );
-            Log.d("NearbyStopsFragment","Got stop with id "+data.getString(col_id)+
-            " and name "+data.getString(nameindex));
+            //Log.d("NearbyStopsFragment","Got stop with id "+data.getString(col_id)+
+            //" and name "+data.getString(nameindex));
             data.moveToNext();
         }
         madapter = new SquareStopAdapter(stopList,getContext(),mListener,lastReceivedLocation);

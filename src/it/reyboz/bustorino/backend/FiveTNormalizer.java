@@ -18,6 +18,8 @@
 
 package it.reyboz.bustorino.backend;
 
+import android.util.Log;
+
 /**
  * Converts some weird stop IDs found on the 5T website to the form used everywhere else (including GTT website).
  * <p/>
@@ -170,7 +172,6 @@ public abstract class FiveTNormalizer {
 
     }
 
-    //TODO: DO THE OPPOSITE FOR FIVETAPIFETCHER
     /**
      * Converts a route ID from internal format to display format, returns null if it has the same name.
      *
@@ -198,6 +199,10 @@ public abstract class FiveTNormalizer {
             case "SE1":
                 // I wonder why GTT calls this "SE1" while other absurd names have a human readable name too.
                 return "1 Settimo";
+            case "16CD":
+                return "16 Circolare Destra";
+            case "16CS":
+                return "16 Circolare Sinistra";
             case "79":
                 return "Cremagliera Sassi-Superga";
             case "W01":
@@ -253,6 +258,7 @@ public abstract class FiveTNormalizer {
             return displayName.replace(" ","").replace("/","B");
         }
         switch (name.toLowerCase()){
+            //DEFAULT CASES
             case "star 1":
                 return "ST1";
             case "star 2":
@@ -295,11 +301,17 @@ public abstract class FiveTNormalizer {
         try {
             if (arr.length == 2 && arr[1].trim().equals("navetta") && Integer.decode(arr[0]) > 0)
                 return arr[0].trim().concat("N");
-            else return name;
+
         } catch (NumberFormatException e){
             //It's not "# navetta"
-            return name;
+            Log.w("FivetNorm","checking number when it's not");
         }
+        if(name.toLowerCase().contains("night buster")){
+            if(name.toLowerCase().contains("viola"))
+                return "S05";
+        }
+        //Everything failed, let's at least compact the the (probable) code
+        return name.replace(" ","");
     }
 
 }

@@ -90,4 +90,5 @@
     <string name="mainSharedPreferences" translatable="false">it.reyboz.bustorino.preferences</string>
 
     <string name="nearby_stops_message">Nearby stops</string>
+    <string name="position_searching_message">Finding the position...</string>
 </resources>

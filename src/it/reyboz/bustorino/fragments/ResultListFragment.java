@@ -21,6 +21,8 @@ package it.reyboz.bustorino.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
@@ -48,7 +50,7 @@ public class ResultListFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String LIST_TYPE = "list-type";
     private static final String STOP_TITLE = "messageExtra";
-
+    private static final String LIST_STATE = "list_state";
 
     public static final String TYPE_LINES ="lines";
     public static final String TYPE_STOPS = "fermate";
@@ -62,8 +64,9 @@ public class ResultListFragment extends Fragment {
 
     FloatingActionButton fabutton;
     private ListView resultsListView;
-    ListAdapter mListAdapter = null;
+    private ListAdapter mListAdapter = null;
     boolean listShown;
+    private Parcelable mListInstanceState = null;
 
     public ResultListFragment() {
         // Required empty public constructor
@@ -189,6 +192,10 @@ public class ResultListFragment extends Fragment {
             mListAdapter = null;
             setListAdapter(adapter);
         }
+        if(mListInstanceState!=null){
+            Log.d("resultsListView","trying to restore instance state");
+            resultsListView.onRestoreInstanceState(mListInstanceState);
+        }
         mListener.readyGUIfor(adapterType);
 
     }
@@ -217,6 +224,7 @@ public class ResultListFragment extends Fragment {
 
     }
 
+
     @Override
     public void onDetach() {
         mListener = null;
@@ -232,6 +240,23 @@ public class ResultListFragment extends Fragment {
         //Log.d(getString(R.string.list_fragment_debug), "called onDestroyView");
         getArguments().putString(MESSAGE_TEXT_VIEW, messageTextView.getText().toString());
         super.onDestroyView();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelable(LIST_STATE,resultsListView.onSaveInstanceState());
+        Log.d("ResultListFragment","onSaveInstanceState");
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        Log.d("ResultListFragment","onViewStateRestored");
+        if(savedInstanceState!=null){
+            mListInstanceState = savedInstanceState.getParcelable(LIST_STATE);
+            Log.d("ResultListFragment","listInstanceStatePresent :"+mListInstanceState);
+        }
     }
 
     public void setListAdapter(ListAdapter adapter) {

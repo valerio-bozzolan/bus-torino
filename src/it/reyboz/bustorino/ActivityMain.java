@@ -25,6 +25,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NavUtils;
@@ -102,7 +103,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     private UserDB userDB;
     private FragmentHelper fh;
 
-    private GPSLocationAdapter locationHandler;
     ///////////////////////////////// EVENT HANDLERS ///////////////////////////////////////////////
 
     /*
@@ -243,12 +243,21 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         //Try (hopefully) database update
         //TODO: Start the service in foreground, check last time it ran before
         DatabaseUpdateService.startDBUpdate(getApplicationContext());
-        if(getOption(LOCATION_PERMISSION_GIVEN,false)==false){
+
+        //locationHandler = new GPSLocationAdapter(getApplicationContext());
+        //--------- NEARBY STOPS--------//
+        //Let's search stops nearby
+        LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if(locManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && fh.getLastSuccessfullySearchedBusStop()==null && getOption(LOCATION_PERMISSION_GIVEN,false)) {
+            NearbyStopsFragment fr = NearbyStopsFragment.newInstance();
+            FragmentTransaction ft = framan.beginTransaction();
+            ft.add(R.id.resultFrame, fr, "Location");
+            ft.commitNow();
+            swipeRefreshLayout.setVisibility(View.VISIBLE);
+            swipeRefreshLayout.setEnabled(false);
+        } else if(!getOption(LOCATION_PERMISSION_GIVEN, false)){
             assertLocationPermissions();
         }
-        //locationHandler = new GPSLocationAdapter(getApplicationContext());
-
-
         Log.d("MainActivity", "Created");
     }
 
@@ -266,13 +275,13 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         } else {
             //we have new activity or we don't have a new searched stop.
             //Let's search stops nearby
-            NearbyStopsFragment fr = NearbyStopsFragment.newInstance();
-            FragmentTransaction ft = framan.beginTransaction();
-            ft.add(R.id.resultFrame,fr,"Location");
-            ft.commitNow();
-            swipeRefreshLayout.setVisibility(View.VISIBLE);
-            swipeRefreshLayout.setEnabled(false);
+            LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.resultFrame);
+
+
         }
+        //show the FAB since it remains hidden
+        floatingActionButton.show();
 
     }
 
@@ -337,8 +346,10 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             if(busStopID == null || busStopID.length() <= 0) {
                 showMessage(R.string.insert_bus_stop_number_error);
                 toggleSpinner(false);
-            } else
-            new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute(busStopID);
+            } else{
+                new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute(busStopID);
+                Log.d("MainActiv","Started search for arrivals of stop "+busStopID);
+            }
         } else { // searchMode == SEARCH_BY_NAME
             String query = busStopSearchByNameEditText.getText().toString();
             //new asyncWgetBusStopSuggestions(query, stopsDB, StopsFindersByNameRecursionHelper);
@@ -352,7 +363,20 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             case PERMISSION_REQUEST_POSITION:
                 if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
                     setOption(LOCATION_PERMISSION_GIVEN,true);
-                    locationHandler.startRequestingPosition();
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.d("mainActivity","Recreating stop fragment");
+                            NearbyStopsFragment fragment = NearbyStopsFragment.newInstance();
+                            Fragment oldFrag = framan.findFragmentById(R.id.resultFrame);
+                            FragmentTransaction ft = framan.beginTransaction();
+                            if(oldFrag!=null)
+                                ft.remove(oldFrag);
+                            ft.add(R.id.resultFrame,fragment,"nearbyStop_correct");
+                            ft.commit();
+                            framan.executePendingTransactions();
+                        }
+                    });
                 } else {
                     //permission denied
                     setOption(LOCATION_PERMISSION_GIVEN,false);
@@ -369,8 +393,10 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             // we're still in UI thread, no need to mess with Progress
             showMessage(R.string.insert_bus_stop_number_error);
             toggleSpinner(false);
-        } else
-        new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute(ID);
+        } else {
+            new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute(ID);
+            Log.d("MainActiv","Started search for arrivals of stop "+ID);
+        }
     }
 
 

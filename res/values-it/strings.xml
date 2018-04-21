@@ -79,5 +79,7 @@
     <string name="route_towards_unknown">%s (destinazione sconosciuta)</string>
     <string name="internal_error">Errore interno inaspettato, impossibile estrarre dati dal sito GTT/5T</string>
     <string name="action_view_on_map">Visualizza sulla mappa</string>
+    <string name="nearby_stops_message">Fermate vicine</string>
+    <string name="position_searching_message">Ricerca della posizione in corso...</string>
 
 </resources>

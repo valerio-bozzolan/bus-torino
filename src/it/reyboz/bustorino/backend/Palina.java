@@ -18,6 +18,8 @@
 
 package it.reyboz.bustorino.backend;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -153,31 +155,40 @@ public class Palina extends Stop {
         Collections.sort(this.routes);
     }
 
+    /**
+     * Add info about the routes already found from another source
+     * @param additionalRoutes ArrayList of routes to get the info from
+     * @return the number of routes modified
+     */
     public int addInfoFromRoutes(List<Route> additionalRoutes){
         if(routes == null || routes.size()==0) {
             this.routes = new ArrayList<>(additionalRoutes);
             return routes.size();
         }
         int count=0;
+        final Calendar c = Calendar.getInstance();
+        final int todaysInt = c.get(Calendar.DAY_OF_WEEK);
         for(Route r:routes) {
             int j = 0;
             boolean correct = false;
             Route selected = null;
             while (!correct) {
+                //find the correct route to merge to
+                // scan routes and find the first which has the same name
                 while (j < additionalRoutes.size() && !r.name.equals(additionalRoutes.get(j).name)) {
                     j++;
                 }
                 if (j == additionalRoutes.size()) break; //no match has been found
                 //should have found the first occurrence of the line
                 selected = additionalRoutes.get(j);
+                //move forward
+                j++;
 
-                Calendar c = Calendar.getInstance();
-                int to = c.get(Calendar.DAY_OF_WEEK);
 
                 if (selected.serviceDays != null && selected.serviceDays.length > 0) {
-                    //check it is in service
+                    //check if it is in service
                     for (int d : selected.serviceDays) {
-                        if (d == to) {
+                        if (d == todaysInt) {
                             correct = true;
                             break;
                         }
@@ -186,10 +197,10 @@ public class Palina extends Stop {
                     switch (r.festivo) {
                         case FERIALE:
                             //Domenica = 1 --> Saturday=7
-                            if (to <= 7 && to > 1) correct = true;
+                            if (todaysInt <= 7 && todaysInt > 1) correct = true;
                             break;
                         case FESTIVO:
-                            if (to == 1) correct = true; //TODO: implement way to recognize all holidays
+                            if (todaysInt == 1) correct = true; //TODO: implement way to recognize all holidays
                             break;
                         case UNKNOWN:
                             correct = true;
@@ -200,10 +211,12 @@ public class Palina extends Stop {
                     correct = true;
                 }
             }
-            if (correct == false || selected == null) continue; //we didn't find any match, should we point it out?
+            if (!correct || selected == null) {
+                Log.w("Palina_mergeRoutes","Cannot match the route with name "+r.name);
+                continue; //we didn't find any match
+            }
             //found the correct correspondance
             //MERGE INFO
-
             if(r.mergeRouteWithAnother(selected)) count++;
         }
         return count;

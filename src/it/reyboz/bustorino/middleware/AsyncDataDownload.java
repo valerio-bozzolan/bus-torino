@@ -87,6 +87,8 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
             switch (t){
                 case ARRIVALS:
                     ArrivalsFetcher f = (ArrivalsFetcher) r.getAndMoveForward();
+                    Log.d(TAG,"Using the ArrivalsFetcher: "+f.getClass());
+
                     Stop lastSearchedBusStop = fh.getLastSuccessfullySearchedBusStop();
                     Palina p;
                     String stopID;
@@ -147,7 +149,6 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                     }
 
                     result = p;
-                    Log.d(TAG,"Using the ArrivalsFetcher: "+f.getClass());
                     //TODO: find a way to avoid overloading the user with toasts
                     break;
                 case STOPS:
@@ -169,6 +170,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
             }
             //find if it went well
             if(res.get()== Fetcher.result.OK) {
+                //wait for other threads to finish
                 for(Thread t: otherActivities){
                     try {
                         t.join();
