@@ -23,6 +23,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -34,7 +35,7 @@ public class Stop implements Comparable<Stop> {
     private @Nullable String name;
     private @Nullable String username;
     public @Nullable String location;
-    public final @Nullable Route.Type type;
+    public @Nullable Route.Type type;
     private @Nullable List<String> routesThatStopHere;
     private final @Nullable Double lat;
     private final @Nullable Double lon;
@@ -116,6 +117,7 @@ public class Stop implements Comparable<Stop> {
         }
 
         StringBuilder sb = new StringBuilder();
+        Collections.sort(routesThatStopHere);
         int i, lenMinusOne = routesThatStopHere.size() - 1;
 
         for (i = 0; i < lenMinusOne; i++) {

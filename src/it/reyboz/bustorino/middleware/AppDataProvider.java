@@ -47,6 +47,7 @@ public class AppDataProvider extends ContentProvider {
     private static final String DEBUG_TAG="AppDataProvider";
 
     private NextGenDB appDBHelper;
+    private UserDB udbhelper;
     private SQLiteDatabase db;
 
     public AppDataProvider() {
@@ -73,7 +74,7 @@ public class AppDataProvider extends ContentProvider {
 
         sUriMatcher.addURI(AUTHORITY,"branches",ADD_UPDATE_BRANCHES);
         sUriMatcher.addURI(AUTHORITY,"connections",CONNECTIONS);
-        sUriMatcher.addURI(AUTHORITY,"favorites",FAVORITES_OP);
+        sUriMatcher.addURI(AUTHORITY,"favorites/#",FAVORITES_OP);
     }
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
@@ -180,8 +181,8 @@ public class AppDataProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        // TODO: Implement this to initialize your content provider on startup.
         appDBHelper = new NextGenDB(getContext());
+        udbhelper = new UserDB(getContext());
         return true;
     }
 
@@ -218,8 +219,16 @@ public class AppDataProvider extends ContentProvider {
                 }
 
             case FAVORITES_OP:
-
-                break;
+                final String stopFavSelection = UserDB.getFavoritesColumnNamesAsArray[0]+" = ?";
+                db = udbhelper.getReadableDatabase();
+                Log.d(DEBUG_TAG,"Asked information on Favorites about stop with id "+uri.getLastPathSegment());
+                return db.query(UserDB.TABLE_NAME,projection,stopFavSelection,new String[]{uri.getLastPathSegment()},null,null,sortOrder);
+            case STOP_OP:
+                //Let's try this plain and simple
+                final String[] selectionValues = {uri.getLastPathSegment()};
+                final String stopSelection = StopsTable.COL_ID+" = ?";
+                Log.d(DEBUG_TAG,"Asked information about stop with id "+selectionValues[0]);
+                return db.query(StopsTable.TABLE_NAME,projection,stopSelection,selectionValues,null,null,sortOrder);
             default:
                 Log.d("DataProvider","got request "+uri.getPath()+" which doesn't match anything");
             }
@@ -235,5 +244,10 @@ public class AppDataProvider extends ContentProvider {
     }
 
    // public static Uri getBaseUriGivenOp(int operationType);
+    public static Uri.Builder getAlmostFinishedBuilder(){
+        final Uri.Builder b = new Uri.Builder();
+        b.scheme("content").authority(AUTHORITY);
+        return b;
+    }
 
 }

@@ -36,10 +36,10 @@ import it.reyboz.bustorino.backend.StopsDBInterface;
 public class UserDB extends SQLiteOpenHelper {
 	public static final int DATABASE_VERSION = 1;
 	private static final String DATABASE_NAME = "user.db";
-    private static final String TABLE_NAME = "favorites";
+	static final String TABLE_NAME = "favorites";
     private final Context c; // needed during upgrade
-    private static String[] usernameColumnNameAsArray = {"username"};
-    private static String[] getFavoritesColumnNamesAsArray = {"ID", "username"};
+    private final static String[] usernameColumnNameAsArray = {"username"};
+    public final static String[] getFavoritesColumnNamesAsArray = {"ID", "username"};
 
 	public UserDB(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);

@@ -172,6 +172,8 @@ public class Palina extends Stop {
             int j = 0;
             boolean correct = false;
             Route selected = null;
+            //TODO: rewrite this as a simple loop
+            //MADNESS begins here
             while (!correct) {
                 //find the correct route to merge to
                 // scan routes and find the first which has the same name

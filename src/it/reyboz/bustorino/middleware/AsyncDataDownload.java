@@ -115,37 +115,17 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                         }
                         //put updated values into Database
                     }
-                    //TODO: use ContentProvider when ready
 
                     if(lastSearchedBusStop != null && res.get()== Fetcher.result.OK) {
                         // check that we don't have the same stop
-                        if(!lastSearchedBusStop.ID.equals(p.ID)) {
-                            // remove it, get new name
-                            //getNameOrGetRekt();
-                            //TODO
-                        } else {
+                        if(lastSearchedBusStop.ID.equals(p.ID)) {
                             // searched and it's the same
                             String sn = lastSearchedBusStop.getStopDisplayName();
-                            if(sn == null) {
-                                // something really bad happened, start from scratch
-                                //getNameOrGetRekt();
-                                //TODO
-                            } else {
+                            if(sn != null) {
                                 // "merge" Stop over Palina and we're good to go
                                 p.mergeNameFrom(lastSearchedBusStop);
                             }
                         }
-                    } else if(res.get()== Fetcher.result.OK) {
-                        // we haven't searched anything yet
-                        //getNameOrGetRekt();
-                    }
-
-                    //Try to find the name of the stop inside StopsDB
-
-                    if(p.getStopDisplayName() == null){
-                        fh.openStopsDB();
-                        p.setStopName(fh.getStopNamefromDB(p.ID));
-                        fh.closeDBIfNeeded();
                     }
 
                     result = p;
@@ -155,12 +135,6 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                     StopsFinderByName finder = (StopsFinderByName) r.getAndMoveForward();
 
                     List<Stop> resultList= finder.FindByName(params[0], this.res); //it's a List<Stop>
-                    fh.openStopsDB();
-                    for (Stop stop : resultList){
-                        if(stop.location == null) stop.location = fh.getLocationFromDB(stop);
-                        stop.setRoutesThatStopHere(fh.getStopRoutesFromDB(stop.ID));
-                    }
-                    fh.closeDBIfNeeded();
                     Log.d(TAG,"Using the StopFinderByName: "+finder.getClass());
                     query =params[0];
                     result = resultList; //dummy result
@@ -209,6 +183,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
             //everything went bad
             if(fh!=null) fh.toggleSpinner(false);
             cancel(true);
+            //TODO: send message here
             return;
         }
 

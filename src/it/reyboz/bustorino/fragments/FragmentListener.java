@@ -26,7 +26,7 @@ public interface FragmentListener {
      * to the fragment that has been attached
      * @param fragmentType the type of fragment attached
      */
-    void readyGUIfor(String fragmentType);
+    void readyGUIfor(FragmentKind fragmentType);
     /**
      * Houston, we need another fragment!
      *

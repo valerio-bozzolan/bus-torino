@@ -100,6 +100,9 @@
                 android:name=".middleware.DatabaseUpdateService"
                 android:exported="false">
         </service>
+        <!-- Don't show the additional frame on samsung phones -->
+        <meta-data android:name="com.samsung.android.icon_container.has_icon_container"
+				android:value="true" />
     </application>
 
 </manifest>

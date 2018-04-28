@@ -309,6 +309,8 @@ public abstract class FiveTNormalizer {
         if(name.toLowerCase().contains("night buster")){
             if(name.toLowerCase().contains("viola"))
                 return "S05";
+            else if(name.toLowerCase().contains("verde"))
+                return "E68";
         }
         //Everything failed, let's at least compact the the (probable) code
         return name.replace(" ","");

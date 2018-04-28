@@ -41,6 +41,7 @@ public class StopAdapter extends ArrayAdapter<Stop> {
     private static final int tramIcon = R.drawable.tram;
     private static final int cityIcon = R.drawable.city;
 
+
     private static class ViewHolder {
         TextView busStopIDTextView;
         TextView busStopNameTextView;
@@ -76,7 +77,6 @@ public class StopAdapter extends ArrayAdapter<Stop> {
 
         // NOTE: intentionally ignoring stop username in search results: if it's in the favorites, why are you searching for it?
         vh.busStopNameTextView.setText(stop.getStopDisplayName());
-
         String whatStopsHere = stop.routesThatStopHereToString();
         if(whatStopsHere == null) {
             vh.busStopLinesTextView.setVisibility(View.GONE);

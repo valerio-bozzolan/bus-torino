@@ -81,7 +81,6 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
      * this fragment using the provided parameters.
      * @return A new instance of fragment NearbyStopsFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static NearbyStopsFragment newInstance() {
         NearbyStopsFragment fragment = new NearbyStopsFragment();
         Bundle args = new Bundle();
@@ -221,6 +220,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             gV.setVisibility(View.VISIBLE);
 
         }
+
 
     }
 

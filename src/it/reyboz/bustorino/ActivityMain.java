@@ -50,10 +50,7 @@ import it.reyboz.bustorino.backend.FiveTStopsFetcher;
 import it.reyboz.bustorino.backend.GTTJSONFetcher;
 import it.reyboz.bustorino.backend.GTTStopsFetcher;
 import it.reyboz.bustorino.backend.StopsFinderByName;
-import it.reyboz.bustorino.fragments.FragmentHelper;
-import it.reyboz.bustorino.fragments.FragmentListener;
-import it.reyboz.bustorino.fragments.NearbyStopsFragment;
-import it.reyboz.bustorino.fragments.ResultListFragment;
+import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.*;
 
 public class ActivityMain extends GeneralActivity implements FragmentListener {
@@ -181,7 +178,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
          */
         //swipeRefreshLayout.setColorSchemeColors(R.color.blue_500, R.color.orange_500); // setColorScheme is deprecated, setColorSchemeColors isn't
         swipeRefreshLayout.setColorSchemeResources(R.color.blue_500,R.color.orange_500);
-        fh = new FragmentHelper(this,R.id.listRefreshLayout,R.id.resultFrame,FragmentHelper.NO_FRAME);
+        fh = new FragmentHelper(this,R.id.listRefreshLayout,R.id.resultFrame);
         setSearchModeBusStopID();
 
         //---------------------------- START INTENT CHECK QUEUE ------------------------------------
@@ -558,18 +555,18 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      * @param fragmentType the type of fragment created
      */
     @Override
-    public void readyGUIfor(String fragmentType) {
+    public void readyGUIfor(FragmentKind fragmentType) {
         hideKeyboard();
         if(fragmentType==null) Log.e("ActivityMain","Problem with fragmentType");
         else
         switch (fragmentType){
-            case ResultListFragment.TYPE_LINES:
+            case ARRIVALS:
                 prepareGUIForBusLines();
                 if (getOption(OPTION_SHOW_LEGEND, true)) {
                     showHints();
                 }
                 break;
-            case ResultListFragment.TYPE_STOPS:
+            case STOPS:
                 prepareGUIForBusStops();
                 break;
             default:

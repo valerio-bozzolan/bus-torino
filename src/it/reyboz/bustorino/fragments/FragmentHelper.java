@@ -20,11 +20,9 @@ package it.reyboz.bustorino.fragments;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContentResolverCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import it.reyboz.bustorino.R;
@@ -44,9 +42,8 @@ public class FragmentHelper {
     //support for multiple frames
     private int  primaryFrameLayout,secondaryFrameLayout, swipeRefID;
     public static final int NO_FRAME = -3;
-    UserDB userDB;
-    StopsDB stopsDB;
-    private NextGenDB newDB;
+
+    private NextGenDB newDBHelper;
 
     public FragmentHelper(GeneralActivity act, int swipeRefID, int mainFrame) {
         this(act,swipeRefID,mainFrame,NO_FRAME);
@@ -57,9 +54,7 @@ public class FragmentHelper {
         this.swipeRefID = swipeRefID;
         this.primaryFrameLayout = primaryFrameLayout;
         this.secondaryFrameLayout = secondaryFrameLayout;
-        stopsDB = new StopsDB(act);
-        userDB = new UserDB(act);
-        newDB = new NextGenDB(act.getApplicationContext());
+        newDBHelper = new NextGenDB(act.getApplicationContext());
     }
 
     public Stop getLastSuccessfullySearchedBusStop() {
@@ -76,7 +71,7 @@ public class FragmentHelper {
      */
     public void createOrUpdateStopFragment(Palina p){
         boolean refreshing;
-        ResultListFragment listFragment;
+        ArrivalsFragment arrivalsFragment;
 
         if(act==null) {
             //SOMETHING WENT VERY WRONG
@@ -87,9 +82,9 @@ public class FragmentHelper {
         FragmentManager fm = act.getSupportFragmentManager();
         if(srl.isRefreshing())
             refreshing=true;
-        else if(fm.findFragmentById(R.id.resultFrame) instanceof ResultListFragment) {
-            listFragment = (ResultListFragment) fm.findFragmentById(R.id.resultFrame);
-            refreshing = listFragment.isFragmentForTheSameStop(p);
+        else if(fm.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
+            arrivalsFragment = (ArrivalsFragment) fm.findFragmentById(R.id.resultFrame);
+            refreshing = arrivalsFragment.isFragmentForTheSameStop(p);
         } else
             refreshing = false;
 
@@ -101,21 +96,18 @@ public class FragmentHelper {
             String displayStuff;
 
             if (displayName != null && displayName.length() > 0) {
-                displayStuff = p.ID.concat(" - ").concat(displayName);
+                arrivalsFragment = ArrivalsFragment.newInstance(p.ID,displayName);
             } else {
-                displayStuff = p.ID;
+                arrivalsFragment = ArrivalsFragment.newInstance(p.ID);
             }
-            listFragment = ResultListFragment.newInstance(ResultListFragment.TYPE_LINES,displayStuff);
-            attachFragmentToContainer(fm,listFragment,true,ResultListFragment.getFragmentTag(p));
+            attachFragmentToContainer(fm,arrivalsFragment,true,ResultListFragment.getFragmentTag(p));
         } else {
             Log.d("BusTO", "Same bus stop, accessing existing fragment");
-            listFragment = (ResultListFragment) fm.findFragmentById(R.id.resultFrame);
+            arrivalsFragment = (ArrivalsFragment) fm.findFragmentById(R.id.resultFrame);
         }
 
-        listFragment.setListAdapter(new PalinaAdapter(act.getApplicationContext(),p));
+        arrivalsFragment.setListAdapter(new PalinaAdapter(act.getApplicationContext(),p));
         act.hideKeyboard();
-        if (act instanceof FragmentListener) ((FragmentListener) act).readyGUIfor(ResultListFragment.TYPE_LINES);
-
         toggleSpinner(false);
     }
 
@@ -126,10 +118,9 @@ public class FragmentHelper {
      */
     public void createFragmentFor(List<Stop> resultList,String query){
         act.hideKeyboard();
-        ResultListFragment listfragment = ResultListFragment.newInstance(ResultListFragment.TYPE_STOPS);
+        StopListFragment listfragment = StopListFragment.newInstance(query);
         attachFragmentToContainer(act.getSupportFragmentManager(),listfragment,false,"search_"+query);
-        if (act instanceof FragmentListener) ((FragmentListener) act).readyGUIfor(ResultListFragment.TYPE_STOPS);
-        listfragment.setListAdapter(new StopAdapter(act.getApplicationContext(), resultList));
+        listfragment.setStopList(resultList);
         toggleSpinner(false);
 
     }
@@ -164,29 +155,10 @@ public class FragmentHelper {
         ft.commit();
         //fm.executePendingTransactions();
     }
-    /*
-        Set of methods to "wrap" database operations
-     */
-    //Find a way to open databases
-    public void openStopsDB(){
-        stopsDB.openIfNeeded();
-    }
-    public String getLocationFromDB(Stop p){
-        return stopsDB.getLocationFromID(p.ID);
-    }
-    public List<String> getStopRoutesFromDB(String stopID){
-        return stopsDB.getRoutesByStop(stopID);
-    }
-    public void closeDBIfNeeded(){
-        stopsDB.closeIfNeeded();
-    }
-    public String getStopNamefromDB(String stopID){
-        return stopsDB.getNameFromID(stopID);
-    }
 
     synchronized public int insertBatchDataInNextGenDB(ContentValues[] valuesArr,String tableName){
-        if(newDB!=null)
-        return newDB.insertBatchContent(valuesArr,tableName);
+        if(newDBHelper !=null)
+        return newDBHelper.insertBatchContent(valuesArr,tableName);
         else return -1;
     }
 
