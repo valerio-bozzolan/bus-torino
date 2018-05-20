@@ -100,6 +100,9 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                         publishProgress(Fetcher.result.QUERY_TOO_SHORT);
                         return null;
                     }
+                    //Skip the FiveTAPIFetcher for the Metro Stops because it shows incomprehensible arrival times
+                    if(f instanceof FiveTAPIFetcher && Integer.parseInt(stopID)>= 8200)
+                        continue;
                     p= f.ReadArrivalTimesAll(stopID,res);
                     publishProgress(res.get());
 
