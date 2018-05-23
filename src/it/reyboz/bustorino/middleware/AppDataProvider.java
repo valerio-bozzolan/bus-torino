@@ -189,7 +189,6 @@ public class AppDataProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) throws UnsupportedOperationException,IllegalArgumentException{
-        // TODO: Implement this to handle query requests from clients.
         SQLiteDatabase  db = appDBHelper.getReadableDatabase();
         List<String>  parts = uri.getPathSegments();
         switch (sUriMatcher.match(uri)){
@@ -208,9 +207,8 @@ public class AppDataProvider extends ContentProvider {
                     String whereClause = StopsTable.COL_LAT+ "< "+(latitude+distasAngle)+" AND "
                             +StopsTable.COL_LAT +" > "+(latitude-distasAngle)+" AND "+
                             StopsTable.COL_LONG+" < "+(longitude+distasAngle)+" AND "+StopsTable.COL_LONG+" > "+(longitude-distasAngle);
-                    Log.d("Provider-LOCSearch","Querying stops  by position, query args: \n"+whereClause);
+                    //Log.d("Provider-LOCSearch","Querying stops  by position, query args: \n"+whereClause);
                     return db.query(StopsTable.TABLE_NAME,projection,whereClause,null,null,null,null);
-                    //return getStopsNearby(latitude,longitude,distance);
                 }
                 else {
                     Log.w(DEBUG_TAG,"Not enough parameters");
@@ -244,7 +242,7 @@ public class AppDataProvider extends ContentProvider {
     }
 
    // public static Uri getBaseUriGivenOp(int operationType);
-    public static Uri.Builder getAlmostFinishedBuilder(){
+    public static Uri.Builder getUriBuilderToComplete(){
         final Uri.Builder b = new Uri.Builder();
         b.scheme("content").authority(AUTHORITY);
         return b;

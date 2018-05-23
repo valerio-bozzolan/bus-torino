@@ -83,6 +83,9 @@ public class DatabaseUpdateService extends IntentService {
                 int newVersion = getNewVersion(trial);
                 Log.d(DEBUG_TAG,"newDBVersion: "+newVersion+" oldVersion: "+versionDB);
                 if(versionDB==-1 || newVersion>versionDB){
+                    final SharedPreferences.Editor editor = shPr.edit();
+                    editor.putBoolean(getString(R.string.databaseUpdatingPref),true);
+                    editor.apply();
                     Log.d(DEBUG_TAG,"Downloading the bus stops info");
                     final AtomicReference<Fetcher.result> gres = new AtomicReference<>();
                     if(!performDBUpdate(gres)) restartDBUpdateifPossible(trial,gres);
@@ -101,10 +104,9 @@ public class DatabaseUpdateService extends IntentService {
                             break;
                     }*/
                     else {
-                        SharedPreferences.Editor ed = shPr.edit();
-                        ed.putInt(DB_VERSION,newVersion);
+                        editor.putInt(DB_VERSION,newVersion);
                         //  BY COMMENTING THIS, THE APP WILL CONTINUOUSLY UPDATE THE DATABASE
-                        ed.apply();
+                        editor.apply();
                     }
                 } else {
                     Log.d(DEBUG_TAG,"No update needed");
@@ -112,11 +114,14 @@ public class DatabaseUpdateService extends IntentService {
 
 
                 Log.d(DEBUG_TAG,"Finished update");
+                SharedPreferences.Editor editor = shPr.edit();
+                editor.putBoolean(getString(R.string.databaseUpdatingPref),false);
+                editor.apply();
             }
         }
     }
 
-    public boolean performDBUpdate(AtomicReference<Fetcher.result> gres){
+    private boolean performDBUpdate(AtomicReference<Fetcher.result> gres){
 
         final FiveTAPIFetcher f = new FiveTAPIFetcher();
         final ArrayList<Stop> stops = f.getAllStopsFromGTT(gres);

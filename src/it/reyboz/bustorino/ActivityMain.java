@@ -364,6 +364,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                         @Override
                         public void run() {
                             Log.d("mainActivity","Recreating stop fragment");
+                            swipeRefreshLayout.setVisibility(View.VISIBLE);
                             NearbyStopsFragment fragment = NearbyStopsFragment.newInstance();
                             Fragment oldFrag = framan.findFragmentById(R.id.resultFrame);
                             FragmentTransaction ft = framan.beginTransaction();
@@ -372,6 +373,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                             ft.add(R.id.resultFrame,fragment,"nearbyStop_correct");
                             ft.commit();
                             framan.executePendingTransactions();
+
                         }
                     });
                 } else {

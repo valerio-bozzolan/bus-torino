@@ -92,7 +92,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         if(args.getString(KEY_STOP_ID)==null) return null;
         final String stopID = args.getString(KEY_STOP_ID);
-        final Uri.Builder builder = AppDataProvider.getAlmostFinishedBuilder();
+        final Uri.Builder builder = AppDataProvider.getUriBuilderToComplete();
         CursorLoader cl;
         switch (id){
             case loaderFavId:

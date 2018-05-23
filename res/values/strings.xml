@@ -88,6 +88,7 @@
 
     <string name="list_fragment_debug" translatable="false">ListFragment - BusTO</string>
     <string name="mainSharedPreferences" translatable="false">it.reyboz.bustorino.preferences</string>
+    <string name="databaseUpdatingPref" translatable="false">db_is_updating</string>
 
     <string name="nearby_stops_message">Nearby stops</string>
     <string name="position_searching_message">Finding the position...</string>

@@ -19,6 +19,7 @@ package it.reyboz.bustorino.fragments;
 
 import android.content.Context;
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
@@ -30,14 +31,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.SimpleCursorAdapter;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.CursorAdapter;
 import android.widget.GridView;
 import android.widget.ProgressBar;
 import it.reyboz.bustorino.R;
@@ -50,7 +48,6 @@ import it.reyboz.bustorino.middleware.SquareStopAdapter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 public class NearbyStopsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -67,11 +64,12 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     private GridView gV;
 
     private SquareStopAdapter madapter;
-    boolean canStartUpdate = true;
+    boolean canStartDBQuery = true;
     private Location lastReceivedLocation = null;
     private ProgressBar loadingProgressBar;
     private int distance;
-
+    private SharedPreferences globalSharedPref;
+    private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
     public NearbyStopsFragment() {
         // Required empty public constructor
     }
@@ -99,6 +97,22 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         }
         locManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
         locationListener = new FragmentLocationListener(this);
+        globalSharedPref = getContext().getSharedPreferences(getString(R.string.mainSharedPreferences),Context.MODE_PRIVATE);
+
+        preferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                Log.d(DEBUG_TAG,"Key "+key+" was changed");
+                if(key.equals(getString(R.string.databaseUpdatingPref))){
+                    if(!sharedPreferences.getBoolean(getString(R.string.databaseUpdatingPref),true)){
+                        canStartDBQuery = true;
+                        Log.d(DEBUG_TAG,"The database has finished updating, can start update now");
+                    }
+                }
+            }
+        };
+        globalSharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener);
+
     }
 
     @Override
@@ -129,7 +143,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     @Override
     public void onPause() {
         super.onPause();
-        canStartUpdate = false;
+        canStartDBQuery = false;
         locManager.removeUpdates(locationListener);
         gV.setAdapter(null);
         Log.d(DEBUG_TAG,"On paused called");
@@ -138,9 +152,9 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     @Override
     public void onResume() {
         super.onResume();
-        canStartUpdate = true;
+        canStartDBQuery = !globalSharedPref.getBoolean(getString(R.string.databaseUpdatingPref),false);
         try{
-            locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,2000,10,locationListener);
+            if(canStartDBQuery) locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,2000,5,locationListener);
         } catch (SecurityException ex){
             //ignored
             //try another location provider
@@ -185,7 +199,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         ArrayList<Stop> stopList = new ArrayList<>();
         data.moveToFirst();
-        if(data.getCount()<4){
+        if(data.getCount()<4 && !globalSharedPref.getBoolean(getString(R.string.databaseUpdatingPref),false)){
             distance = distance*2;
             Bundle d = new Bundle();
             d.putParcelable(BUNDLE_LOCATION,lastReceivedLocation);
@@ -243,12 +257,13 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         public void onLocationChanged(Location location) {
             //set adapter
             float accuracy = location.getAccuracy();
-            if(accuracy<60 && canStartUpdate) {
+            if(accuracy<60 && canStartDBQuery) {
                 distance = 100;
                 final Bundle setting = new Bundle();
                 setting.putParcelable(BUNDLE_LOCATION,location);
                 getLoaderManager().restartLoader(LOADER_ID,setting,callbacks);
             }
+            Log.d("LocationListener","can start loader "+ canStartDBQuery);
         }
 
         @Override
