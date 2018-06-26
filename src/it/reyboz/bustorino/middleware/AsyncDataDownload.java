@@ -19,6 +19,7 @@ package it.reyboz.bustorino.middleware;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -331,9 +332,15 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
             }
             starttime = System.currentTimeMillis();
             ContentResolver cr = fragmentHelper.getContentResolver();
-            cr.bulkInsert(Uri.parse("content://"+AppDataProvider.AUTHORITY+"/branches/"),values);
-            endtime = System.currentTimeMillis();
-            Log.d("DataDownload","Inserted branches, took "+(endtime-starttime)+" ms");
+            try {
+                cr.bulkInsert(Uri.parse("content://" + AppDataProvider.AUTHORITY + "/branches/"), values);
+                endtime = System.currentTimeMillis();
+                Log.d("DataDownload", "Inserted branches, took " + (endtime - starttime) + " ms");
+            } catch (SQLException exc){
+                Log.e("AsyncDataDownload","Inserting data: some error happened, aborting the database insert");
+                exc.printStackTrace();
+                return;
+            }
 
 
             starttime = System.currentTimeMillis();

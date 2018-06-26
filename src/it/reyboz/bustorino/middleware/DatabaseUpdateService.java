@@ -50,7 +50,7 @@ public class DatabaseUpdateService extends IntentService {
     public DatabaseUpdateService() {
         super("DatabaseUpdateService");
     }
-
+    private boolean isRunning;
     private int updateTrial;
     /**
      * Starts this service to perform action Foo with the given parameters. If
@@ -171,6 +171,7 @@ public class DatabaseUpdateService extends IntentService {
 
         if(routes==null){
             Log.w(DEBUG_TAG,"Something went wrong downloading the lines");
+            dbHelp.close();
             return false;
 
         }
@@ -203,7 +204,7 @@ public class DatabaseUpdateService extends IntentService {
         db.endTransaction();
         endTime = System.currentTimeMillis();
         Log.d(DEBUG_TAG,"Inserting lines took: "+((double) (endTime-startTime)/1000)+" s");
-
+        dbHelp.close();
         return true;
     }
     private int getNewVersion(int trial){

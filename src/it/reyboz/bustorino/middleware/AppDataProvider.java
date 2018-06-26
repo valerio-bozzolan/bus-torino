@@ -17,16 +17,15 @@
  */
 package it.reyboz.bustorino.middleware;
 
-import android.content.ContentProvider;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.UriMatcher;
+import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
 
+import it.reyboz.bustorino.R;
+import it.reyboz.bustorino.backend.GlobalStatusPreferences;
 import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 
 import java.util.List;
@@ -45,11 +44,11 @@ public class AppDataProvider extends ContentProvider {
     private static final int LOCATION_SEARCH = 9;
 
     private static final String DEBUG_TAG="AppDataProvider";
-
+    private Context con;
     private NextGenDB appDBHelper;
     private UserDB udbhelper;
     private SQLiteDatabase db;
-
+    private GlobalStatusPreferences preferences;
     public AppDataProvider() {
     }
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -113,8 +112,11 @@ public class AppDataProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) throws IllegalArgumentException{
+        //AVOID OPENING A DB CONNECTION, WILL THROW VERY NASTY ERRORS
+        if(preferences.isDBUpdating())
+            return null;
         db = appDBHelper.getWritableDatabase();
-        Uri finalUri = null;
+        Uri finalUri;
         long last_rowid = -1;
         switch (sUriMatcher.match(uri)){
             case ADD_UPDATE_BRANCHES:
@@ -181,14 +183,23 @@ public class AppDataProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
+        con = getContext();
         appDBHelper = new NextGenDB(getContext());
         udbhelper = new UserDB(getContext());
+        if(con!=null) {
+            preferences = new GlobalStatusPreferences(con);
+        } else {
+            preferences = null;
+            Log.e(DEBUG_TAG,"Cannot get shared preferences");
+        }
         return true;
     }
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) throws UnsupportedOperationException,IllegalArgumentException{
+        //IMPORTANT
+        if(preferences.isDBUpdating()) return null;
         SQLiteDatabase  db = appDBHelper.getReadableDatabase();
         List<String>  parts = uri.getPathSegments();
         switch (sUriMatcher.match(uri)){
@@ -248,4 +259,8 @@ public class AppDataProvider extends ContentProvider {
         return b;
     }
 
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+    }
 }
