@@ -166,9 +166,9 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                     } else if(description.contains("feriale")){
                         festivo = Route.FestiveInfo.FERIALE;
                     }
-                if(lineName.trim().equals("10")|| lineName.trim().equals("15")) t= Route.Type.TRAM;
+                if(t == null &&(lineName.trim().equals("10")|| lineName.trim().equals("15"))) t= Route.Type.TRAM;
                 if(direction.contains("-")){
-                    //
+                    //Sometimes the actual filtered direction is instead the full line (including both extremes)
                     direction = direction.split("-")[1];
                 }
                 Route r = new Route(lineName.trim(),direction.trim(),t,null);

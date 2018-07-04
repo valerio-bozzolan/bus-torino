@@ -20,6 +20,9 @@ package it.reyboz.bustorino.backend;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+/**
+ * Class to handle app status modifications, e.g. database is being updated or not
+ */
 public class GlobalStatusPreferences {
     private static final String PREFERENCES_NAME = "it.reyboz.bustorino.statusPreferences";
     private static final String DB_UPDATING = "DB_updating";
