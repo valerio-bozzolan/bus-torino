@@ -38,6 +38,7 @@ import android.view.ViewGroup;
 
 import android.widget.GridView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
@@ -70,6 +71,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     private int distance;
     private SharedPreferences globalSharedPref;
     private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
+    private TextView noStopsTextView;
     public NearbyStopsFragment() {
         // Required empty public constructor
     }
@@ -122,7 +124,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         View root = inflater.inflate(R.layout.fragment_nearby_stops, container, false);
         gV = (GridView) root.findViewById(R.id.stopGridNearby);
         loadingProgressBar  = (ProgressBar) root.findViewById(R.id.loadingBar);
-
+        noStopsTextView = (TextView) root.findViewById(R.id.noStopsTextView);
         return root;
     }
 
@@ -199,7 +201,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         ArrayList<Stop> stopList = new ArrayList<>();
         data.moveToFirst();
-        if(data.getCount()<4 && !globalSharedPref.getBoolean(getString(R.string.databaseUpdatingPref),false)){
+        if(data.getCount()<4 && !globalSharedPref.getBoolean(getString(R.string.databaseUpdatingPref),false)  && distance<=1000){
             distance = distance*2;
             Bundle d = new Bundle();
             d.putParcelable(BUNDLE_LOCATION,lastReceivedLocation);
@@ -226,15 +228,19 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             //" and name "+data.getString(nameindex));
             data.moveToNext();
         }
-        madapter = new SquareStopAdapter(stopList,getContext(),mListener,lastReceivedLocation);
-        madapter.sort(new StopSorterByDistance(lastReceivedLocation));
-        gV.setAdapter(madapter);
-        if(gV.getVisibility()!=View.VISIBLE){
+        if(data.getCount()>0) {
+            madapter = new SquareStopAdapter(stopList, getContext(), mListener, lastReceivedLocation);
+            madapter.sort(new StopSorterByDistance(lastReceivedLocation));
+            gV.setAdapter(madapter);
+            if (gV.getVisibility() != View.VISIBLE) {
+                loadingProgressBar.setVisibility(View.GONE);
+                gV.setVisibility(View.VISIBLE);
+            }
+            noStopsTextView.setVisibility(View.GONE);
+        } else {
+            noStopsTextView.setVisibility(View.VISIBLE);
             loadingProgressBar.setVisibility(View.GONE);
-            gV.setVisibility(View.VISIBLE);
-
         }
-
 
     }
 

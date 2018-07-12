@@ -9,8 +9,7 @@
             android:layout_height="wrap_content"
             android:text="@string/nearby_stops_message" android:id="@+id/titleTextView"
             android:textAppearance="@android:style/TextAppearance.Medium"
-            android:textAlignment="center" android:layout_marginBottom="10dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginBottom="15dp" android:layout_marginTop="10dp"
             android:gravity="center_horizontal" android:layout_margin="10dp"/>
     <GridView
             android:layout_width="match_parent"
@@ -31,5 +30,13 @@
             android:progressDrawable="@color/blue_700" android:indeterminate="true"
             android:indeterminateTint="@color/blue_700"
             android:layout_below="@+id/titleTextView" android:layout_centerHorizontal="true"/>
+    <TextView
+            android:text="@string/no_stops_nearby"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/noStopsTextView"
+            android:visibility="gone"
+            android:layout_below="@+id/titleTextView" android:layout_centerHorizontal="true" android:textSize="16sp"
+            android:layout_marginTop="20dp"
+    />
 
 </RelativeLayout>

@@ -33,7 +33,7 @@ public class GlobalStatusPreferences {
 
     public GlobalStatusPreferences(Context thecon) {
         this.thecon = thecon;
-        this.preferences = thecon.getSharedPreferences(PREFERENCES_NAME,Context.MODE_PRIVATE);
+        this.preferences = thecon.getApplicationContext().getSharedPreferences(PREFERENCES_NAME,Context.MODE_PRIVATE);
     }
 
     public boolean isDBUpdating(){

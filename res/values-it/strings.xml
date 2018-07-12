@@ -81,5 +81,6 @@
     <string name="action_view_on_map">Visualizza sulla mappa</string>
     <string name="nearby_stops_message">Fermate vicine</string>
     <string name="position_searching_message">Ricerca della posizione in corso...</string>
+    <string name="no_stops_nearby">Nessuna fermata nei dintorni</string>
 
 </resources>
