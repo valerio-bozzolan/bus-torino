@@ -17,12 +17,13 @@
  */
 package it.reyboz.bustorino.fragments;
 
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.AbsListView;
 
 import java.lang.ref.WeakReference;
 
-public class CommonScrollListener implements AbsListView.OnScrollListener{
+public class CommonScrollListener extends RecyclerView.OnScrollListener implements AbsListView.OnScrollListener{
 
     WeakReference<FragmentListener> listenerWeakReference;
     //enable swipeRefreshLayout when scrolling down or not

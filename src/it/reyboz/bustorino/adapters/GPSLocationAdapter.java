@@ -1,4 +1,4 @@
-package it.reyboz.bustorino.middleware;
+package it.reyboz.bustorino.adapters;
 
 import android.Manifest;
 import android.content.Context;

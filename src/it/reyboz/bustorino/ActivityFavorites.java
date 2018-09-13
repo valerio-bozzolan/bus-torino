@@ -18,7 +18,7 @@
 package it.reyboz.bustorino;
 
 import it.reyboz.bustorino.backend.Stop;
-import it.reyboz.bustorino.middleware.StopAdapter;
+import it.reyboz.bustorino.adapters.StopAdapter;
 import it.reyboz.bustorino.middleware.StopsDB;
 import it.reyboz.bustorino.middleware.UserDB;
 

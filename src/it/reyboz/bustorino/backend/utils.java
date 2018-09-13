@@ -1,5 +1,9 @@
 package it.reyboz.bustorino.backend;
 
+import android.content.Context;
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+
 public abstract class utils {
     private static final double EarthRadius = 6371e3;
     public static Double measuredistanceBetween(double lat1,double long1,double lat2,double long2){
@@ -15,5 +19,14 @@ public abstract class utils {
 
         return EarthRadius*c;
 
+    }
+    public static int convertDipToPixels(Context con,float dips)
+    {
+        return (int) (dips * con.getResources().getDisplayMetrics().density + 0.5f);
+    }
+    public static int calculateNumColumnsFromSize(View containerView, int pixelsize){
+        int width = containerView.getWidth();
+        float ncols = ((float)width)/pixelsize;
+        return (int) Math.floor(ncols);
     }
 }

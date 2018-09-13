@@ -15,103 +15,110 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.reyboz.bustorino.middleware;
+package it.reyboz.bustorino.adapters;
 
 import android.content.Context;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.backend.StopSorterByDistance;
 import it.reyboz.bustorino.fragments.FragmentListener;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class SquareStopAdapter extends ArrayAdapter<Stop> {
+public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.SquareViewHolder> {
     private static int layoutRes = R.layout.square_stop_element;
     //private List<Stop> stops;
     private Context  context;
     private @Nullable Location userPosition;
     private FragmentListener listener;
+    private List<Stop> stops;
 
     public SquareStopAdapter(List<Stop> objects, Context con,FragmentListener fragmentListener,@Nullable Location pos) {
-        super(con,layoutRes,objects);//stops = objects;
         context = con;
         listener  = fragmentListener;
         userPosition = pos;
+        stops = objects;
+    }
+
+
+
+    @Override
+    public SquareViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.square_stop_element, parent, false);
+        //sort the stops by distance
+        Collections.sort(stops,new StopSorterByDistance(userPosition));
+        return new SquareViewHolder(view);
     }
 
     @Override
-    public void sort(@NonNull Comparator<? super Stop> comparator) {
-        super.sort(comparator);
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        LayoutInflater inflater = (LayoutInflater) context
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        SquareViewHolder vh;
-        if(convertView ==  null) {
-            //expand the view
-            convertView = inflater.inflate(layoutRes, parent,false);
-            vh = new SquareViewHolder();
-            vh.stopIDView = (TextView) convertView.findViewById(R.id.busStopIDView);
-            vh.stopNameView = (TextView) convertView.findViewById(R.id.stopNameView);
-            vh.routesView = (TextView) convertView.findViewById(R.id.routesStoppingTextView);
-            vh.distancetextView = (TextView) convertView.findViewById(R.id.distanceTextView);
-
-        } else {
-            vh = (SquareViewHolder) convertView.getTag();
-        }
-
-
-        final Stop stop = getItem(position);
+    public void onBindViewHolder(SquareViewHolder holder, int position) {
+            //DO THE ACTUAL WORK TO PUT THE DATA
+        final Stop stop = stops.get(position);
         if(stop!=null){
             if(stop.getDistanceFromLocation(userPosition)!=Double.POSITIVE_INFINITY){
                 Double distance = stop.getDistanceFromLocation(userPosition);
-                vh.distancetextView.setText(distance.intValue()+" m");
+                holder.distancetextView.setText(distance.intValue()+" m");
             } else {
-                vh.distancetextView.setVisibility(View.GONE);
+                holder.distancetextView.setVisibility(View.GONE);
             }
-            vh.stopNameView.setText(stop.getStopDisplayName());
-            vh.stopIDView.setText(stop.ID);
+            holder.stopNameView.setText(stop.getStopDisplayName());
+            holder.stopIDView.setText(stop.ID);
             String whatStopsHere = stop.routesThatStopHereToString();
             if(whatStopsHere == null) {
-                vh.routesView.setVisibility(View.GONE);
+                holder.routesView.setVisibility(View.GONE);
             } else {
-                vh.routesView.setText(whatStopsHere);
-                vh.routesView.setVisibility(View.VISIBLE); // might be GONE due to View Holder Pattern
+                holder.routesView.setText(whatStopsHere);
+                holder.routesView.setVisibility(View.VISIBLE); // might be GONE due to View Holder Pattern
             }
-            convertView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    listener.createFragmentForStop(stop.ID);
-                }
-            });
+            holder.stopID =stop.ID;
         } else {
             Log.w("SquareStopAdapter","!! The selected stop is null !!");
         }
-
-
-        //Log.d("SquareStopAdapter","Stop: "+ vh.stopIDView.getText()+" "+ vh.stopNameView.getText());
-        convertView.setTag(vh);
-        return convertView;
-
     }
-    private static class SquareViewHolder{
+
+    @Override
+    public int getItemCount() {
+        return stops.size();
+    }
+
+    class SquareViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener  {
         TextView stopIDView;
         TextView stopNameView;
         TextView routesView;
         TextView distancetextView;
+        String stopID;
+
+        SquareViewHolder(View holdView){
+            super(holdView);
+            holdView.setOnClickListener(this);
+            stopIDView = (TextView) holdView.findViewById(R.id.busStopIDView);
+            stopNameView = (TextView) holdView.findViewById(R.id.stopNameView);
+            routesView = (TextView) holdView.findViewById(R.id.routesStoppingTextView);
+            distancetextView = (TextView) holdView.findViewById(R.id.distanceTextView);
+        }
+
+        @Override
+        public void onClick(View v) {
+            listener.createFragmentForStop(stopID);
+        }
+
     }
+
     /*
     @Override
     public Stop getItem(int position) {

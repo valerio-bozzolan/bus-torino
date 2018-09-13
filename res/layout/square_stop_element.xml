@@ -2,7 +2,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools" android:orientation="vertical"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
+              android:layout_height="wrap_content"
+                android:background="?android:attr/selectableItemBackground"
+>
     <TextView
             android:id="@+id/busStopIDView"
             android:layout_width="60dp"
@@ -16,17 +18,19 @@
             android:text="TextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" android:id="@+id/stopNameView" tools:layout_width="match_parent"
-            android:paddingTop="5dp" android:textAlignment="center"
+            android:textAlignment="center"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="@color/blue_500" android:gravity="center" android:layout_below="@+id/busStopIDView"
-            android:layout_alignParentLeft="true" android:layout_alignParentStart="true"/>
+            android:layout_alignParentLeft="true" android:layout_alignParentStart="true"
+            android:padding="5dp"/>
     <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content" android:id="@+id/routesStoppingTextView"
             android:textAppearance="?android:textAppearanceSmall"
             android:textColor="@color/grey_600" android:gravity="center"
             android:layout_below="@+id/stopNameView" android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"/>
+            android:layout_alignParentStart="true" android:maxHeight="60dp" android:paddingLeft="3dp"
+            android:paddingRight="3dp" android:paddingBottom="5dp"/>
     <TextView
             android:text="distance"
             android:layout_width="wrap_content"

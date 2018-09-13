@@ -31,21 +31,23 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.GridView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.StopSorterByDistance;
+import it.reyboz.bustorino.backend.utils;
 import it.reyboz.bustorino.middleware.AppDataProvider;
 import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
-import it.reyboz.bustorino.middleware.SquareStopAdapter;
+import it.reyboz.bustorino.adapters.SquareStopAdapter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,9 +64,10 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     //data Bundle
     private final String BUNDLE_LOCATION =  "location";
     private final int LOADER_ID = 0;
-    private GridView gV;
+    private RecyclerView gridRecyclerView;
 
     private SquareStopAdapter madapter;
+    private AutoFitGridLayoutManager gridLayoutManager;
     boolean canStartDBQuery = true;
     private Location lastReceivedLocation = null;
     private ProgressBar loadingProgressBar;
@@ -72,6 +75,9 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     private SharedPreferences globalSharedPref;
     private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
     private TextView noStopsTextView;
+
+    public static final int COLUMN_WIDTH_DP = 100;
+
     public NearbyStopsFragment() {
         // Required empty public constructor
     }
@@ -122,7 +128,10 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_nearby_stops, container, false);
-        gV = (GridView) root.findViewById(R.id.stopGridNearby);
+        gridRecyclerView = (RecyclerView) root.findViewById(R.id.stopGridRecyclerView);
+        gridLayoutManager = new AutoFitGridLayoutManager(getContext().getApplicationContext(), utils.convertDipToPixels(getContext(),COLUMN_WIDTH_DP));
+        gridRecyclerView.setLayoutManager(gridLayoutManager);
+        gridRecyclerView.setHasFixedSize(false);
         loadingProgressBar  = (ProgressBar) root.findViewById(R.id.loadingBar);
         noStopsTextView = (TextView) root.findViewById(R.id.noStopsTextView);
         return root;
@@ -147,7 +156,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         super.onPause();
         canStartDBQuery = false;
         locManager.removeUpdates(locationListener);
-        gV.setAdapter(null);
+        gridRecyclerView.setAdapter(null);
         Log.d(DEBUG_TAG,"On paused called");
     }
 
@@ -162,7 +171,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             //try another location provider
         }
         if(madapter!=null){
-            gV.setAdapter(madapter);
+            gridRecyclerView.setAdapter(madapter);
             loadingProgressBar.setVisibility(View.GONE);
         }
         Log.d(DEBUG_TAG,"OnResume called");
@@ -171,8 +180,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        gV.setVisibility(View.INVISIBLE);
-        gV.setOnScrollListener(new CommonScrollListener(mListener,false));
+        gridRecyclerView.setVisibility(View.INVISIBLE);
+        gridRecyclerView.setOnScrollListener(new CommonScrollListener(mListener,false));
 
     }
 
@@ -230,11 +239,10 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         }
         if(data.getCount()>0) {
             madapter = new SquareStopAdapter(stopList, getContext(), mListener, lastReceivedLocation);
-            madapter.sort(new StopSorterByDistance(lastReceivedLocation));
-            gV.setAdapter(madapter);
-            if (gV.getVisibility() != View.VISIBLE) {
+            gridRecyclerView.setAdapter(madapter);
+            if (gridRecyclerView.getVisibility() != View.VISIBLE) {
                 loadingProgressBar.setVisibility(View.GONE);
-                gV.setVisibility(View.VISIBLE);
+                gridRecyclerView.setVisibility(View.VISIBLE);
             }
             noStopsTextView.setVisibility(View.GONE);
         } else {
@@ -285,6 +293,45 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         @Override
         public void onProviderDisabled(String provider) {
 
+        }
+    }
+
+    /**
+     * Simple trick to get an automatic number of columns (from https://www.journaldev.com/13792/android-gridlayoutmanager-example)
+     *
+     */
+     class AutoFitGridLayoutManager extends GridLayoutManager {
+
+        private int columnWidth;
+        private boolean columnWidthChanged = true;
+
+        public AutoFitGridLayoutManager(Context context, int columnWidth) {
+            super(context, 1);
+
+            setColumnWidth(columnWidth);
+        }
+
+        public void setColumnWidth(int newColumnWidth) {
+            if (newColumnWidth > 0 && newColumnWidth != columnWidth) {
+                columnWidth = newColumnWidth;
+                columnWidthChanged = true;
+            }
+        }
+
+        @Override
+        public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+            if (columnWidthChanged && columnWidth > 0) {
+                int totalSpace;
+                if (getOrientation() == VERTICAL) {
+                    totalSpace = getWidth() - getPaddingRight() - getPaddingLeft();
+                } else {
+                    totalSpace = getHeight() - getPaddingTop() - getPaddingBottom();
+                }
+                int spanCount = Math.max(1, totalSpace / columnWidth);
+                setSpanCount(spanCount);
+                columnWidthChanged = false;
+            }
+            super.onLayoutChildren(recycler, state);
         }
     }
 }

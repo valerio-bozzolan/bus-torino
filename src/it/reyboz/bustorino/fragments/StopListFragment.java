@@ -28,7 +28,7 @@ import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.middleware.AppDataProvider;
 import it.reyboz.bustorino.middleware.NextGenDB.Contract.StopsTable;
-import it.reyboz.bustorino.middleware.StopAdapter;
+import it.reyboz.bustorino.adapters.StopAdapter;
 
 import java.util.Arrays;
 import java.util.List;
