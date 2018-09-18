@@ -8,6 +8,9 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.3'
     }
+    ext{
+        support_ver = "25.3.1"
+    }
 }
 apply plugin: 'com.android.application'
 
@@ -48,10 +51,10 @@ android {
     }
 
     dependencies {
-        compile 'com.android.support:support-v4:25.3.1'
-        compile 'com.android.support:appcompat-v7:25.3.1'
-        compile 'com.android.support:design:25.3.1'
-        compile 'com.android.support:recyclerview-v7:25.3.1'
+        compile "com.android.support:support-v4:$support_ver"
+        compile "com.android.support:appcompat-v7:$support_ver"
+        compile "com.android.support:design:$support_ver"
+        compile "com.android.support:recyclerview-v7:$support_ver"
         compile 'org.jsoup:jsoup:1.7.3'
         compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
     }
