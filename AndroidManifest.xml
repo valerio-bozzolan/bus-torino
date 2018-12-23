@@ -13,9 +13,10 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
     <application
             android:allowBackup="true"
@@ -101,8 +102,19 @@
                 android:exported="false">
         </service>
         <!-- Don't show the additional frame on samsung phones -->
-        <meta-data android:name="com.samsung.android.icon_container.has_icon_container"
-				android:value="true" />
+        <meta-data
+                android:name="com.samsung.android.icon_container.has_icon_container"
+                android:value="true"/>
+
+        <activity
+                android:name=".ActivitySettings"
+                android:label="@string/title_activity_settings"
+                android:parentActivityName=".ActivityMain"
+                android:theme="@style/AppTheme">
+            <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value="it.reyboz.bustorino.ActivityMain"/>
+        </activity>
     </application>
 
 </manifest>

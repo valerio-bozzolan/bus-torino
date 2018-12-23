@@ -8,7 +8,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.3'
     }
-    ext{
+    ext {
         support_ver = "25.3.1"
     }
 }
@@ -55,8 +55,8 @@ android {
         compile "com.android.support:appcompat-v7:$support_ver"
         compile "com.android.support:design:$support_ver"
         compile "com.android.support:recyclerview-v7:$support_ver"
+        compile "com.android.support:preference-v7:$support_ver"
         compile 'org.jsoup:jsoup:1.7.3'
         compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
     }
 }
-

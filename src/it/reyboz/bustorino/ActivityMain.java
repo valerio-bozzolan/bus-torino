@@ -325,6 +325,9 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             case R.id.action_author:
                 openIceweasel("http://boz.reyboz.it?lovebusto");
                 return true;
+            case R.id.action_settings:
+                Log.d("MAINBusTO","Pressed button preferences");
+                startActivity(new Intent(ActivityMain.this,ActivitySettings.class));
         }
         return super.onOptionsItemSelected(item);
     }
