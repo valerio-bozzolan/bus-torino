@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context="it.reyboz.bustorino.ActivitySettings"
+                >
+   <!-- <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/settActFragment"
+            class="it.reyboz.bustorino.fragments.PreferFragment"
+            android:tag="PreferFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+    android:layout_gravity="start">
+    </fragment>
+    -->
+    <FrameLayout
+            android:id="@+id/setting_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+</RelativeLayout>

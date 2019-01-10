@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <android.support.v7.preference.PreferenceCategory
+            android:title="@string/pref_recents_group_title"
+            android:key="pref_key_recent_group">
+    <android.support.v7.preference.EditTextPreference
+            android:defaultValue="3"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/pref_num_elements" android:key="pref_number_recents" android:inputType="number"/>
+    <android.support.v7.preference.SeekBarPreference
+            android:title="Radius of search"
+            android:key="pref_radius_recents"
+            android:defaultValue="500"
+            android:max="1000"
+            app:min="20"
+        />
+    </android.support.v7.preference.PreferenceCategory>
+    <android.support.v7.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:title="Activate experimental features" android:key="debug"/>
+</android.support.v7.preference.PreferenceScreen>
