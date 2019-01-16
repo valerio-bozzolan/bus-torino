@@ -21,6 +21,8 @@ package it.reyboz.bustorino.backend;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
+import it.reyboz.bustorino.util.LinesNameSorter;
 
 import java.net.URLEncoder;
 import java.util.Collections;
@@ -117,7 +119,7 @@ public class Stop implements Comparable<Stop> {
         }
 
         StringBuilder sb = new StringBuilder();
-        Collections.sort(routesThatStopHere);
+        Collections.sort(routesThatStopHere,new LinesNameSorter());
         int i, lenMinusOne = routesThatStopHere.size() - 1;
 
         for (i = 0; i < lenMinusOne; i++) {

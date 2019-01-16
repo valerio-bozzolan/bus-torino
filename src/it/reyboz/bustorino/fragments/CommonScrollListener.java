@@ -74,4 +74,12 @@ public class CommonScrollListener extends RecyclerView.OnScrollListener implemen
             listener.enableRefreshLayout(enable);
             //Log.d(getString(R.string.list_fragment_debug),"onScroll active, first item visible: "+firstVisibleItem+", refreshlayout enabled: "+enable);
         }}
+
+    @Override
+    public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+        FragmentListener listener = listenerWeakReference.get();
+        if(newState!=SCROLL_STATE_IDLE) listener.showFloatingActionButton(false);
+        else listener.showFloatingActionButton(true);
+
+    }
 }

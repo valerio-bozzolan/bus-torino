@@ -43,7 +43,6 @@ import android.widget.TextView;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
-import it.reyboz.bustorino.backend.StopSorterByDistance;
 import it.reyboz.bustorino.backend.utils;
 import it.reyboz.bustorino.middleware.AppDataProvider;
 import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
@@ -75,8 +74,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     private SharedPreferences globalSharedPref;
     private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
     private TextView noStopsTextView;
-
-    public static final int COLUMN_WIDTH_DP = 100;
+    private CommonScrollListener scrollListener;
+    public static final int COLUMN_WIDTH_DP = 250;
 
     public NearbyStopsFragment() {
         // Required empty public constructor
@@ -134,6 +133,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         gridRecyclerView.setHasFixedSize(false);
         loadingProgressBar  = (ProgressBar) root.findViewById(R.id.loadingBar);
         noStopsTextView = (TextView) root.findViewById(R.id.noStopsTextView);
+        scrollListener = new CommonScrollListener(mListener,false);
         return root;
     }
 
@@ -181,7 +181,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         gridRecyclerView.setVisibility(View.INVISIBLE);
-        gridRecyclerView.setOnScrollListener(new CommonScrollListener(mListener,false));
+        gridRecyclerView.addOnScrollListener(scrollListener);
 
     }
 

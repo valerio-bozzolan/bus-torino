@@ -1,6 +1,7 @@
-package it.reyboz.bustorino.backend;
+package it.reyboz.bustorino.util;
 
 import android.location.Location;
+import it.reyboz.bustorino.backend.Stop;
 
 import java.util.Comparator;
 

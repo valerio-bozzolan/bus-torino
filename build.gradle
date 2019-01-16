@@ -51,12 +51,14 @@ android {
     }
 
     dependencies {
-        implementation "com.android.support:support-v4:$support_ver"
-        implementation "com.android.support:appcompat-v7:$support_ver"
-        implementation "com.android.support:design:$support_ver"
-        implementation "com.android.support:recyclerview-v7:$support_ver"
-        implementation "com.android.support:preference-v7:$support_ver"
-        implementation 'org.jsoup:jsoup:1.7.3'
+        compile "com.android.support:support-v4:$support_ver"
+        compile "com.android.support:appcompat-v7:$support_ver"
+        compile "com.android.support:design:$support_ver"
+        compile "com.android.support:recyclerview-v7:$support_ver"
+        compile "com.android.support:preference-v7:$support_ver"
+        compile "com.android.support:cardview-v7:$support_ver"
+        
+        implementation 'org.jsoup:jsoup:1.11.3'
         implementation 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
     }
 }

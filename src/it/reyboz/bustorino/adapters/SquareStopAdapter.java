@@ -19,29 +19,23 @@ package it.reyboz.bustorino.adapters;
 
 import android.content.Context;
 import android.location.Location;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.TextView;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Stop;
-import it.reyboz.bustorino.backend.StopSorterByDistance;
+import it.reyboz.bustorino.util.StopSorterByDistance;
 import it.reyboz.bustorino.fragments.FragmentListener;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.SquareViewHolder> {
-    private static int layoutRes = R.layout.square_stop_element;
+    private static int layoutRes = R.layout.stop_card;
     //private List<Stop> stops;
     private Context  context;
     private @Nullable Location userPosition;
@@ -59,7 +53,7 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
 
     @Override
     public SquareViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.square_stop_element, parent, false);
+        final View view = LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false);
         //sort the stops by distance
         Collections.sort(stops,new StopSorterByDistance(userPosition));
         return new SquareViewHolder(view);
@@ -106,10 +100,10 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
         SquareViewHolder(View holdView){
             super(holdView);
             holdView.setOnClickListener(this);
-            stopIDView = (TextView) holdView.findViewById(R.id.busStopIDView);
-            stopNameView = (TextView) holdView.findViewById(R.id.stopNameView);
-            routesView = (TextView) holdView.findViewById(R.id.routesStoppingTextView);
-            distancetextView = (TextView) holdView.findViewById(R.id.distanceTextView);
+            stopIDView = (TextView) holdView.findViewById(R.id.stop_numberText);
+            stopNameView = (TextView) holdView.findViewById(R.id.stop_nameText);
+            routesView = (TextView) holdView.findViewById(R.id.stop_linesText);
+            distancetextView = (TextView) holdView.findViewById(R.id.stop_distanceTextView);
         }
 
         @Override

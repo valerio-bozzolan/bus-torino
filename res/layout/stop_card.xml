@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+		xmlns:card_view="http://schemas.android.com/apk/res-auto"
+		xmlns:android="http://schemas.android.com/apk/res/android"
+		android:id="@+id/stop_cardView"
+		android:foreground="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		card_view:cardCornerRadius="4dp"
+		android:layout_margin="8dp" android:padding="4dp">
+
+	<RelativeLayout
+			android:layout_width="match_parent"
+			android:layout_height="match_parent">
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stop Title"
+                android:id="@+id/stop_nameText"
+                style="@style/TextAppearance.AppCompat.Medium"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true" android:paddingLeft="6dp"
+                android:textColor="@color/primary_material_dark" android:layout_marginBottom="6dp"
+                android:layout_margin="6dp" android:layout_marginTop="8dp"/>
+        <TextView
+                android:id="@+id/stop_numberText"
+                android:layout_width="wrap_content"
+                android:layout_height="20dp"
+                android:text="stopNumber"
+                android:gravity="center_vertical"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:layout_below="@id/stop_nameText"
+                android:textIsSelectable="true" android:layout_marginTop="6dp"
+                android:layout_margin="8dp"
+                android:textColor="@color/orange_500" android:layout_marginLeft="10dp"/>
+        <TextView
+                android:text="TextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
+                android:layout_marginLeft="10dp"
+                android:minWidth="20dp"
+                android:id="@+id/stop_distanceTextView" android:layout_toEndOf="@+id/stop_numberText"
+                android:layout_toRightOf="@id/stop_numberText"
+                android:layout_alignTop="@+id/stop_numberText"
+                android:layout_alignRight="@id/stop_nameText"
+        />
+		<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="48dp"
+				android:text=""
+				android:id="@+id/stop_linesText"
+				android:layout_toRightOf="@id/stop_distanceTextView"
+				android:minWidth="80dp"
+				android:layout_alignParentRight="true"
+				android:layout_alignParentEnd="true" android:layout_alignBottom="@+id/stop_numberText"
+				android:layout_alignTop="@+id/stop_nameText"
+				android:nestedScrollingEnabled="true"
+				android:layout_marginRight="8dp"
+				android:gravity="right|center_horizontal" android:layout_marginTop="6dp"
+				android:textColor="@color/blue_700" android:textSize="14sp"/>
+
+        <!--
+        <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent" android:id="@+id/row1" android:layout_below="@+id/stopTitle">
+            <TextView
+                    android:id="@+id/txtLine1_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="20dp"
+                    android:text="Name"
+                    android:gravity="center_vertical"
+                    android:textSize="14sp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginLeft="5dp" android:layout_margin="3dp"/>
+            <TextView
+                    android:id="@+id/txtPass1_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="20dp"
+                    android:text="Name"
+                    android:gravity="center_vertical"
+
+                    android:layout_marginTop="10dp"
+                    android:layout_marginLeft="5dp" android:layout_margin="3dp"/>
+            <TextView
+                    android:id="@+id/txtPass2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="20dp"
+                    android:text="Name"
+                    android:gravity="center_vertical"
+                    android:textSize="14sp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginLeft="5dp" android:layout_margin="3dp"/>
+            <TextView
+                    android:id="@+id/txtPass3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="20dp"
+                    android:text="Name"
+                    android:gravity="center_vertical"
+                    android:textSize="14sp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginLeft="5dp" android:layout_margin="3dp"/>
+        </LinearLayout>
+        -->
+	</RelativeLayout>
+	</android.support.v7.widget.CardView>
