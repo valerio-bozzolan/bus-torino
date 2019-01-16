@@ -24,6 +24,7 @@ import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -73,7 +74,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     private int distance;
     private SharedPreferences globalSharedPref;
     private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
-    private TextView noStopsTextView;
+    private TextView messageTextView;
     private CommonScrollListener scrollListener;
     public static final int COLUMN_WIDTH_DP = 250;
 
@@ -106,18 +107,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         locationListener = new FragmentLocationListener(this);
         globalSharedPref = getContext().getSharedPreferences(getString(R.string.mainSharedPreferences),Context.MODE_PRIVATE);
 
-        preferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                Log.d(DEBUG_TAG,"Key "+key+" was changed");
-                if(key.equals(getString(R.string.databaseUpdatingPref))){
-                    if(!sharedPreferences.getBoolean(getString(R.string.databaseUpdatingPref),true)){
-                        canStartDBQuery = true;
-                        Log.d(DEBUG_TAG,"The database has finished updating, can start update now");
-                    }
-                }
-            }
-        };
+
         globalSharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener);
 
     }
@@ -132,7 +122,19 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         gridRecyclerView.setLayoutManager(gridLayoutManager);
         gridRecyclerView.setHasFixedSize(false);
         loadingProgressBar  = (ProgressBar) root.findViewById(R.id.loadingBar);
-        noStopsTextView = (TextView) root.findViewById(R.id.noStopsTextView);
+        messageTextView = (TextView) root.findViewById(R.id.messageTextView);
+        preferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                Log.d(DEBUG_TAG,"Key "+key+" was changed");
+                if(key.equals(getString(R.string.databaseUpdatingPref))){
+                    if(!sharedPreferences.getBoolean(getString(R.string.databaseUpdatingPref),true)){
+                        canStartDBQuery = true;
+                        Log.d(DEBUG_TAG,"The database has finished updating, can start update now");
+                    }
+                }
+            }
+        };
         scrollListener = new CommonScrollListener(mListener,false);
         return root;
     }
@@ -244,9 +246,10 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
                 loadingProgressBar.setVisibility(View.GONE);
                 gridRecyclerView.setVisibility(View.VISIBLE);
             }
-            noStopsTextView.setVisibility(View.GONE);
+            messageTextView.setVisibility(View.GONE);
         } else {
-            noStopsTextView.setVisibility(View.VISIBLE);
+            messageTextView.setVisibility(View.VISIBLE);
+            messageTextView.setText(R.string.no_stops_nearby);
             loadingProgressBar.setVisibility(View.GONE);
         }
 
@@ -262,6 +265,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     class FragmentLocationListener implements LocationListener{
 
         LoaderManager.LoaderCallbacks<Cursor> callbacks;
+        private int oldLocStatus = -2;
 
         public FragmentLocationListener(LoaderManager.LoaderCallbacks<Cursor> callbacks) {
             this.callbacks = callbacks;
@@ -273,16 +277,25 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             float accuracy = location.getAccuracy();
             if(accuracy<60 && canStartDBQuery) {
                 distance = 100;
-                final Bundle setting = new Bundle();
-                setting.putParcelable(BUNDLE_LOCATION,location);
-                getLoaderManager().restartLoader(LOADER_ID,setting,callbacks);
+                final Bundle msgBundle = new Bundle();
+                msgBundle.putParcelable(BUNDLE_LOCATION,location);
+                getLoaderManager().restartLoader(LOADER_ID,msgBundle,callbacks);
             }
             Log.d("LocationListener","can start loader "+ canStartDBQuery);
         }
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
+            if(oldLocStatus!=status){
 
+                if(status == LocationProvider.OUT_OF_SERVICE || status == LocationProvider.TEMPORARILY_UNAVAILABLE) {
+                    messageTextView.setText(R.string.enableGpsText);
+                    messageTextView.setVisibility(View.VISIBLE);
+                }else if(status == LocationProvider.AVAILABLE){
+                    messageTextView.setVisibility(View.GONE);
+                }
+                oldLocStatus = status;
+            }
         }
 
         @Override

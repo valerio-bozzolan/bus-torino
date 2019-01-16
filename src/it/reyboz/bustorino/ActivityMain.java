@@ -356,7 +356,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             new AsyncDataDownload(AsyncDataDownload.RequestType.STOPS,fh).execute(query);
         }
     }
-
+    /** PERMISSION STUFF **/
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode){
@@ -387,6 +387,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         }
 
     }
+
 
     @Override
     public void createFragmentForStop(String ID) {
