@@ -42,11 +42,11 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
     private FragmentListener listener;
     private List<Stop> stops;
 
-    public SquareStopAdapter(List<Stop> objects, Context con,FragmentListener fragmentListener,@Nullable Location pos) {
+    public SquareStopAdapter(@Nullable List<Stop> stopList, Context con,FragmentListener fragmentListener,@Nullable Location pos) {
         context = con;
         listener  = fragmentListener;
         userPosition = pos;
-        stops = objects;
+        stops = stopList;
     }
 
 
@@ -55,6 +55,7 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
     public SquareViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false);
         //sort the stops by distance
+        if(stops != null && stops.size() > 0)
         Collections.sort(stops,new StopSorterByDistance(userPosition));
         return new SquareViewHolder(view);
     }
@@ -62,6 +63,7 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
     @Override
     public void onBindViewHolder(SquareViewHolder holder, int position) {
             //DO THE ACTUAL WORK TO PUT THE DATA
+        if(stops==null || stops.size() == 0) return; //NO STOPS
         final Stop stop = stops.get(position);
         if(stop!=null){
             if(stop.getDistanceFromLocation(userPosition)!=Double.POSITIVE_INFINITY){
@@ -113,6 +115,13 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
 
     }
 
+    public void setStops(List<Stop> stops) {
+        this.stops = stops;
+    }
+
+    public void setUserPosition(@Nullable Location userPosition) {
+        this.userPosition = userPosition;
+    }
     /*
     @Override
     public Stop getItem(int position) {

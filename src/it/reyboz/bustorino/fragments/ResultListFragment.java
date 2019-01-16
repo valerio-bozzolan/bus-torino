@@ -193,6 +193,7 @@ public class ResultListFragment extends Fragment{
         switch (adapterKind) {
             case ARRIVALS:
                 resultsListView.setOnScrollListener(new CommonScrollListener(mListener, true));
+                fabutton.show();
                 break;
             case STOPS:
                 resultsListView.setOnScrollListener(new CommonScrollListener(mListener, false));
@@ -224,6 +225,7 @@ public class ResultListFragment extends Fragment{
             throw new RuntimeException(context.toString()
                     + " must implement ResultFragmentListener");
         }
+
     }
 
 

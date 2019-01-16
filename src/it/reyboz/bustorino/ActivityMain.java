@@ -108,6 +108,11 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     private Handler handler = new Handler();
     private final Runnable refreshing = new Runnable() {
         public void run() {
+                if(framan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment){
+                    ArrivalsFragment fragment = (ArrivalsFragment) framan.findFragmentById(R.id.resultFrame);
+                    String stopName = fragment.getStopID();
+                    new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute(stopName);
+                } else
                 new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute();
         }
     };

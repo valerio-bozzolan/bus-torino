@@ -71,7 +71,7 @@ public class FragmentHelper {
      * @param p the Stop that needs to be displayed
      */
     public void createOrUpdateStopFragment(Palina p){
-        boolean refreshing;
+        boolean sameFragment;
         ArrivalsFragment arrivalsFragment;
 
         if(act==null) {
@@ -81,17 +81,16 @@ public class FragmentHelper {
 
         SwipeRefreshLayout srl = (SwipeRefreshLayout) act.findViewById(swipeRefID);
         FragmentManager fm = act.getSupportFragmentManager();
-        if(srl.isRefreshing())
-            refreshing=true;
-        else if(fm.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
+
+        if(fm.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
             arrivalsFragment = (ArrivalsFragment) fm.findFragmentById(R.id.resultFrame);
-            refreshing = arrivalsFragment.isFragmentForTheSameStop(p);
+            sameFragment = arrivalsFragment.isFragmentForTheSameStop(p);
         } else
-            refreshing = false;
+            sameFragment = false;
 
         setLastSuccessfullySearchedBusStop(p);
 
-        if(!refreshing) {
+        if(!sameFragment) {
             //set the String to be displayed on the fragment
             String displayName = p.getStopDisplayName();
             String displayStuff;

@@ -49,7 +49,7 @@ public class CommonScrollListener extends RecyclerView.OnScrollListener implemen
             Log.i(this.getClass().getName(),"called onScroll but FragmentListener is null");
             return;
         }
-        if (firstVisibleItem!=0) {
+        if (firstVisibleItem>=0) {
             if (lastvisibleitem < firstVisibleItem) {
                 Log.i("Busto", "Scrolling DOWN");
                 listener.showFloatingActionButton(false);

@@ -18,6 +18,7 @@
 package it.reyboz.bustorino.fragments;
 
 
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -74,6 +75,11 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             loaderManager.restartLoader(loaderFavId,getArguments(),this);
             updateMessage();
         }
+    }
+
+    @Nullable
+    public String getStopID() {
+        return stopID;
     }
 
     private void updateMessage(){

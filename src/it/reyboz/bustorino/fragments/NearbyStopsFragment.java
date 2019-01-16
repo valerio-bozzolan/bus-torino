@@ -66,7 +66,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     private final int LOADER_ID = 0;
     private RecyclerView gridRecyclerView;
 
-    private SquareStopAdapter madapter;
+    private SquareStopAdapter dataAdapter;
     private AutoFitGridLayoutManager gridLayoutManager;
     boolean canStartDBQuery = true;
     private Location lastReceivedLocation = null;
@@ -76,6 +76,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
     private TextView messageTextView;
     private CommonScrollListener scrollListener;
+    private boolean firstLoc = true;
     public static final int COLUMN_WIDTH_DP = 250;
 
     public NearbyStopsFragment() {
@@ -172,8 +173,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             //ignored
             //try another location provider
         }
-        if(madapter!=null){
-            gridRecyclerView.setAdapter(madapter);
+        if(dataAdapter!=null){
+            gridRecyclerView.setAdapter(dataAdapter);
             loadingProgressBar.setVisibility(View.GONE);
         }
         Log.d(DEBUG_TAG,"OnResume called");
@@ -240,8 +241,15 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             data.moveToNext();
         }
         if(data.getCount()>0) {
-            madapter = new SquareStopAdapter(stopList, getContext(), mListener, lastReceivedLocation);
-            gridRecyclerView.setAdapter(madapter);
+            if(firstLoc) {
+                dataAdapter = new SquareStopAdapter(stopList, getContext(), mListener, lastReceivedLocation);
+                gridRecyclerView.setAdapter(dataAdapter);
+                firstLoc = false;
+            }else {
+                dataAdapter.setStops(stopList);
+                dataAdapter.setUserPosition(lastReceivedLocation);
+            }
+            dataAdapter.notifyDataSetChanged();
             if (gridRecyclerView.getVisibility() != View.VISIBLE) {
                 loadingProgressBar.setVisibility(View.GONE);
                 gridRecyclerView.setVisibility(View.VISIBLE);
