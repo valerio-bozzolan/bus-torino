@@ -332,7 +332,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 startActivity(new Intent(ActivityMain.this, ActivityAbout.class));
                 return true;
             case R.id.action_news:
-                openIceweasel("http://blog.reyboz.it/tag/busto/");
+                openIceweasel("https://blog.reyboz.it/tag/busto/");
                 return true;
             case R.id.action_bugs:
                 openIceweasel("https://bugs.launchpad.net/bus-torino");
@@ -341,10 +341,11 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 openIceweasel("https://code.launchpad.net/bus-torino");
                 return true;
             case R.id.action_licence:
-                openIceweasel("http://www.gnu.org/licenses/gpl-3.0.html");
+                openIceweasel("https://www.gnu.org/licenses/gpl-3.0.html");
                 return true;
             case R.id.action_author:
-                openIceweasel("http://boz.reyboz.it?lovebusto");
+            	// TODO: a neutral website with a cute landing page and credits to everyone? -- boz, Thu Jan 17 02:17:45 CET 2019
+                openIceweasel("https://boz.reyboz.it/?lovebusto");
                 return true;
             case R.id.action_settings:
                 Log.d("MAINBusTO","Pressed button preferences");
