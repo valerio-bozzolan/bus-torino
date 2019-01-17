@@ -17,6 +17,9 @@
  */
 package it.reyboz.bustorino;
 
+import android.database.Cursor;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.adapters.StopAdapter;
 import it.reyboz.bustorino.middleware.StopsDB;
@@ -47,7 +50,7 @@ import android.os.Bundle;
 
 import java.util.List;
 
-public class ActivityFavorites extends AppCompatActivity {
+public class ActivityFavorites extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     private ListView favoriteListView;
     private SQLiteDatabase userDB;
     private EditText bus_stop_name;
@@ -185,6 +188,21 @@ public class ActivityFavorites extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         this.userDB.close();
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return null;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
     }
 
     private class AsyncGetFavorites extends AsyncTask<Void, Void, List<Stop>> {

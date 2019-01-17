@@ -1,8 +1,10 @@
 buildscript {
     repositories {
         mavenCentral()
-        jcenter()
+        maven { url 'https://maven.google.com' }
         google()
+        jcenter()
+
     }
 
     dependencies {
@@ -12,6 +14,16 @@ buildscript {
         support_ver = "25.3.1"
     }
 }
+allprojects {
+    repositories {
+        mavenCentral()
+        maven { url 'https://maven.google.com' }
+        google()
+        jcenter()
+
+    }
+}
+
 apply plugin: 'com.android.application'
 
 android {
@@ -35,6 +47,11 @@ android {
         }
     }
     buildTypes {
+        release{
+            debuggable false
+            minifyEnabled true
+            shrinkResources true 
+        }
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-dev"
@@ -51,12 +68,12 @@ android {
     }
 
     dependencies {
-        compile "com.android.support:support-v4:$support_ver"
-        compile "com.android.support:appcompat-v7:$support_ver"
-        compile "com.android.support:design:$support_ver"
-        compile "com.android.support:recyclerview-v7:$support_ver"
-        compile "com.android.support:preference-v7:$support_ver"
-        compile "com.android.support:cardview-v7:$support_ver"
+        implementation "com.android.support:support-v4:$support_ver"
+        implementation "com.android.support:appcompat-v7:$support_ver"
+        implementation "com.android.support:design:$support_ver"
+        implementation "com.android.support:recyclerview-v7:$support_ver"
+        implementation "com.android.support:preference-v7:$support_ver"
+        implementation "com.android.support:cardview-v7:$support_ver"
         
         implementation 'org.jsoup:jsoup:1.11.3'
         implementation 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'

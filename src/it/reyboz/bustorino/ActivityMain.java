@@ -24,6 +24,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -287,6 +288,20 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
     }
 
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        fh.stopLastRequestIfNeeded();
+        fh.blockAllActivities(true);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        fh.blockAllActivities(false);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -295,6 +310,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         actionHelpMenuItem = menu.findItem(R.id.action_help);
         return true;
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

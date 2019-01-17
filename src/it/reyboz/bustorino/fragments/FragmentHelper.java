@@ -32,6 +32,7 @@ import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.middleware.*;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
@@ -43,8 +44,10 @@ public class FragmentHelper {
     //support for multiple frames
     private int  primaryFrameLayout,secondaryFrameLayout, swipeRefID;
     public static final int NO_FRAME = -3;
-
+    private WeakReference<AsyncDataDownload> lastTaskRef;
     private NextGenDB newDBHelper;
+    private boolean shouldHaltAllActivities=false;
+
 
     public FragmentHelper(GeneralActivity act, int swipeRefID, int mainFrame) {
         this(act,swipeRefID,mainFrame,NO_FRAME);
@@ -66,6 +69,10 @@ public class FragmentHelper {
         this.lastSuccessfullySearchedBusStop = stop;
     }
 
+    public void setLastTaskRef(WeakReference<AsyncDataDownload> lastTaskRef) {
+        this.lastTaskRef = lastTaskRef;
+    }
+
     /**
      * Called when you need to create a fragment for a specified Palina
      * @param p the Stop that needs to be displayed
@@ -74,7 +81,7 @@ public class FragmentHelper {
         boolean sameFragment;
         ArrivalsFragment arrivalsFragment;
 
-        if(act==null) {
+        if(act==null || shouldHaltAllActivities) {
             //SOMETHING WENT VERY WRONG
             return;
         }
@@ -164,6 +171,18 @@ public class FragmentHelper {
 
     synchronized public ContentResolver getContentResolver(){
         return act.getContentResolver();
+    }
+
+    public void blockAllActivities(boolean shouldI) {
+        this.shouldHaltAllActivities = shouldI;
+    }
+
+    public void stopLastRequestIfNeeded(){
+        if(lastTaskRef == null) return;
+        AsyncDataDownload task = lastTaskRef.get();
+        if(task!=null){
+            task.cancel(true);
+        }
     }
 
     /**

@@ -54,6 +54,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
     public AsyncDataDownload(RequestType type,FragmentHelper fh) {
         t = type;
         helperRef = new WeakReference<>(fh);
+        fh.setLastTaskRef(new WeakReference<AsyncDataDownload>(this));
         res = new AtomicReference<>();
     }
 
@@ -191,6 +192,8 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
             return;
         }
 
+        if(isCancelled()) return;
+
         switch (t){
             case ARRIVALS:
                 Palina palina = (Palina) o;
@@ -199,7 +202,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
             case STOPS:
                 //this should never be a problem
                 List<Stop> stopList = (List<Stop>) o;
-                if(query!=null) {
+                if(query!=null && !isCancelled()) {
                     fh.createFragmentFor(stopList,query);
                 } else Log.e(TAG,"QUERY NULL, COULD NOT CREATE FRAGMENT");
                 break;
@@ -224,45 +227,6 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
     public enum RequestType {
         ARRIVALS,STOPS,DBUPDATE
     }
-    /**
-     * Run this in a background thread.<br>
-     * Sets a stop name for this.palina, guaranteed not to be null!
-     **/
-    //TODO:Implement this
-    /*
-    private void getNameOrGetRekt(Palina p) {
-        String nameMaybe;
-        SQLiteDatabase udb = uDB.getReadableDatabase();
-
-        // does it already have a name (for fetchers that support it, or already got from favorites)?
-        nameMaybe = p.getStopDisplayName();
-        if(nameMaybe != null && nameMaybe.length() > 0) {
-            return;
-        }
-
-        // ok, let's search favorites.
-
-        String usernameMaybe = UserDB.getStopUserName(udb, this.p.ID);
-        if(usernameMaybe != null && usernameMaybe.length() > 0) {
-            p.setStopUserName(usernameMaybe);
-            return;
-        }
-
-
-        // let's try StopsDB, then.
-
-        db.openIfNeeded();
-        nameMaybe = db.getNameFromID(this.p.ID);
-        db.closeIfNeeded();
-
-        if(nameMaybe != null && nameMaybe.length() > 0) {
-            p.setStopName(nameMaybe);
-            return;
-        }
-
-        // no name to be found anywhere, don't bother searching it next time
-        p.setStopName("");
-    }*/
 
     public class BranchInserter implements Runnable{
         private List<Route> routesToInsert;
