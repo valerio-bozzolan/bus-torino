@@ -53,11 +53,7 @@ If you are reading this, it means that we have done something small, but special
 
 You can think that this is just a small project, but trust me, there are hundred of nightly hours of work behind it.
 
-Here, for the centuries, some of them:
-
-Thank to all the heroes under this small Free as in Freedom project.
-
-Have fun in our cute Turin with our app in your pocket. Some of them:
+Thank to all the heroes under this small Free as in Freedom project. Here, for the centuries, some of them:
 
 * Fabio Mazza (rockstar developer since 2016)
 * Ludovico Pavesi (rockstar developer since 2016)
@@ -70,4 +66,4 @@ Thank you to everyone, my friends.
 -- Valerio Bozzolan, original author and current maintainer since 2014
 
 ## Disclaimer
-This is a **Free** as in **Freedom** project. It comes with ABSOLUTELY NO WARRANTY. You are welcome to redistribute it under the terms of the **GNU General Public License v3+**.
+Have fun in Turin with our app in your pocket, but remember that this is a **Free** as in **Freedom** project and it comes with ABSOLUTELY NO WARRANTY. You are welcome to redistribute it under the terms of the **GNU General Public License v3+**.
