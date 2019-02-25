@@ -19,6 +19,7 @@ package it.reyboz.bustorino;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -26,6 +27,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -45,12 +47,7 @@ import com.google.zxing.integration.android.IntentResult;
 //import com.melnykov.fab.FloatingActionButton;
 import android.support.design.widget.FloatingActionButton;
 
-import it.reyboz.bustorino.backend.ArrivalsFetcher;
-import it.reyboz.bustorino.backend.FiveTScraperFetcher;
-import it.reyboz.bustorino.backend.FiveTStopsFetcher;
-import it.reyboz.bustorino.backend.GTTJSONFetcher;
-import it.reyboz.bustorino.backend.GTTStopsFetcher;
-import it.reyboz.bustorino.backend.StopsFinderByName;
+import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.*;
 
@@ -68,6 +65,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     private SwipeRefreshLayout swipeRefreshLayout;
     private FloatingActionButton floatingActionButton;
     private FragmentManager framan;
+    private Snackbar snackbar;
 
     /*
      * Search mode
@@ -82,7 +80,11 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      */
     private final String OPTION_SHOW_LEGEND = "show_legend";
     private final String LOCATION_PERMISSION_GIVEN = "loc_permission";
-
+    /*
+     * Status
+     */
+    private GlobalStatusPreferences prefsManager;
+    private SharedPreferences.OnSharedPreferenceChangeListener updatelistener;
     /* // useful for testing:
     public class MockFetcher implements ArrivalsFetcher {
         @Override
@@ -219,7 +221,8 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
         if (busStopID == null) {
             // Show keyboard if can't start from intent
-            showKeyboard();
+            // JUST DON'T
+            // showKeyboard();
 
             // You haven't obtained anything... from an intent?
             if (tryedFromIntent) {
@@ -246,6 +249,33 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         //Try (hopefully) database update
         //TODO: Start the service in foreground, check last time it ran before
         DatabaseUpdateService.startDBUpdate(getApplicationContext());
+        /*
+        Set database update
+         */
+        prefsManager = GlobalStatusPreferences.getInstance(getApplicationContext());
+        updatelistener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                Log.d("BUSTO-PrefListener","Changed key "+key +" in the sharedPref");
+
+                if(key.equals(getString(R.string.databaseUpdatingPref))){
+                    final boolean updating = sharedPreferences.getBoolean(getString(R.string.databaseUpdatingPref),false);
+                    if(updating){
+                        if(snackbar==null){
+                            snackbar = Snackbar.make(findViewById(R.id.searchButton),R.string.database_update_message,Snackbar.LENGTH_INDEFINITE);
+                        }
+                        snackbar.show();
+                    }
+                    else if(snackbar!=null){
+                       snackbar.dismiss();
+                       snackbar = null;
+                    }
+                }
+
+            }
+        };
+
+        prefsManager.registerListener(updatelistener);
 
         //locationHandler = new GPSLocationAdapter(getApplicationContext());
         //--------- NEARBY STOPS--------//
@@ -285,6 +315,10 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         }
         //show the FAB since it remains hidden
         floatingActionButton.show();
+        //show the Snackbar //TODO: remove
+        //snackbar = Snackbar.make(floatingActionButton,
+        //        R.string.database_update_message,Snackbar.LENGTH_INDEFINITE);
+        //snackbar.show();
 
     }
 
@@ -294,12 +328,14 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         super.onPause();
         fh.stopLastRequestIfNeeded();
         fh.blockAllActivities(true);
+        if(updatelistener!=null && prefsManager!=null) prefsManager.unregisterListener(updatelistener);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         fh.blockAllActivities(false);
+        if(updatelistener!=null && prefsManager!=null) prefsManager.registerListener(updatelistener);
     }
 
     @Override
@@ -654,4 +690,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         }
         return busStopID;
     }
+
+
+
 }
