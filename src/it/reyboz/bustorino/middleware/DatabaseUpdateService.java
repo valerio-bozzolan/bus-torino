@@ -20,8 +20,8 @@ package it.reyboz.bustorino.middleware;
 import android.app.IntentService;
 import android.content.*;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.util.Log;
+import it.reyboz.bustorino.ActivityMain;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.FiveTAPIFetcher;
@@ -30,6 +30,7 @@ import it.reyboz.bustorino.backend.Stop;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -58,17 +59,17 @@ public class DatabaseUpdateService extends IntentService {
      *
      * @see IntentService
      */
-    public static void startDBUpdate(Context context) {
-        startDBUpdate(context,0);
-    }
     public static void startDBUpdate(Context con, int trial){
         Intent intent = new Intent(con, DatabaseUpdateService.class);
         intent.setAction(ACTION_UPDATE);
         intent.putExtra(TRIAL,trial);
         con.startService(intent);
     }
+    public static void startDBUpdate(Context con) {
+        startDBUpdate(con,0);
+    }
 
-    @Override
+        @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
             final String action = intent.getAction();
@@ -85,7 +86,7 @@ public class DatabaseUpdateService extends IntentService {
                 if(versionDB==-1 || newVersion>versionDB){
                     final SharedPreferences.Editor editor = shPr.edit();
                     editor.putBoolean(getString(R.string.databaseUpdatingPref),true);
-                    editor.apply();
+                    editor.commit();
                     Log.d(DEBUG_TAG,"Downloading the bus stops info");
                     final AtomicReference<Fetcher.result> gres = new AtomicReference<>();
                     if(!performDBUpdate(gres)) restartDBUpdateifPossible(trial,gres);
@@ -114,9 +115,9 @@ public class DatabaseUpdateService extends IntentService {
 
 
                 Log.d(DEBUG_TAG,"Finished update");
-                SharedPreferences.Editor editor = shPr.edit();
+                final SharedPreferences.Editor editor = shPr.edit();
                 editor.putBoolean(getString(R.string.databaseUpdatingPref),false);
-                editor.apply();
+                editor.commit();
             }
         }
     }
@@ -225,10 +226,34 @@ public class DatabaseUpdateService extends IntentService {
             return -2;
         }
     }
-    private void restartDBUpdateifPossible(int currentTrial,AtomicReference<Fetcher.result> res){
+    private void restartDBUpdateifPossible(int currentTrial, AtomicReference<Fetcher.result> res){
         if (currentTrial<MAX_TRIALS && res.get()!= Fetcher.result.PARSER_ERROR){
             Log.d(DEBUG_TAG,"Update failed, starting new trial ("+currentTrial+")");
             startDBUpdate(getApplicationContext(),++currentTrial);
         }
     }
+
+    /**
+     * Probably useless
+     *
+     * Spoiler: IT IS
+    public class FinishedUpdateListener implements SharedPreferences.OnSharedPreferenceChangeListener{
+        private OnDBStatusChangedListener thingToDo;
+
+        public FinishedUpdateListener(OnDBStatusChangedListener thingToDo) {
+            this.thingToDo = thingToDo;
+        }
+
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            final String Update_KEY = getString(R.string.databaseUpdatingPref);
+            if(key.equals(Update_KEY)){
+                thingToDo.onDBUpdateStatusChanged(sharedPreferences.getBoolean(Update_KEY,true));
+            }
+        }
+    }
+    public interface OnDBStatusChangedListener {
+        void onDBUpdateStatusChanged(boolean isUpdating);
+    }
+        */
 }

@@ -35,15 +35,13 @@ import java.util.Collections;
 import java.util.List;
 
 public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.SquareViewHolder> {
-    private static int layoutRes = R.layout.stop_card;
+    private final static int layoutRes = R.layout.stop_card;
     //private List<Stop> stops;
-    private Context  context;
     private @Nullable Location userPosition;
     private FragmentListener listener;
     private List<Stop> stops;
 
-    public SquareStopAdapter(@Nullable List<Stop> stopList, Context con,FragmentListener fragmentListener,@Nullable Location pos) {
-        context = con;
+    public SquareStopAdapter(@Nullable List<Stop> stopList, FragmentListener fragmentListener, @Nullable Location pos) {
         listener  = fragmentListener;
         userPosition = pos;
         stops = stopList;

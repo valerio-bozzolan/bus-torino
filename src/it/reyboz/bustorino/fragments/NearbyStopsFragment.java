@@ -242,7 +242,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         }
         if(data.getCount()>0) {
             if(firstLoc) {
-                dataAdapter = new SquareStopAdapter(stopList, getContext(), mListener, lastReceivedLocation);
+                dataAdapter = new SquareStopAdapter(stopList, mListener, lastReceivedLocation);
                 gridRecyclerView.setAdapter(dataAdapter);
                 firstLoc = false;
             }else {

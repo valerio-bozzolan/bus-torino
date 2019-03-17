@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:id="@+id/mainActivityLayout"
     tools:context="it.reyboz.bustorino.ActivityMain">
 
     <ImageButton
@@ -36,7 +37,7 @@
         android:inputType="number"
         android:selectAllOnFocus="true"
         android:singleLine="true">
-
+        
         <requestFocus />
     </EditText>
 
@@ -60,6 +61,7 @@
         android:visibility="gone">
 
         <requestFocus />
+
     </EditText>
 
     <ImageButton

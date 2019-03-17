@@ -187,7 +187,7 @@ public class AppDataProvider extends ContentProvider {
         appDBHelper = new NextGenDB(getContext());
         udbhelper = new UserDB(getContext());
         if(con!=null) {
-            preferences = new GlobalStatusPreferences(con);
+            preferences = GlobalStatusPreferences.getInstance(getContext());
         } else {
             preferences = null;
             Log.e(DEBUG_TAG,"Cannot get shared preferences");

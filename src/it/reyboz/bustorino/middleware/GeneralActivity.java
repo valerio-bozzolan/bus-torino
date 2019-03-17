@@ -6,11 +6,13 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import it.reyboz.bustorino.R;
 
 /**
  * Activity class that contains all the generally useful methods
@@ -48,6 +50,9 @@ public abstract class GeneralActivity extends AppCompatActivity {
         if(ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_POSITION);
         }
+    }
+    public void createSnackbar(int ViewID, String message,int duration){
+        Snackbar.make(findViewById(ViewID),message,duration);
     }
     /*
     METHOD THAT MIGHT BE USEFUL LATER

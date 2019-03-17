@@ -19,61 +19,72 @@ package it.reyboz.bustorino.backend;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
+import it.reyboz.bustorino.R;
+
+import java.util.ArrayList;
 
 /**
  * Class to handle app status modifications, e.g. database is being updated or not
  */
 public class GlobalStatusPreferences {
-    private static final String PREFERENCES_NAME = "it.reyboz.bustorino.statusPreferences";
-    private static final String DB_UPDATING = "DB_updating";
+    private static String PREFERENCES_NAME;// = "it.reyboz.bustorino.statusPreferences";
+    private static String DB_UPDATING = "DB_updating";
 
-    private Context thecon;
     private SharedPreferences preferences;
-    private SharedPreferences.OnSharedPreferenceChangeListener sharedPrefListener;
+    private ArrayList<SharedPreferences.OnSharedPreferenceChangeListener> prefListeners;
+    private static GlobalStatusPreferences classinstance;
 
-    public GlobalStatusPreferences(Context thecon) {
-        this.thecon = thecon;
-        this.preferences = thecon.getApplicationContext().getSharedPreferences(PREFERENCES_NAME,Context.MODE_PRIVATE);
+    private GlobalStatusPreferences(Context context) {
+        Context thecon = context.getApplicationContext();
+        this.preferences = thecon.getSharedPreferences(context.getString(R.string.mainSharedPreferences),Context.MODE_PRIVATE);
+        DB_UPDATING = context.getString(R.string.databaseUpdatingPref);
+        PREFERENCES_NAME = context.getString(R.string.mainSharedPreferences);
+        this.prefListeners = new ArrayList<>();
+    }
+    public static GlobalStatusPreferences getInstance(Context con){
+        if(classinstance == null) classinstance = new GlobalStatusPreferences(con);
+        return classinstance;
     }
 
+
     public boolean isDBUpdating(){
-        if (preferences == null) preferences = thecon.getSharedPreferences(PREFERENCES_NAME,Context.MODE_PRIVATE);
+        if (preferences == null) //preferences = thecon.getSharedPreferences(PREFERENCES_NAME,Context.MODE_PRIVATE);
+        {
+            //This should NOT HAPPEN
+            Log.e("BUSTO_Pref","Preference reference is null");
+        }
         return preferences.getBoolean(DB_UPDATING,false);
     }
 
-    public void registerListener(OnDBStatusChangedListener listener){
-        if(sharedPrefListener!=null) unregisterListener();
-        sharedPrefListener = new FinishedUpdateListener(listener);
-        preferences.registerOnSharedPreferenceChangeListener(sharedPrefListener);
+    /**
+     * Add a Listener to the list of the ones to be notified
+     * @param listener a OnSharedPreferenceChangeListener to add
+     * @return the same listener to store the reference to
+     */
+    public SharedPreferences.OnSharedPreferenceChangeListener
+    registerListener(SharedPreferences.OnSharedPreferenceChangeListener listener){
+        if(!prefListeners.contains(listener)) prefListeners.add(listener);
+        preferences.registerOnSharedPreferenceChangeListener(listener);
+        return listener;
     }
 
-    public void unregisterListener(){
-        preferences.unregisterOnSharedPreferenceChangeListener(sharedPrefListener);
+    public void unregisterListener(SharedPreferences.OnSharedPreferenceChangeListener listener){
+        prefListeners.remove(listener);
+        preferences.unregisterOnSharedPreferenceChangeListener(listener);
+    }
+    public void emptyListeners(){
+
+        for(SharedPreferences.OnSharedPreferenceChangeListener lis : prefListeners){
+            preferences.unregisterOnSharedPreferenceChangeListener(lis);
+
+        }
+        prefListeners.clear();
     }
     public void setDbUpdating(boolean value){
         final SharedPreferences.Editor editor  = preferences.edit();
         editor.putBoolean(DB_UPDATING,value);
         editor.apply();
-    }
-    /**
-     * Probably useless
-     */
-    public class FinishedUpdateListener implements SharedPreferences.OnSharedPreferenceChangeListener{
-        private OnDBStatusChangedListener thingToDo;
-
-        public FinishedUpdateListener(OnDBStatusChangedListener thingToDo) {
-            this.thingToDo = thingToDo;
-        }
-
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            if(key.equals(DB_UPDATING)){
-                thingToDo.onDBUpdateStatusChanged(sharedPreferences.getBoolean(DB_UPDATING,true));
-            }
-        }
-    }
-    public interface OnDBStatusChangedListener {
-        void onDBUpdateStatusChanged(boolean isUpdating);
     }
 
 }
