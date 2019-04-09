@@ -29,7 +29,7 @@ import java.util.ArrayList;
  */
 public class GlobalStatusPreferences {
     private static String PREFERENCES_NAME;// = "it.reyboz.bustorino.statusPreferences";
-    private static String DB_UPDATING = "DB_updating";
+    private String DB_UPDATING;
 
     private SharedPreferences preferences;
     private ArrayList<SharedPreferences.OnSharedPreferenceChangeListener> prefListeners;
@@ -53,8 +53,10 @@ public class GlobalStatusPreferences {
         {
             //This should NOT HAPPEN
             Log.e("BUSTO_Pref","Preference reference is null");
+            return false;
+        } else {
+            return preferences.getBoolean(DB_UPDATING,false);
         }
-        return preferences.getBoolean(DB_UPDATING,false);
     }
 
     /**
@@ -86,5 +88,4 @@ public class GlobalStatusPreferences {
         editor.putBoolean(DB_UPDATING,value);
         editor.apply();
     }
-
 }

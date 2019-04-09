@@ -21,6 +21,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.LinearGradient;
 import android.provider.BaseColumns;
@@ -94,7 +95,8 @@ public class NextGenDB extends SQLiteOpenHelper{
      * @param content ContentValues array
      * @return number of lines inserted
      */
-    public int insertBatchContent(ContentValues[] content,String tableName){
+    public int insertBatchContent(ContentValues[] content,String tableName) throws SQLiteException {
+
         final SQLiteDatabase db = this.getWritableDatabase();
         int success = 0;
 
@@ -161,6 +163,12 @@ public class NextGenDB extends SQLiteOpenHelper{
             public static final String COL_PLACE = "placeName";
             public static final String COL_LINES_STOPPING = "lines";
 
+        }
+    }
+
+    public static final class DBUpdatingException extends Exception{
+        public DBUpdatingException(String message) {
+            super(message);
         }
     }
 }

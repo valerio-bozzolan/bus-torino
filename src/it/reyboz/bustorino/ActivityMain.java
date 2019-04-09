@@ -25,7 +25,6 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -44,7 +43,6 @@ import android.widget.*;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
-//import com.melnykov.fab.FloatingActionButton;
 import android.support.design.widget.FloatingActionButton;
 
 import it.reyboz.bustorino.backend.*;
@@ -327,14 +325,14 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     protected void onPause() {
         super.onPause();
         fh.stopLastRequestIfNeeded();
-        fh.blockAllActivities(true);
+        fh.setBlockAllActivities(true);
         if(updatelistener!=null && prefsManager!=null) prefsManager.unregisterListener(updatelistener);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        fh.blockAllActivities(false);
+        fh.setBlockAllActivities(false);
         if(updatelistener!=null && prefsManager!=null) prefsManager.registerListener(updatelistener);
     }
 

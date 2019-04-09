@@ -19,6 +19,7 @@ package it.reyboz.bustorino.fragments;
 
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ import android.support.v4.content.Loader;
 import android.util.Log;
 import android.widget.TextView;
 import it.reyboz.bustorino.R;
+import it.reyboz.bustorino.backend.GlobalStatusPreferences;
 import it.reyboz.bustorino.middleware.AppDataProvider;
 import it.reyboz.bustorino.middleware.NextGenDB;
 import it.reyboz.bustorino.middleware.UserDB;
@@ -41,6 +43,8 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     private final static int loaderStopId = 1;
     private @Nullable String stopID,stopName;
     private TextView messageTextView;
+    private GlobalStatusPreferences prefs;
+    private SharedPreferences.OnSharedPreferenceChangeListener listener;
 
     public static ArrivalsFragment newInstance(String stopID){
         Bundle args = new Bundle();
@@ -65,14 +69,35 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         stopID = getArguments().getString(KEY_STOP_ID);
         //this might really be null
         stopName = getArguments().getString(KEY_STOP_NAME);
+
+        listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                Log.d("BUSTO-PrefListener","Changed key "+key +" in the sharedPref");
+
+                if(key.equals(getString(R.string.databaseUpdatingPref))){
+                    final boolean updating = sharedPreferences.getBoolean(getString(R.string.databaseUpdatingPref),false);
+                    if(updating){
+                        getLoaderManager().restartLoader(loaderFavId,getArguments(),(LoaderManager.LoaderCallbacks<Cursor>) getActivity());
+                    }
+                }
+
+            }
+        };
     }
     @Override
     public void onResume() {
         super.onResume();
         LoaderManager loaderManager  = getLoaderManager();
+        prefs = GlobalStatusPreferences.getInstance(getContext());
+
         if(stopID!=null){
             //start the loader
-            loaderManager.restartLoader(loaderFavId,getArguments(),this);
+            if(prefs.isDBUpdating()){
+                prefs.registerListener(listener);
+            } else {
+                loaderManager.restartLoader(loaderFavId, getArguments(), this);
+            }
             updateMessage();
         }
     }
@@ -121,7 +146,6 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
-
         switch (loader.getId()){
             case loaderFavId:
                 final int colUserName = data.getColumnIndex(UserDB.getFavoritesColumnNamesAsArray[1]);
@@ -151,6 +175,14 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
                 }
         }
 
+    }
+
+    @Override
+    public void onPause() {
+        if(listener!=null)
+            prefs.unregisterListener(listener);
+        prefs = null;
+        super.onPause();
     }
 
     @Override

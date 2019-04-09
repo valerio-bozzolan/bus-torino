@@ -24,7 +24,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
 
-import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.GlobalStatusPreferences;
 import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 
@@ -197,9 +196,10 @@ public class AppDataProvider extends ContentProvider {
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
-                        String[] selectionArgs, String sortOrder) throws UnsupportedOperationException,IllegalArgumentException{
+                        String[] selectionArgs, String sortOrder) throws UnsupportedOperationException,IllegalArgumentException {
         //IMPORTANT
-        if(preferences.isDBUpdating()) return null;
+        if(preferences.isDBUpdating())
+            throw new UnsupportedOperationException("DB is updating");
         SQLiteDatabase  db = appDBHelper.getReadableDatabase();
         List<String>  parts = uri.getPathSegments();
         switch (sUriMatcher.match(uri)){

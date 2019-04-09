@@ -20,6 +20,7 @@ package it.reyboz.bustorino.fragments;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.database.sqlite.SQLiteException;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -165,7 +166,12 @@ public class FragmentHelper {
 
     synchronized public int insertBatchDataInNextGenDB(ContentValues[] valuesArr,String tableName){
         if(newDBHelper !=null)
-        return newDBHelper.insertBatchContent(valuesArr,tableName);
+            try {
+                return newDBHelper.insertBatchContent(valuesArr, tableName);
+            } catch (SQLiteException exc){
+                Log.w("DB Batch inserting: ","ERROR Inserting the data batch: ",exc.fillInStackTrace());
+                return -2;
+            }
         else return -1;
     }
 
@@ -173,7 +179,7 @@ public class FragmentHelper {
         return act.getContentResolver();
     }
 
-    public void blockAllActivities(boolean shouldI) {
+    public void setBlockAllActivities(boolean shouldI) {
         this.shouldHaltAllActivities = shouldI;
     }
 
