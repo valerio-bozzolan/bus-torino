@@ -48,9 +48,11 @@ import it.reyboz.bustorino.backend.utils;
 import it.reyboz.bustorino.middleware.AppDataProvider;
 import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 import it.reyboz.bustorino.adapters.SquareStopAdapter;
+import it.reyboz.bustorino.util.StopSorterByDistance;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 public class NearbyStopsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -241,6 +243,9 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             data.moveToNext();
         }
         if(data.getCount()>0) {
+            //quick trial to hopefully always get the stops in the correct order
+            Collections.sort(stopList,new StopSorterByDistance(lastReceivedLocation));
+
             if(firstLoc) {
                 dataAdapter = new SquareStopAdapter(stopList, mListener, lastReceivedLocation);
                 gridRecyclerView.setAdapter(dataAdapter);
