@@ -1,6 +1,6 @@
 /*
 	BusTO  - Backend components
-    Copyright (C) 2018 Fabio Mazza
+    Copyright (C) 2019 Fabio Mazza
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,70 +22,70 @@ import android.content.SharedPreferences;
 import android.util.Log;
 import it.reyboz.bustorino.R;
 
-import java.util.ArrayList;
-
 /**
  * Class to handle app status modifications, e.g. database is being updated or not
  */
-public class GlobalStatusPreferences {
+public class DBStatusManager {
     private static String PREFERENCES_NAME;// = "it.reyboz.bustorino.statusPreferences";
     private String DB_UPDATING;
 
     private SharedPreferences preferences;
-    private ArrayList<SharedPreferences.OnSharedPreferenceChangeListener> prefListeners;
-    private static GlobalStatusPreferences classinstance;
+    //private ArrayList<SharedPreferences.OnSharedPreferenceChangeListener> prefListeners;
+    //private static DBStatusManager classinstance;
+    private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
+    private OnDBUpdateStatusChangeListener dbUpdateListener;
 
-    private GlobalStatusPreferences(Context context) {
+    public DBStatusManager(Context context, OnDBUpdateStatusChangeListener listener) {
         Context thecon = context.getApplicationContext();
         this.preferences = thecon.getSharedPreferences(context.getString(R.string.mainSharedPreferences),Context.MODE_PRIVATE);
         DB_UPDATING = context.getString(R.string.databaseUpdatingPref);
         PREFERENCES_NAME = context.getString(R.string.mainSharedPreferences);
-        this.prefListeners = new ArrayList<>();
-    }
-    public static GlobalStatusPreferences getInstance(Context con){
-        if(classinstance == null) classinstance = new GlobalStatusPreferences(con);
-        return classinstance;
+        dbUpdateListener = listener;
+        //this.prefListeners = new ArrayList<>();
+        prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                Log.d("BUSTO-PrefListener", "Changed key " + key + " in the sharedPref");
+
+                if (key.equals(DB_UPDATING)) {
+                    dbUpdateListener.onDBStatusChanged(sharedPreferences.getBoolean(DB_UPDATING, dbUpdateListener.defaultStatusValue()));
+
+                }
+            }
+        };
     }
 
 
-    public boolean isDBUpdating(){
+    public boolean isDBUpdating(boolean defaultvalue){
         if (preferences == null) //preferences = thecon.getSharedPreferences(PREFERENCES_NAME,Context.MODE_PRIVATE);
         {
             //This should NOT HAPPEN
             Log.e("BUSTO_Pref","Preference reference is null");
             return false;
         } else {
-            return preferences.getBoolean(DB_UPDATING,false);
+            return preferences.getBoolean(DB_UPDATING,defaultvalue);
         }
     }
 
-    /**
-     * Add a Listener to the list of the ones to be notified
-     * @param listener a OnSharedPreferenceChangeListener to add
-     * @return the same listener to store the reference to
-     */
-    public SharedPreferences.OnSharedPreferenceChangeListener
-    registerListener(SharedPreferences.OnSharedPreferenceChangeListener listener){
-        if(!prefListeners.contains(listener)) prefListeners.add(listener);
-        preferences.registerOnSharedPreferenceChangeListener(listener);
-        return listener;
+
+    public void registerListener(){
+        if(prefListener!=null)
+        preferences.registerOnSharedPreferenceChangeListener(prefListener);
     }
 
-    public void unregisterListener(SharedPreferences.OnSharedPreferenceChangeListener listener){
-        prefListeners.remove(listener);
-        preferences.unregisterOnSharedPreferenceChangeListener(listener);
+    public void unregisterListener(){
+        if(prefListener!=null)
+            preferences.unregisterOnSharedPreferenceChangeListener(prefListener);
     }
-    public void emptyListeners(){
 
-        for(SharedPreferences.OnSharedPreferenceChangeListener lis : prefListeners){
-            preferences.unregisterOnSharedPreferenceChangeListener(lis);
-
-        }
-        prefListeners.clear();
-    }
     public void setDbUpdating(boolean value){
         final SharedPreferences.Editor editor  = preferences.edit();
         editor.putBoolean(DB_UPDATING,value);
         editor.apply();
+    }
+
+    public interface OnDBUpdateStatusChangeListener {
+        void onDBStatusChanged(boolean updating);
+        boolean defaultStatusValue();
     }
 }

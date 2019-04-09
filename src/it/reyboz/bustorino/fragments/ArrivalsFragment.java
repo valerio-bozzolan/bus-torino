@@ -18,8 +18,6 @@
 package it.reyboz.bustorino.fragments;
 
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,7 +28,7 @@ import android.support.v4.content.Loader;
 import android.util.Log;
 import android.widget.TextView;
 import it.reyboz.bustorino.R;
-import it.reyboz.bustorino.backend.GlobalStatusPreferences;
+import it.reyboz.bustorino.backend.DBStatusManager;
 import it.reyboz.bustorino.middleware.AppDataProvider;
 import it.reyboz.bustorino.middleware.NextGenDB;
 import it.reyboz.bustorino.middleware.UserDB;
@@ -39,12 +37,13 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
 
     private final static String KEY_STOP_ID = "stopid";
     private final static String KEY_STOP_NAME = "stopname";
+    private final static String DEBUG_TAG = "BUSTOArrivalsFragment";
     private final static int loaderFavId = 2;
     private final static int loaderStopId = 1;
     private @Nullable String stopID,stopName;
     private TextView messageTextView;
-    private GlobalStatusPreferences prefs;
-    private SharedPreferences.OnSharedPreferenceChangeListener listener;
+    private DBStatusManager prefs;
+    private DBStatusManager.OnDBUpdateStatusChangeListener listener;
 
     public static ArrivalsFragment newInstance(String stopID){
         Bundle args = new Bundle();
@@ -69,32 +68,32 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         stopID = getArguments().getString(KEY_STOP_ID);
         //this might really be null
         stopName = getArguments().getString(KEY_STOP_NAME);
-
-        listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        final ArrivalsFragment f = this;
+        listener = new DBStatusManager.OnDBUpdateStatusChangeListener() {
             @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                Log.d("BUSTO-PrefListener","Changed key "+key +" in the sharedPref");
-
-                if(key.equals(getString(R.string.databaseUpdatingPref))){
-                    final boolean updating = sharedPreferences.getBoolean(getString(R.string.databaseUpdatingPref),false);
-                    if(updating){
-                        getLoaderManager().restartLoader(loaderFavId,getArguments(),(LoaderManager.LoaderCallbacks<Cursor>) getActivity());
-                    }
+            public void onDBStatusChanged(boolean updating) {
+                if(!updating){
+                    getLoaderManager().restartLoader(loaderFavId,getArguments(),f);
                 }
+            }
 
+            @Override
+            public boolean defaultStatusValue() {
+                return true;
             }
         };
+        prefs = new DBStatusManager(getContext().getApplicationContext(),listener);
+
     }
     @Override
     public void onResume() {
         super.onResume();
         LoaderManager loaderManager  = getLoaderManager();
-        prefs = GlobalStatusPreferences.getInstance(getContext());
 
         if(stopID!=null){
             //start the loader
-            if(prefs.isDBUpdating()){
-                prefs.registerListener(listener);
+            if(prefs.isDBUpdating(true)){
+                prefs.registerListener();
             } else {
                 loaderManager.restartLoader(loaderFavId, getArguments(), this);
             }
@@ -180,8 +179,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     @Override
     public void onPause() {
         if(listener!=null)
-            prefs.unregisterListener(listener);
-        prefs = null;
+            prefs.unregisterListener();
         super.onPause();
     }
 

@@ -24,7 +24,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
 
-import it.reyboz.bustorino.backend.GlobalStatusPreferences;
+import it.reyboz.bustorino.backend.DBStatusManager;
 import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 
 import java.util.List;
@@ -47,7 +47,7 @@ public class AppDataProvider extends ContentProvider {
     private NextGenDB appDBHelper;
     private UserDB udbhelper;
     private SQLiteDatabase db;
-    private GlobalStatusPreferences preferences;
+    private DBStatusManager preferences;
     public AppDataProvider() {
     }
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -112,7 +112,7 @@ public class AppDataProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) throws IllegalArgumentException{
         //AVOID OPENING A DB CONNECTION, WILL THROW VERY NASTY ERRORS
-        if(preferences.isDBUpdating())
+        if(preferences.isDBUpdating(true))
             return null;
         db = appDBHelper.getWritableDatabase();
         Uri finalUri;
@@ -186,7 +186,7 @@ public class AppDataProvider extends ContentProvider {
         appDBHelper = new NextGenDB(getContext());
         udbhelper = new UserDB(getContext());
         if(con!=null) {
-            preferences = GlobalStatusPreferences.getInstance(getContext());
+            preferences = new DBStatusManager(con,null);
         } else {
             preferences = null;
             Log.e(DEBUG_TAG,"Cannot get shared preferences");
@@ -198,7 +198,7 @@ public class AppDataProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) throws UnsupportedOperationException,IllegalArgumentException {
         //IMPORTANT
-        if(preferences.isDBUpdating())
+        if(preferences.isDBUpdating(true))
             throw new UnsupportedOperationException("DB is updating");
         SQLiteDatabase  db = appDBHelper.getReadableDatabase();
         List<String>  parts = uri.getPathSegments();
@@ -210,7 +210,7 @@ public class AppDataProvider extends ContentProvider {
                     Double latitude = Double.parseDouble(parts.get(2));
                     Double longitude = Double.parseDouble(parts.get(3));
                     //converting distance to a float to not lose precision
-                    Float distance = parts.size()>=5 ? Float.parseFloat(parts.get(4))/1000 : 0.1f;
+                    float distance = parts.size()>=5 ? Float.parseFloat(parts.get(4))/1000 : 0.1f;
                     if(parts.size()>=5)
                     Log.d("LocationSearch"," given distance to search is "+parts.get(4)+" m");
                     Double distasAngle = (distance/6371)*180/Math.PI; //small angles approximation, still valid for about 500 metres

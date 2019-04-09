@@ -19,7 +19,6 @@ package it.reyboz.bustorino;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -81,8 +80,8 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     /*
      * Status
      */
-    private GlobalStatusPreferences prefsManager;
-    private SharedPreferences.OnSharedPreferenceChangeListener updatelistener;
+    private DBStatusManager prefsManager;
+    private DBStatusManager.OnDBUpdateStatusChangeListener updatelistener;
     /* // useful for testing:
     public class MockFetcher implements ArrivalsFetcher {
         @Override
@@ -250,30 +249,28 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         /*
         Set database update
          */
-        prefsManager = GlobalStatusPreferences.getInstance(getApplicationContext());
-        updatelistener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        updatelistener = new DBStatusManager.OnDBUpdateStatusChangeListener(){
             @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                Log.d("BUSTO-PrefListener","Changed key "+key +" in the sharedPref");
+            public boolean defaultStatusValue() {
+                return true;
+            }
 
-                if(key.equals(getString(R.string.databaseUpdatingPref))){
-                    final boolean updating = sharedPreferences.getBoolean(getString(R.string.databaseUpdatingPref),false);
-                    if(updating){
-                        if(snackbar==null){
-                            snackbar = Snackbar.make(findViewById(R.id.searchButton),R.string.database_update_message,Snackbar.LENGTH_INDEFINITE);
-                        }
-                        snackbar.show();
-                    }
-                    else if(snackbar!=null){
-                       snackbar.dismiss();
-                       snackbar = null;
-                    }
+            @Override
+            public void onDBStatusChanged(boolean updating) {
+
+                if(updating){
+                    createDefaultSnackbar();
                 }
+                else if(snackbar!=null){
+                    snackbar.dismiss();
+                    snackbar = null;
+                }
+
 
             }
         };
-
-        prefsManager.registerListener(updatelistener);
+        prefsManager = new DBStatusManager(getApplicationContext(),updatelistener);
+        prefsManager.registerListener();
 
         //locationHandler = new GPSLocationAdapter(getApplicationContext());
         //--------- NEARBY STOPS--------//
@@ -326,14 +323,19 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         super.onPause();
         fh.stopLastRequestIfNeeded();
         fh.setBlockAllActivities(true);
-        if(updatelistener!=null && prefsManager!=null) prefsManager.unregisterListener(updatelistener);
+        if(updatelistener!=null && prefsManager!=null) prefsManager.unregisterListener();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         fh.setBlockAllActivities(false);
-        if(updatelistener!=null && prefsManager!=null) prefsManager.registerListener(updatelistener);
+        if(updatelistener!=null && prefsManager!=null) {
+            prefsManager.registerListener();
+            if(prefsManager.isDBUpdating(true)){
+                createDefaultSnackbar();
+            }
+        }
     }
 
     @Override
@@ -508,6 +510,12 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 showKeyboard();
             }
         }
+    }
+    private void createDefaultSnackbar(){
+        if(snackbar==null){
+            snackbar = Snackbar.make(findViewById(R.id.searchButton),R.string.database_update_message,Snackbar.LENGTH_INDEFINITE);
+        }
+        snackbar.show();
     }
 
 
