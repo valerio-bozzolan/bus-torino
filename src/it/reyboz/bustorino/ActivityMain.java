@@ -17,10 +17,11 @@
  */
 package it.reyboz.bustorino;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.LocationManager;
+import android.location.*;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -47,6 +48,10 @@ import android.support.design.widget.FloatingActionButton;
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.*;
+
+import java.util.List;
+
+import static android.location.Criteria.NO_REQUIREMENT;
 
 public class ActivityMain extends GeneralActivity implements FragmentListener {
 
@@ -82,6 +87,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      */
     private DBStatusManager prefsManager;
     private DBStatusManager.OnDBUpdateStatusChangeListener updatelistener;
+    private static final String DEBUG_TAG="BusTO - MainActivity";
     /* // useful for testing:
     public class MockFetcher implements ArrivalsFetcher {
         @Override
@@ -95,7 +101,16 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
     private RecursionHelper<ArrivalsFetcher> ArrivalFetchersRecursionHelper = new RecursionHelper<>(new ArrivalsFetcher[] {new GTTJSONFetcher(), new FiveTScraperFetcher()});
     private RecursionHelper<StopsFinderByName> StopsFindersByNameRecursionHelper = new RecursionHelper<>(new StopsFinderByName[] {new GTTStopsFetcher(), new FiveTStopsFetcher()});
-
+    /*
+     * Position
+     */
+    //Fine location criteria
+    private final Criteria cr = new Criteria();
+    private boolean pendingNearbyStopsRequest = false;
+    private LocationManager locmgr;
+    /*
+     * Database Access
+     */
     private StopsDB stopsDB;
     private UserDB userDB;
     private FragmentHelper fh;
@@ -274,19 +289,20 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
         //locationHandler = new GPSLocationAdapter(getApplicationContext());
         //--------- NEARBY STOPS--------//
-        //Let's search stops nearby
-        LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if(locManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && fh.getLastSuccessfullySearchedBusStop()==null && getOption(LOCATION_PERMISSION_GIVEN,false)) {
-            NearbyStopsFragment fr = NearbyStopsFragment.newInstance();
-            FragmentTransaction ft = framan.beginTransaction();
-            ft.add(R.id.resultFrame, fr, "Location");
-            ft.commitNow();
-            swipeRefreshLayout.setVisibility(View.VISIBLE);
-            swipeRefreshLayout.setEnabled(false);
-        } else if(!getOption(LOCATION_PERMISSION_GIVEN, false)){
-            assertLocationPermissions();
-        }
+        //SETUP LOCATION
+        locmgr = (LocationManager) getSystemService(LOCATION_SERVICE);
+        cr.setAccuracy(Criteria.ACCURACY_FINE);
+        cr.setAltitudeRequired(false);
+        cr.setBearingRequired(false);
+        cr.setCostAllowed(true);
+        cr.setPowerRequirement(Criteria.NO_REQUIREMENT);
+        //We want the nearby bus stops!
+        handler.post(new NearbyStopsRequester());
+        //If there are no providers available, then, wait for them
+
+
         Log.d("MainActivity", "Created");
+
     }
 
     /**
@@ -324,6 +340,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         fh.stopLastRequestIfNeeded();
         fh.setBlockAllActivities(true);
         if(updatelistener!=null && prefsManager!=null) prefsManager.unregisterListener();
+        locmgr.removeUpdates(locListener);
     }
 
     @Override
@@ -336,6 +353,8 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 createDefaultSnackbar();
             }
         }
+        if(pendingNearbyStopsRequest)
+            handler.post(new NearbyStopsRequester());
     }
 
     @Override
@@ -421,22 +440,12 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             case PERMISSION_REQUEST_POSITION:
                 if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
                     setOption(LOCATION_PERMISSION_GIVEN,true);
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Log.d("mainActivity","Recreating stop fragment");
-                            swipeRefreshLayout.setVisibility(View.VISIBLE);
-                            NearbyStopsFragment fragment = NearbyStopsFragment.newInstance();
-                            Fragment oldFrag = framan.findFragmentById(R.id.resultFrame);
-                            FragmentTransaction ft = framan.beginTransaction();
-                            if(oldFrag!=null)
-                                ft.remove(oldFrag);
-                            ft.add(R.id.resultFrame,fragment,"nearbyStop_correct");
-                            ft.commit();
-                            framan.executePendingTransactions();
+                    //if we sent a request for a new NearbyStopsFragment
+                    if(pendingNearbyStopsRequest){
+                        pendingNearbyStopsRequest=false;
+                        handler.post(new NearbyStopsRequester());
+                    }
 
-                        }
-                    });
                 } else {
                     //permission denied
                     setOption(LOCATION_PERMISSION_GIVEN,false);
@@ -517,7 +526,85 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         }
         snackbar.show();
     }
+    ///////////////////////////////// POSITION STUFF//////////////////////////////////////////////
 
+    private void resolveStopRequest(String provider){
+        Log.d(DEBUG_TAG,"Provider "+provider+" got enabled");
+        if(locmgr!=null && pendingNearbyStopsRequest && locmgr.getProvider(provider).meetsCriteria(cr)){
+            pendingNearbyStopsRequest = false;
+            handler.post(new NearbyStopsRequester());
+        }
+    }
+    final LocationListener locListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            Log.d(DEBUG_TAG,"Location changed");
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+            Log.d(DEBUG_TAG,"Location provider status: "+status);
+                if(status== LocationProvider.AVAILABLE){
+                    resolveStopRequest(provider);
+                }
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+            resolveStopRequest(provider);
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    };
+
+    class NearbyStopsRequester implements Runnable{
+        @SuppressLint("MissingPermission")
+        @Override
+        public void run() {
+            if(!getOption(LOCATION_PERMISSION_GIVEN, false)){
+                pendingNearbyStopsRequest = true;
+                assertLocationPermissions();
+                return;
+            }
+            LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            if(locManager == null) {
+                Log.e(DEBUG_TAG, "location manager is nihil, cannot create NearbyStopsFragment");
+                return;
+            }
+            if(anyLocationProviderMatchesCriteria(locManager,cr,true) && fh.getLastSuccessfullySearchedBusStop()==null) {
+                //Go ahead with the request
+                Log.d("mainActivity","Recreating stop fragment");
+                swipeRefreshLayout.setVisibility(View.VISIBLE);
+                NearbyStopsFragment fragment = NearbyStopsFragment.newInstance();
+                Fragment oldFrag = framan.findFragmentById(R.id.resultFrame);
+                FragmentTransaction ft = framan.beginTransaction();
+                if(oldFrag!=null)
+                    ft.remove(oldFrag);
+                ft.add(R.id.resultFrame,fragment,"nearbyStop_correct");
+                ft.commit();
+                framan.executePendingTransactions();
+                pendingNearbyStopsRequest = false;
+            } else if(!anyLocationProviderMatchesCriteria(locManager,cr,true)){
+                //Wait for the providers
+                Log.d(DEBUG_TAG,"Queuing position request");
+                pendingNearbyStopsRequest = true;
+                locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,10,0.1f,locListener);
+            }
+
+        }
+    }
+
+    private boolean anyLocationProviderMatchesCriteria(LocationManager mng, Criteria cr, boolean enabled){
+        List<String> providers = mng.getProviders(cr,enabled);
+        Log.d(DEBUG_TAG,"Getting enabled location providers: ");
+        for(String s: providers){
+            Log.d(DEBUG_TAG,"Provider "+s);
+        }
+        return providers.size()>0;
+    }
 
 
 
@@ -619,6 +706,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         actionHelpMenuItem.setVisible(false);
     }
 
+
     /**
      * This provides a temporary fix to make the transition
      * to a single asynctask go smoother
@@ -627,6 +715,11 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     @Override
     public void readyGUIfor(FragmentKind fragmentType) {
         hideKeyboard();
+        //if we are getting results, already, stop waiting for nearbyStops
+        if(pendingNearbyStopsRequest && (fragmentType==FragmentKind.ARRIVALS || fragmentType==FragmentKind.STOPS)) {
+            locmgr.removeUpdates(locListener);
+            pendingNearbyStopsRequest = false;
+        }
         if(fragmentType==null) Log.e("ActivityMain","Problem with fragmentType");
         else
         switch (fragmentType){
