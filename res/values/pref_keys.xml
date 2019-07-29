@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--  Preference screen -->
+    <string name="pref_key_num_recents" translatable="false">pref_num_recents</string>
+    <string name="pref_key_radius_recents" translatable="false">pref_radius_recents</string>
+    <string name="pref_key_experimental" translatable="false">pref_exp_features</string>
+</resources>

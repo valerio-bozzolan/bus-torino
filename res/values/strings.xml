@@ -97,6 +97,8 @@
     <string name="main_menu_pref">Preferences</string>
     <string name="title_activity_settings">Settings</string>
     <string name="action_settings">Settings</string>
+    <string name="settings_experimental">Experimental features</string>
+    <string name="settings_search_radius">Search radius</string>
     <string name="pref_recents_group_title">Recent stops</string>
     <string name="enableGpsText">Please enable GPS</string>
     <string name="database_update_message">Database update in progress&#8230;</string>

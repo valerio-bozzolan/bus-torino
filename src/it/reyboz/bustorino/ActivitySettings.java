@@ -1,16 +1,12 @@
 package it.reyboz.bustorino;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
-import it.reyboz.bustorino.fragments.PreferFragment;
+import it.reyboz.bustorino.fragments.SettingsFragment;
 
 public class ActivitySettings extends AppCompatActivity {
 
@@ -29,8 +25,8 @@ public class ActivitySettings extends AppCompatActivity {
 
         FragmentManager framan = getSupportFragmentManager();
         FragmentTransaction ft = framan.beginTransaction();
-        ft.add(R.id.setting_container,new PreferFragment());
-        ft.commitNow();
+        ft.replace(R.id.setting_container,new SettingsFragment());
+        ft.commit();
     }
 
 }

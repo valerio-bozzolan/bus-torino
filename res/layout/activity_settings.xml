@@ -7,7 +7,7 @@
                 >
    <!-- <fragment xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/settActFragment"
-            class="it.reyboz.bustorino.fragments.PreferFragment"
+            class="it.reyboz.bustorino.fragments.SettingsFragment"
             android:tag="PreferFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

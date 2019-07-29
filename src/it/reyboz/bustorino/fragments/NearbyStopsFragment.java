@@ -32,6 +32,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -50,9 +51,7 @@ import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 import it.reyboz.bustorino.adapters.SquareStopAdapter;
 import it.reyboz.bustorino.util.StopSorterByDistance;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
 
 public class NearbyStopsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -80,6 +79,9 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     private CommonScrollListener scrollListener;
     private boolean firstLoc = true;
     public static final int COLUMN_WIDTH_DP = 250;
+
+    private Integer MAX_DISTANCE = -3;
+    private int MIN_NUM_STOPS = -1;
 
     public NearbyStopsFragment() {
         // Required empty public constructor
@@ -180,6 +182,12 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             loadingProgressBar.setVisibility(View.GONE);
         }
         Log.d(DEBUG_TAG,"OnResume called");
+
+        //Re-read preferences
+        SharedPreferences shpr = PreferenceManager.getDefaultSharedPreferences(getContext().getApplicationContext());
+        //For some reason, they are all saved as strings
+        MAX_DISTANCE = shpr.getInt(getString(R.string.pref_key_radius_recents),1000);
+        MIN_NUM_STOPS = Integer.parseInt(shpr.getString(getString(R.string.pref_key_num_recents),"12"));
     }
 
     @Override
@@ -207,15 +215,17 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
                 .appendPath(String.valueOf(lastReceivedLocation.getLongitude()))
                 .appendPath(String.valueOf(distance)); //distance
         CursorLoader cl = new CursorLoader(getContext(),builder.build(),PROJECTION,null,null,null);
-        cl.setUpdateThrottle(1000);
+        cl.setUpdateThrottle(2000);
         return cl;
     }
+
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         ArrayList<Stop> stopList = new ArrayList<>();
         data.moveToFirst();
-        if(data.getCount()<4 && !globalSharedPref.getBoolean(getString(R.string.databaseUpdatingPref),false)  && distance<=1000){
+        if (0 > MAX_DISTANCE) throw new AssertionError();
+        if(!globalSharedPref.getBoolean(getString(R.string.databaseUpdatingPref),false) && (data.getCount()<MIN_NUM_STOPS || distance<=MAX_DISTANCE)){
             distance = distance*2;
             Bundle d = new Bundle();
             d.putParcelable(BUNDLE_LOCATION,lastReceivedLocation);
@@ -289,7 +299,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             //set adapter
             float accuracy = location.getAccuracy();
             if(accuracy<60 && canStartDBQuery) {
-                distance = 100;
+                distance = 20;
                 final Bundle msgBundle = new Bundle();
                 msgBundle.putParcelable(BUNDLE_LOCATION,location);
                 getLoaderManager().restartLoader(LOADER_ID,msgBundle,callbacks);
