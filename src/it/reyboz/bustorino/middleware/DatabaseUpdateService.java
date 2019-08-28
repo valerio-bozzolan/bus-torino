@@ -20,6 +20,7 @@ package it.reyboz.bustorino.middleware;
 import android.app.IntentService;
 import android.content.*;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import it.reyboz.bustorino.ActivityMain;
 import it.reyboz.bustorino.R;
@@ -47,7 +48,9 @@ public class DatabaseUpdateService extends IntentService {
     private static final String DEBUG_TAG = "DatabaseService_BusTO";
     // TODO: Rename parameters
     private static final String TRIAL = "it.reyboz.bustorino.middleware.extra.TRIAL";
+    private static final String COMPULSORY = "compulsory_update";
     private static final int MAX_TRIALS = 5;
+    private static final int VERSION_UNAIVALABLE = -2;
     public DatabaseUpdateService() {
         super("DatabaseUpdateService");
     }
@@ -59,17 +62,20 @@ public class DatabaseUpdateService extends IntentService {
      *
      * @see IntentService
      */
-    public static void startDBUpdate(Context con, int trial){
+    public static void startDBUpdate(Context con, int trial, @Nullable Boolean mustUpdate){
         Intent intent = new Intent(con, DatabaseUpdateService.class);
         intent.setAction(ACTION_UPDATE);
         intent.putExtra(TRIAL,trial);
+        if(mustUpdate!=null){
+            intent.putExtra(COMPULSORY,mustUpdate);
+        }
         con.startService(intent);
     }
     public static void startDBUpdate(Context con) {
-        startDBUpdate(con,0);
+        startDBUpdate(con, 0, false);
     }
 
-        @Override
+    @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
             final String action = intent.getAction();
@@ -80,30 +86,21 @@ public class DatabaseUpdateService extends IntentService {
                 final int trial = intent.getIntExtra(TRIAL,-1);
 
                 updateTrial = trial;
-
-                int newVersion = getNewVersion(trial);
+                UpdateRequestParams params = new UpdateRequestParams(intent);
+                int newVersion = getNewVersion(params);
+                if(newVersion==VERSION_UNAIVALABLE){
+                    //NOTHING LEFT TO DO
+                    return;
+                }
                 Log.d(DEBUG_TAG,"newDBVersion: "+newVersion+" oldVersion: "+versionDB);
-                if(versionDB==-1 || newVersion>versionDB){
+                if(params.mustUpdate || versionDB==-1 || newVersion>versionDB){
                     final SharedPreferences.Editor editor = shPr.edit();
                     editor.putBoolean(getString(R.string.databaseUpdatingPref),true);
                     editor.commit();
                     Log.d(DEBUG_TAG,"Downloading the bus stops info");
                     final AtomicReference<Fetcher.result> gres = new AtomicReference<>();
-                    if(!performDBUpdate(gres)) restartDBUpdateifPossible(trial,gres);
-                        /*switch (gres.get()){
-                        case SERVER_ERROR:
-                            restartDBUpdateifPossible(trial);
-                            break;
-                        case PARSER_ERROR:
-
-                            break;
-                        case EMPTY_RESULT_SET:
-                            break;
-                        case QUERY_TOO_SHORT:
-                            break;
-                        case SERVER_ERROR_404:
-                            break;
-                    }*/
+                    if(!performDBUpdate(gres))
+                        restartDBUpdateifPossible(params,gres);
                     else {
                         editor.putInt(DB_VERSION,newVersion);
                         //  BY COMMENTING THIS, THE APP WILL CONTINUOUSLY UPDATE THE DATABASE
@@ -208,12 +205,12 @@ public class DatabaseUpdateService extends IntentService {
         dbHelp.close();
         return true;
     }
-    private int getNewVersion(int trial){
+    private int getNewVersion(UpdateRequestParams params){
         AtomicReference<Fetcher.result> gres = new AtomicReference<>();
         String networkRequest = FiveTAPIFetcher.performAPIRequest(FiveTAPIFetcher.QueryType.STOPS_VERSION,null,gres);
         if(networkRequest == null){
-           restartDBUpdateifPossible(trial,gres);
-            return -2;
+            restartDBUpdateifPossible(params,gres);
+            return VERSION_UNAIVALABLE;
         }
 
         boolean needed;
@@ -223,13 +220,27 @@ public class DatabaseUpdateService extends IntentService {
         } catch (JSONException e) {
             e.printStackTrace();
             Log.e(DEBUG_TAG,"Error: wrong JSON response\nResponse:\t"+networkRequest);
-            return -2;
+            return -4;
         }
     }
-    private void restartDBUpdateifPossible(int currentTrial, AtomicReference<Fetcher.result> res){
-        if (currentTrial<MAX_TRIALS && res.get()!= Fetcher.result.PARSER_ERROR){
-            Log.d(DEBUG_TAG,"Update failed, starting new trial ("+currentTrial+")");
-            startDBUpdate(getApplicationContext(),++currentTrial);
+    private void restartDBUpdateifPossible(UpdateRequestParams pars, AtomicReference<Fetcher.result> res){
+        if (pars.trial<MAX_TRIALS && res.get()!= Fetcher.result.PARSER_ERROR){
+            Log.d(DEBUG_TAG,"Update failed, starting new trial ("+pars.trial+")");
+            startDBUpdate(getApplicationContext(),++pars.trial,pars.mustUpdate);
+        }
+    }
+
+    /**
+     * Private class to hold the parameters of the request
+     */
+    private class UpdateRequestParams{
+        int trial;
+        boolean mustUpdate;
+
+
+        UpdateRequestParams(Intent intent){
+            trial = intent.getIntExtra(TRIAL,-1);
+            mustUpdate = intent.getBooleanExtra(COMPULSORY, false);
         }
     }
 

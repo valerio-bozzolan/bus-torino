@@ -19,19 +19,20 @@ package it.reyboz.bustorino.middleware;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.graphics.LinearGradient;
 import android.provider.BaseColumns;
 import android.util.Log;
+import it.reyboz.bustorino.R;
 
 import static it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 
 public class NextGenDB extends SQLiteOpenHelper{
     public static final String DATABASE_NAME = "bustodatabase.db";
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     //Some generating Strings
     private static final String SQL_CREATE_LINES_TABLE="CREATE TABLE "+Contract.LinesTable.TABLE_NAME+" ("+
             Contract.LinesTable._ID +" INTEGER PRIMARY KEY AUTOINCREMENT, "+ Contract.LinesTable.COLUMN_NAME +" TEXT, "+
@@ -62,9 +63,11 @@ public class NextGenDB extends SQLiteOpenHelper{
             Contract.StopsTable.COL_LOCATION+" TEXT, "+Contract.StopsTable.COL_PLACE+" TEXT, "+
             Contract.StopsTable.COL_LINES_STOPPING +" TEXT )";
 
+    private Context appContext;
 
     public NextGenDB(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        appContext = context.getApplicationContext();
     }
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -81,6 +84,21 @@ public class NextGenDB extends SQLiteOpenHelper{
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
+        if(oldVersion<2 && newVersion == 2){
+            //DROP ALL TABLES
+            db.execSQL("DROP TABLE "+ConnectionsTable.TABLE_NAME);
+            db.execSQL("DROP TABLE "+BranchesTable.TABLE_NAME);
+            db.execSQL("DROP TABLE "+LinesTable.TABLE_NAME);
+            db.execSQL("DROP TABLE "+ StopsTable.TABLE_NAME);
+            //RECREATE THE TABLES WITH THE NEW SCHEMA
+            db.execSQL(SQL_CREATE_LINES_TABLE);
+            db.execSQL(SQL_CREATE_STOPS_TABLE);
+            //tables with constraints
+            db.execSQL(SQL_CREATE_BRANCH_TABLE);
+            db.execSQL(SQL_CREATE_CONNECTIONS_TABLE);
+
+            DatabaseUpdateService.startDBUpdate(appContext,0,true);
+        }
     }
 
     @Override
@@ -121,48 +139,91 @@ public class NextGenDB extends SQLiteOpenHelper{
     public static final class Contract{
         //Ok, I get it, it really is a pain in the ass..
         // But it's the only way to have maintainable code
+        public interface DataTables {
+            String getTableName();
+            String[] getFields();
+        }
 
-        public static final class LinesTable implements BaseColumns{
+        public static final class LinesTable implements BaseColumns, DataTables {
             //The fields
             public static final String TABLE_NAME = "lines";
-            public static final String COLUMN_NAME = "name";
+            public static final String COLUMN_NAME = "line_name";
             public static final String COLUMN_DESCRIPTION = "line_description";
-            public static final String COLUMN_TYPE = "bacino";
+            public static final String COLUMN_TYPE = "line_bacino";
+
+            @Override
+            public String getTableName() {
+                return TABLE_NAME;
+            }
+
+            @Override
+            public String[] getFields() {
+                return new String[]{COLUMN_NAME,COLUMN_DESCRIPTION,COLUMN_TYPE};
+            }
         }
-        public static final class BranchesTable implements BaseColumns{
+        public static final class BranchesTable implements BaseColumns, DataTables {
             public static final String TABLE_NAME = "branches";
             public static final String COL_BRANCHID = "branchid";
             public static final String COL_LINE = "lineid";
             public static final String COL_DESCRIPTION = "branch_description";
-            public static final String COL_DIRECTION = "direzione";
-            public static final String COL_FESTIVO = "festivo";
-            public static final String COL_TYPE = "type";
-            public static final String COL_LUN="lun";
-            public static final String COL_MAR="mar";
-            public static final String COL_MER="mer";
-            public static final String COL_GIO="gio";
-            public static final String COL_VEN="ven";
-            public static final String COL_SAB="sab";
-            public static final String COL_DOM="dom";
+            public static final String COL_DIRECTION = "branch_direzione";
+            public static final String COL_FESTIVO = "branch_festivo";
+            public static final String COL_TYPE = "branch_type";
+            public static final String COL_LUN="runs_lun";
+            public static final String COL_MAR="runs_mar";
+            public static final String COL_MER="runs_mer";
+            public static final String COL_GIO="runs_gio";
+            public static final String COL_VEN="runs_ven";
+            public static final String COL_SAB="runs_sab";
+            public static final String COL_DOM="runs_dom";
+
+            @Override
+            public String getTableName() {
+                return TABLE_NAME;
+            }
+            @Override
+            public String[] getFields() {
+                return new String[]{COL_BRANCHID,COL_LINE,COL_DESCRIPTION,
+                        COL_DIRECTION,COL_FESTIVO,COL_TYPE,
+                        COL_LUN,COL_MAR,COL_MER,COL_GIO,COL_VEN,COL_SAB,COL_DOM
+                };
+            }
 
         }
-        public static final class ConnectionsTable {
+        public static final class ConnectionsTable implements DataTables {
             public static final String TABLE_NAME = "connections";
-            public static final String COLUMN_BRANCH = "branch";
+            public static final String COLUMN_BRANCH = "branchid";
             public static final String COLUMN_STOP_ID = "stopid";
-            static final String COLUMN_ORDER = "ordine";
-        }
-        public static final class StopsTable {
-            public static final String TABLE_NAME = "stops";
-            public static final String COL_ID = "id"; //integer
-            public static final String COL_TYPE = "type";
-            public static final String COL_NAME = "name";
-            public static final String COL_LAT = "lat";
-            public static final String COL_LONG = "longitude";
-            public static final String COL_LOCATION = "location";
-            public static final String COL_PLACE = "placeName";
-            public static final String COL_LINES_STOPPING = "lines";
+            public static final String COLUMN_ORDER = "ordine";
 
+            @Override
+            public String getTableName() {
+                return TABLE_NAME;
+            }
+            @Override
+            public String[] getFields() {
+                return new String[]{COLUMN_STOP_ID,COLUMN_BRANCH,COLUMN_ORDER};
+            }
+        }
+        public static final class StopsTable implements DataTables {
+            public static final String TABLE_NAME = "stops";
+            public static final String COL_ID = "stopid"; //integer
+            public static final String COL_TYPE = "stop_type";
+            public static final String COL_NAME = "stop_name";
+            public static final String COL_LAT = "stop_latitude";
+            public static final String COL_LONG = "stop_longitude";
+            public static final String COL_LOCATION = "stop_location";
+            public static final String COL_PLACE = "stop_placeName";
+            public static final String COL_LINES_STOPPING = "stop_lines";
+
+            @Override
+            public String getTableName() {
+                return TABLE_NAME;
+            }
+            @Override
+            public String[] getFields() {
+                return new String[]{COL_ID,COL_TYPE,COL_NAME,COL_LAT,COL_LONG,COL_LOCATION,COL_PLACE,COL_LINES_STOPPING};
+            }
         }
     }
 
@@ -171,4 +232,5 @@ public class NextGenDB extends SQLiteOpenHelper{
             super(message);
         }
     }
+
 }
