@@ -30,7 +30,7 @@ public class Route implements Comparable<Route> {
     final static int[] reduced_week = {Calendar.MONDAY,Calendar.TUESDAY,Calendar.WEDNESDAY,Calendar.THURSDAY,Calendar.FRIDAY};
     final static int[] feriali = {Calendar.MONDAY,Calendar.TUESDAY,Calendar.WEDNESDAY,Calendar.THURSDAY,Calendar.FRIDAY,Calendar.SATURDAY};
     final static int[] weekend = {Calendar.SUNDAY,Calendar.SATURDAY};
-    final static int BRANCHID_MISSING = -1;
+    private final static int BRANCHID_MISSING = -1;
 
     public final String name;
     public String destinazione;

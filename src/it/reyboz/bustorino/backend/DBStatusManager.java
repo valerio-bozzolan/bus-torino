@@ -30,8 +30,7 @@ public class DBStatusManager {
     private String DB_UPDATING;
 
     private SharedPreferences preferences;
-    //private ArrayList<SharedPreferences.OnSharedPreferenceChangeListener> prefListeners;
-    //private static DBStatusManager classinstance;
+
     private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
     private OnDBUpdateStatusChangeListener dbUpdateListener;
 

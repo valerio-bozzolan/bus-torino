@@ -22,9 +22,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -43,12 +40,14 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import it.reyboz.bustorino.R;
+import it.reyboz.bustorino.middleware.AppLocationManager;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.utils;
 import it.reyboz.bustorino.middleware.AppDataProvider;
 import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 import it.reyboz.bustorino.adapters.SquareStopAdapter;
+import it.reyboz.bustorino.util.LocationCriteria;
 import it.reyboz.bustorino.util.StopSorterByDistance;
 
 import java.util.*;
@@ -56,8 +55,7 @@ import java.util.*;
 public class NearbyStopsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private FragmentListener mListener;
-    private LocationManager locManager;
-    private FragmentLocationListener locationListener;
+    private FragmentLocationListener fragmentLocationListener;
     private final String[] PROJECTION = {StopsTable.COL_ID,StopsTable.COL_LAT,StopsTable.COL_LONG,
             StopsTable.COL_NAME,StopsTable.COL_TYPE,StopsTable.COL_LINES_STOPPING};
     private final static String DEBUG_TAG = "NearbyStopsFragment";
@@ -80,8 +78,10 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     private boolean firstLoc = true;
     public static final int COLUMN_WIDTH_DP = 250;
 
+
     private Integer MAX_DISTANCE = -3;
     private int MIN_NUM_STOPS = -1;
+    private AppLocationManager locManager;
 
     public NearbyStopsFragment() {
         // Required empty public constructor
@@ -108,8 +108,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             mParam2 = getArguments().getString(ARG_PARAM2);
             */
         }
-        locManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
-        locationListener = new FragmentLocationListener(this);
+        locManager = AppLocationManager.getInstance(getContext());
+        fragmentLocationListener = new FragmentLocationListener(this);
         globalSharedPref = getContext().getSharedPreferences(getString(R.string.mainSharedPreferences),Context.MODE_PRIVATE);
 
 
@@ -162,8 +162,9 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     public void onPause() {
         super.onPause();
         canStartDBQuery = false;
-        locManager.removeUpdates(locationListener);
+
         gridRecyclerView.setAdapter(null);
+        locManager.removeLocationRequestFor(fragmentLocationListener);
         Log.d(DEBUG_TAG,"On paused called");
     }
 
@@ -172,7 +173,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         super.onResume();
         canStartDBQuery = !globalSharedPref.getBoolean(getString(R.string.databaseUpdatingPref),false);
         try{
-            if(canStartDBQuery) locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,2000,5,locationListener);
+            if(canStartDBQuery) locManager.addLocationRequestFor(fragmentLocationListener);
         } catch (SecurityException ex){
             //ignored
             //try another location provider
@@ -285,10 +286,11 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     /**
      * Local locationListener, to use for the GPS
      */
-    class FragmentLocationListener implements LocationListener{
+    class FragmentLocationListener implements AppLocationManager.LocationRequester{
 
         LoaderManager.LoaderCallbacks<Cursor> callbacks;
         private int oldLocStatus = -2;
+        private LocationCriteria cr;
 
         public FragmentLocationListener(LoaderManager.LoaderCallbacks<Cursor> callbacks) {
             this.callbacks = callbacks;
@@ -308,27 +310,26 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         }
 
         @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-            if(oldLocStatus!=status){
-
-                if(status == LocationProvider.OUT_OF_SERVICE || status == LocationProvider.TEMPORARILY_UNAVAILABLE) {
+        public void onLocationStatusChanged(int status) {
+            switch(status){
+                case AppLocationManager.LOCATION_GPS_AVAILABLE:
+                    messageTextView.setVisibility(View.GONE);
+                    break;
+                case AppLocationManager.LOCATION_UNAVAILABLE:
                     messageTextView.setText(R.string.enableGpsText);
                     messageTextView.setVisibility(View.VISIBLE);
-                }else if(status == LocationProvider.AVAILABLE){
-                    messageTextView.setVisibility(View.GONE);
-                }
-                oldLocStatus = status;
+                    break;
+                default:
+                    Log.e(DEBUG_TAG,"Location status not recognized");
             }
         }
 
         @Override
-        public void onProviderEnabled(String provider) {
-
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-
+        public LocationCriteria getLocationCriteria() {
+            if(cr==null){
+                cr = new LocationCriteria(60);
+            }
+            return cr;
         }
     }
 
