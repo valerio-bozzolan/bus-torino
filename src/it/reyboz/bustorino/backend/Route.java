@@ -151,19 +151,12 @@ public class Route implements Comparable<Route> {
      *
      * @param TimeGTT time in GTT format (e.g. "11:22*")
      */
-     public void addPassaggio(String TimeGTT) {
-         this.passaggi.add(new Passaggio(TimeGTT));
+     public void addPassaggio(String TimeGTT, Passaggio.Source source) {
+         this.passaggi.add(new Passaggio(TimeGTT, source));
      }
-
-     public static String getPassageString(String input,boolean realtime){
-         String time = input.trim();
-         if(time.contains("*")){
-             if(realtime) return time;
-             else return time.substring(0,time.length()-1);
-         } else{
-             if(realtime) return time.concat("*");
-             else return time;
-         }
+     //Overloaded
+     public void addPassaggio(int hour, int minutes, boolean realtime, Passaggio.Source source) {
+         this.passaggi.add(new Passaggio(hour, minutes, realtime, source));
      }
 
     @Override

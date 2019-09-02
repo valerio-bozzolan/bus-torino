@@ -62,8 +62,8 @@ public class Palina extends Stop {
      * @param TimeGTT time in GTT format (e.g. "11:22*")
      * @param arrayIndex position in the array for this route (returned by addRoute)
      */
-    public void addPassaggio(String TimeGTT, int arrayIndex) {
-        this.routes.get(arrayIndex).addPassaggio(TimeGTT);
+    public void addPassaggio(String TimeGTT, Passaggio.Source src,int arrayIndex) {
+        this.routes.get(arrayIndex).addPassaggio(TimeGTT,src);
     }
 
     /**

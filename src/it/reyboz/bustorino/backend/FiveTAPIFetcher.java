@@ -89,10 +89,12 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                 //TODO: parse the line description
                 Route r = new Route(lineName,routetype,lineJSON.getString("longName"));
                 Log.d(DEBUG_NAME,"Creating line with name "+lineJSON.getString("name")+" and description "+lineJSON.getString("longName"));
-                JSONArray passagesJSON = lineJSON.getJSONArray("departures");
+                final JSONArray passagesJSON = lineJSON.getJSONArray("departures");
+
                 for(int j=0;j<passagesJSON.length();j++){
-                    JSONObject arrival = passagesJSON.getJSONObject(j);
-                    r.addPassaggio(Route.getPassageString(arrival.getString("time"),arrival.getBoolean("rt")));
+                    final JSONObject arrival = passagesJSON.getJSONObject(j);
+                    final String passaggio = Passaggio.createPassaggioGTT(arrival.getString("time"),arrival.getBoolean("rt"));
+                    r.addPassaggio(passaggio, Passaggio.Source.FiveTAPI);
                     //Log.d(DEBUG_NAME,"Adding passage with time "+arrival.getString("time")+"\nrealtime="+arrival.getBoolean("rt"));
                 }
                 p.addRoute(r);
