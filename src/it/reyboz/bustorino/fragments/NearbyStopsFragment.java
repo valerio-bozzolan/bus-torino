@@ -163,6 +163,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             if(fragment_type==TYPE_ARRIVALS){
                 setFragmentType(TYPE_STOPS);
                 switchButton.setText(getString(R.string.show_arrivals));
+                arrivalsManager.cancelAllRequests();
                 if(dataAdapter!=null)
                     gridRecyclerView.setAdapter(dataAdapter);
 
@@ -521,6 +522,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         }
         void cancelAllRequests(){
             volleyManager.getRequestQueue().cancelAll(REQUEST_TAG);
+            flatProgressBar.setVisibility(View.GONE);
         }
     }
     /**

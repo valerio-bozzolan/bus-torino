@@ -578,7 +578,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 //Go ahead with the request
                 Log.d("mainActivity","Recreating stop fragment");
                 swipeRefreshLayout.setVisibility(View.VISIBLE);
-                NearbyStopsFragment fragment = NearbyStopsFragment.newInstance(NearbyStopsFragment.TYPE_ARRIVALS);
+                NearbyStopsFragment fragment = NearbyStopsFragment.newInstance(NearbyStopsFragment.TYPE_STOPS);
                 Fragment oldFrag = framan.findFragmentById(R.id.resultFrame);
                 FragmentTransaction ft = framan.beginTransaction();
                 if(oldFrag!=null)

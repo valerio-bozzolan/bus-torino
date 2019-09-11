@@ -21,9 +21,8 @@
             android:layout_height="wrap_content" android:id="@+id/switchButton"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
-            android:layout_margin="5dp"
-            android:layout_alignBaseline="@id/titleTextView"
-            app:backgroundTint="@color/teal_300"
+            android:layout_margin="10dp"
+            app:backgroundTint="@color/blue_500"
             android:textColor="@android:color/white"
     />
 
