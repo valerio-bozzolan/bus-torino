@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+        xmlns:card_view="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools" android:id="@+id/stop_cardView"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        card_view:cardCornerRadius="1dp"
+        android:layout_margin="8dp" android:padding="4dp">
+
+
+    <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="8dp"
+    >
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:id="@+id/lineNameTextView"
+                  android:text="10" android:textSize="24sp"
+                  android:textColor="@color/orange_700"
+                  android:layout_marginLeft="20dp"
+                  android:layout_marginStart="20dp"
+                  android:layout_alignParentLeft="true"
+                  android:layout_margin="10dp"
+                  android:textStyle="normal" android:layout_marginRight="20dp" android:layout_marginEnd="20dp"
+                  android:layout_marginBottom="20dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:id="@+id/lineDirectionTextView"
+                  android:text="piazza statuto" android:textSize="20sp"
+                  android:textAppearance="?android:attr/textAppearanceMedium"
+                  android:layout_toLeftOf="@id/arrivalsDistanceTextView"
+                  android:layout_toRightOf="@id/lineNameTextView"
+                  android:textStyle="normal" android:layout_marginRight="6dp" android:layout_marginEnd="6dp"
+                  android:layout_alignBaseline="@id/lineNameTextView"
+                  android:layout_marginBottom="8dp"
+                  android:layout_marginLeft="10dp" android:layout_marginTop="10dp"
+                  android:layout_marginStart="10dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:layout_alignBaseline="@id/arrivalsTimeTextView"
+                  android:textAppearance="?android:attr/textAppearanceMedium"
+                  android:id="@+id/arrivalsDescriptionTextView" android:text="@string/bus_arriving_at"
+                  android:textSize="@dimen/text_size_nearby"
+                  android:layout_marginLeft="8dp" android:layout_marginTop="8dp" android:layout_marginStart="8dp"
+                  android:layout_marginRight="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:layout_toRightOf="@id/arrivalsDescriptionTextView"
+                  android:layout_margin="@dimen/default_textView_margin"
+                  android:id="@+id/arrivalsTimeTextView" android:text="Orario" android:textSize="@dimen/text_size_nearby"
+                  android:layout_below="@id/lineDirectionTextView"
+
+                  android:textAppearance="?android:attr/textAppearanceLarge"
+                  android:layout_alignParentRight="true"
+                  android:layout_alignParentEnd="true"/>
+        <!-- Second line -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:layout_marginBottom="10dp"
+                  android:id="@+id/arrivalStopDescription"
+                  android:text="@string/arrivals_card_at_the_stop" android:textSize="@dimen/text_size_nearby"
+                  android:textAppearance="?android:attr/textAppearanceMedium"
+                  android:layout_below="@id/arrivalsDescriptionTextView"
+                  android:layout_margin="@dimen/default_textView_margin"
+                  android:layout_alignBaseline="@id/arrivalStopName"
+        />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:layout_toRightOf="@id/arrivalStopDescription"
+                  android:layout_toEndOf="@id/arrivalStopDescription"
+                  android:layout_below="@id/arrivalsTimeTextView"
+                  android:layout_marginBottom="10dp"
+                  android:id="@+id/arrivalStopName" android:text="Prova prova" android:textSize="@dimen/text_size_nearby"
+                  android:layout_marginLeft="10dp"
+                  android:layout_marginStart="10dp"
+                  android:textAppearance="?android:attr/textAppearanceLarge"
+        />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:layout_margin="@dimen/default_textView_margin"
+                  android:layout_marginBottom="10dp"
+                  android:layout_marginEnd="15dp"
+                  android:id="@+id/arrivalsDistanceTextView" android:text="200 m" android:textSize="15sp"
+                  android:layout_marginLeft="15dp"
+                  android:layout_marginStart="15dp"
+                  android:textAppearance="?android:attr/textAppearanceSmall"
+                  android:layout_alignParentRight="true"
+                  android:layout_alignParentEnd="true"
+        />
+
+    </RelativeLayout>
+
+</android.support.v7.widget.CardView>

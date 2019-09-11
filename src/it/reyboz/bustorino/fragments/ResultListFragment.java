@@ -134,9 +134,9 @@ public class ResultListFragment extends Fragment{
                             String routeName;
 
                             Route r = (Route) parent.getItemAtPosition(position);
-                            routeName = FiveTNormalizer.routeInternalToDisplay(r.name);
+                            routeName = FiveTNormalizer.routeInternalToDisplay(r.getNameForDisplay());
                             if (routeName == null) {
-                                routeName = r.name;
+                                routeName = r.getNameForDisplay();
                             }
                             if (r.destinazione == null || r.destinazione.length() == 0) {
                                 Toast.makeText(getContext(),

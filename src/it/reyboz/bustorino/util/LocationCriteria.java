@@ -21,16 +21,21 @@ package it.reyboz.bustorino.util;
  * Own Location Criteria, because it's fun
  */
 public class LocationCriteria {
-    private float minAccuracy;
-    public LocationCriteria(float minAccuracy){
+    private final float minAccuracy;
+    private final int timeInterval;
+
+    public LocationCriteria(float minAccuracy,int timeInterval){
         this.minAccuracy = minAccuracy;
+        this.timeInterval = timeInterval;
     }
 
     public float getMinAccuracy() {
         return minAccuracy;
     }
 
-    public void setMinAccuracy(float minAccuracy) {
-        this.minAccuracy = minAccuracy;
+
+    public int getTimeInterval() {
+        return timeInterval;
     }
+
 }

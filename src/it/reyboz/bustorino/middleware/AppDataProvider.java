@@ -198,8 +198,10 @@ public class AppDataProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) throws UnsupportedOperationException,IllegalArgumentException {
         //IMPORTANT
+        //The app should not query when the DB is updating, but apparently, it does
         if(preferences.isDBUpdating(true))
-            throw new UnsupportedOperationException("DB is updating");
+            //throw new UnsupportedOperationException("DB is updating");
+            return null;
         SQLiteDatabase  db = appDBHelper.getReadableDatabase();
         List<String>  parts = uri.getPathSegments();
         switch (sUriMatcher.match(uri)){

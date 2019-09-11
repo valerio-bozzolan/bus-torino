@@ -90,6 +90,11 @@
     <string name="pref_recents_group_title">Fermate recenti</string>
     <string name="enableGpsText">Abilitare il GPS</string>
     <string name="settings_search_radius">Raggio di ricerca</string>
+    <string name="settings_experimental">Funzionalità sperimentali</string>
+    <string name="bus_arriving_at">arriva alle</string>
+    <string name="arrivals_card_at_the_stop">alla fermata</string>
+    <string name="show_arrivals">Mostra arrivi</string>
+    <string name="show_stops">Mostra fermate</string>
 
 
 </resources>

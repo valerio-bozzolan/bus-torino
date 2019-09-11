@@ -32,9 +32,11 @@ public class Route implements Comparable<Route> {
     final static int[] weekend = {Calendar.SUNDAY,Calendar.SATURDAY};
     private final static int BRANCHID_MISSING = -1;
 
-    public final String name;
+    private final String name;
     public String destinazione;
     public final List<Passaggio> passaggi;
+    //create a copy of the list, so that
+    private List<Passaggio> sortedPassaggi;
     public final Type type;
     public String description;
     //ordered list of stops, from beginning to end of line
@@ -97,8 +99,6 @@ public class Route implements Comparable<Route> {
             }
         }
     }
-
-
     /**
      * Constructor.
      *
@@ -106,28 +106,32 @@ public class Route implements Comparable<Route> {
      * @param destinazione terminus\end of line
      * @param type bus, long distance bus, underground, and so on
      * @param passaggi timetable, a good choice is an ArrayList of size 6
+     * @param description the description of the line, usually given by the FiveTAPIFetcher
      * @see Palina Palina.addRoute() method
      */
-    public Route(String name, String destinazione, Type type, List<Passaggio> passaggi) {
+    public Route(String name, String destinazione, List<Passaggio> passaggi, Type type, String description) {
         this.name = name;
-        this.destinazione = destinazione;
+        this.destinazione = parseDestinazione(destinazione);
         this.passaggi = passaggi;
         this.type = type;
-        this.description = null;
+        this.description = description;
     }
 
     /**
-     * Constructor used by the new Api
+     * Constructor used in GTTJSONFetcher, see above
+     */
+    public Route(String name, String destinazione, Type type, List<Passaggio> passaggi) {
+        this(name,destinazione,passaggi,type,null);
+    }
+
+    /**
+     * Constructor used by the FiveTAPIFetcher
      * @param name stop Name
      * @param t optional type
      * @param description line rough description
      */
     public Route(String name,Type t,String description){
-        this.name = name;
-        this.type = t;
-        this.passaggi = new ArrayList<>();
-        this.destinazione = null;
-        this.description = description;
+        this(name,null,new ArrayList<>(),t,description);
     }
 
     /**
@@ -157,6 +161,72 @@ public class Route implements Comparable<Route> {
      //Overloaded
      public void addPassaggio(int hour, int minutes, boolean realtime, Passaggio.Source source) {
          this.passaggi.add(new Passaggio(hour, minutes, realtime, source));
+     }
+     private String parseDestinazione(String direzione){
+         if(direzione==null) return null;
+         //trial to add space to the parenthesis
+         String[] exploded = direzione.split("\\(");
+         if(exploded.length>1){
+             StringBuilder sb = new StringBuilder();
+             sb.append(exploded[0]);
+             for(int i=1; i<exploded.length;i++) {
+                 sb.append(" (");
+                 sb.append(exploded[i]);
+             }
+             direzione = sb.toString();
+         }
+         return direzione;
+     }
+
+    /**
+     * Getter for the name
+     * @return the name of the line
+     */
+     public String getName() {
+        return name;
+     }
+
+     public String getNameForDisplay(){
+         if(name.trim().equals("101Metrobus")) return "101 Metrobus";
+         else return name;
+     }
+     /**
+     * Get all passaggi in a single string
+     * @return the string
+     */
+     public String getPassaggiToString(){
+         StringBuilder sb = new StringBuilder();
+         for(Passaggio passaggio : passaggi) {
+             // "+" calls concat() and some other stuff internally, this should be faster
+             //StringBuilder is THE WAY
+             sb.append(passaggio.toString());
+             sb.append(" ");
+         }
+         return sb.toString();
+     }
+
+     public String getPassaggiToString(int start_idx, int number, boolean sort){
+         StringBuilder sb = new StringBuilder();
+         List<Passaggio> arrivals;
+         int max;
+         if(sort){
+             if(sortedPassaggi==null){
+                 sortedPassaggi = new ArrayList<>(passaggi.size());
+                 sortedPassaggi.addAll(passaggi);
+                 Collections.sort(sortedPassaggi);
+             }
+             arrivals = sortedPassaggi;
+         } else  arrivals = passaggi;
+        if(start_idx+number>arrivals.size())
+            max = arrivals.size();
+        else max = start_idx+number;
+         for(int j= start_idx; j<max;j++) {
+             // "+" calls concat() and some other stuff internally, this should be faster
+             //StringBuilder is THE WAY
+             sb.append(arrivals.get(j).toString());
+             sb.append(" ");
+         }
+         return sb.toString();
      }
 
     @Override
@@ -257,6 +327,11 @@ public class Route implements Comparable<Route> {
         }
         if (other.getStopsList() != null && this.getStopsList() == null)
             this.setStopsList(other.getStopsList());
+
+        if(this.passaggi!=null && other.passaggi!=null && this.passaggi.size()==0 && other.passaggi.size()>0){
+            this.passaggi.addAll(other.passaggi);
+        }
+
         if(this.destinazione == null && other.destinazione!=null) {
             this.destinazione = other.destinazione;
             adjusted = true;
@@ -269,9 +344,9 @@ public class Route implements Comparable<Route> {
             this.festivo = other.festivo;
             adjusted = true;
         }
-        if(other.description!=null&&
-                ((this.festivo == FestiveInfo.FERIALE && this.description.contains("festivo")) ||
-                        (this.festivo == FestiveInfo.FESTIVO && this.description.contains("feriale")))) {
+        if(other.description!=null && (this.description==null ||
+                (this.festivo == FestiveInfo.FERIALE && this.description.contains("festivo")) ||
+                (this.festivo == FestiveInfo.FESTIVO && this.description.contains("feriale")) )  ) {
             this.description = other.description;
         }
 

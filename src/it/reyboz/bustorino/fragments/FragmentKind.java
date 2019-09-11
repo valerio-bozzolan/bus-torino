@@ -18,5 +18,5 @@
 package it.reyboz.bustorino.fragments;
 
 public enum FragmentKind {
-    STOPS,ARRIVALS,FAVORITES,NEARBY
+    STOPS,ARRIVALS,FAVORITES,NEARBY_STOPS,NEARBY_ARRIVALS
 }

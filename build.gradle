@@ -11,7 +11,7 @@ buildscript {
         classpath 'com.android.tools.build:gradle:3.1.0'
     }
     ext {
-        support_ver = "25.3.1"
+        support_ver = "25.4.0"
     }
 }
 allprojects {
@@ -73,5 +73,6 @@ android {
 
         implementation 'org.jsoup:jsoup:1.11.3'
         implementation 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
+        implementation 'com.android.volley:volley:1.1.1'
     }
 }

@@ -29,7 +29,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.util.Pair;
 import android.support.v7.preference.PreferenceManager;
+import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -39,11 +41,12 @@ import android.view.ViewGroup;
 
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import com.android.volley.*;
 import it.reyboz.bustorino.R;
+import it.reyboz.bustorino.adapters.ArrivalsStopAdapter;
+import it.reyboz.bustorino.backend.*;
+import it.reyboz.bustorino.backend.FiveTAPIFetcher.QueryType;
 import it.reyboz.bustorino.middleware.AppLocationManager;
-import it.reyboz.bustorino.backend.Route;
-import it.reyboz.bustorino.backend.Stop;
-import it.reyboz.bustorino.backend.utils;
 import it.reyboz.bustorino.middleware.AppDataProvider;
 import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 import it.reyboz.bustorino.adapters.SquareStopAdapter;
@@ -59,6 +62,9 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     private final String[] PROJECTION = {StopsTable.COL_ID,StopsTable.COL_LAT,StopsTable.COL_LONG,
             StopsTable.COL_NAME,StopsTable.COL_TYPE,StopsTable.COL_LINES_STOPPING};
     private final static String DEBUG_TAG = "NearbyStopsFragment";
+    private final static String FRAGMENT_TYPE_KEY = "FragmentType";
+    public final static int TYPE_STOPS = 19, TYPE_ARRIVALS = 20;
+    private int fragment_type;
 
     //data Bundle
     private final String BUNDLE_LOCATION =  "location";
@@ -69,19 +75,25 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     private AutoFitGridLayoutManager gridLayoutManager;
     boolean canStartDBQuery = true;
     private Location lastReceivedLocation = null;
-    private ProgressBar loadingProgressBar;
+    private ProgressBar circlingProgressBar,flatProgressBar;
     private int distance;
-    private SharedPreferences globalSharedPref;
+    protected SharedPreferences globalSharedPref;
     private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
     private TextView messageTextView;
     private CommonScrollListener scrollListener;
-    private boolean firstLoc = true;
+    private AppCompatButton switchButton;
+    private boolean firstLocForStops = true,firstLocForArrivals = true;
     public static final int COLUMN_WIDTH_DP = 250;
 
 
     private Integer MAX_DISTANCE = -3;
     private int MIN_NUM_STOPS = -1;
+    private int TIME_INTERVAL_REQUESTS = -1;
     private AppLocationManager locManager;
+
+    //These are useful for the case of nearby arrivals
+    private ArrivalsManager arrivalsManager = null;
+    private ArrivalsStopAdapter arrivalsStopAdapter = null;
 
     public NearbyStopsFragment() {
         // Required empty public constructor
@@ -92,21 +104,23 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
      * this fragment using the provided parameters.
      * @return A new instance of fragment NearbyStopsFragment.
      */
-    public static NearbyStopsFragment newInstance() {
+    public static NearbyStopsFragment newInstance(int fragmentType) {
+        if(fragmentType != TYPE_STOPS && fragmentType != TYPE_ARRIVALS )
+            throw new IllegalArgumentException("WRONG KIND OF FRAGMENT USED");
         NearbyStopsFragment fragment = new NearbyStopsFragment();
-        Bundle args = new Bundle();
+        final Bundle args = new Bundle(1);
+        args.putInt(FRAGMENT_TYPE_KEY,fragmentType);
         fragment.setArguments(args);
         return fragment;
     }
+
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            /*
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-            */
+            setFragmentType(getArguments().getInt(FRAGMENT_TYPE_KEY));
         }
         locManager = AppLocationManager.getInstance(getContext());
         fragmentLocationListener = new FragmentLocationListener(this);
@@ -114,6 +128,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
 
 
         globalSharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener);
+
 
     }
 
@@ -126,8 +141,11 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         gridLayoutManager = new AutoFitGridLayoutManager(getContext().getApplicationContext(), utils.convertDipToPixels(getContext(),COLUMN_WIDTH_DP));
         gridRecyclerView.setLayoutManager(gridLayoutManager);
         gridRecyclerView.setHasFixedSize(false);
-        loadingProgressBar  = (ProgressBar) root.findViewById(R.id.loadingBar);
+        circlingProgressBar = (ProgressBar) root.findViewById(R.id.loadingBar);
+        flatProgressBar = (ProgressBar) root.findViewById(R.id.horizontalProgressBar);
         messageTextView = (TextView) root.findViewById(R.id.messageTextView);
+        switchButton = (AppCompatButton) root.findViewById(R.id.switchButton);
+
         preferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
@@ -141,9 +159,70 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             }
         };
         scrollListener = new CommonScrollListener(mListener,false);
+        switchButton.setOnClickListener(v -> {
+            if(fragment_type==TYPE_ARRIVALS){
+                setFragmentType(TYPE_STOPS);
+                switchButton.setText(getString(R.string.show_arrivals));
+                if(dataAdapter!=null)
+                    gridRecyclerView.setAdapter(dataAdapter);
+
+            } else if (fragment_type==TYPE_STOPS){
+                setFragmentType(TYPE_ARRIVALS);
+                switchButton.setText(getString(R.string.show_stops));
+                if(arrivalsStopAdapter!=null)
+                    gridRecyclerView.setAdapter(arrivalsStopAdapter);
+            }
+            fragmentLocationListener.lastUpdateTime = -1;
+            locManager.removeLocationRequestFor(fragmentLocationListener);
+            locManager.addLocationRequestFor(fragmentLocationListener);
+        });
         return root;
     }
 
+    protected ArrayList<Stop> createStopListFromCursor(Cursor data){
+        ArrayList<Stop> stopList = new ArrayList<>();
+        final int col_id = data.getColumnIndex(StopsTable.COL_ID);
+        final int latInd = data.getColumnIndex(StopsTable.COL_LAT);
+        final int lonInd = data.getColumnIndex(StopsTable.COL_LONG);
+        final int nameindex = data.getColumnIndex(StopsTable.COL_NAME);
+        final int typeIndex = data.getColumnIndex(StopsTable.COL_TYPE);
+        final int linesIndex = data.getColumnIndex(StopsTable.COL_LINES_STOPPING);
+
+        data.moveToFirst();
+        for(int i=0; i<data.getCount();i++){
+            String[] routes = data.getString(linesIndex).split(",");
+
+            stopList.add(new Stop(data.getString(col_id),data.getString(nameindex),null,null,
+                            Route.Type.fromCode(data.getInt(typeIndex)),
+                            Arrays.asList(routes), //the routes should be compact, not normalized yet
+                            data.getDouble(latInd),data.getDouble(lonInd)
+                    )
+            );
+            //Log.d("NearbyStopsFragment","Got stop with id "+data.getString(col_id)+
+            //" and name "+data.getString(nameindex));
+            data.moveToNext();
+        }
+        return stopList;
+    }
+
+    /**
+     * Use this method to set the fragment type
+     * @param type the type, TYPE_ARRIVALS or TYPE_STOPS
+     */
+    private void setFragmentType(int type){
+        if(type!=TYPE_ARRIVALS && type !=TYPE_STOPS)
+            throw new IllegalArgumentException("type not recognized");
+        this.fragment_type = type;
+        switch(type){
+            case TYPE_ARRIVALS:
+
+                TIME_INTERVAL_REQUESTS = 5*1000;
+                break;
+            case TYPE_STOPS:
+                TIME_INTERVAL_REQUESTS = 1000;
+
+        }
+    }
 
 
     @Override
@@ -180,8 +259,9 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         }
         if(dataAdapter!=null){
             gridRecyclerView.setAdapter(dataAdapter);
-            loadingProgressBar.setVisibility(View.GONE);
+            circlingProgressBar.setVisibility(View.GONE);
         }
+        mListener.enableRefreshLayout(false);
         Log.d(DEBUG_TAG,"OnResume called");
 
         //Re-read preferences
@@ -203,6 +283,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        if(arrivalsManager!=null) arrivalsManager.cancelAllRequests();
     }
 
     @Override
@@ -223,10 +304,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        ArrayList<Stop> stopList = new ArrayList<>();
-        data.moveToFirst();
         if (0 > MAX_DISTANCE) throw new AssertionError();
-        if(!globalSharedPref.getBoolean(getString(R.string.databaseUpdatingPref),false) && (data.getCount()<MIN_NUM_STOPS || distance<=MAX_DISTANCE)){
+        if(!isDBUpdating() && (data.getCount()<MIN_NUM_STOPS || distance<=MAX_DISTANCE)){
             distance = distance*2;
             Bundle d = new Bundle();
             d.putParcelable(BUNDLE_LOCATION,lastReceivedLocation);
@@ -234,47 +313,28 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             return;
         }
         Log.d("LoadFromCursor","Number of nearby stops: "+data.getCount());
-        final int col_id = data.getColumnIndex(StopsTable.COL_ID);
-        final int latInd = data.getColumnIndex(StopsTable.COL_LAT);
-        final int lonInd = data.getColumnIndex(StopsTable.COL_LONG);
-        final int nameindex = data.getColumnIndex(StopsTable.COL_NAME);
-        final int typeIndex = data.getColumnIndex(StopsTable.COL_TYPE);
-        final int linesIndex = data.getColumnIndex(StopsTable.COL_LINES_STOPPING);
-        for(int i=0; i<data.getCount();i++){
-            String[] routes = data.getString(linesIndex).split(",");
-
-            stopList.add(new Stop(data.getString(col_id),data.getString(nameindex),null,null,
-                    Route.Type.fromCode(data.getInt(typeIndex)),
-                    Arrays.asList(routes), //the routes should be compact, not normalized yet
-                    data.getDouble(latInd),data.getDouble(lonInd)
-                    )
-            );
-            //Log.d("NearbyStopsFragment","Got stop with id "+data.getString(col_id)+
-            //" and name "+data.getString(nameindex));
-            data.moveToNext();
-        }
+        ////////
+        ArrayList<Stop> stopList = createStopListFromCursor(data);
         if(data.getCount()>0) {
             //quick trial to hopefully always get the stops in the correct order
             Collections.sort(stopList,new StopSorterByDistance(lastReceivedLocation));
+            switch (fragment_type){
+                case TYPE_STOPS:
+                    showStopsInRecycler(stopList);
+                    break;
+                case TYPE_ARRIVALS:
+                    arrivalsManager = new ArrivalsManager(stopList);
+                    flatProgressBar.setVisibility(View.VISIBLE);
+                    flatProgressBar.setProgress(0);
+                    flatProgressBar.setIndeterminate(false);
+                    //for the moment, be satisfied with only one location
+                    //AppLocationManager.getInstance(getContext()).removeLocationRequestFor(fragmentLocationListener);
+                    break;
+                default:
+            }
 
-            if(firstLoc) {
-                dataAdapter = new SquareStopAdapter(stopList, mListener, lastReceivedLocation);
-                gridRecyclerView.setAdapter(dataAdapter);
-                firstLoc = false;
-            }else {
-                dataAdapter.setStops(stopList);
-                dataAdapter.setUserPosition(lastReceivedLocation);
-            }
-            dataAdapter.notifyDataSetChanged();
-            if (gridRecyclerView.getVisibility() != View.VISIBLE) {
-                loadingProgressBar.setVisibility(View.GONE);
-                gridRecyclerView.setVisibility(View.VISIBLE);
-            }
-            messageTextView.setVisibility(View.GONE);
         } else {
-            messageTextView.setVisibility(View.VISIBLE);
-            messageTextView.setText(R.string.no_stops_nearby);
-            loadingProgressBar.setVisibility(View.GONE);
+            setNoStopsLayout();
         }
 
     }
@@ -283,6 +343,176 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     public void onLoaderReset(Loader<Cursor> loader) {
     }
 
+    //useful methods
+    protected boolean isDBUpdating(){
+        return globalSharedPref.getBoolean(getString(R.string.databaseUpdatingPref),false);
+    }
+
+
+    /////// GUI METHODS ////////
+    private void showStopsInRecycler(List<Stop> stops){
+
+        if(firstLocForStops) {
+            dataAdapter = new SquareStopAdapter(stops, mListener, lastReceivedLocation);
+            gridRecyclerView.setAdapter(dataAdapter);
+            firstLocForStops = false;
+        }else {
+            dataAdapter.setStops(stops);
+            dataAdapter.setUserPosition(lastReceivedLocation);
+        }
+        dataAdapter.notifyDataSetChanged();
+
+        //showRecyclerHidingLoadMessage();
+        if (gridRecyclerView.getVisibility() != View.VISIBLE) {
+            circlingProgressBar.setVisibility(View.GONE);
+            gridRecyclerView.setVisibility(View.VISIBLE);
+        }
+        messageTextView.setVisibility(View.GONE);
+    }
+
+    private void showArrivalsInRecycler(List<Palina> palinas){
+        Collections.sort(palinas,new StopSorterByDistance(lastReceivedLocation));
+
+        final ArrayList<Pair<Stop,Route>> routesPairList = new ArrayList<>(10);
+        //int maxNum = Math.min(MAX_STOPS, stopList.size());
+        for(Palina p: palinas){
+            //if there are no routes available, skip stop
+            if(p.queryAllRoutes().size() == 0) continue;
+            for(Route r: p.queryAllRoutes()){
+                //if there are no routes, should not do anything
+                routesPairList.add(new Pair<>(p,r));
+            }
+        }
+        if(firstLocForArrivals){
+            arrivalsStopAdapter = new ArrivalsStopAdapter(routesPairList,mListener,getContext(),lastReceivedLocation);
+            gridRecyclerView.setAdapter(arrivalsStopAdapter);
+            firstLocForArrivals = false;
+        } else {
+            arrivalsStopAdapter.setRoutesPairListAndPosition(routesPairList,lastReceivedLocation);
+        }
+
+        arrivalsStopAdapter.notifyDataSetChanged();
+
+        showRecyclerHidingLoadMessage();
+    }
+
+    private void setNoStopsLayout(){
+        messageTextView.setVisibility(View.VISIBLE);
+        messageTextView.setText(R.string.no_stops_nearby);
+        circlingProgressBar.setVisibility(View.GONE);
+    }
+
+    /**
+     * Does exactly what is says on the tin
+     */
+    private void showRecyclerHidingLoadMessage(){
+        if (gridRecyclerView.getVisibility() != View.VISIBLE) {
+            circlingProgressBar.setVisibility(View.GONE);
+            gridRecyclerView.setVisibility(View.VISIBLE);
+        }
+        messageTextView.setVisibility(View.GONE);
+    }
+
+    class ArrivalsManager implements FiveTAPIVolleyRequest.ResponseListener, Response.ErrorListener{
+        final HashMap<String,Palina> mStops;
+        final Map<String,List<Route>> routesToAdd = new HashMap<>();
+        final static String REQUEST_TAG = "NearbyArrivals";
+        private final QueryType[] types = {QueryType.ARRIVALS,QueryType.DETAILS};
+        final NetworkVolleyManager volleyManager;
+        private final int MAX_ARRIVAL_STOPS =35;
+        int activeRequestCount = 0,reqErrorCount = 0, reqSuccessCount=0;
+
+        ArrivalsManager(List<Stop> stops){
+            mStops = new HashMap<>();
+            volleyManager = NetworkVolleyManager.getInstance(getContext());
+
+            for(Stop s: stops.subList(0,Math.min(stops.size(), MAX_ARRIVAL_STOPS))){
+                mStops.put(s.ID,new Palina(s));
+                for(QueryType t: types) {
+                    final FiveTAPIVolleyRequest req = FiveTAPIVolleyRequest.getNewRequest(t, s.ID, this, this);
+                    if (req != null) {
+                        req.setTag(REQUEST_TAG);
+                        volleyManager.addToRequestQueue(req);
+                        activeRequestCount++;
+                    }
+                }
+            }
+            flatProgressBar.setMax(activeRequestCount);
+        }
+
+
+
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            if(error instanceof ParseError){
+                //TODO
+                Log.w(DEBUG_TAG,"Parsing error for stop request");
+            } else if (error instanceof NetworkError){
+                String s;
+                if(error.networkResponse!=null)
+                    s = new String(error.networkResponse.data);
+                else s="";
+                Log.w(DEBUG_TAG,"Network error: "+s);
+            }else {
+                Log.w(DEBUG_TAG,"Volley Error: "+error.getMessage());
+            }
+            if(error.networkResponse!=null){
+                Log.w(DEBUG_TAG, "Error status code: "+error.networkResponse.statusCode);
+            }
+            //counters
+            activeRequestCount--;
+            reqErrorCount++;
+            flatProgressBar.setProgress(reqErrorCount+reqSuccessCount);
+        }
+
+        @Override
+        public void onResponse(Palina result, QueryType type) {
+            //counter for requests
+            activeRequestCount--;
+            reqSuccessCount++;
+
+
+            final Palina palinaInMap = mStops.get(result.ID);
+            //palina cannot be null here
+            if(palinaInMap == null) throw new IllegalStateException("Cannot get the palina from the map");
+            //necessary to split the Arrivals and Details cases
+            switch (type){
+                case ARRIVALS:
+                    palinaInMap.addInfoFromRoutes(result.queryAllRoutes());
+                    final List<Route> possibleRoutes = routesToAdd.get(result.ID);
+                    if(possibleRoutes!=null) {
+                        palinaInMap.addInfoFromRoutes(possibleRoutes);
+                        routesToAdd.remove(result.ID);
+                    }
+                break;
+                case DETAILS:
+                    if(palinaInMap.queryAllRoutes().size()>0){
+                        //merge the branches
+                        palinaInMap.addInfoFromRoutes(result.queryAllRoutes());
+                    } else {
+                        routesToAdd.put(result.ID,result.queryAllRoutes());
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Wrong QueryType in onResponse");
+            }
+
+            final ArrayList<Palina> outList = new ArrayList<>();
+            for(Palina p: mStops.values()){
+                final List<Route> routes = p.queryAllRoutes();
+                if(routes!=null && routes.size()>0) outList.add(p);
+            }
+            showArrivalsInRecycler(outList);
+            flatProgressBar.setProgress(reqErrorCount+reqSuccessCount);
+            if(activeRequestCount==0) {
+                flatProgressBar.setIndeterminate(true);
+                flatProgressBar.setVisibility(View.GONE);
+            }
+        }
+        void cancelAllRequests(){
+            volleyManager.getRequestQueue().cancelAll(REQUEST_TAG);
+        }
+    }
     /**
      * Local locationListener, to use for the GPS
      */
@@ -291,6 +521,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         LoaderManager.LoaderCallbacks<Cursor> callbacks;
         private int oldLocStatus = -2;
         private LocationCriteria cr;
+        private long lastUpdateTime = -1;
 
         public FragmentLocationListener(LoaderManager.LoaderCallbacks<Cursor> callbacks) {
             this.callbacks = callbacks;
@@ -306,6 +537,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
                 msgBundle.putParcelable(BUNDLE_LOCATION,location);
                 getLoaderManager().restartLoader(LOADER_ID,msgBundle,callbacks);
             }
+            lastUpdateTime = System.currentTimeMillis();
             Log.d("LocationListener","can start loader "+ canStartDBQuery);
         }
 
@@ -326,10 +558,16 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
 
         @Override
         public LocationCriteria getLocationCriteria() {
-            if(cr==null){
-                cr = new LocationCriteria(60);
-            }
-            return cr;
+
+            return new LocationCriteria(60,TIME_INTERVAL_REQUESTS);
+        }
+
+        @Override
+        public long getLastUpdateTimeMillis() {
+            return lastUpdateTime;
+        }
+        void resetUpdateTime(){
+            lastUpdateTime = -1;
         }
     }
 

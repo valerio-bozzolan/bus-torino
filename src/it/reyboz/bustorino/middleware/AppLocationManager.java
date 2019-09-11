@@ -45,6 +45,7 @@ public class AppLocationManager implements LocationListener {
     private final String BUNDLE_LOCATION =  "location";
     private static AppLocationManager instance;
     private int oldGPSLocStatus = LOCATION_UNAVAILABLE;
+    private int minimum_time_milli = -1;
 
     private ArrayList<WeakReference<LocationRequester>> requestersRef = new ArrayList<>();
 
@@ -60,47 +61,68 @@ public class AppLocationManager implements LocationListener {
     }
     
 
-    private void startRequestingPosition(){
+    private void requestGPSPositionUpdates(){
+        final int timeinterval = (minimum_time_milli>0 && minimum_time_milli<Integer.MAX_VALUE)? minimum_time_milli : 2000;
         try {
-            locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, this);
+            locMan.removeUpdates(this);
+            locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, timeinterval, 5, this);
         } catch (SecurityException exc){
             exc.printStackTrace();
             Toast.makeText(con,"Cannot access GPS location",Toast.LENGTH_SHORT).show();
         }
     }
-    private void cleanRequesters(){
+    private void cleanAndUpdateRequesters(){
+        minimum_time_milli = Integer.MAX_VALUE;
         ListIterator<WeakReference<LocationRequester>> iter = requestersRef.listIterator();
         while(iter.hasNext()){
             final LocationRequester cReq = iter.next().get();
             if(cReq==null) iter.remove();
+            else {
+                minimum_time_milli = Math.min(cReq.getLocationCriteria().getTimeInterval(),minimum_time_milli);
+            }
         }
+        Log.d(DEBUG_TAG,"Updated requesters, got "+requestersRef.size()+" listeners to update every "+minimum_time_milli+" ms at least");
     }
 
 
     public void addLocationRequestFor(LocationRequester req){
         boolean present = false;
+        minimum_time_milli = Integer.MAX_VALUE;
         ListIterator<WeakReference<LocationRequester>> iter = requestersRef.listIterator();
         while(iter.hasNext()){
             final LocationRequester cReq = iter.next().get();
             if(cReq==null) iter.remove();
             else if(cReq.equals(req)){
                 present = true;
+                minimum_time_milli = Math.min(cReq.getLocationCriteria().getTimeInterval(),minimum_time_milli);
             }
         }
         if(!present) {
             WeakReference<LocationRequester> newref = new WeakReference<>(req);
             requestersRef.add(newref);
+            minimum_time_milli = Math.min(req.getLocationCriteria().getTimeInterval(),minimum_time_milli);
+            Log.d(DEBUG_TAG,"Added new stop requester, instance of "+req.getClass().getSimpleName());
         }
         if(requestersRef.size()>0){
-            startRequestingPosition();
+            requestGPSPositionUpdates();
+
         }
 
     }
     public void removeLocationRequestFor(LocationRequester req){
+        minimum_time_milli = Integer.MAX_VALUE;
         ListIterator<WeakReference<LocationRequester>> iter = requestersRef.listIterator();
         while(iter.hasNext()){
             final LocationRequester cReq = iter.next().get();
             if(cReq==null || cReq.equals(req)) iter.remove();
+            else {
+                minimum_time_milli = Math.min(cReq.getLocationCriteria().getTimeInterval(),minimum_time_milli);
+            }
+        }
+        if(requestersRef.size()<=0){
+            locMan.removeUpdates(this);
+        } else {
+            requestGPSPositionUpdates();
         }
     }
     private void sendLocationStatusToAll(int status){
@@ -116,17 +138,23 @@ public class AppLocationManager implements LocationListener {
     public void onLocationChanged(Location location) {
         Log.d("GPSLocationListener","found location:\nlat: "+location.getLatitude()+" lon: "+location.getLongitude()+"\naccuracy: "+location.getAccuracy());
         ListIterator<WeakReference<LocationRequester>> iter = requestersRef.listIterator();
+        int new_min_interval = Integer.MAX_VALUE;
         while(iter.hasNext()){
-            final LocationRequester cReq = iter.next().get();
-            if(cReq==null) iter.remove();
+            final LocationRequester requester = iter.next().get();
+            if(requester==null) iter.remove();
             else{
-                final LocationCriteria cr = cReq.getLocationCriteria();
-                if(location.getAccuracy()<cr.getMinAccuracy()){
-                    cReq.onLocationChanged(location);
+                final long timeNow = System.currentTimeMillis();
+                final LocationCriteria criteria = requester.getLocationCriteria();
+                if(location.getAccuracy()<criteria.getMinAccuracy() &&
+                            (timeNow - requester.getLastUpdateTimeMillis())>criteria.getTimeInterval()){
+                    requester.onLocationChanged(location);
+                    Log.d("AppLocationManager","Updating position for instance of requester "+requester.getClass().getSimpleName());
                 }
-
+                //update minimum time interval
+                new_min_interval = Math.min(requester.getLocationCriteria().getTimeInterval(),new_min_interval);
             }
         }
+        minimum_time_milli = new_min_interval;
         if(requestersRef.size()==0){
             //stop requesting the position
             locMan.removeUpdates(this);
@@ -151,7 +179,7 @@ public class AppLocationManager implements LocationListener {
 
     @Override
     public void onProviderEnabled(String provider) {
-        startRequestingPosition();
+        requestGPSPositionUpdates();
     }
 
     @Override
@@ -163,6 +191,7 @@ public class AppLocationManager implements LocationListener {
     public interface LocationRequester{
         void onLocationChanged(Location loc);
         void onLocationStatusChanged(int status);
+        long getLastUpdateTimeMillis();
         LocationCriteria getLocationCriteria();
     }
 }

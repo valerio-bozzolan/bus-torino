@@ -26,7 +26,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import java.util.List;
+    import java.util.List;
 
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Palina;
@@ -97,7 +97,7 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
         }
 
         Route route = getItem(position);
-        vh.rowStopIcon.setText(route.name);
+        vh.rowStopIcon.setText(route.getNameForDisplay());
         if(route.destinazione==null || route.destinazione.length() == 0) {
             vh.rowRouteDestination.setVisibility(View.GONE);
         } else {
@@ -136,12 +136,7 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
         if(passaggi.size() == 0) {
             vh.rowRouteTimetable.setText(R.string.no_passages);
         } else {
-            String resultString = "";
-            for(Passaggio passaggio : passaggi) {
-                // "+" calls concat() and some other stuff internally, this should be faster
-                resultString = resultString.concat(passaggio.toString()).concat(" ");
-            }
-            vh.rowRouteTimetable.setText(resultString);
+            vh.rowRouteTimetable.setText(route.getPassaggiToString());
         }
 
         return convertView;

@@ -112,6 +112,11 @@ public class Stop implements Comparable<Stop> {
         this.routesThatStopHere = routesThatStopHere;
     }
 
+    @Nullable
+    protected List<String> getRoutesThatStopHere(){
+        return routesThatStopHere;
+    }
+
     private @Nullable String buildString() {
         // no routes => no string
         if(this.routesThatStopHere == null || this.routesThatStopHere.size() == 0) {

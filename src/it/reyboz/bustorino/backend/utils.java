@@ -17,7 +17,7 @@ public abstract class utils {
                 Math.cos(phi1)*Math.cos(phi2)*Math.sin(deltaTheta/2)*Math.sin(deltaTheta/2);
         final double c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 
-        return EarthRadius*c;
+        return Math.abs(EarthRadius*c);
 
     }
     public static int convertDipToPixels(Context con,float dips)

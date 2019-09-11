@@ -102,4 +102,9 @@
     <string name="pref_recents_group_title">Recent stops</string>
     <string name="enableGpsText">Please enable GPS</string>
     <string name="database_update_message">Database update in progress&#8230;</string>
+    <string name="bus_arriving_at">is arriving at</string>
+    <string name="arrivals_card_at_the_stop">at the stop</string>
+    <string name="two_strings_format" translatable="false">%1$s - %2$s</string>
+    <string name="show_arrivals">Show arrivals</string>
+    <string name="show_stops">Show stops</string>
 </resources>

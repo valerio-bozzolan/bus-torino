@@ -38,23 +38,11 @@ public class Palina extends Stop {
         super(stopID);
     }
 
+    public Palina(Stop s){
+        super(s.ID,s.getStopDefaultName(),s.getStopUserName(),s.location,s.type,
+                s.getRoutesThatStopHere(),s.getLatitude(),s.getLongitude());
+    }
 
-    /**
-     * Adds a route to the timetable.
-     *
-     * @param routeID name
-     * @param type bus, underground, railway, ...
-     * @param destinazione end of line\terminus (underground stations have the same ID for both directions)
-     * @return array index for this route
-     */
-    public int addRoute(String routeID, String destinazione, Route.Type type) {
-        this.routes.add(new Route(routeID, destinazione, type, new ArrayList<Passaggio>(6)));
-        return this.routes.size() - 1; // last inserted element and pray that direct access to ArrayList elements really is direct
-    }
-    public int addRoute(Route r){
-        this.routes.add(r);
-        return this.routes.size()-1;
-    }
 
     /**
      * Adds a timetable entry to a route.
@@ -78,6 +66,28 @@ public class Palina extends Stop {
         }
         return i;
     }
+
+    /**
+     * Adds a route to the timetable.
+     *
+     * @param routeID name
+     * @param type bus, underground, railway, ...
+     * @param destinazione end of line\terminus (underground stations have the same ID for both directions)
+     * @return array index for this route
+     */
+    public int addRoute(String routeID, String destinazione, Route.Type type) {
+        this.routes.add(new Route(routeID, destinazione, type, new ArrayList<Passaggio>(6)));
+        return this.routes.size() - 1; // last inserted element and pray that direct access to ArrayList elements really is direct
+    }
+    public int addRoute(Route r){
+        this.routes.add(r);
+        return this.routes.size()-1;
+    }
+    public void setRoutes(List<Route> routeList){
+        routes = new ArrayList<>(routeList);
+    }
+
+
 //    /**
 //     * Clears a route timetable (or creates an empty route) and returns its index
 //     *
@@ -177,7 +187,7 @@ public class Palina extends Stop {
             while (!correct) {
                 //find the correct route to merge to
                 // scan routes and find the first which has the same name
-                while (j < additionalRoutes.size() && !r.name.equals(additionalRoutes.get(j).name)) {
+                while (j < additionalRoutes.size() && !r.getName().equals(additionalRoutes.get(j).getName())) {
                     j++;
                 }
                 if (j == additionalRoutes.size()) break; //no match has been found
@@ -214,7 +224,7 @@ public class Palina extends Stop {
                 }
             }
             if (!correct || selected == null) {
-                Log.w("Palina_mergeRoutes","Cannot match the route with name "+r.name);
+                Log.w("Palina_mergeRoutes","Cannot match the route with name "+r.getName());
                 continue; //we didn't find any match
             }
             //found the correct correspondance
@@ -223,6 +233,8 @@ public class Palina extends Stop {
         }
         return count;
     }
+
+
 
 //    /**
 //     * Route with terminus (destinazione) and timetables (passaggi), internal implementation.

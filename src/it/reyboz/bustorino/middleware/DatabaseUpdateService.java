@@ -178,7 +178,7 @@ public class DatabaseUpdateService extends IntentService {
         startTime = System.currentTimeMillis();
         for (Route r: routes){
             final ContentValues cv = new ContentValues();
-            cv.put(LinesTable.COLUMN_NAME,r.name);
+            cv.put(LinesTable.COLUMN_NAME,r.getName());
             switch (r.type){
                 case BUS:
                     cv.put(LinesTable.COLUMN_TYPE,"URBANO");
@@ -193,7 +193,7 @@ public class DatabaseUpdateService extends IntentService {
             cv.put(LinesTable.COLUMN_DESCRIPTION,r.description);
 
             //db.insert(LinesTable.TABLE_NAME,null,cv);
-            int rows = db.update(LinesTable.TABLE_NAME,cv,LinesTable.COLUMN_NAME+" = ?",new String[]{r.name});
+            int rows = db.update(LinesTable.TABLE_NAME,cv,LinesTable.COLUMN_NAME+" = ?",new String[]{r.getName()});
             if(rows<1){ //we haven't changed anything
                 db.insert(LinesTable.TABLE_NAME,null,cv);
             }

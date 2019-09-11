@@ -56,6 +56,17 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
             return p;
         }
 
+        List<Route> routes = parseArrivalsServerResponse(response,res);
+        for(Route r: routes){
+            p.addRoute(r);
+        }
+        res.set(result.OK);
+        p.sortRoutes();
+        return p;
+    }
+
+    List<Route> parseArrivalsServerResponse(String JSONresponse, AtomicReference<result> res){
+        ArrayList<Route> routes = new ArrayList<>(3);
         /*
          Slight problem:
          "longName": ==> DESCRIPTION
@@ -70,7 +81,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
          */
         JSONArray arr;
         try{
-            arr = new JSONArray(response);
+            arr = new JSONArray(JSONresponse);
             String type;
             Route.Type routetype;
             for(int i =0; i<arr.length();i++){
@@ -88,7 +99,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
 
                 //TODO: parse the line description
                 Route r = new Route(lineName,routetype,lineJSON.getString("longName"));
-                Log.d(DEBUG_NAME,"Creating line with name "+lineJSON.getString("name")+" and description "+lineJSON.getString("longName"));
+                //Log.d(DEBUG_NAME,"Creating line with name "+lineJSON.getString("name")+" and description "+lineJSON.getString("longName"));
                 final JSONArray passagesJSON = lineJSON.getJSONArray("departures");
 
                 for(int j=0;j<passagesJSON.length();j++){
@@ -97,26 +108,23 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                     r.addPassaggio(passaggio, Passaggio.Source.FiveTAPI);
                     //Log.d(DEBUG_NAME,"Adding passage with time "+arrival.getString("time")+"\nrealtime="+arrival.getBoolean("rt"));
                 }
-                p.addRoute(r);
+                routes.add(r);
             }
 
         } catch (JSONException e) {
             e.printStackTrace();
             res.set(result.PARSER_ERROR);
-            return p;
+            return routes;
         }
-        p.sortRoutes();
+        Collections.sort(routes);
         res.set(result.OK);
-        return p;
+        return routes;
     }
 
-    public List<Route> getDirectionsForStop(String stopID, AtomicReference<result> res) {
 
-        String response = performAPIRequest(QueryType.DETAILS,stopID,res);
-        if(response == null) return null;
+    public List<Route> parseDirectionsFromResponse(String response) throws IllegalArgumentException,JSONException{
+        if(response == null || response.length()==0) throw new IllegalArgumentException("Response string is null or void");
         ArrayList<Route> routes = new ArrayList<>(10);
-
-        try {
             JSONArray lines =new JSONArray(response);
             for(int i=0; i<lines.length();i++){
                 Route.FestiveInfo festivo = Route.FestiveInfo.UNKNOWN;
@@ -143,10 +151,12 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                         serviceDays = Route.weekend;
                         festivo = Route.FestiveInfo.FESTIVO;
                     } else {
+                        /*
                         Log.d(DEBUG_NAME,"Parsing details of line "+lineName+" branchid "+branchid+":\n\t"+
-                            "Couldn't find a the service days\n"+
-                            "Description: "+secondo+","+description
+                                "Couldn't find a the service days\n"+
+                                "Description: "+secondo+","+description
                         );
+                         */
                     }
                     if(exploded.length>2){
                         switch (exploded[exploded.length-3].trim()) {
@@ -173,7 +183,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                     //Sometimes the actual filtered direction is instead the full line (including both extremes)
                     direction = direction.split("-")[1];
                 }
-                Route r = new Route(lineName.trim(),direction.trim(),t,null);
+                Route r = new Route(lineName.trim(),direction.trim(),t,new ArrayList<>());
                 if(serviceDays.length>0) r.serviceDays = serviceDays;
                 r.festivo = festivo;
                 r.branchid = branchid;
@@ -183,12 +193,20 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                 routes.add(r);
             }
 
-            res.set(result.OK);
+        return routes;
+    }
 
+    public List<Route> getDirectionsForStop(String stopID, AtomicReference<result> res) {
+
+        String response = performAPIRequest(QueryType.DETAILS,stopID,res);
+        List<Route> routes;
+        try{
+            routes = parseDirectionsFromResponse(response);
+            res.set(result.OK);
         } catch (JSONException e) {
-            res.set(result.PARSER_ERROR);
             e.printStackTrace();
-            return null;
+            res.set(result.PARSER_ERROR);
+            routes = null;
         }
         return routes;
     }
@@ -243,6 +261,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
 
         return stopslist;
     }
+
     @Nullable
     public ArrayList<Route> getAllLinesFromGTT(AtomicReference<result> res){
 
@@ -284,7 +303,24 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         return routes;
     }
 
+    /**
+     * Useful to get all the headers for the GTT server
+     * @param url of the request
+     * @return the request headers
+     * @throws UnsupportedEncodingException from inner method
+     * @throws NoSuchAlgorithmException from inner methods
+     */
+    public static Map<String,String> getHeadersForRequest(String url) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        final Date d = new Date();
+        HashMap<String, String> param = new HashMap<>();
+        param.put("TOKEN",getAccessToken(url,d));
+        param.put("TIMESTAMP",String.valueOf(d.getTime()));
+        param.put("Accept-Encoding","gzip");
+        param.put("Connection","Keep-Alive");
 
+        return param;
+
+    }
 
     /**
      * Create and perform the network request. This method adds parameters and returns the result
@@ -295,17 +331,13 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
      */
     @Nullable
     public static String performAPIRequest(QueryType t,@Nullable String stopID, AtomicReference<result> res){
-        Date d = new Date();
         URL u;
-        Hashtable<String,String> param = new Hashtable<>();
+        Map<String,String> param;
 
         try {
             String address  = getURLForOperation(t,stopID);
             //Log.d(DEBUG_NAME,"The address to query is: "+address);
-            param.put("TOKEN",getAccessToken(address,d));
-            param.put("TIMESTAMP",String.valueOf(d.getTime()));
-            param.put("Accept-Encoding","gzip");
-            param.put("Connection","Keep-Alive");
+            param = getHeadersForRequest(address);
             u = new URL(address);
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException |MalformedURLException e) {
             e.printStackTrace();
@@ -353,7 +385,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
      * @return the Url to go to
      * @throws UnsupportedEncodingException if it cannot be converted to utf-8
      */
-    private static String getURLForOperation(QueryType t,@Nullable String stopID) throws UnsupportedEncodingException {
+    public static String getURLForOperation(QueryType t,@Nullable String stopID) throws UnsupportedEncodingException {
         final StringBuilder sb = new StringBuilder();
         sb.append("http://www.5t.torino.it/proxyws/ws2.1/rest/");
         if(t!=QueryType.LINES) sb.append("stops/");

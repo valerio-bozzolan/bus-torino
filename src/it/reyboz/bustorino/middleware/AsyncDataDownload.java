@@ -251,7 +251,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                 //otherwise, build contentValues
                 final ContentValues cv = new ContentValues();
                 cv.put(BranchesTable.COL_BRANCHID,r.branchid);
-                cv.put(LinesTable.COLUMN_NAME,r.name);
+                cv.put(LinesTable.COLUMN_NAME,r.getName());
                 cv.put(BranchesTable.COL_DIRECTION,r.destinazione);
                 cv.put(BranchesTable.COL_DESCRIPTION,r.description);
                 for (int day :r.serviceDays) {
