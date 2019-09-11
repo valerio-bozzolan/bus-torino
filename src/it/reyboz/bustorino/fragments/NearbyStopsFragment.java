@@ -257,10 +257,20 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             //ignored
             //try another location provider
         }
-        if(dataAdapter!=null){
-            gridRecyclerView.setAdapter(dataAdapter);
-            circlingProgressBar.setVisibility(View.GONE);
+        switch(fragment_type){
+            case TYPE_STOPS:
+                if(dataAdapter!=null){
+                    gridRecyclerView.setAdapter(dataAdapter);
+                    circlingProgressBar.setVisibility(View.GONE);
+                }
+                break;
+            case TYPE_ARRIVALS:
+                if(arrivalsStopAdapter!=null){
+                    gridRecyclerView.setAdapter(arrivalsStopAdapter);
+                    circlingProgressBar.setVisibility(View.GONE);
+                }
         }
+
         mListener.enableRefreshLayout(false);
         Log.d(DEBUG_TAG,"OnResume called");
 

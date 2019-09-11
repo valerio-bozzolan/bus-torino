@@ -26,11 +26,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.fragments.FragmentListener;
+import it.reyboz.bustorino.util.RoutePositionSorter;
 import it.reyboz.bustorino.util.StopSorterByDistance;
 
 import java.util.*;
@@ -50,7 +50,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
         userPosition = pos;
         this.routesPairList = routesPairList;
         context = con.getApplicationContext();
-        Collections.sort(this.routesPairList,new RoutePositionSorter(pos));
+        resetListAndPosition();
         // if(paline!=null)
         //resetRoutesPairList(paline);
     }
@@ -149,7 +149,6 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
                 routesPairList.add(new Pair<>(p,r));
             }
         }
-        //TODO: Sort pairs based on position and arrival times
     }
 
     public void setUserPosition(@Nullable Location userPosition) {
@@ -162,53 +161,25 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
         if(pos!=null){
             this.userPosition = pos;
         }
+        resetListAndPosition();
+
+    }
+    private void resetListAndPosition(){
         Collections.sort(this.routesPairList,new RoutePositionSorter(userPosition));
-
-    }
-
-    /*
-        @Override
-        public Stop getItem(int position) {
-            return stops.get(position);
-        }
-        */
-    class RoutePositionSorter implements Comparator<Pair<Stop,Route>>{
-        private final Location loc;
-        private final double minutialmetro = 6.0/100; //v = 5km/h
-        private final double distancemultiplier = 1./2;
-        public RoutePositionSorter(Location loc) {
-            this.loc = loc;
-        }
-
-        @Override
-        public int compare(Pair<Stop, Route> pair1, Pair<Stop, Route> pair2) throws NullPointerException{
-            int delta = 0;
-            final Stop stop1 = pair1.first, stop2 = pair2.first;
-            double dist1 = utils.measuredistanceBetween(loc.getLatitude(),loc.getLongitude(),
-                    stop1.getLatitude(),stop1.getLongitude());
-            double dist2 = utils.measuredistanceBetween(loc.getLatitude(),loc.getLongitude(),
-                    stop2.getLatitude(),stop2.getLongitude());
-            final List<Passaggio> passaggi1 = pair1.second.passaggi,
-                    passaggi2 = pair2.second.passaggi;
-            if(passaggi1.size()<=0 || passaggi2.size()<=0){
-                Log.e("ArrivalsStopAdapter","Cannot compare: No arrivals in one of the stops");
+        //All of this to get only the first occurrences of a line (name & direction)
+        ListIterator<Pair<Stop,Route>> iterator = routesPairList.listIterator();
+        Set<Pair<String,String>> allRoutesDirections = new HashSet<>();
+        while(iterator.hasNext()){
+            final Pair<Stop,Route> stopRoutePair = iterator.next();
+            final Pair<String,String> routeNameDirection = new Pair<>(stopRoutePair.second.getName(),stopRoutePair.second.destinazione);
+            if(allRoutesDirections.contains(routeNameDirection)){
+                iterator.remove();
             } else {
-                Collections.sort(passaggi1);
-                Collections.sort(passaggi2);
-                int deltaOre = passaggi1.get(0).hh-passaggi2.get(0).hh;
-                if(deltaOre>12)
-                    deltaOre -= 24;
-                else if (deltaOre<-12)
-                    deltaOre  += 24;
-                delta+=deltaOre*60 + passaggi1.get(0).mm-passaggi2.get(0).mm;
+                allRoutesDirections.add(routeNameDirection);
             }
-            delta += (int)((dist1 -dist2)*minutialmetro*distancemultiplier);
-            return delta;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return obj instanceof RoutePositionSorter;
         }
     }
+
+
+
 }
