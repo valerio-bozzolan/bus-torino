@@ -33,7 +33,7 @@ import java.util.List;
 public class RoutePositionSorter implements Comparator<Pair<Stop, Route>> {
     private final Location loc;
     private final double minutialmetro = 6.0/100; //v = 5km/h
-    private final double distancemultiplier = 1./2;
+    private final double distancemultiplier = 2./3;
     public RoutePositionSorter(Location loc) {
         this.loc = loc;
     }

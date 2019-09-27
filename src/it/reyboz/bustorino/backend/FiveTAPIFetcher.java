@@ -38,7 +38,6 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
     private static final String DEBUG_NAME = "FiveTAPIFetcher";
     final static LinkedList<String> apiDays = new LinkedList<>(Arrays.asList("dom","lun","mar","mer","gio","ven","sab"));
 
-
     @Override
     public Palina ReadArrivalTimesAll(String stopID, AtomicReference<result> res) {
         //set the date for the request as now
@@ -129,8 +128,12 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
             for(int i=0; i<lines.length();i++){
                 Route.FestiveInfo festivo = Route.FestiveInfo.UNKNOWN;
                 final JSONObject branchJSON = lines.getJSONObject(i);
-                int branchid = branchJSON.getInt("branch");
+                final int branchid = branchJSON.getInt("branch");
                 String description = branchJSON.getString("description");
+                if(description.contains(" fittizi")){
+                    //this means that the branch is fake
+                    continue;
+                }
                 String direction = branchJSON.getString("direction");
                 String stops = branchJSON.getJSONObject("branchDetail").getString("stops");
                 String lineName = branchJSON.getString("lineName");
@@ -180,7 +183,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                     }
                 if(t == null &&(lineName.trim().equals("10")|| lineName.trim().equals("15"))) t= Route.Type.TRAM;
                 if(direction.contains("-")){
-                    //Sometimes the actual filtered direction is instead the full line (including both extremes)
+                    //Sometimes the actual filtered direction still remains the full line (including both extremes)
                     direction = direction.split("-")[1];
                 }
                 Route r = new Route(lineName.trim(),direction.trim(),t,new ArrayList<>());
