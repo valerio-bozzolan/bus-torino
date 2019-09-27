@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.*;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -564,11 +565,14 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         @SuppressLint("MissingPermission")
         @Override
         public void run() {
-            if(!getOption(LOCATION_PERMISSION_GIVEN, false)){
+            final boolean canRunPosition = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || getOption(LOCATION_PERMISSION_GIVEN, false);
+
+            if(!canRunPosition){
                 pendingNearbyStopsRequest = true;
                 assertLocationPermissions();
                 return;
-            }
+            } else setOption(LOCATION_PERMISSION_GIVEN,true);
+
             LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
             if(locManager == null) {
                 Log.e(DEBUG_TAG, "location manager is nihil, cannot create NearbyStopsFragment");

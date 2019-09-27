@@ -79,7 +79,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     private int distance;
     protected SharedPreferences globalSharedPref;
     private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
-    private TextView messageTextView;
+    private TextView messageTextView,titleTextView;
     private CommonScrollListener scrollListener;
     private AppCompatButton switchButton;
     private boolean firstLocForStops = true,firstLocForArrivals = true;
@@ -144,6 +144,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         circlingProgressBar = (ProgressBar) root.findViewById(R.id.loadingBar);
         flatProgressBar = (ProgressBar) root.findViewById(R.id.horizontalProgressBar);
         messageTextView = (TextView) root.findViewById(R.id.messageTextView);
+        titleTextView = (TextView) root.findViewById(R.id.titleTextView);
         switchButton = (AppCompatButton) root.findViewById(R.id.switchButton);
 
         preferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
@@ -160,22 +161,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         };
         scrollListener = new CommonScrollListener(mListener,false);
         switchButton.setOnClickListener(v -> {
-            if(fragment_type==TYPE_ARRIVALS){
-                setFragmentType(TYPE_STOPS);
-                switchButton.setText(getString(R.string.show_arrivals));
-                arrivalsManager.cancelAllRequests();
-                if(dataAdapter!=null)
-                    gridRecyclerView.setAdapter(dataAdapter);
-
-            } else if (fragment_type==TYPE_STOPS){
-                setFragmentType(TYPE_ARRIVALS);
-                switchButton.setText(getString(R.string.show_stops));
-                if(arrivalsStopAdapter!=null)
-                    gridRecyclerView.setAdapter(arrivalsStopAdapter);
-            }
-            fragmentLocationListener.lastUpdateTime = -1;
-            locManager.removeLocationRequestFor(fragmentLocationListener);
-            locManager.addLocationRequestFor(fragmentLocationListener);
+           switchFragmentType();
         });
         return root;
     }
@@ -352,6 +338,37 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+    }
+
+    /**
+     * To enable targeting from the Button
+     */
+    public void switchFragmentType(View v){
+        switchFragmentType();
+    }
+
+    /**
+     * Call when you need to switch the type of fragment
+     */
+    private void switchFragmentType(){
+        if(fragment_type==TYPE_ARRIVALS){
+            setFragmentType(TYPE_STOPS);
+            switchButton.setText(getString(R.string.show_arrivals));
+            titleTextView.setText(getString(R.string.nearby_stops_message));
+            arrivalsManager.cancelAllRequests();
+            if(dataAdapter!=null)
+                gridRecyclerView.setAdapter(dataAdapter);
+
+        } else if (fragment_type==TYPE_STOPS){
+            setFragmentType(TYPE_ARRIVALS);
+            titleTextView.setText(getString(R.string.nearby_arrivals_message));
+            switchButton.setText(getString(R.string.show_stops));
+            if(arrivalsStopAdapter!=null)
+                gridRecyclerView.setAdapter(arrivalsStopAdapter);
+        }
+        fragmentLocationListener.lastUpdateTime = -1;
+        locManager.removeLocationRequestFor(fragmentLocationListener);
+        locManager.addLocationRequestFor(fragmentLocationListener);
     }
 
     //useful methods
