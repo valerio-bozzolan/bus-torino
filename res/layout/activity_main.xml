@@ -96,21 +96,21 @@
 
 
     <TextView
-        android:id="@+id/howDoesItWorkTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/progressBar"
-        android:layout_marginBottom="10dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginLeft="16dip"
-        android:layout_marginRight="16dp"
-        android:layout_marginStart="16dip"
-        android:layout_toLeftOf="@+id/hideHintButton"
-        android:layout_toStartOf="@+id/hideHintButton"
-        android:text="@string/howDoesItWork"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="@color/blue_500"
-        android:visibility="gone" />
+            android:id="@+id/howDoesItWorkTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/progressBar"
+            android:paddingTop="10dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginLeft="16dip"
+            android:layout_marginRight="16dp"
+            android:layout_marginStart="16dip"
+            android:layout_toLeftOf="@+id/hideHintButton"
+            android:layout_toStartOf="@+id/hideHintButton"
+            android:text="@string/howDoesItWork"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/blue_500"
+            android:visibility="gone"/>
 
     <Button
         android:id="@+id/hideHintButton"

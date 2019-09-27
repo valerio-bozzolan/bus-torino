@@ -84,7 +84,7 @@ public class DatabaseUpdateService extends IntentService {
                 SharedPreferences shPr = getSharedPreferences(getString(R.string.mainSharedPreferences),MODE_PRIVATE);
                 int versionDB = shPr.getInt(DB_VERSION,-1);
                 final int trial = intent.getIntExtra(TRIAL,-1);
-
+                final SharedPreferences.Editor editor = shPr.edit();
                 updateTrial = trial;
                 UpdateRequestParams params = new UpdateRequestParams(intent);
                 int newVersion = getNewVersion(params);
@@ -94,9 +94,7 @@ public class DatabaseUpdateService extends IntentService {
                 }
                 Log.d(DEBUG_TAG,"newDBVersion: "+newVersion+" oldVersion: "+versionDB);
                 if(params.mustUpdate || versionDB==-1 || newVersion>versionDB){
-                    final SharedPreferences.Editor editor = shPr.edit();
-                    editor.putBoolean(getString(R.string.databaseUpdatingPref),true);
-                    editor.commit();
+
                     Log.d(DEBUG_TAG,"Downloading the bus stops info");
                     final AtomicReference<Fetcher.result> gres = new AtomicReference<>();
                     if(!performDBUpdate(gres))
@@ -112,13 +110,20 @@ public class DatabaseUpdateService extends IntentService {
 
 
                 Log.d(DEBUG_TAG,"Finished update");
-                final SharedPreferences.Editor editor = shPr.edit();
-                editor.putBoolean(getString(R.string.databaseUpdatingPref),false);
-                editor.commit();
+                setDBUpdatingFlag(shPr,false);
             }
         }
     }
+    private boolean setDBUpdatingFlag(SharedPreferences shPr,boolean value){
+        final SharedPreferences.Editor editor = shPr.edit();
+        editor.putBoolean(getString(R.string.databaseUpdatingPref),value);
+        return editor.commit();
+    }
 
+    private boolean setDBUpdatingFlag(boolean value){
+        final SharedPreferences shPr = getSharedPreferences(getString(R.string.mainSharedPreferences),MODE_PRIVATE);
+        return setDBUpdatingFlag(shPr,value);
+    }
     private boolean performDBUpdate(AtomicReference<Fetcher.result> gres){
 
         final FiveTAPIFetcher f = new FiveTAPIFetcher();
@@ -130,6 +135,9 @@ public class DatabaseUpdateService extends IntentService {
             return false;
 
         }
+
+        if(!setDBUpdatingFlag(true))
+            return false; //If the commit to the SharedPreferences didn't succeed, simply stop updating the database
         final NextGenDB dbHelp = new NextGenDB(getApplicationContext());
         final SQLiteDatabase db = dbHelp.getWritableDatabase();
         //Empty the needed tables

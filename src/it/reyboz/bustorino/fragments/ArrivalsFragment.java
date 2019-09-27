@@ -74,6 +74,10 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             public void onDBStatusChanged(boolean updating) {
                 if(!updating){
                     getLoaderManager().restartLoader(loaderFavId,getArguments(),f);
+                } else {
+                    final LoaderManager lm = getLoaderManager();
+                    lm.destroyLoader(loaderFavId);
+                    lm.destroyLoader(loaderStopId);
                 }
             }
 

@@ -63,6 +63,12 @@ public class NextGenDB extends SQLiteOpenHelper{
             Contract.StopsTable.COL_LOCATION+" TEXT, "+Contract.StopsTable.COL_PLACE+" TEXT, "+
             Contract.StopsTable.COL_LINES_STOPPING +" TEXT )";
 
+    private static final String SQL_CREATE_STOPS_TABLE_TO_COMPLETE = " ("+
+            Contract.StopsTable.COL_ID+" TEXT PRIMARY KEY, "+ Contract.StopsTable.COL_TYPE+" INTEGER, "+Contract.StopsTable.COL_LAT+" REAL NOT NULL, "+
+            Contract.StopsTable.COL_LONG+" REAL NOT NULL, "+ Contract.StopsTable.COL_NAME+" TEXT NOT NULL, "+
+            Contract.StopsTable.COL_LOCATION+" TEXT, "+Contract.StopsTable.COL_PLACE+" TEXT, "+
+            Contract.StopsTable.COL_LINES_STOPPING +" TEXT )";
+
     private Context appContext;
 
     public NextGenDB(Context context) {
@@ -106,6 +112,14 @@ public class NextGenDB extends SQLiteOpenHelper{
         super.onConfigure(db);
         db.execSQL("PRAGMA foreign_keys=ON");
 
+    }
+    public static String getSqlCreateStopsTable(String tableName){
+
+        return "CREATE TABLE "+tableName+" ("+
+                Contract.StopsTable.COL_ID+" TEXT PRIMARY KEY, "+ Contract.StopsTable.COL_TYPE+" INTEGER, "+Contract.StopsTable.COL_LAT+" REAL NOT NULL, "+
+                Contract.StopsTable.COL_LONG+" REAL NOT NULL, "+ Contract.StopsTable.COL_NAME+" TEXT NOT NULL, "+
+                Contract.StopsTable.COL_LOCATION+" TEXT, "+Contract.StopsTable.COL_PLACE+" TEXT, "+
+                Contract.StopsTable.COL_LINES_STOPPING +" TEXT )";
     }
 
     /**
