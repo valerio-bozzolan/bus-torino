@@ -81,6 +81,8 @@
     <string name="internal_error">Errore interno inaspettato, impossibile estrarre dati dal sito GTT/5T</string>
     <string name="action_view_on_map">Visualizza sulla mappa</string>
     <string name="cannot_show_on_map_no_activity">Non trovo un\'applicazione dove mostrarla</string>
+    <string name="cannot_show_on_map_no_position">Posizione della fermata non trovata</string>
+
 
     <string name="nearby_stops_message">Fermate vicine</string>
     <string name="position_searching_message">Ricerca della posizione in corso&#8230;</string>

@@ -107,7 +107,13 @@ public class ActivityFavorites extends AppCompatActivity implements LoaderManage
                 showBusStopUsernameInputDialog(busStop);
                 return true;
             case R.id.action_view_on_map:
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(busStop.getGeoURL()));
+                final String theGeoUrl = busStop.getGeoURL();
+                if(theGeoUrl==null){
+                    //doesn't have a position
+                    Toast.makeText(getApplicationContext(),R.string.cannot_show_on_map_no_position,Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(theGeoUrl));
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 if(intent.resolveActivity(getPackageManager())!=null)
                     startActivity(intent);

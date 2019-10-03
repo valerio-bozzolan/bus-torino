@@ -86,6 +86,7 @@
     <string name="cant_add_to_favorites">Cannot add to favorites (storage full or corrupted database?)!</string>
     <string name="action_view_on_map">View on a map</string>
     <string name="cannot_show_on_map_no_activity">Cannot find any application to show it in</string>
+    <string name="cannot_show_on_map_no_position">Cannot find the position of the stop</string>
 
     <string name="list_fragment_debug" translatable="false">ListFragment - BusTO</string>
     <string name="mainSharedPreferences" translatable="false">it.reyboz.bustorino.preferences</string>
