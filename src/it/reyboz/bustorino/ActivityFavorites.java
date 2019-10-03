@@ -20,6 +20,7 @@ package it.reyboz.bustorino;
 import android.database.Cursor;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.widget.*;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.adapters.StopAdapter;
 import it.reyboz.bustorino.middleware.StopsDB;
@@ -39,11 +40,7 @@ import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -112,7 +109,11 @@ public class ActivityFavorites extends AppCompatActivity implements LoaderManage
             case R.id.action_view_on_map:
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(busStop.getGeoURL()));
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                if(intent.resolveActivity(getPackageManager())!=null)
+                    startActivity(intent);
+                else {
+                    Toast.makeText(getApplicationContext(),R.string.cannot_show_on_map_no_activity,Toast.LENGTH_SHORT).show();
+                }
                 return true;
             default:
                 return super.onContextItemSelected(item);

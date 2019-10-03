@@ -41,7 +41,7 @@
 <![CDATA[
         <h1>Benvenuto!</h1>
         
-        <p>Grazie per aver scelto BusTO, un\'app \"politicamente\" <b>indipendente</b> da GTT/5T, per spostarsi a Torino attraverso <b>software libero</b>:</p>
+        <p>Grazie per aver scelto BusTO, un\'app <b>indipendente</b> da GTT/5T, per spostarsi a Torino attraverso <b>software libero</b>:</p>
 		
 		<p>Perché usare BusTO?</p>
 		<p>
@@ -58,9 +58,10 @@
 		- <b>Valerio Bozzolan</b> sviluppatore principale.<br>
 		- <b>Marco Gagino</b> intenso collaboratore, creatore dell\'icona, responsabile della grafica.<br>
 		- <b>Paolo Alloatti</b> per l\'idea dell\'icona.<br>
+		- <b>Ludovico Pavesi</b> che ha per primo aggiunto importanti nuove funzionalità all\'app.<br>
+		- <b>Fabio Mazza</b> ultimo arrivato tra i principali sviluppatori, ha ideato e sviluppato molte delle nuove funzionalità.<br>
 		- <b>JSoup</b> libreria per "<i>web scaping</i>".<br>
-		- <b>makovkastar</b> bottone fluttuante.<br>
-		- <b>Google</b> icone Material Design.<br>
+		- <b>Google</b> icone e libreria di supporto per il Material Design.<br>
 		- Tutti i contributori!
 		</p>
 
@@ -79,6 +80,8 @@
     <string name="route_towards_unknown">%s (destinazione sconosciuta)</string>
     <string name="internal_error">Errore interno inaspettato, impossibile estrarre dati dal sito GTT/5T</string>
     <string name="action_view_on_map">Visualizza sulla mappa</string>
+    <string name="cannot_show_on_map_no_activity">Non trovo un\'applicazione dove mostrarla</string>
+
     <string name="nearby_stops_message">Fermate vicine</string>
     <string name="position_searching_message">Ricerca della posizione in corso&#8230;</string>
     <string name="no_stops_nearby">Nessuna fermata nei dintorni</string>
