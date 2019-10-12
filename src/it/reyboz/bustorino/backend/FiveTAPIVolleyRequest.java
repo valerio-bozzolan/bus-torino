@@ -76,25 +76,26 @@ public class FiveTAPIVolleyRequest extends Request<Palina> {
             return Response.error(new VolleyError("Response Error Code "+response.statusCode));
         final String stringResponse = new String(response.data);
         List<Route> routeList;
-        switch (type){
-            case ARRIVALS:
-                routeList = fetcher.parseArrivalsServerResponse(stringResponse,resultRef);
-                break;
-            case DETAILS:
-                try {
+        try{
+            switch (type){
+                case ARRIVALS:
+                    routeList = fetcher.parseArrivalsServerResponse(stringResponse,resultRef);
+                    break;
+                case DETAILS:
                     routeList = fetcher.parseDirectionsFromResponse(stringResponse);
-                } catch (JSONException e) {
-                    resultRef.set(Fetcher.result.PARSER_ERROR);
-                    e.printStackTrace();
-                    return Response.error(new ParseError());
-                }
-                break;
-            default:
-                //empty
-                return Response.error(new VolleyError("Invalid query type"));
+                    break;
+                default:
+                    //empty
+                    return Response.error(new VolleyError("Invalid query type"));
+            }
+        } catch (JSONException e) {
+            resultRef.set(Fetcher.result.PARSER_ERROR);
+            //e.printStackTrace();
+            Log.w("FivetVolleyParser","JSON Exception in parsing response of: "+url);
+            return Response.error(new ParseError(response));
         }
         if(resultRef.get()== Fetcher.result.PARSER_ERROR){
-            return Response.error(new ParseError());
+            return Response.error(new ParseError(response));
         }
         final Palina p = new Palina(stopID);
         p.setRoutes(routeList);

@@ -54,17 +54,21 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
             };
             return p;
         }
-
-        List<Route> routes = parseArrivalsServerResponse(response,res);
-        for(Route r: routes){
-            p.addRoute(r);
+        try {
+            List<Route> routes = parseArrivalsServerResponse(response, res);
+            for(Route r: routes){
+                p.addRoute(r);
+            }
+        } catch (JSONException ex){
+            res.set(result.PARSER_ERROR);
+            return null;
         }
         res.set(result.OK);
         p.sortRoutes();
         return p;
     }
 
-    List<Route> parseArrivalsServerResponse(String JSONresponse, AtomicReference<result> res){
+    List<Route> parseArrivalsServerResponse(String JSONresponse, AtomicReference<result> res) throws JSONException{
         ArrayList<Route> routes = new ArrayList<>(3);
         /*
          Slight problem:
