@@ -206,7 +206,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         try{
             routes = parseDirectionsFromResponse(response);
             res.set(result.OK);
-        } catch (JSONException e) {
+        } catch (JSONException | IllegalArgumentException e) {
             e.printStackTrace();
             res.set(result.PARSER_ERROR);
             routes = null;
