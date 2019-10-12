@@ -138,7 +138,7 @@ public class DatabaseUpdateService extends IntentService {
 
         if(!setDBUpdatingFlag(true))
             return false; //If the commit to the SharedPreferences didn't succeed, simply stop updating the database
-        final NextGenDB dbHelp = new NextGenDB(getApplicationContext());
+        final NextGenDB dbHelp = NextGenDB.getInstance(getApplicationContext());
         final SQLiteDatabase db = dbHelp.getWritableDatabase();
         //Empty the needed tables
         db.beginTransaction();

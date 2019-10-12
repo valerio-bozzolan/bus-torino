@@ -33,6 +33,8 @@ import static it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 public class NextGenDB extends SQLiteOpenHelper{
     public static final String DATABASE_NAME = "bustodatabase.db";
     public static final int DATABASE_VERSION = 2;
+    //Singleton instance
+    private static volatile NextGenDB instance = null;
     //Some generating Strings
     private static final String SQL_CREATE_LINES_TABLE="CREATE TABLE "+Contract.LinesTable.TABLE_NAME+" ("+
             Contract.LinesTable._ID +" INTEGER PRIMARY KEY AUTOINCREMENT, "+ Contract.LinesTable.COLUMN_NAME +" TEXT, "+
@@ -71,10 +73,28 @@ public class NextGenDB extends SQLiteOpenHelper{
 
     private Context appContext;
 
-    public NextGenDB(Context context) {
+    private NextGenDB(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         appContext = context.getApplicationContext();
     }
+
+    /**
+     * Lazy initialization singleton getter, thread-safe with double checked locking
+     * from https://en.wikipedia.org/wiki/Singleton_pattern
+     * @param context needed context
+     * @return the instance
+     */
+    public static NextGenDB getInstance(Context context){
+        if(instance==null){
+            synchronized (NextGenDB.class){
+                if(instance==null){
+                    instance = new NextGenDB(context);
+                }
+            }
+        }
+        return instance;
+    }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         Log.d("BusTO-AppDB","Lines creating database:\n"+SQL_CREATE_LINES_TABLE+"\n"+

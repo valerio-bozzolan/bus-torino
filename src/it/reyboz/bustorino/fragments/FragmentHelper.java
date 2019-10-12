@@ -59,7 +59,7 @@ public class FragmentHelper {
         this.swipeRefID = swipeRefID;
         this.primaryFrameLayout = primaryFrameLayout;
         this.secondaryFrameLayout = secondaryFrameLayout;
-        newDBHelper = new NextGenDB(act.getApplicationContext());
+        newDBHelper = NextGenDB.getInstance(act.getApplicationContext());
     }
 
     public Stop getLastSuccessfullySearchedBusStop() {
