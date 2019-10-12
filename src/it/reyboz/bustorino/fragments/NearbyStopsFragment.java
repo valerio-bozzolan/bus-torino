@@ -302,6 +302,11 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (0 > MAX_DISTANCE) throw new AssertionError();
+        //Cursor might be null
+        if(data==null){
+            Log.e(DEBUG_TAG,"Null cursor, something really wrong happened");
+            return;
+        }
         if(!isDBUpdating() && (data.getCount()<MIN_NUM_STOPS || distance<=MAX_DISTANCE)){
             distance = distance*2;
             Bundle d = new Bundle();
