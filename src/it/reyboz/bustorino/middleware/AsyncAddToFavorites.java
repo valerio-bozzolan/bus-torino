@@ -29,12 +29,12 @@ import it.reyboz.bustorino.middleware.UserDB;
 public class AsyncAddToFavorites extends AsyncTask<Stop, Void, Boolean> {
     private Context c;
     public AsyncAddToFavorites(Context c) {
-        this.c = c;
+        this.c = c.getApplicationContext();
     }
 
     @Override
     protected Boolean doInBackground(Stop... stops) {
-        Boolean result;
+        boolean result;
         if(stops[0]!=null) {
             UserDB userDatabase = new UserDB(c);
             SQLiteDatabase db = userDatabase.getWritableDatabase();

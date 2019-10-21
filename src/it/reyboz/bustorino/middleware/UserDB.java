@@ -219,7 +219,8 @@ public class UserDB extends SQLiteOpenHelper {
         }
 
         try {
-            result = db.insert(TABLE_NAME, null, cv);
+            //ignore and throw -1 if the row is already in the DB
+            result = db.insertWithOnConflict(TABLE_NAME, null, cv,SQLiteDatabase.CONFLICT_IGNORE);
         } catch (SQLiteException ignored) {}
 
         // Android Studio suggested this unreadable replacement: return true if insert succeeded (!= -1), or try to update and return

@@ -327,10 +327,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         }
         //show the FAB since it remains hidden
         floatingActionButton.show();
-        //show the Snackbar //TODO: remove
-        //snackbar = Snackbar.make(floatingActionButton,
-        //        R.string.database_update_message,Snackbar.LENGTH_INDEFINITE);
-        //snackbar.show();
 
     }
 
@@ -619,7 +615,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     @Override
     public void addLastStopToFavorites() {
         if(fh.getLastSuccessfullySearchedBusStop() != null) {
-            new AsyncAddToFavorites(this).execute(fh.getLastSuccessfullySearchedBusStop());
+            new AsyncAddToFavorites(getApplicationContext()).execute(fh.getLastSuccessfullySearchedBusStop());
         }
     }
 
