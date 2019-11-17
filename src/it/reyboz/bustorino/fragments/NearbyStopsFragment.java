@@ -360,7 +360,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             setFragmentType(TYPE_STOPS);
             switchButton.setText(getString(R.string.show_arrivals));
             titleTextView.setText(getString(R.string.nearby_stops_message));
-            arrivalsManager.cancelAllRequests();
+            if(arrivalsManager!=null)
+                arrivalsManager.cancelAllRequests();
             if(dataAdapter!=null)
                 gridRecyclerView.setAdapter(dataAdapter);
 
