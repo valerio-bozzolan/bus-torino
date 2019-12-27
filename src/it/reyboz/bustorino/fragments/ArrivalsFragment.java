@@ -44,6 +44,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     private TextView messageTextView;
     private DBStatusManager prefs;
     private DBStatusManager.OnDBUpdateStatusChangeListener listener;
+    private boolean justCreated = false;
 
     public static ArrivalsFragment newInstance(String stopID){
         Bundle args = new Bundle();
@@ -87,14 +88,20 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             }
         };
         prefs = new DBStatusManager(getContext().getApplicationContext(),listener);
+        justCreated = true;
 
     }
+
     @Override
     public void onResume() {
         super.onResume();
         LoaderManager loaderManager  = getLoaderManager();
 
         if(stopID!=null){
+            //refresh the arrivals
+            if(!justCreated)
+                mListener.createFragmentForStop(stopID);
+            else justCreated = false;
             //start the loader
             if(prefs.isDBUpdating(true)){
                 prefs.registerListener();
@@ -174,7 +181,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
                     ));
                     updateMessage();
                 } else {
-                    Log.d("ArrivalsFragment"+getTag(),"Stop is not inside the database... CLOISTER BELL");
+                    Log.w("ArrivalsFragment"+getTag(),"Stop is not inside the database... CLOISTER BELL");
                 }
         }
 

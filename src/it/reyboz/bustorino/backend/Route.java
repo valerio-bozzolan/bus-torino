@@ -48,7 +48,7 @@ public class Route implements Comparable<Route> {
 
 
     public enum Type { // "long distance" sono gli extraurbani.
-        BUS(1), LONG_DISTANCE_BUS(2), METRO(3), RAILWAY(4), TRAM(5);
+        BUS(1), LONG_DISTANCE_BUS(2), METRO(3), RAILWAY(4), TRAM(5), UNKNOWN(-2);
         //TODO: decide to give some special parameter to each field
         private int code;
         Type(int code){
@@ -70,6 +70,8 @@ public class Route implements Comparable<Route> {
                     return RAILWAY;
                 case 5:
                     return TRAM;
+                case -2:
+                    return UNKNOWN;
                 default:
                     return null;
             }
@@ -217,9 +219,7 @@ public class Route implements Comparable<Route> {
              }
              arrivals = sortedPassaggi;
          } else  arrivals = passaggi;
-        if(start_idx+number>arrivals.size())
-            max = arrivals.size();
-        else max = start_idx+number;
+         max = Math.min(start_idx + number, arrivals.size());
          for(int j= start_idx; j<max;j++) {
              // "+" calls concat() and some other stuff internally, this should be faster
              //StringBuilder is THE WAY

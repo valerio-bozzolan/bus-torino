@@ -107,6 +107,8 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
         }
 
         switch (route.type) {
+            //UNKNOWN = BUS for the moment
+            case UNKNOWN:
             case BUS:
             default:
                 // convertView could contain another background, reset it

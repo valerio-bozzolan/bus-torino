@@ -55,7 +55,7 @@ public class ResultListFragment extends Fragment{
     private FragmentKind adapterKind;
 
     private boolean adapterSet = false;
-    private FragmentListener mListener;
+    protected FragmentListener mListener;
     private TextView messageTextView;
 
     private FloatingActionButton fabutton;

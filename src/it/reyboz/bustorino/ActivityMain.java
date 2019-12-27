@@ -309,6 +309,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     /**
      * Reload bus stop timetable when it's fulled resumed from background.
      */
+    /**
     @Override
     protected void onPostResume() {
         super.onPostResume();
@@ -329,6 +330,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         floatingActionButton.show();
 
     }
+     **/
 
 
     @Override

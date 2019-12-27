@@ -51,7 +51,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
             if(res.get()==result.SERVER_ERROR_404) {
                 Log.w(DEBUG_NAME,"Got 404, either the server failed, or the stop was not found, or the hack is not working anymore");
                 res.set(result.EMPTY_RESULT_SET);
-            };
+            }
             return p;
         }
         try {
@@ -141,7 +141,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                 String direction = branchJSON.getString("direction");
                 String stops = branchJSON.getJSONObject("branchDetail").getString("stops");
                 String lineName = branchJSON.getString("lineName");
-                Route.Type t = null;
+                Route.Type t = Route.Type.UNKNOWN;
                 //parsing description
                 String[] exploded = description.split(",");
                 description = exploded[exploded.length-1]; //the real description
@@ -185,7 +185,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                     } else if(description.contains("feriale")){
                         festivo = Route.FestiveInfo.FERIALE;
                     }
-                if(t == null &&(lineName.trim().equals("10")|| lineName.trim().equals("15"))) t= Route.Type.TRAM;
+                if(t == Route.Type.UNKNOWN &&(lineName.trim().equals("10")|| lineName.trim().equals("15"))) t= Route.Type.TRAM;
                 if(direction.contains("-")){
                     //Sometimes the actual filtered direction still remains the full line (including both extremes)
                     direction = direction.split("-")[1];
@@ -221,7 +221,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
 
         String response = performAPIRequest(QueryType.STOPS_ALL,null,res);
         if(response==null) return null;
-        ArrayList<Stop> stopslist = null;
+        ArrayList<Stop> stopslist;
         try{
             JSONObject responseJSON = new JSONObject(response);
             JSONArray stops = responseJSON.getJSONArray("stops");
@@ -248,7 +248,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                             t = Route.Type.RAILWAY;
                             break;
                         default:
-                            t = null;
+                            t = Route.Type.UNKNOWN;
                     }
                 Stop s = new Stop(currentStop.getString("id"),
                         currentStop.getString("name"),null,location,t,Arrays.asList(lines),
@@ -283,7 +283,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
             routes = new ArrayList<>(lines.length());
             for(int i = 0; i<lines.length(); i++) {
                 JSONObject lineJ = lines.getJSONObject(i);
-                Route.Type t = null;
+                Route.Type t;
                 switch(lineJ.getString("azienda")){
                     case "EXTRA":
                         t = Route.Type.LONG_DISTANCE_BUS;
@@ -294,6 +294,8 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                     case "FERRO":
                         t = Route.Type.RAILWAY;
                         break;
+                    default:
+                        t = Route.Type.UNKNOWN;
                 }
                 String name = lineJ.getString("name");
                 routes.add(new Route(name,t,lineJ.getString("longName")));
