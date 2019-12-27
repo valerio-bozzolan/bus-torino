@@ -37,11 +37,6 @@
                 android:orderInCategory="8"
                 android:title="@string/action_licence"
                 app:showAsAction="never" />
-            <item
-                android:id="@+id/action_author"
-                android:orderInCategory="9"
-                android:title="@string/action_author"
-                app:showAsAction="never" />
         </menu>
     </item>
     <item

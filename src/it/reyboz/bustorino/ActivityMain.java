@@ -75,7 +75,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      */
     private static final int SEARCH_BY_NAME = 0;
     private static final int SEARCH_BY_ID = 1;
-    private static final int SEARCH_BY_ROUTE = 2; // TODO: implement this (bug #1512948)
+    private static final int SEARCH_BY_ROUTE = 2; // TODO: implement this -- https://gitpull.it/T12
     private int searchMode;
 
     /*
@@ -365,7 +365,12 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         return true;
     }
 
-
+    /**
+     * Callback fired when a MenuItem is selected
+     *
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -386,20 +391,16 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 startActivity(new Intent(ActivityMain.this, ActivityAbout.class));
                 return true;
             case R.id.action_news:
-                openIceweasel("https://blog.reyboz.it/tag/busto/");
+                openIceweasel("https://gitpull.it/w/librebusto/#how-to-get-news");
                 return true;
             case R.id.action_bugs:
-                openIceweasel("https://bugs.launchpad.net/bus-torino");
+                openIceweasel("https://gitpull.it/w/librebusto/#how-to-create-a-bug-feature");
                 return true;
             case R.id.action_source:
-                openIceweasel("https://code.launchpad.net/bus-torino");
+                openIceweasel("https://gitpull.it/w/librebusto/#how-to-hack-busto");
                 return true;
             case R.id.action_licence:
                 openIceweasel("https://www.gnu.org/licenses/gpl-3.0.html");
-                return true;
-            case R.id.action_author:
-            	// TODO: a neutral website with a cute landing page and credits to everyone? -- boz, Thu Jan 17 02:17:45 CET 2019
-                openIceweasel("https://boz.reyboz.it/?lovebusto");
                 return true;
             case R.id.action_settings:
                 Log.d("MAINBusTO","Pressed button preferences");
