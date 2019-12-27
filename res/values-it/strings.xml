@@ -55,11 +55,10 @@
         <p>Quest\'app ottiene i passaggi dei bus in tempo reale filtrando i dati forniti pubblicamente sul sito <b>www.gtt.to.it</b> o <i>www.5t.torino.it</i> "per uso personale".</p>
 
 		<p>Ingredienti:<br>
-		- <b>Valerio Bozzolan</b> sviluppatore principale.<br>
-		- <b>Marco Gagino</b> intenso collaboratore, creatore dell\'icona, responsabile della grafica.<br>
-		- <b>Paolo Alloatti</b> per l\'idea dell\'icona.<br>
-		- <b>Ludovico Pavesi</b> che ha per primo aggiunto importanti nuove funzionalità all\'app.<br>
-		- <b>Fabio Mazza</b> ultimo arrivato tra i principali sviluppatori, ha ideato e sviluppato molte delle nuove funzionalità.<br>
+		- <b>Fabio Mazza</b> attuale rockstar developer.<br>
+		- <b>Ludovico Pavesi</b> ex rockstar developer.<br>
+		- <b>Valerio Bozzolan</b> attuale manutentore.<br>
+		- <b>Marco Gagino</b> apprezzato ex collaboratore, ideatore icona e grafica.<br>
 		- <b>JSoup</b> libreria per "<i>web scaping</i>".<br>
 		- <b>Google</b> icone e libreria di supporto per il Material Design.<br>
 		- Tutti i contributori!

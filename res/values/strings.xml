@@ -64,9 +64,10 @@
         <p>This app will show you bus timetables gathering data from <b>www.gtt.to.it</b> or <b>www.5t.torino.it</b> "for personal use".</p>
 
 		<p>Who worked on BusTO:<br>
-		- <b>Valerio Bozzolan</b> main developer.<br>
-		- <b>Marco Gagino</b> main contributor and icon creator.<br>
-		- <b>Paolo Alloatti</b> original concept of the icon.<br>
+		- <b>Fabio Mazza</b> current rockstar developer.<br>
+		- <b>Ludovico Pavesi</b> previous rockstar developer.<br>
+		- <b>Valerio Bozzolan</b> maintainer.<br>
+		- <b>Marco Gagino</b> ex contributor and icon creator.<br>
 		- <b>JSoup</b> web scraper library.<br>
 		- <b>makovkastar</b> floating buttons.<br>
 		- <b>Google</b> Material Design icons.<br>
