@@ -1,0 +1,7 @@
+* oltre alle fermate vicine, ora mostra i bus intorno a voi
+* aggiornamento database più veloce
+* risolti davvero tanti heisenbug nei preferiti e nelle fermate
+* lavori sulla schermata delle preferenze
+* svolto altro lavoro sporco a cui non bada nessuno
+* abbiamo migrato il codice da bzr a git
+* ora il codice è hostato su un nostro server Phabricator, su gitpull.it

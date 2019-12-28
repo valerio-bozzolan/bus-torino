@@ -1,0 +1,7 @@
+* now you see nearby buses as well as nearby stops around you
+* faster database update
+* fixed lot of heisenbugs in the favourites and stops
+* working on the settings page
+* done other dirty work that nobody cares
+* we migrated the code from bzr go git
+* now the code is hosted on our Phabricator server, on gitpull.it
