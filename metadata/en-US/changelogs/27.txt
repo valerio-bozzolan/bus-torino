@@ -1,0 +1,3 @@
+* update in-app credits
+* update data during onResume event
+* bug fix caused by ghost lines

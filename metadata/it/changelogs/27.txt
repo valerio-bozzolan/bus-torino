@@ -1,0 +1,3 @@
+* aggiornati ringraziamenti nell'app
+* aggiornamento passaggi durante l'evento onResume
+* fix bug causato da linee fantasma
