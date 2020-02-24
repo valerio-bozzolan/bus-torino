@@ -1,5 +1,7 @@
 # BusTO - Libre the Turin public transport
 
+Your Free as in Freedom application for the Turin public transport since 2014!
+
 ## About
 
 https://gitpull.it/w/librebusto/
