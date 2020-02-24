@@ -30,6 +30,14 @@ android {
     compileSdkVersion 25
     buildToolsVersion '27.0.3'
 
+    defaultConfig {
+        applicationId "it.reyboz.bustorino"
+        minSdkVersion 9
+        targetSdkVersion 25
+        versionCode 27
+        versionName "1.11"
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
