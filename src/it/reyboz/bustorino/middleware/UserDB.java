@@ -147,6 +147,31 @@ public class UserDB extends SQLiteOpenHelper {
 	}
 
     /**
+     * Check if a stop ID is in the favorites
+     *
+     * @param db readable database
+     * @param stopId stop ID
+     * @return boolean
+     */
+    public static boolean isStopinFavorites(SQLiteDatabase db, String stopId) {
+        boolean found = false;
+
+        try {
+            Cursor c = db.query(TABLE_NAME, usernameColumnNameAsArray, "ID = ?", new String[] {stopId}, null, null, null);
+
+            if(c.moveToNext()) {
+                found = true;
+            }
+
+            c.close();
+        } catch(SQLiteException ignored) {
+            // don't care
+        }
+
+        return found;
+    }
+
+    /**
      * Gets stop name set by the user.
      *
      * @param db readable database

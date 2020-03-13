@@ -117,6 +117,11 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         return stopID;
     }
 
+    /**
+     * Update the message in the fragment
+     *
+     * It may eventually change the "Add to Favorite" icon
+     */
     private void updateMessage(){
         String message = null;
         if (stopName != null && stopID != null && stopName.length() > 0) {
@@ -126,7 +131,22 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         } else {
             Log.e("ArrivalsFragm"+getTag(),"NO ID FOR THIS FRAGMENT - something went horribly wrong");
         }
-        if(message!=null) setTextViewMessage(getString(R.string.passages,message));
+        if(message!=null) {
+            setTextViewMessage(getString(R.string.passages,message));
+
+            /**
+             * If the Bus Stop is already in the favorites, change somehow the UX
+             *
+             * TODO https://gitpull.it/T18
+             */
+            if(isStopInFavorites(stopID)) {
+                // TODO fill the favorite star and remove this log
+                Log.d("ArrivalsFragm"+getTag(), "Bus stop IS in the favorites");
+            } else {
+                // TODO do not fill the favorite star and remove this log
+                Log.d("ArrivalsFragm"+getTag(), "Bus stop IS NOT in the favorites");
+            }
+        }
     }
 
     @Override
