@@ -76,6 +76,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     private static final int SEARCH_BY_ID = 1;
     private static final int SEARCH_BY_ROUTE = 2; // TODO: implement this -- https://gitpull.it/T12
     private int searchMode;
+    private ImageButton addToFavorites;
 
     /*
      * Options
@@ -87,7 +88,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      */
     private DBStatusManager prefsManager;
     private DBStatusManager.OnDBUpdateStatusChangeListener updatelistener;
-    private static final String DEBUG_TAG="BusTO - MainActivity";
+    private static final String DEBUG_TAG = "BusTO - MainActivity";
     /* // useful for testing:
     public class MockFetcher implements ArrivalsFetcher {
         @Override
@@ -99,8 +100,8 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     }
     private ArrivalsFetcher[] ArrivalFetchers = {new MockFetcher(), new MockFetcher(), new MockFetcher(), new MockFetcher(), new MockFetcher()};*/
 
-    private RecursionHelper<ArrivalsFetcher> ArrivalFetchersRecursionHelper = new RecursionHelper<>(new ArrivalsFetcher[] {new GTTJSONFetcher(), new FiveTScraperFetcher()});
-    private RecursionHelper<StopsFinderByName> StopsFindersByNameRecursionHelper = new RecursionHelper<>(new StopsFinderByName[] {new GTTStopsFetcher(), new FiveTStopsFetcher()});
+    private RecursionHelper<ArrivalsFetcher> ArrivalFetchersRecursionHelper = new RecursionHelper<>(new ArrivalsFetcher[]{new GTTJSONFetcher(), new FiveTScraperFetcher()});
+    private RecursionHelper<StopsFinderByName> StopsFindersByNameRecursionHelper = new RecursionHelper<>(new StopsFinderByName[]{new GTTStopsFetcher(), new FiveTStopsFetcher()});
     /*
      * Position
      */
@@ -123,12 +124,12 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     private Handler handler = new Handler();
     private final Runnable refreshing = new Runnable() {
         public void run() {
-                if(framan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment){
-                    ArrivalsFragment fragment = (ArrivalsFragment) framan.findFragmentById(R.id.resultFrame);
-                    String stopName = fragment.getStopID();
-                    new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute(stopName);
-                } else
-                new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute();
+            if (framan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
+                ArrivalsFragment fragment = (ArrivalsFragment) framan.findFragmentById(R.id.resultFrame);
+                String stopName = fragment.getStopID();
+                new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute(stopName);
+            } else
+                new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute();
         }
     };
 
@@ -197,8 +198,8 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
          * @author Marco Gagino!!!
          */
         //swipeRefreshLayout.setColorSchemeColors(R.color.blue_500, R.color.orange_500); // setColorScheme is deprecated, setColorSchemeColors isn't
-        swipeRefreshLayout.setColorSchemeResources(R.color.blue_500,R.color.orange_500);
-        fh = new FragmentHelper(this,R.id.listRefreshLayout,R.id.resultFrame);
+        swipeRefreshLayout.setColorSchemeResources(R.color.blue_500, R.color.orange_500);
+        fh = new FragmentHelper(this, R.id.listRefreshLayout, R.id.resultFrame);
         setSearchModeBusStopID();
 
         //---------------------------- START INTENT CHECK QUEUE ------------------------------------
@@ -264,7 +265,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         /*
         Set database update
          */
-        updatelistener = new DBStatusManager.OnDBUpdateStatusChangeListener(){
+        updatelistener = new DBStatusManager.OnDBUpdateStatusChangeListener() {
             @Override
             public boolean defaultStatusValue() {
                 return true;
@@ -273,10 +274,9 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             @Override
             public void onDBStatusChanged(boolean updating) {
 
-                if(updating){
+                if (updating) {
                     createDefaultSnackbar();
-                }
-                else if(snackbar!=null){
+                } else if (snackbar != null) {
                     snackbar.dismiss();
                     snackbar = null;
                 }
@@ -284,7 +284,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
             }
         };
-        prefsManager = new DBStatusManager(getApplicationContext(),updatelistener);
+        prefsManager = new DBStatusManager(getApplicationContext(), updatelistener);
         prefsManager.registerListener();
 
         //locationHandler = new GPSLocationAdapter(getApplicationContext());
@@ -309,26 +309,25 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      * Reload bus stop timetable when it's fulled resumed from background.
      */
     /**
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-        Log.d("ActivityMain", "onPostResume fired. Last successfully bus stop ID: " + fh.getLastSuccessfullySearchedBusStop());
-        if (searchMode == SEARCH_BY_ID && fh.getLastSuccessfullySearchedBusStop() != null) {
-            setBusStopSearchByIDEditText(fh.getLastSuccessfullySearchedBusStop().ID);
-            //new asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStop.ID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
-            new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute();
-        } else {
-            //we have new activity or we don't have a new searched stop.
-            //Let's search stops nearby
-            LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.resultFrame);
-
-
-        }
-        //show the FAB since it remains hidden
-        floatingActionButton.show();
-
-    }
+     * @Override protected void onPostResume() {
+     * super.onPostResume();
+     * Log.d("ActivityMain", "onPostResume fired. Last successfully bus stop ID: " + fh.getLastSuccessfullySearchedBusStop());
+     * if (searchMode == SEARCH_BY_ID && fh.getLastSuccessfullySearchedBusStop() != null) {
+     * setBusStopSearchByIDEditText(fh.getLastSuccessfullySearchedBusStop().ID);
+     * //new asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStop.ID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
+     * new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute();
+     * } else {
+     * //we have new activity or we don't have a new searched stop.
+     * //Let's search stops nearby
+     * LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+     * Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.resultFrame);
+     * <p>
+     * <p>
+     * }
+     * //show the FAB since it remains hidden
+     * floatingActionButton.show();
+     * <p>
+     * }
      **/
 
 
@@ -337,7 +336,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         super.onPause();
         fh.stopLastRequestIfNeeded();
         fh.setBlockAllActivities(true);
-        if(updatelistener!=null && prefsManager!=null) prefsManager.unregisterListener();
+        if (updatelistener != null && prefsManager != null) prefsManager.unregisterListener();
         locmgr.removeUpdates(locListener);
     }
 
@@ -345,13 +344,13 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     protected void onResume() {
         super.onResume();
         fh.setBlockAllActivities(false);
-        if(updatelistener!=null && prefsManager!=null) {
+        if (updatelistener != null && prefsManager != null) {
             prefsManager.registerListener();
-            if(prefsManager.isDBUpdating(true)){
+            if (prefsManager.isDBUpdating(true)) {
                 createDefaultSnackbar();
             }
         }
-        if(pendingNearbyStopsRequest)
+        if (pendingNearbyStopsRequest)
             handler.post(new NearbyStopsRequester());
     }
 
@@ -402,8 +401,8 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 openIceweasel("https://www.gnu.org/licenses/gpl-3.0.html");
                 return true;
             case R.id.action_settings:
-                Log.d("MAINBusTO","Pressed button preferences");
-                startActivity(new Intent(ActivityMain.this,ActivitySettings.class));
+                Log.d("MAINBusTO", "Pressed button preferences");
+                startActivity(new Intent(ActivityMain.this, ActivitySettings.class));
         }
         return super.onOptionsItemSelected(item);
     }
@@ -419,37 +418,40 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             //OLD ASYNCTASK
             //new asyncWgetBusStopFromBusStopID(busStopID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
 
-            if(busStopID == null || busStopID.length() <= 0) {
+            if (busStopID == null || busStopID.length() <= 0) {
                 showMessage(R.string.insert_bus_stop_number_error);
                 toggleSpinner(false);
-            } else{
-                new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute(busStopID);
-                Log.d("MainActiv","Started search for arrivals of stop "+busStopID);
+            } else {
+                new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute(busStopID);
+                Log.d("MainActiv", "Started search for arrivals of stop " + busStopID);
             }
         } else { // searchMode == SEARCH_BY_NAME
             String query = busStopSearchByNameEditText.getText().toString();
             //new asyncWgetBusStopSuggestions(query, stopsDB, StopsFindersByNameRecursionHelper);
-            new AsyncDataDownload(AsyncDataDownload.RequestType.STOPS,fh).execute(query);
+            new AsyncDataDownload(AsyncDataDownload.RequestType.STOPS, fh).execute(query);
         }
     }
-    /** PERMISSION STUFF **/
+
+    /**
+     * PERMISSION STUFF
+     **/
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode){
+        switch (requestCode) {
             case PERMISSION_REQUEST_POSITION:
-                if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
-                    setOption(LOCATION_PERMISSION_GIVEN,true);
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    setOption(LOCATION_PERMISSION_GIVEN, true);
                     //if we sent a request for a new NearbyStopsFragment
-                    if(pendingNearbyStopsRequest){
-                        pendingNearbyStopsRequest=false;
+                    if (pendingNearbyStopsRequest) {
+                        pendingNearbyStopsRequest = false;
                         handler.post(new NearbyStopsRequester());
                     }
 
                 } else {
                     //permission denied
-                    setOption(LOCATION_PERMISSION_GIVEN,false);
+                    setOption(LOCATION_PERMISSION_GIVEN, false);
                 }
-            //add other cases for permissions
+                //add other cases for permissions
         }
 
     }
@@ -458,16 +460,15 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     @Override
     public void createFragmentForStop(String ID) {
         //new asyncWgetBusStopFromBusStopID(ID, ArrivalFetchersRecursionHelper,lastSuccessfullySearchedBusStop);
-        if(ID == null || ID.length() <= 0) {
+        if (ID == null || ID.length() <= 0) {
             // we're still in UI thread, no need to mess with Progress
             showMessage(R.string.insert_bus_stop_number_error);
             toggleSpinner(false);
         } else {
-            new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute(ID);
-            Log.d("MainActiv","Started search for arrivals of stop "+ID);
+            new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute(ID);
+            Log.d("MainActiv", "Started search for arrivals of stop " + ID);
         }
     }
-
 
 
     /**
@@ -482,7 +483,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
     /**
      * Receive the Barcode Scanner Intent
-     *
      */
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
@@ -519,33 +519,35 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             }
         }
     }
-    private void createDefaultSnackbar(){
-        if(snackbar==null){
-            snackbar = Snackbar.make(findViewById(R.id.searchButton),R.string.database_update_message,Snackbar.LENGTH_INDEFINITE);
+
+    private void createDefaultSnackbar() {
+        if (snackbar == null) {
+            snackbar = Snackbar.make(findViewById(R.id.searchButton), R.string.database_update_message, Snackbar.LENGTH_INDEFINITE);
         }
         snackbar.show();
     }
     ///////////////////////////////// POSITION STUFF//////////////////////////////////////////////
 
-    private void resolveStopRequest(String provider){
-        Log.d(DEBUG_TAG,"Provider "+provider+" got enabled");
-        if(locmgr!=null && pendingNearbyStopsRequest && locmgr.getProvider(provider).meetsCriteria(cr)){
+    private void resolveStopRequest(String provider) {
+        Log.d(DEBUG_TAG, "Provider " + provider + " got enabled");
+        if (locmgr != null && pendingNearbyStopsRequest && locmgr.getProvider(provider).meetsCriteria(cr)) {
             pendingNearbyStopsRequest = false;
             handler.post(new NearbyStopsRequester());
         }
     }
+
     final LocationListener locListener = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
-            Log.d(DEBUG_TAG,"Location changed");
+            Log.d(DEBUG_TAG, "Location changed");
         }
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
-            Log.d(DEBUG_TAG,"Location provider status: "+status);
-                if(status== LocationProvider.AVAILABLE){
-                    resolveStopRequest(provider);
-                }
+            Log.d(DEBUG_TAG, "Location provider status: " + status);
+            if (status == LocationProvider.AVAILABLE) {
+                resolveStopRequest(provider);
+            }
         }
 
         @Override
@@ -559,55 +561,54 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         }
     };
 
-    class NearbyStopsRequester implements Runnable{
+    class NearbyStopsRequester implements Runnable {
         @SuppressLint("MissingPermission")
         @Override
         public void run() {
             final boolean canRunPosition = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || getOption(LOCATION_PERMISSION_GIVEN, false);
 
-            if(!canRunPosition){
+            if (!canRunPosition) {
                 pendingNearbyStopsRequest = true;
                 assertLocationPermissions();
                 return;
-            } else setOption(LOCATION_PERMISSION_GIVEN,true);
+            } else setOption(LOCATION_PERMISSION_GIVEN, true);
 
             LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-            if(locManager == null) {
+            if (locManager == null) {
                 Log.e(DEBUG_TAG, "location manager is nihil, cannot create NearbyStopsFragment");
                 return;
             }
-            if(anyLocationProviderMatchesCriteria(locManager,cr,true) && fh.getLastSuccessfullySearchedBusStop()==null) {
+            if (anyLocationProviderMatchesCriteria(locManager, cr, true) && fh.getLastSuccessfullySearchedBusStop() == null) {
                 //Go ahead with the request
-                Log.d("mainActivity","Recreating stop fragment");
+                Log.d("mainActivity", "Recreating stop fragment");
                 swipeRefreshLayout.setVisibility(View.VISIBLE);
                 NearbyStopsFragment fragment = NearbyStopsFragment.newInstance(NearbyStopsFragment.TYPE_STOPS);
                 Fragment oldFrag = framan.findFragmentById(R.id.resultFrame);
                 FragmentTransaction ft = framan.beginTransaction();
-                if(oldFrag!=null)
+                if (oldFrag != null)
                     ft.remove(oldFrag);
-                ft.add(R.id.resultFrame,fragment,"nearbyStop_correct");
+                ft.add(R.id.resultFrame, fragment, "nearbyStop_correct");
                 ft.commit();
                 framan.executePendingTransactions();
                 pendingNearbyStopsRequest = false;
-            } else if(!anyLocationProviderMatchesCriteria(locManager,cr,true)){
+            } else if (!anyLocationProviderMatchesCriteria(locManager, cr, true)) {
                 //Wait for the providers
-                Log.d(DEBUG_TAG,"Queuing position request");
+                Log.d(DEBUG_TAG, "Queuing position request");
                 pendingNearbyStopsRequest = true;
-                locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,10,0.1f,locListener);
+                locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10, 0.1f, locListener);
             }
 
         }
     }
 
-    private boolean anyLocationProviderMatchesCriteria(LocationManager mng, Criteria cr, boolean enabled){
-        List<String> providers = mng.getProviders(cr,enabled);
-        Log.d(DEBUG_TAG,"Getting enabled location providers: ");
-        for(String s: providers){
-            Log.d(DEBUG_TAG,"Provider "+s);
+    private boolean anyLocationProviderMatchesCriteria(LocationManager mng, Criteria cr, boolean enabled) {
+        List<String> providers = mng.getProviders(cr, enabled);
+        Log.d(DEBUG_TAG, "Getting enabled location providers: ");
+        for (String s : providers) {
+            Log.d(DEBUG_TAG, "Provider " + s);
         }
-        return providers.size()>0;
+        return providers.size() > 0;
     }
-
 
 
     ///////////////////////////////// OTHER STUFF //////////////////////////////////////////////////
@@ -638,19 +639,27 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      */
     @Override
     public void updateStarIconFromLastBusStop() {
+
+        // no favorites no party!
+        addToFavorites = (ImageButton) findViewById(R.id.addToFavorites);
+        if (addToFavorites == null) {
+            Log.d("MainActivity", "Why the fuck the star is not here?!");
+            return;
+        }
+
         // check if there is a last Stop
         String stopID = getLastSuccessfullySearchedBusStopID();
-        if(stopID == null) {
-            // TODO: hide the star
+        if (stopID == null) {
+            addToFavorites.setVisibility(View.INVISIBLE);
         } else {
             // filled or outline?
-            if(isStopInFavorites(stopID)) {
-                // TODO: fill star
+            if (isStopInFavorites(stopID)) {
+                addToFavorites.setImageResource(R.drawable.ic_star_filled);
             } else {
-                // TODO: outline star
+                addToFavorites.setImageResource(R.drawable.ic_star_outline);
             }
 
-            // TODO: show the star
+            addToFavorites.setVisibility(View.VISIBLE);
         }
     }
 
@@ -663,7 +672,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         boolean found = false;
 
         // no stop no party
-        if(busStopId != null) {
+        if (busStopId != null) {
             SQLiteDatabase userDB = new UserDB(getApplicationContext()).getReadableDatabase();
             found = UserDB.isStopInFavorites(userDB, busStopId);
         }
@@ -677,7 +686,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     @Override
     public void toggleLastStopToFavorites() {
         Stop stop = getLastSuccessfullySearchedBusStop();
-        if(stop != null) {
+        if (stop != null) {
 
             // toggle the status in background
             new AsyncStopFavoriteAction(getApplicationContext(), AsyncStopFavoriteAction.Action.TOGGLE) {
@@ -689,6 +698,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 @Override
                 protected void onPostExecute(Boolean result) {
                     super.onPostExecute(result);
+
 
                     // update the star icon
                     updateStarIconFromLastBusStop();
@@ -703,7 +713,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
     @Override
     public void showFloatingActionButton(boolean yes) {
-        if(yes) floatingActionButton.show();
+        if (yes) floatingActionButton.show();
         else floatingActionButton.hide();
     }
 
@@ -743,6 +753,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
     /**
      * Having that cursor at the left of the edit text makes me cancer.
+     *
      * @param busStopID bus stop ID
      */
     private void setBusStopSearchByIDEditText(String busStopID) {
@@ -791,32 +802,33 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     /**
      * This provides a temporary fix to make the transition
      * to a single asynctask go smoother
+     *
      * @param fragmentType the type of fragment created
      */
     @Override
     public void readyGUIfor(FragmentKind fragmentType) {
         hideKeyboard();
         //if we are getting results, already, stop waiting for nearbyStops
-        if(pendingNearbyStopsRequest && (fragmentType==FragmentKind.ARRIVALS || fragmentType==FragmentKind.STOPS)) {
+        if (pendingNearbyStopsRequest && (fragmentType == FragmentKind.ARRIVALS || fragmentType == FragmentKind.STOPS)) {
             locmgr.removeUpdates(locListener);
             pendingNearbyStopsRequest = false;
         }
-        if(fragmentType==null) Log.e("ActivityMain","Problem with fragmentType");
+        if (fragmentType == null) Log.e("ActivityMain", "Problem with fragmentType");
         else
-        switch (fragmentType){
-            case ARRIVALS:
-                prepareGUIForBusLines();
-                if (getOption(OPTION_SHOW_LEGEND, true)) {
-                    showHints();
-                }
-                break;
-            case STOPS:
-                prepareGUIForBusStops();
-                break;
-            default:
-                Log.e("BusTO Activity","Called readyGUI with unsupported type of Fragment");
-                return;
-        }
+            switch (fragmentType) {
+                case ARRIVALS:
+                    prepareGUIForBusLines();
+                    if (getOption(OPTION_SHOW_LEGEND, true)) {
+                        showHints();
+                    }
+                    break;
+                case STOPS:
+                    prepareGUIForBusStops();
+                    break;
+                default:
+                    Log.e("BusTO Activity", "Called readyGUI with unsupported type of Fragment");
+                    return;
+            }
         // Shows hints
 
     }
@@ -844,12 +856,12 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
         // everithing catches fire when passing null to a switch.
         String host = uri.getHost();
-        if(host == null) {
+        if (host == null) {
             Log.e("ActivityMain", "Not an URL: " + uri);
             return null;
         }
 
-        switch(host) {
+        switch (host) {
             case "m.gtt.to.it":
                 // http://m.gtt.to.it/m/it/arrivi.jsp?n=1254
                 busStopID = uri.getQueryParameter("n");
@@ -872,6 +884,20 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         return busStopID;
     }
 
+    public void changeStarType(String stopID) {
+        if (isStopInFavorites(stopID)) {
+            changeStarFilled();
+        } else {
+            changeStarOutline();
+        }
+    }
 
+    public void changeStarFilled() {
+        addToFavorites.setImageResource(R.drawable.ic_star_filled);
+    }
+
+    public void changeStarOutline() {
+        addToFavorites.setImageResource(R.drawable.ic_star_outline);
+    }
 
 }

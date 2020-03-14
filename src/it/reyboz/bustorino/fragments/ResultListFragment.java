@@ -20,6 +20,7 @@
 package it.reyboz.bustorino.fragments;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
@@ -38,6 +39,7 @@ import it.reyboz.bustorino.backend.FiveTNormalizer;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.middleware.UserDB;
 
 /**
  *  This is a generalized fragment that can be used both for
@@ -57,6 +59,7 @@ public class ResultListFragment extends Fragment{
     private boolean adapterSet = false;
     protected FragmentListener mListener;
     private TextView messageTextView;
+    private ImageButton addToFavorites;
 
     private FloatingActionButton fabutton;
     private ListView resultsListView;
@@ -102,12 +105,28 @@ public class ResultListFragment extends Fragment{
         }
     }
 
+    /**
+     * Check if the last Bus Stop is in the favorites
+     * @return
+     */
+    public boolean isStopInFavorites(String busStopId) {
+        boolean found = false;
+
+        // no stop no party
+        if(busStopId != null) {
+            SQLiteDatabase userDB = new UserDB(getContext()).getReadableDatabase();
+            found = UserDB.isStopInFavorites(userDB, busStopId);
+        }
+
+        return found;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_list_view, container, false);
         messageTextView = (TextView) root.findViewById(R.id.messageTextView);
-
+        addToFavorites = (ImageButton) root.findViewById(R.id.addToFavorites);
         if (adapterKind != null) {
             resultsListView = (ListView) root.findViewById(R.id.resultsListView);
             switch (adapterKind) {
@@ -275,8 +294,8 @@ public class ResultListFragment extends Fragment{
         messageTextView.setText(message);
         switch (adapterKind) {
             case ARRIVALS:
-                messageTextView.setClickable(true);
-                messageTextView.setOnClickListener(new View.OnClickListener() {
+                addToFavorites.setClickable(true);
+                addToFavorites.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         // add/remove the stop in the favorites
@@ -285,9 +304,10 @@ public class ResultListFragment extends Fragment{
                 });
                 break;
             case STOPS:
-                messageTextView.setClickable(false);
+                addToFavorites.setClickable(false);
                 break;
         }
+
 
         messageTextView.setVisibility(View.VISIBLE);
     }

@@ -26,6 +26,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import it.reyboz.bustorino.R;
@@ -46,6 +47,8 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     private DBStatusManager prefs;
     private DBStatusManager.OnDBUpdateStatusChangeListener listener;
     private boolean justCreated = false;
+    private ImageButton addToFavorites;
+
 
     public static ArrivalsFragment newInstance(String stopID){
         Bundle args = new Bundle();
