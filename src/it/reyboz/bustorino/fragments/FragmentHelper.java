@@ -62,6 +62,11 @@ public class FragmentHelper {
         newDBHelper = NextGenDB.getInstance(act.getApplicationContext());
     }
 
+    /**
+     * Get the last successfully searched bus stop or NULL
+     *
+     * @return
+     */
     public Stop getLastSuccessfullySearchedBusStop() {
         return lastSuccessfullySearchedBusStop;
     }

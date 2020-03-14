@@ -153,7 +153,7 @@ public class UserDB extends SQLiteOpenHelper {
      * @param stopId stop ID
      * @return boolean
      */
-    public static boolean isStopinFavorites(SQLiteDatabase db, String stopId) {
+    public static boolean isStopInFavorites(SQLiteDatabase db, String stopId) {
         boolean found = false;
 
         try {

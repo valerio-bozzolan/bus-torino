@@ -27,6 +27,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
 import android.widget.TextView;
+
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.DBStatusManager;
 import it.reyboz.bustorino.middleware.AppDataProvider;
@@ -133,20 +134,10 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         }
         if(message!=null) {
             setTextViewMessage(getString(R.string.passages,message));
-
-            /**
-             * If the Bus Stop is already in the favorites, change somehow the UX
-             *
-             * TODO https://gitpull.it/T18
-             */
-            if(isStopInFavorites(stopID)) {
-                // TODO fill the favorite star and remove this log
-                Log.d("ArrivalsFragm"+getTag(), "Bus stop IS in the favorites");
-            } else {
-                // TODO do not fill the favorite star and remove this log
-                Log.d("ArrivalsFragm"+getTag(), "Bus stop IS NOT in the favorites");
-            }
         }
+
+        // whatever is the case, update the star icon
+        mListener.updateStarIconFromLastBusStop();
     }
 
     @Override

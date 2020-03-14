@@ -32,6 +32,7 @@
     <string name="action_licence">Licence</string>
     <string name="action_author">Meet the author</string>
     <string name="added_in_favorites">Bus stop is now in your favorites</string>
+    <string name="removed_from_favorites">Bus stop removed from your favorites</string>
     <string name="action_favorites">Favorites</string>
     <string name="title_activity_favorites">Favorites</string>
     <string name="tip_add_favorite">Press on a bus stop name to populate this list</string>

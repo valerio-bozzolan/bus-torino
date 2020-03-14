@@ -21,6 +21,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.*;
 import android.net.Uri;
 import android.os.Build;
@@ -51,8 +52,6 @@ import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.*;
 
 import java.util.List;
-
-import static android.location.Criteria.NO_REQUIREMENT;
 
 public class ActivityMain extends GeneralActivity implements FragmentListener {
 
@@ -613,12 +612,92 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
     ///////////////////////////////// OTHER STUFF //////////////////////////////////////////////////
 
-
-
+    /**
+     * Get the last successfully searched bus stop or NULL
+     *
+     * @return
+     */
     @Override
-    public void addLastStopToFavorites() {
-        if(fh.getLastSuccessfullySearchedBusStop() != null) {
-            new AsyncAddToFavorites(getApplicationContext()).execute(fh.getLastSuccessfullySearchedBusStop());
+    public Stop getLastSuccessfullySearchedBusStop() {
+        return fh.getLastSuccessfullySearchedBusStop();
+    }
+
+    /**
+     * Get the last successfully searched bus stop ID or NULL
+     *
+     * @return
+     */
+    @Override
+    public String getLastSuccessfullySearchedBusStopID() {
+        Stop stop = getLastSuccessfullySearchedBusStop();
+        return stop == null ? null : stop.ID;
+    }
+
+    /**
+     * Update the star "Add to favorite" icon
+     */
+    @Override
+    public void updateStarIconFromLastBusStop() {
+        // check if there is a last Stop
+        String stopID = getLastSuccessfullySearchedBusStopID();
+        if(stopID == null) {
+            // TODO: hide the star
+        } else {
+            // filled or outline?
+            if(isStopInFavorites(stopID)) {
+                // TODO: fill star
+            } else {
+                // TODO: outline star
+            }
+
+            // TODO: show the star
+        }
+    }
+
+    /**
+     * Check if the last Bus Stop is in the favorites
+     *
+     * @return
+     */
+    public boolean isStopInFavorites(String busStopId) {
+        boolean found = false;
+
+        // no stop no party
+        if(busStopId != null) {
+            SQLiteDatabase userDB = new UserDB(getApplicationContext()).getReadableDatabase();
+            found = UserDB.isStopInFavorites(userDB, busStopId);
+        }
+
+        return found;
+    }
+
+    /**
+     * Add the last Stop to favorites
+     */
+    @Override
+    public void toggleLastStopToFavorites() {
+        Stop stop = getLastSuccessfullySearchedBusStop();
+        if(stop != null) {
+
+            // toggle the status in background
+            new AsyncStopFavoriteAction(getApplicationContext(), AsyncStopFavoriteAction.Action.TOGGLE) {
+
+                /**
+                 * Callback fired when the Stop is saved in the favorites
+                 * @param result
+                 */
+                @Override
+                protected void onPostExecute(Boolean result) {
+                    super.onPostExecute(result);
+
+                    // update the star icon
+                    updateStarIconFromLastBusStop();
+                }
+
+            }.execute(stop);
+        } else {
+            // this case have no sense, but just immediately update the favorite icon
+            updateStarIconFromLastBusStop();
         }
     }
 
@@ -632,7 +711,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     public void enableRefreshLayout(boolean yes) {
         swipeRefreshLayout.setEnabled(yes);
     }
-
 
     ////////////////////////////////////// GUI HELPERS /////////////////////////////////////////////
     @Override

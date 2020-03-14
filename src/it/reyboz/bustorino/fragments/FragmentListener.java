@@ -17,7 +17,7 @@
  */
 package it.reyboz.bustorino.fragments;
 
-import it.reyboz.bustorino.backend.Palina;
+import it.reyboz.bustorino.backend.Stop;
 
 public interface FragmentListener {
     void toggleSpinner(boolean state);
@@ -34,7 +34,29 @@ public interface FragmentListener {
      */
     void createFragmentForStop(String ID);
 
-    void addLastStopToFavorites();
+    /**
+     * Add the last successfully searched stop to the favorites
+     */
+    void toggleLastStopToFavorites();
+
+    /**
+     * Get the last successfully searched bus stop or NULL
+     *
+     * @return
+     */
+    Stop getLastSuccessfullySearchedBusStop();
+
+    /**
+     * Get the last successfully searched bus stop ID or NULL
+     *
+     * @return
+     */
+    String getLastSuccessfullySearchedBusStopID();
+
+    /**
+     * Automatically update the "Add to favorite" star icon
+     */
+    void updateStarIconFromLastBusStop();
 
     /**
      * Tell the activity that we need to disable/enable its floatingActionButton

@@ -20,7 +20,6 @@
 package it.reyboz.bustorino.fragments;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
@@ -33,13 +32,12 @@ import android.view.ViewGroup;
 
 import android.widget.*;
 import android.support.design.widget.FloatingActionButton;
-import it.reyboz.bustorino.ActivityMain;
+
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.FiveTNormalizer;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
-import it.reyboz.bustorino.middleware.UserDB;
 
 /**
  *  This is a generalized fragment that can be used both for
@@ -102,22 +100,6 @@ public class ResultListFragment extends Fragment{
         if (getArguments() != null) {
             adapterKind = (FragmentKind) getArguments().getSerializable(LIST_TYPE);
         }
-    }
-
-    /**
-     * Check if the last Bus Stop is in the favorites
-     * @return
-     */
-    public boolean isStopInFavorites(String busStopId) {
-        boolean found = false;
-
-        // no stop no party
-        if(busStopId != null) {
-            SQLiteDatabase userDB = new UserDB(getContext()).getReadableDatabase();
-            found = UserDB.isStopinFavorites(userDB, busStopId);
-        }
-
-        return found;
     }
 
     @Override
@@ -293,12 +275,12 @@ public class ResultListFragment extends Fragment{
         messageTextView.setText(message);
         switch (adapterKind) {
             case ARRIVALS:
-                final ActivityMain activ = (ActivityMain) getActivity();
                 messageTextView.setClickable(true);
                 messageTextView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mListener.addLastStopToFavorites();
+                        // add/remove the stop in the favorites
+                        mListener.toggleLastStopToFavorites();
                     }
                 });
                 break;

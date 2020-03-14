@@ -23,6 +23,7 @@ import android.support.v4.content.Loader;
 import android.widget.*;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.adapters.StopAdapter;
+import it.reyboz.bustorino.middleware.AsyncStopFavoriteAction;
 import it.reyboz.bustorino.middleware.StopsDB;
 import it.reyboz.bustorino.middleware.UserDB;
 
@@ -100,8 +101,24 @@ public class ActivityFavorites extends AppCompatActivity implements LoaderManage
 
         switch (item.getItemId()) {
             case R.id.action_favourite_entry_delete:
-                UserDB.deleteStop(busStop, this.userDB);
-                createFavoriteList();
+
+                // remove the stop from the favorites in background
+                new AsyncStopFavoriteAction(getApplicationContext(), AsyncStopFavoriteAction.Action.REMOVE) {
+
+                    /**
+                     * Callback fired when everything was done
+                     *
+                     * @param result
+                     */
+                    @Override
+                    protected void onPostExecute(Boolean result) {
+                        super.onPostExecute(result);
+
+                        // update the favorite list
+                        createFavoriteList();
+                    }
+                }.execute(busStop);
+
                 return true;
             case R.id.action_rename_bus_stop_username:
                 showBusStopUsernameInputDialog(busStop);

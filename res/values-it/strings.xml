@@ -105,6 +105,7 @@
     <string name="show_arrivals">Mostra arrivi</string>
     <string name="show_stops">Mostra fermate</string>
     <string name="nearby_arrivals_message">Arrivi qui vicino</string>
+    <string name="removed_from_favorites">Fermata rimossa dai preferiti</string>
 
 
 </resources>
