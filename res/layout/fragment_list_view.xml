@@ -3,44 +3,46 @@
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-                
 
-        <TextView
-            android:id="@+id/messageTextView"
+        <android.support.v7.widget.CardView
+            android:id="@+id/favorites_cardView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="307dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginBottom="10dp"
-            android:layout_toStartOf="@+id/addToFavorites"
-            android:layout_toLeftOf="@+id/addToFavorites"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            fab:cardElevation="2dp"
+            fab:cardCornerRadius="5dp"
+            android:layout_margin="16dp">
 
-        <ImageButton
-            android:id="@+id/addToFavorites"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/resultsListView"
-            android:layout_alignParentRight="true"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginRight="16dp"
-            android:layout_marginBottom="16dp"
-            android:background="@android:color/transparent"
-            fab:srcCompat="@drawable/ic_star_outline" />
+                <TextView
+                    android:id="@+id/messageTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toLeftOf="@+id/addToFavorites"
+                    android:gravity="center_vertical"
+                    android:layout_marginLeft="4dp"
+                    android:minHeight="48dp"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:layout_toStartOf="@+id/addToFavorites"
+                    android:layout_marginStart="4dp"
+                    android:foreground="?attr/selectableItemBackground" />
+
+                <ImageButton
+                    android:id="@+id/addToFavorites"
+                    android:layout_width="45dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:background="@android:color/transparent"
+                    fab:srcCompat="@drawable/ic_star_outline"
+                    tools:ignore="OnClick"
+                    android:foreground="?attr/selectableItemBackground" />
+
+        </android.support.v7.widget.CardView>
 
         <ListView
-                android:layout_below="@id/messageTextView"
-                android:id="@+id/resultsListView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clickable="true"
-                android:descendantFocusability="blocksDescendants"
-                android:visibility="visible"
-        />
-        </RelativeLayout>
+            android:id="@+id/resultsListView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/favorites_cardView"
+            android:clickable="true"
+            android:descendantFocusability="blocksDescendants"
+            android:visibility="visible" />
+</RelativeLayout>
