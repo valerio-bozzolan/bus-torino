@@ -1,0 +1,4 @@
+* we welcomed Andrea Ugo, our new junior dev
+* we closed Andrea Ugo in the cellar of Valerio B. without light and food
+* Valerio B. said to Andrea Ugo he will receive food only after somehow improving the add-to-favorites part
+* Andrea Ugo improved the user experience to the add-to-favorites part - now 98% core intuitive and cute
