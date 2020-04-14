@@ -1,0 +1,4 @@
+* abbiamo dato il benvenuto al nuovo junior dev Andrea Ugo
+* abbiamo chiuso Andrea Ugo a chiave nella cantina di Valerio B.
+* Valerio B. ha detto ad Andrea Ugo che riceverà cibo solo quando avrà migliorato i preferiti
+* Andrea Ugo ha fatto sì che l'aggiunta e la rimozione di un preferito sia più intuitiva e tenera dell'98%
