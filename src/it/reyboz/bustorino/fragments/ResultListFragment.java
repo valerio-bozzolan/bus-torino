@@ -144,7 +144,7 @@ public class ResultListFragment extends Fragment{
                         }
                     });
 
-                    //set the textviewMessage
+                    // set the textviewMessage
                     setTextViewMessage(getString(R.string.results));
                     break;
                 case ARRIVALS:
@@ -305,9 +305,9 @@ public class ResultListFragment extends Fragment{
                 break;
             case STOPS:
                 addToFavorites.setClickable(false);
+                addToFavorites.setVisibility(View.INVISIBLE);
                 break;
         }
-
 
         messageTextView.setVisibility(View.VISIBLE);
     }
