@@ -201,19 +201,7 @@ public class StopsDB extends SQLiteAssetHelper implements StopsDBInterface {
 
             result.moveToNext();
 
-            Route.Type type;
-            switch(result.getString(colType)) {
-                case "B":
-                default:
-                    type = Route.Type.BUS;
-                    break;
-                case "M":
-                    type = Route.Type.METRO;
-                    break;
-                case "T":
-                    type = Route.Type.RAILWAY;
-                    break;
-            }
+            Route.Type type = routeTypeFromSymbol(result.getString(colType));
 
             String locationWhichSometimesIsAnEmptyString = result.getString(colLocation);
             if(locationWhichSometimesIsAnEmptyString.length() <= 0) {
@@ -228,5 +216,23 @@ public class StopsDB extends SQLiteAssetHelper implements StopsDBInterface {
         result.close();
 
         return s;
+    }
+
+    /**
+     * Get a Route Type from its char symbol
+     *
+     * @param route The route symbol (e.g. "B")
+     * @return The related Route.Type (e.g. Route.Type.Bus)
+     */
+    public static Route.Type routeTypeFromSymbol(String route) {
+        switch (route) {
+            case "M":
+                return Route.Type.METRO;
+            case "T":
+                return Route.Type.RAILWAY;
+        }
+
+        // default with case "B"
+        return Route.Type.BUS;
     }
 }

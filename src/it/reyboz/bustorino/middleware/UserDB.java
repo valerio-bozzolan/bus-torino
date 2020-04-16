@@ -193,6 +193,13 @@ public class UserDB extends SQLiteOpenHelper {
         return username;
     }
 
+    /**
+     * Get all the bus stops marked as favorites
+     *
+     * @param db
+     * @param dbi
+     * @return
+     */
     public static List<Stop> getFavorites(SQLiteDatabase db, StopsDBInterface dbi) {
         List<Stop> l = new ArrayList<>();
         Stop s;
