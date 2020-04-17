@@ -40,10 +40,12 @@ import it.reyboz.bustorino.backend.StopsDBInterface;
 public class StopsDB extends SQLiteAssetHelper implements StopsDBInterface {
     private static String QUERY_TABLE_stops = "stops";
     private static String QUERY_WHERE_ID = "ID = ?";
+    private static String QUERY_WHERE_LAT_AND_LNG_IN_RANGE = "lat >= ? AND lat <= ? AND lon >= ? AND lon <= ?";
     private static String[] QUERY_COLUMN_name = {"name"};
     private static String[] QUERY_COLUMN_location = {"location"};
     private static String[] QUERY_COLUMN_route = {"route"};
     private static String[] QUERY_COLUMN_everything = {"name", "location", "type", "lat", "lon"};
+    private static String[] QUERY_COLUMN_everything_and_ID = {"ID", "name", "location", "type", "lat", "lon"};
 
     private static String DB_NAME = "stops.sqlite";
     private static int DB_VERSION = 1;
@@ -216,6 +218,72 @@ public class StopsDB extends SQLiteAssetHelper implements StopsDBInterface {
         result.close();
 
         return s;
+    }
+
+    /**
+     * Query some bus stops inside a map view
+     *
+     * You can obtain the coordinates from OSMDroid using something like this:
+     *  BoundingBoxE6 bb = mMapView.getBoundingBox();
+     *  double latFrom = bb.getLatSouthE6() / 1E6;
+     *  double latTo = bb.getLatNorthE6() / 1E6;
+     *  double lngFrom = bb.getLonWestE6() / 1E6;
+     *  double lngTo = bb.getLonEastE6() / 1E6;
+     */
+    public Stop[] queryAllInsideMapView(double minLat, double maxLat, double minLng, double maxLng) {
+        Stop[] stops = new Stop[0];
+
+        Cursor result;
+        int count;
+
+        // coordinates must be strings in the where condition
+        String minLatRaw = String.valueOf(minLat);
+        String maxLatRaw = String.valueOf(maxLat);
+        String minLngRaw = String.valueOf(minLng);
+        String maxLngRaw = String.valueOf(maxLng);
+
+        String stopID;
+        Route.Type type;
+
+        if(this.db == null) {
+            return stops;
+        }
+
+        try {
+            result = this.db.query(QUERY_TABLE_stops, QUERY_COLUMN_everything_and_ID, QUERY_WHERE_LAT_AND_LNG_IN_RANGE, new String[] {minLatRaw, maxLatRaw, minLngRaw, maxLngRaw}, null, null, null);
+
+            int colID = result.getColumnIndex("ID");
+            int colName = result.getColumnIndex("name");
+            int colLocation = result.getColumnIndex("location");
+            int colType = result.getColumnIndex("type");
+            int colLat = result.getColumnIndex("lat");
+            int colLon = result.getColumnIndex("lon");
+
+            count = result.getCount();
+            stops = new Stop[count];
+
+            int i = 0;
+            while(result.moveToNext()) {
+
+                stopID = result.getString(colID);
+                type = routeTypeFromSymbol(result.getString(colType));
+
+                String locationWhichSometimesIsAnEmptyString = result.getString(colLocation);
+                if (locationWhichSometimesIsAnEmptyString.length() <= 0) {
+                    locationWhichSometimesIsAnEmptyString = null;
+                }
+
+                stops[i++] = new Stop(stopID, result.getString(colName), null, locationWhichSometimesIsAnEmptyString, type, getRoutesByStop(stopID), result.getDouble(colLat), result.getDouble(colLon));
+            }
+
+        } catch(SQLiteException e) {
+            // TODO: put a warning in the log
+            return stops;
+        }
+
+        result.close();
+
+        return stops;
     }
 
     /**
