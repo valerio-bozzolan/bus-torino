@@ -256,6 +256,8 @@ public class ActivityFavorites extends AppCompatActivity implements LoaderManage
                 TextView favoriteTipTextView = (TextView) findViewById(R.id.favoriteTipTextView);
                 assert favoriteTipTextView != null;
                 favoriteTipTextView.setVisibility(View.VISIBLE);
+                ImageView angeryBusImageView = (ImageView) findViewById(R.id.angeryBusImageView);
+                angeryBusImageView.setVisibility(View.VISIBLE);
             }
 
             /* There's a nice method called notifyDataSetChanged() to avoid building the ListView

@@ -35,7 +35,7 @@
     <string name="removed_from_favorites">Bus stop removed from your favorites</string>
     <string name="action_favorites">Favorites</string>
     <string name="title_activity_favorites">Favorites</string>
-    <string name="tip_add_favorite">Press on a bus stop name to populate this list</string>
+    <string name="tip_add_favorite">No favorites? Arghh! Press on a bus stop star to populate this list!</string>
     <string name="action_remove_from_favourites">Delete</string>
     <string name="action_rename_bus_stop_username">Rename</string>
     <string name="dialog_rename_bus_stop_username_title">Rename the bus stop</string>

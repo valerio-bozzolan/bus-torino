@@ -29,7 +29,7 @@
     <string name="added_in_favorites">Fermata aggiunta ai preferiti</string>
     <string name="cant_add_to_favorites">Impossibile aggiungere ai preferiti (memoria piena o database corrotto?)!</string>
     <string name="title_activity_favorites">Preferiti</string>
-    <string name="tip_add_favorite">Tocca il nome di una fermata per aggiungerla in questa lista</string>
+    <string name="tip_add_favorite">Nessun preferito? Arghh! Schiaccia sulla stella di una fermata per aggiungere a questa lista!</string>
     <string name="action_remove_from_favourites">Rimuovi</string>
     <string name="action_rename_bus_stop_username">Rinomina</string>
     <string name="dialog_rename_bus_stop_username_title">Rinomina fermata</string>
