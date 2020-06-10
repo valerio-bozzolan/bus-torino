@@ -158,6 +158,8 @@ public class ActivityMap extends AppCompatActivity {
         marker.setIcon(getResources().getDrawable(R.drawable.bus_marker));
         // add to it a title
         marker.setTitle(stopName);
+        // set the description as the ID
+        marker.setSnippet(ID);
 
         // show popup info window of the searched marker
         if (isStartMarker) {

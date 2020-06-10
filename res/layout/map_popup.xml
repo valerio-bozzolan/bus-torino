@@ -2,27 +2,34 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@color/cardview_light_background">
+    android:background="@color/cardview_light_background"
+    android:padding="8dp">
 
     <TextView
-        android:id="@+id/bubble_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/blue_500" />
+            android:id="@+id/bubble_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/blue_500"/>
 
     <TextView
-        android:id="@+id/bubble_description"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+            android:id="@+id/bubble_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+    />
 
     <TextView
         android:id="@+id/bubble_subdescription"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+    />
 
     <ImageView
         android:id="@+id/bubble_image"
         android:layout_height="wrap_content"
-        android:layout_width="wrap_content" />
+        android:layout_width="wrap_content"
+        android:visibility="gone"
+    />
 
 </LinearLayout>
