@@ -35,6 +35,7 @@
     <string name="removed_from_favorites">Bus stop removed from your favorites</string>
     <string name="action_favorites">Favorites</string>
     <string name="title_activity_favorites">Favorites</string>
+    <string name="title_activity_map">Map</string>
     <string name="tip_add_favorite">No favorites? Arghh! Press on a bus stop star to populate this list!</string>
     <string name="action_remove_from_favourites">Delete</string>
     <string name="action_rename_bus_stop_username">Rename</string>
@@ -65,10 +66,11 @@
         <p>This app will show you bus timetables gathering data from <b>www.gtt.to.it</b> or <b>www.5t.torino.it</b> "for personal use".</p>
 
 		<p>Who worked on BusTO:<br>
-		- <b>Fabio Mazza</b> current rockstar developer.<br>
-		- <b>Ludovico Pavesi</b> previous rockstar developer.<br>
-		- <b>Valerio Bozzolan</b> maintainer.<br>
-		- <b>Marco Gagino</b> ex contributor and icon creator.<br>
+		- <b>Fabio Mazza</b> current senior rockstar developer.<br>
+        - <b>Andrea Ugo</b> current junior rockstar developer.<br>
+		- <b>Ludovico Pavesi</b> previous senior rockstar developer.<br>
+		- <b>Valerio Bozzolan</b> maintainer and infrastructure sponsor.<br>
+		- <b>Marco Gagino</b> contributor and icon creator.<br>
 		- <b>JSoup</b> web scraper library.<br>
 		- <b>makovkastar</b> floating buttons.<br>
 		- <b>Google</b> Material Design icons.<br>

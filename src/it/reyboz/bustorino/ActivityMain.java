@@ -385,6 +385,9 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             case R.id.action_favorites:
                 startActivity(new Intent(ActivityMain.this, ActivityFavorites.class));
                 return true;
+            case R.id.action_map:
+                startActivity(new Intent(ActivityMain.this, ActivityMap.class));
+                return true;
             case R.id.action_about:
                 startActivity(new Intent(ActivityMain.this, ActivityAbout.class));
                 return true;

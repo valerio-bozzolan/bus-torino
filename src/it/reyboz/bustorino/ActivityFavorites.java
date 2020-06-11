@@ -46,6 +46,8 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
+import org.osmdroid.util.GeoPoint;
+
 import java.util.List;
 
 public class ActivityFavorites extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -130,13 +132,17 @@ public class ActivityFavorites extends AppCompatActivity implements LoaderManage
                     Toast.makeText(getApplicationContext(),R.string.cannot_show_on_map_no_position,Toast.LENGTH_SHORT).show();
                     return true;
                 }
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(theGeoUrl));
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                if(intent.resolveActivity(getPackageManager())!=null)
-                    startActivity(intent);
-                else {
-                    Toast.makeText(getApplicationContext(),R.string.cannot_show_on_map_no_activity,Toast.LENGTH_SHORT).show();
-                }
+
+                // start ActivityMap with these extras in intent
+                Intent intent = new Intent(ActivityFavorites.this, ActivityMap.class);
+                Bundle b = new Bundle();
+                b.putDouble("lat", busStop.getLatitude());
+                b.putDouble("lon", busStop.getLongitude());
+                b.putString("name", busStop.getStopDefaultName());
+                b.putString("ID", busStop.ID);
+                intent.putExtras(b);
+
+                startActivity(intent);
                 return true;
             default:
                 return super.onContextItemSelected(item);

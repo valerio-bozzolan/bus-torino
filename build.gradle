@@ -81,5 +81,7 @@ android {
         implementation 'org.jsoup:jsoup:1.11.3'
         implementation 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
         implementation 'com.android.volley:volley:1.1.1'
+
+        implementation 'org.osmdroid:osmdroid-android:6.1.3'
     }
 }

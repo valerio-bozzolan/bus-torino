@@ -85,6 +85,17 @@
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value=".ActivityMain"/>
         </activity>
+        <activity
+            android:name=".ActivityMap"
+            android:label="@string/title_activity_map"
+            android:parentActivityName=".ActivityMain"
+            android:theme="@style/MapTheme">
+
+            <!-- API < 16: -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ActivityMain"/>
+        </activity>
 
         <provider
                 android:name=".middleware.AppDataProvider"

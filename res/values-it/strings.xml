@@ -29,6 +29,7 @@
     <string name="added_in_favorites">Fermata aggiunta ai preferiti</string>
     <string name="cant_add_to_favorites">Impossibile aggiungere ai preferiti (memoria piena o database corrotto?)!</string>
     <string name="title_activity_favorites">Preferiti</string>
+    <string name="title_activity_map">Mappa</string>
     <string name="tip_add_favorite">Nessun preferito? Arghh! Schiaccia sulla stella di una fermata per aggiungere a questa lista!</string>
     <string name="action_remove_from_favourites">Rimuovi</string>
     <string name="action_rename_bus_stop_username">Rinomina</string>
@@ -55,8 +56,9 @@
         <p>Quest\'app ottiene i passaggi dei bus in tempo reale filtrando i dati forniti pubblicamente sul sito <b>www.gtt.to.it</b> o <i>www.5t.torino.it</i> "per uso personale".</p>
 
 		<p>Ingredienti:<br>
-		- <b>Fabio Mazza</b> attuale rockstar developer.<br>
-		- <b>Ludovico Pavesi</b> ex rockstar developer.<br>
+		- <b>Fabio Mazza</b> attuale rockstar developer anziano.<br>
+		- <b>Andrea Ugo</b> attuale rockstar developer in formazione.<br>
+		- <b>Ludovico Pavesi</b> ex rockstar developer anziano.<br>
 		- <b>Valerio Bozzolan</b> attuale manutentore.<br>
 		- <b>Marco Gagino</b> apprezzato ex collaboratore, ideatore icona e grafica.<br>
 		- <b>JSoup</b> libreria per "<i>web scaping</i>".<br>
