@@ -18,8 +18,14 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.FolderOverlay;
 import org.osmdroid.views.overlay.Marker;
+import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.infowindow.InfoWindow;
+import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
+import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
+
+import java.util.List;
 
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.map.CustomInfoWindow;
@@ -27,8 +33,15 @@ import it.reyboz.bustorino.middleware.StopsDB;
 
 public class ActivityMap extends AppCompatActivity {
 
+    private static final String TAG = "Busto-MapActivity";
+    private static final String MAP_CURRENT_ZOOM_KEY = "map-current-zoom";
+    private static final String MAP_CENTER_LAT_KEY = "map-center-lat";
+    private static final String MAP_CENTER_LON_KEY = "map-center-lon";
+
     private static MapView map = null;
     public Context ctx;
+    private MyLocationNewOverlay mLocationOverlay = null;
+    private FolderOverlay stopsFolderOverlay = null;
 
     @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -54,6 +67,9 @@ public class ActivityMap extends AppCompatActivity {
         // add ability to zoom with 2 fingers
         map.setMultiTouchControls(true);
 
+        //setup FolderOverlay
+        stopsFolderOverlay = new FolderOverlay();
+
         // take the parameters if it's called from other Activities
         Bundle b = getIntent().getExtras();
         GeoPoint marker = null;
@@ -67,6 +83,8 @@ public class ActivityMap extends AppCompatActivity {
             ID = b.getString("ID");
         }
         startMap(marker, name, ID);
+
+
 
         // on drag and zoom reload the markers
         map.addMapListener(new DelayedMapListener(new MapListener() {
@@ -103,6 +121,19 @@ public class ActivityMap extends AppCompatActivity {
         map.setMinZoomLevel(15.5);
         mapController.setCenter(startPoint);
 
+        // Location Overlay
+        // from OpenBikeSharing (THANK GOD)
+        GpsMyLocationProvider imlp = new GpsMyLocationProvider(this.getBaseContext());
+        imlp.setLocationUpdateMinDistance(200);
+        imlp.setLocationUpdateMinTime(30000);
+        this.mLocationOverlay = new MyLocationNewOverlay(imlp,map);
+        this.mLocationOverlay.enableMyLocation();
+        map.getOverlays().add(this.mLocationOverlay);
+
+        //add stops overlay
+        map.getOverlays().add(this.stopsFolderOverlay);
+
+
         loadMarkers();
         if (marker != null) {
             // make a marker with the info window open for the searched marker
@@ -111,7 +142,7 @@ public class ActivityMap extends AppCompatActivity {
 
     }
 
-    public void makeMarker(GeoPoint geoPoint, String stopName, String ID, boolean isStartMarker) {
+    public Marker makeMarker(GeoPoint geoPoint, String stopName, String ID, boolean isStartMarker) {
 
         // add a marker
         Marker marker = new Marker(map);
@@ -152,8 +183,6 @@ public class ActivityMap extends AppCompatActivity {
         // set its position
         marker.setPosition(geoPoint);
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        // display the marker
-        map.getOverlays().add(marker);
         // add to it an icon
         marker.setIcon(getResources().getDrawable(R.drawable.bus_marker));
         // add to it a title
@@ -166,12 +195,18 @@ public class ActivityMap extends AppCompatActivity {
             marker.showInfoWindow();
         }
 
+        return marker;
     }
 
     public void loadMarkers() {
 
         // get rid of the previous markers
-        map.getOverlays().clear();
+        //map.getOverlays().clear();
+        //stopsFolderOverlay = new FolderOverlay();
+        List<Overlay> stopsOverlays = stopsFolderOverlay.getItems();
+        if (stopsOverlays != null){
+            stopsOverlays.clear();
+        }
 
         // get the top, bottom, left and right screen's coordinate
         BoundingBox bb = map.getBoundingBox();
@@ -189,7 +224,8 @@ public class ActivityMap extends AppCompatActivity {
         // add new markers of those stops
         for (Stop stop : stops) {
             GeoPoint marker = new GeoPoint(stop.getLatitude(), stop.getLongitude());
-            makeMarker(marker, stop.getStopDefaultName(), stop.ID, false);
+            Marker stopMarker = makeMarker(marker, stop.getStopDefaultName(), stop.ID, false);
+            stopsFolderOverlay.add(stopMarker);
         }
 
     }
@@ -201,6 +237,7 @@ public class ActivityMap extends AppCompatActivity {
         //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         //Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
         map.onResume(); //needed for compass, my location overlays, v6.0.0 and up
+        mLocationOverlay.enableMyLocation();
     }
 
     public void onPause(){
@@ -210,5 +247,7 @@ public class ActivityMap extends AppCompatActivity {
         //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         //Configuration.getInstance().save(this, prefs);
         map.onPause();  //needed for compass, my location overlays, v6.0.0 and up
+        mLocationOverlay.disableMyLocation();
     }
+
 }
