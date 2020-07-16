@@ -187,11 +187,33 @@ public class AppLocationManager implements LocationListener {
         locMan.removeUpdates(this);
     }
 
-
+    /**
+     * Interface to be implemented to get the location request
+     */
     public interface LocationRequester{
+        /**
+         * Do something with the newly obtained location
+         * @param loc the obtained location
+         */
         void onLocationChanged(Location loc);
+
+        /**
+         * Inform the requester that the GPS status has changed
+         * @param status new status
+         */
         void onLocationStatusChanged(int status);
+
+        /**
+         * Give the last time of update the requester has
+         * Set it to -1 in order to receive each new location
+         * @return the time for update in milliseconds since epoch
+         */
         long getLastUpdateTimeMillis();
+
+        /**
+         * Get the specifications for the location
+         * @return fully parsed LocationCriteria
+         */
         LocationCriteria getLocationCriteria();
     }
 }
