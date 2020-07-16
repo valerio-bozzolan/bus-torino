@@ -51,7 +51,7 @@ public class AppLocationManager implements LocationListener {
 
 
     private AppLocationManager(Context con) {
-        this.con = con;
+        this.con = con.getApplicationContext();
         locMan  = (LocationManager) con.getSystemService(Context.LOCATION_SERVICE);
     }
 
