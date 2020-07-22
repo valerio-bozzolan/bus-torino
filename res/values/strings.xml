@@ -119,4 +119,11 @@
     <string name="two_strings_format" translatable="false">%1$s - %2$s</string>
     <string name="show_arrivals">Show arrivals</string>
     <string name="show_stops">Show stops</string>
+
+    <!--
+   Map view buttons strings
+   !-->
+    <string name="bt_center_map_description">Center on my location</string>
+    <string name="bt_follow_me_description">Follow me</string>
+
 </resources>

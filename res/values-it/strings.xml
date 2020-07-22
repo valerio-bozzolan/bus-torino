@@ -109,5 +109,10 @@
     <string name="nearby_arrivals_message">Arrivi qui vicino</string>
     <string name="removed_from_favorites">Fermata rimossa dai preferiti</string>
 
+    <!--
+    Map view buttons strings
+    !-->
+    <string name="bt_center_map_description">La mia posizione</string>
+    <string name="bt_follow_me_description">Segui posizione</string>
 
 </resources>

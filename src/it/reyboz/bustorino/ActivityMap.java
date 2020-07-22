@@ -6,6 +6,9 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.ImageButton;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
@@ -51,10 +54,12 @@ public class ActivityMap extends AppCompatActivity {
     private static final double POSITION_FOUND_ZOOM = 18.6;
 
 
-    private static MapView map = null;
+    private MapView map = null;
     public Context ctx;
     private MyLocationNewOverlay mLocationOverlay = null;
     private FolderOverlay stopsFolderOverlay = null;
+    protected ImageButton btCenterMap;
+    protected ImageButton btFollowMe;
 
     @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -76,9 +81,14 @@ public class ActivityMap extends AppCompatActivity {
 
         map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
+        //map.setTilesScaledToDpi(true);
+        map.setFlingEnabled(true);
 
         // add ability to zoom with 2 fingers
         map.setMultiTouchControls(true);
+
+        btCenterMap = (ImageButton) findViewById(R.id.ic_center_map);
+        btFollowMe = (ImageButton) findViewById(R.id.ic_follow_me);
 
         //setup FolderOverlay
         stopsFolderOverlay = new FolderOverlay();
@@ -106,6 +116,32 @@ public class ActivityMap extends AppCompatActivity {
             }
 
         }));
+
+
+
+        btCenterMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "centerMap clicked ");
+                final GeoPoint myPosition = mLocationOverlay.getMyLocation();
+                map.getController().animateTo(myPosition);
+            }
+        });
+
+
+        btFollowMe.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "btFollowMe clicked ");
+                if (!mLocationOverlay.isFollowLocationEnabled()) {
+                    mLocationOverlay.enableFollowLocation();
+                    btFollowMe.setImageResource(R.drawable.ic_follow_me_on);
+                } else {
+                    mLocationOverlay.disableFollowLocation();
+                    btFollowMe.setImageResource(R.drawable.ic_follow_me);
+                }
+            }
+        });
     }
 
     public void startMap(Bundle incoming, Bundle savedInstanceState) {
@@ -162,10 +198,19 @@ public class ActivityMap extends AppCompatActivity {
         // Location Overlay
         // from OpenBikeSharing (THANK GOD)
         GpsMyLocationProvider imlp = new GpsMyLocationProvider(this.getBaseContext());
-        imlp.setLocationUpdateMinDistance(200);
-        imlp.setLocationUpdateMinTime(30000);
+        imlp.setLocationUpdateMinDistance(10);
+        imlp.setLocationUpdateMinTime(2000);
         this.mLocationOverlay = new MyLocationNewOverlay(imlp,map);
-        this.mLocationOverlay.enableMyLocation();
+        mLocationOverlay.enableMyLocation();
+        mLocationOverlay.enableFollowLocation();
+        mLocationOverlay.setOptionsMenuEnabled(true);
+        /*
+        mLocationOverlay.runOnFirstFix(() -> {
+            mapController.setCenter(mLocationOverlay.getMyLocation());
+            mapController.animateTo(mLocationOverlay.getMyLocation());
+        });
+         */
+
         map.getOverlays().add(this.mLocationOverlay);
 
         //add stops overlay
@@ -266,6 +311,14 @@ public class ActivityMap extends AppCompatActivity {
             stopsFolderOverlay.add(stopMarker);
         }
 
+    }
+
+    protected boolean detachMapFromPosition(){
+        if (mLocationOverlay.isFollowLocationEnabled()) {
+            mLocationOverlay.disableFollowLocation();
+            btFollowMe.setImageResource(R.drawable.ic_follow_me);
+            return true;
+        } return false;
     }
 
     public void onResume(){
