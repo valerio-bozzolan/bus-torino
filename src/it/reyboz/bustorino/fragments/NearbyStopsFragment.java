@@ -508,6 +508,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
 
             final Palina palinaInMap = mStops.get(result.ID);
             //palina cannot be null here
+            //sorry for the brutal crash when it happens
             if(palinaInMap == null) throw new IllegalStateException("Cannot get the palina from the map");
             //necessary to split the Arrivals and Details cases
             switch (type){
@@ -573,7 +574,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
                 getLoaderManager().restartLoader(LOADER_ID,msgBundle,callbacks);
             }
             lastUpdateTime = System.currentTimeMillis();
-            Log.d("LocationListener","can start loader "+ canStartDBQuery);
+            Log.d("BusTO: NearbyLocationListener","can start loader "+ canStartDBQuery);
         }
 
         @Override
