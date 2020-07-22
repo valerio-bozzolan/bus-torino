@@ -2,12 +2,15 @@ package it.reyboz.bustorino;
 
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 
+import android.widget.Toast;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.events.DelayedMapListener;
@@ -37,6 +40,16 @@ public class ActivityMap extends AppCompatActivity {
     private static final String MAP_CURRENT_ZOOM_KEY = "map-current-zoom";
     private static final String MAP_CENTER_LAT_KEY = "map-center-lat";
     private static final String MAP_CENTER_LON_KEY = "map-center-lon";
+
+    public static final String BUNDLE_LATIT = "lat";
+    public static final String BUNDLE_LONGIT = "lon";
+    public static final String BUNDLE_NAME = "name";
+    public static final String BUNDLE_ID = "ID";
+
+    private static final double DEFAULT_CENTER_LAT = 45.0708;
+    private static final double DEFAULT_CENTER_LON = 7.6858;
+    private static final double POSITION_FOUND_ZOOM = 18.6;
+
 
     private static MapView map = null;
     public Context ctx;
@@ -72,17 +85,8 @@ public class ActivityMap extends AppCompatActivity {
 
         // take the parameters if it's called from other Activities
         Bundle b = getIntent().getExtras();
-        GeoPoint marker = null;
-        String name = null;
-        String ID = null;
-        if(b != null) {
-            double lat = b.getDouble("lat");
-            double lon = b.getDouble("lon");
-            marker = new GeoPoint(lat, lon);
-            name = b.getString("name");
-            ID = b.getString("ID");
-        }
-        startMap(marker, name, ID);
+
+        startMap(b, savedInstanceState);
 
 
 
@@ -104,22 +108,56 @@ public class ActivityMap extends AppCompatActivity {
         }));
     }
 
-    public void startMap(GeoPoint marker, String name, String ID) {
+    public void startMap(Bundle incoming, Bundle savedInstanceState) {
+        //parse incoming bundle
+        GeoPoint marker = null;
+        String name = null;
+        String ID = null;
+        if(incoming != null) {
+            double lat = incoming.getDouble(BUNDLE_LATIT);
+            double lon = incoming.getDouble(BUNDLE_LONGIT);
+            marker = new GeoPoint(lat, lon);
+            name = incoming.getString(BUNDLE_NAME);
+            ID = incoming.getString(BUNDLE_ID);
+        }
 
         // move the map on the marker position or on a default view point: Turin, Piazza Castello
         // and set the start zoom
         IMapController mapController = map.getController();
-        GeoPoint startPoint;
+        GeoPoint startPoint = null;
+
         if (marker != null) {
             startPoint = marker;
-            mapController.setZoom(20.0);
-        } else {
-            startPoint = new GeoPoint(45.0708, 7.6858);
-            mapController.setZoom(18.0);
+            mapController.setZoom(POSITION_FOUND_ZOOM);
         }
+        else if (savedInstanceState != null) {
+            mapController.setZoom(savedInstanceState.getDouble(MAP_CURRENT_ZOOM_KEY));
+            mapController.setCenter(new GeoPoint(savedInstanceState.getDouble(MAP_CENTER_LAT_KEY),
+                    savedInstanceState.getDouble(MAP_CENTER_LON_KEY)));
+        } else {
+            boolean found = false;
+            LocationManager locationManager =
+                    (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+            if(locationManager!=null) {
+                Location userLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if (userLocation != null) {
+                    mapController.setZoom(POSITION_FOUND_ZOOM);
+                    startPoint = new GeoPoint(userLocation);
+                    found = true;
+                }
+            }
+            if(!found){
+                startPoint = new GeoPoint(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON);
+                mapController.setZoom(16.0);
+            }
+        }
+
         // set the minimum zoom level
-        map.setMinZoomLevel(15.5);
-        mapController.setCenter(startPoint);
+        map.setMinZoomLevel(15.0);
+        //add contingency check (shouldn't happen..., but)
+        if (startPoint != null) {
+            mapController.setCenter(startPoint);
+        }
 
         // Location Overlay
         // from OpenBikeSharing (THANK GOD)
@@ -248,6 +286,13 @@ public class ActivityMap extends AppCompatActivity {
         //Configuration.getInstance().save(this, prefs);
         map.onPause();  //needed for compass, my location overlays, v6.0.0 and up
         mLocationOverlay.disableMyLocation();
+    }
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putDouble(MAP_CURRENT_ZOOM_KEY, map.getZoomLevelDouble());
+        outState.putDouble(MAP_CENTER_LAT_KEY, map.getMapCenter().getLatitude());
+        outState.putDouble(MAP_CENTER_LON_KEY, map.getMapCenter().getLongitude());
     }
 
 }
