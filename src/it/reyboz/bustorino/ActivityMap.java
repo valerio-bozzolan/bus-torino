@@ -50,7 +50,7 @@ import org.osmdroid.views.overlay.infowindow.InfoWindow;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
-import java.util.List;
+import java.util.*;
 
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.map.CustomInfoWindow;
@@ -70,7 +70,9 @@ public class ActivityMap extends AppCompatActivity {
 
     private static final double DEFAULT_CENTER_LAT = 45.0708;
     private static final double DEFAULT_CENTER_LON = 7.6858;
-    private static final double POSITION_FOUND_ZOOM = 18.6;
+    private static final double POSITION_FOUND_ZOOM = 18.3;
+
+    private HashSet<String> shownStops = null;
 
 
     private MapView map = null;
@@ -117,8 +119,6 @@ public class ActivityMap extends AppCompatActivity {
 
         startMap(b, savedInstanceState);
 
-
-
         // on drag and zoom reload the markers
         map.addMapListener(new DelayedMapListener(new MapListener() {
 
@@ -161,6 +161,7 @@ public class ActivityMap extends AppCompatActivity {
                 }
             }
         });
+
     }
 
     public void startMap(Bundle incoming, Bundle savedInstanceState) {
@@ -176,6 +177,7 @@ public class ActivityMap extends AppCompatActivity {
             ID = incoming.getString(BUNDLE_ID);
         }
 
+        shownStops = new HashSet<>();
         // move the map on the marker position or on a default view point: Turin, Piazza Castello
         // and set the start zoom
         IMapController mapController = map.getController();
@@ -217,11 +219,12 @@ public class ActivityMap extends AppCompatActivity {
         // Location Overlay
         // from OpenBikeSharing (THANK GOD)
         GpsMyLocationProvider imlp = new GpsMyLocationProvider(this.getBaseContext());
-        imlp.setLocationUpdateMinDistance(10);
+        imlp.setLocationUpdateMinDistance(5);
         imlp.setLocationUpdateMinTime(2000);
         this.mLocationOverlay = new MyLocationNewOverlay(imlp,map);
         mLocationOverlay.enableMyLocation();
         mLocationOverlay.enableFollowLocation();
+        btFollowMe.setImageResource(R.drawable.ic_follow_me_on);
         mLocationOverlay.setOptionsMenuEnabled(true);
         /*
         mLocationOverlay.runOnFirstFix(() -> {
@@ -306,9 +309,9 @@ public class ActivityMap extends AppCompatActivity {
         //map.getOverlays().clear();
         //stopsFolderOverlay = new FolderOverlay();
         List<Overlay> stopsOverlays = stopsFolderOverlay.getItems();
-        if (stopsOverlays != null){
+        /*if (stopsOverlays != null){
             stopsOverlays.clear();
-        }
+        }*/
 
         // get the top, bottom, left and right screen's coordinate
         BoundingBox bb = map.getBoundingBox();
@@ -325,9 +328,23 @@ public class ActivityMap extends AppCompatActivity {
 
         // add new markers of those stops
         for (Stop stop : stops) {
+            if (shownStops.contains(stop.ID)){
+                continue;
+            }
+            try{
+                stop.getLatitude();
+                stop.getLongitude();
+            } catch (NullPointerException e) {
+                Log.e(TAG,"Stop "+stop.ID+ " gives null coordinates");
+                e.printStackTrace();
+                continue;
+            }
+
+            shownStops.add(stop.ID);
             GeoPoint marker = new GeoPoint(stop.getLatitude(), stop.getLongitude());
             Marker stopMarker = makeMarker(marker, stop.getStopDefaultName(), stop.ID, false);
             stopsFolderOverlay.add(stopMarker);
+
         }
 
     }
