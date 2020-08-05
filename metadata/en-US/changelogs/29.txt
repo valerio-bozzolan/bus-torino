@@ -3,4 +3,4 @@
 * map controls
 * user position           
 * follow-me
-* map! map! MAP! MAPS EVERYWHERE OH MY GOSH
+* map! map! MAP! MAPS EVERYWHERE! Arrr!

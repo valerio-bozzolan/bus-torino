@@ -3,4 +3,4 @@
 * controlli sulla mappa
 * posizione utente
 * funzionalità "seguimi"
-* mappa! mappa! MAPPA! MAPPE D'APPERTUTTO AAAAAH!
+* mappa! mappa! MAPPA! MAPPE DAPPERTUTTO AAAAAH!
