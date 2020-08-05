@@ -1,0 +1,6 @@
+* aggiunta mappa fermate vicine grazie ad Andrea Ugo
+* migliorata la mappa ancora di più grazie a Fabio Mazza
+* controlli sulla mappa
+* posizione utente
+* funzionalità "seguimi"
+* mappa! mappa! MAPPA! MAPPE D'APPERTUTTO AAAAAH!

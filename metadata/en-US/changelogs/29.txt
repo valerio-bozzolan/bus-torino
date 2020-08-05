@@ -1,0 +1,6 @@
+* add in-app map by Andrea Ugo 
+* improve in-app map even more by Fabio Mazza
+* map controls
+* user position           
+* follow-me
+* map! map! MAP! MAPS EVERYWHERE OH MY GOSH
