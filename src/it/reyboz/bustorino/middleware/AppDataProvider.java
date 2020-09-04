@@ -183,7 +183,7 @@ public class AppDataProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         con = getContext();
-        appDBHelper = NextGenDB.getInstance(getContext());
+        appDBHelper = new NextGenDB(getContext());
         udbhelper = new UserDB(getContext());
         if(con!=null) {
             preferences = new DBStatusManager(con,null);

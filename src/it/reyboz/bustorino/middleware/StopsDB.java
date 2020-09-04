@@ -42,10 +42,10 @@ public class StopsDB extends SQLiteAssetHelper implements StopsDBInterface {
     private static String QUERY_WHERE_ID = "ID = ?";
     private static String QUERY_WHERE_LAT_AND_LNG_IN_RANGE = "lat >= ? AND lat <= ? AND lon >= ? AND lon <= ?";
     private static String[] QUERY_COLUMN_name = {"name"};
-    private static String[] QUERY_COLUMN_location = {"location"};
-    private static String[] QUERY_COLUMN_route = {"route"};
-    private static String[] QUERY_COLUMN_everything = {"name", "location", "type", "lat", "lon"};
-    private static String[] QUERY_COLUMN_everything_and_ID = {"ID", "name", "location", "type", "lat", "lon"};
+    private static final String[] QUERY_COLUMN_location = {"location"};
+    private static final String[] QUERY_COLUMN_route = {"route"};
+    private static final String[] QUERY_COLUMN_everything = {"name", "location", "type", "lat", "lon"};
+    private static final String[] QUERY_COLUMN_everything_and_ID = {"ID", "name", "location", "type", "lat", "lon"};
 
     private static String DB_NAME = "stops.sqlite";
     private static int DB_VERSION = 1;
@@ -273,7 +273,9 @@ public class StopsDB extends SQLiteAssetHelper implements StopsDBInterface {
                     locationWhichSometimesIsAnEmptyString = null;
                 }
 
-                stops[i++] = new Stop(stopID, result.getString(colName), null, locationWhichSometimesIsAnEmptyString, type, getRoutesByStop(stopID), result.getDouble(colLat), result.getDouble(colLon));
+                stops[i++] = new Stop(stopID, result.getString(colName), null,
+                        locationWhichSometimesIsAnEmptyString, type, getRoutesByStop(stopID),
+                        result.getDouble(colLat), result.getDouble(colLon));
             }
 
         } catch(SQLiteException e) {

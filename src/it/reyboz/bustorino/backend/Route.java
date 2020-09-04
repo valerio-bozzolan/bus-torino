@@ -164,6 +164,19 @@ public class Route implements Comparable<Route> {
      public void addPassaggio(int hour, int minutes, boolean realtime, Passaggio.Source source) {
          this.passaggi.add(new Passaggio(hour, minutes, realtime, source));
      }
+
+    public static Route.Type getTypeFromSymbol(String route) {
+        switch (route) {
+            case "M":
+                return Route.Type.METRO;
+            case "T":
+                return Route.Type.RAILWAY;
+        }
+
+        // default with case "B"
+        return Route.Type.BUS;
+    }
+
      private String parseDestinazione(String direzione){
          if(direzione==null) return null;
          //trial to add space to the parenthesis
@@ -228,6 +241,7 @@ public class Route implements Comparable<Route> {
          }
          return sb.toString();
      }
+
 
     @Override
     public int compareTo(@NonNull Route other) {

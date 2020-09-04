@@ -33,6 +33,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 
 import android.widget.Toast;
+import it.reyboz.bustorino.middleware.NextGenDB;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.events.DelayedMapListener;
@@ -321,10 +322,15 @@ public class ActivityMap extends AppCompatActivity {
         double lngTo = bb.getLonEast();
 
         // get the stops located in those coordinates
+        /*
         StopsDB stopsDB = new StopsDB(ctx);
         stopsDB.openIfNeeded();
         Stop[] stops = stopsDB.queryAllInsideMapView(latFrom, latTo, lngFrom, lngTo);
         stopsDB.closeIfNeeded();
+        */
+
+        NextGenDB dbHelper = new NextGenDB(ctx);
+        Stop[] stops = dbHelper.queryAllInsideMapView(latFrom, latTo, lngFrom, lngTo);
 
         // add new markers of those stops
         for (Stop stop : stops) {

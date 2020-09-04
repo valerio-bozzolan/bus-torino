@@ -20,21 +20,29 @@ package it.reyboz.bustorino.middleware;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import it.reyboz.bustorino.R;
+import it.reyboz.bustorino.backend.Route;
+import it.reyboz.bustorino.backend.Stop;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 
 public class NextGenDB extends SQLiteOpenHelper{
     public static final String DATABASE_NAME = "bustodatabase.db";
     public static final int DATABASE_VERSION = 2;
-    //Singleton instance
-    private static volatile NextGenDB instance = null;
+    public static final String DEBUG_TAG = "NextGenDB-BusTO";
+    //NO Singleton instance
+    //private static volatile NextGenDB instance = null;
     //Some generating Strings
     private static final String SQL_CREATE_LINES_TABLE="CREATE TABLE "+Contract.LinesTable.TABLE_NAME+" ("+
             Contract.LinesTable._ID +" INTEGER PRIMARY KEY AUTOINCREMENT, "+ Contract.LinesTable.COLUMN_NAME +" TEXT, "+
@@ -71,9 +79,18 @@ public class NextGenDB extends SQLiteOpenHelper{
             Contract.StopsTable.COL_LOCATION+" TEXT, "+Contract.StopsTable.COL_PLACE+" TEXT, "+
             Contract.StopsTable.COL_LINES_STOPPING +" TEXT )";
 
+    private static final String[] QUERY_COLUMN_stops_all = {
+            StopsTable.COL_ID, StopsTable.COL_NAME, StopsTable.COL_LOCATION,
+            StopsTable.COL_TYPE, StopsTable.COL_LAT, StopsTable.COL_LONG, StopsTable.COL_LINES_STOPPING};
+
+    private static final String QUERY_WHERE_LAT_AND_LNG_IN_RANGE = StopsTable.COL_LAT + " >= ? AND " +
+            StopsTable.COL_LAT + " <= ? AND "+ StopsTable.COL_LONG +
+            " >= ? AND "+ StopsTable.COL_LONG + " <= ?";
+
+
     private Context appContext;
 
-    private NextGenDB(Context context) {
+    public NextGenDB(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         appContext = context.getApplicationContext();
     }
@@ -81,9 +98,9 @@ public class NextGenDB extends SQLiteOpenHelper{
     /**
      * Lazy initialization singleton getter, thread-safe with double checked locking
      * from https://en.wikipedia.org/wiki/Singleton_pattern
-     * @param context needed context
      * @return the instance
      */
+    /*
     public static NextGenDB getInstance(Context context){
         if(instance==null){
             synchronized (NextGenDB.class){
@@ -93,7 +110,7 @@ public class NextGenDB extends SQLiteOpenHelper{
             }
         }
         return instance;
-    }
+    }*/
 
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -133,6 +150,7 @@ public class NextGenDB extends SQLiteOpenHelper{
         db.execSQL("PRAGMA foreign_keys=ON");
 
     }
+
     public static String getSqlCreateStopsTable(String tableName){
 
         return "CREATE TABLE "+tableName+" ("+
@@ -140,6 +158,82 @@ public class NextGenDB extends SQLiteOpenHelper{
                 Contract.StopsTable.COL_LONG+" REAL NOT NULL, "+ Contract.StopsTable.COL_NAME+" TEXT NOT NULL, "+
                 Contract.StopsTable.COL_LOCATION+" TEXT, "+Contract.StopsTable.COL_PLACE+" TEXT, "+
                 Contract.StopsTable.COL_LINES_STOPPING +" TEXT )";
+    }
+
+    /**
+     * Query some bus stops inside a map view
+     *
+     * You can obtain the coordinates from OSMDroid using something like this:
+     *  BoundingBoxE6 bb = mMapView.getBoundingBox();
+     *  double latFrom = bb.getLatSouthE6() / 1E6;
+     *  double latTo = bb.getLatNorthE6() / 1E6;
+     *  double lngFrom = bb.getLonWestE6() / 1E6;
+     *  double lngTo = bb.getLonEastE6() / 1E6;
+     */
+    public synchronized Stop[] queryAllInsideMapView(double minLat, double maxLat, double minLng, double maxLng) {
+        Stop[] stops = new Stop[0];
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor result;
+        int count;
+
+        // coordinates must be strings in the where condition
+        String minLatRaw = String.valueOf(minLat);
+        String maxLatRaw = String.valueOf(maxLat);
+        String minLngRaw = String.valueOf(minLng);
+        String maxLngRaw = String.valueOf(maxLng);
+
+        String[] queryColumns = {};
+        String stopID;
+        Route.Type type;
+
+        if(db == null) {
+            return stops;
+        }
+
+        try {
+            result = db.query(StopsTable.TABLE_NAME, QUERY_COLUMN_stops_all, QUERY_WHERE_LAT_AND_LNG_IN_RANGE,
+                    new String[] {minLatRaw, maxLatRaw, minLngRaw, maxLngRaw},
+                    null, null, null);
+
+            int colID = result.getColumnIndex(StopsTable.COL_ID);
+            int colName = result.getColumnIndex(StopsTable.COL_NAME);
+            int colLocation = result.getColumnIndex(StopsTable.COL_LOCATION);
+            int colType = result.getColumnIndex(StopsTable.COL_TYPE);
+            int colLat = result.getColumnIndex(StopsTable.COL_LAT);
+            int colLon = result.getColumnIndex(StopsTable.COL_LONG);
+            int colLines = result.getColumnIndex(StopsTable.COL_LINES_STOPPING);
+
+            count = result.getCount();
+            stops = new Stop[count];
+
+            int i = 0;
+            while(result.moveToNext()) {
+
+                stopID = result.getString(colID);
+                type = Route.getTypeFromSymbol(result.getString(colType));
+                String lines = result.getString(colLines).trim();
+
+                String locationSometimesEmpty = result.getString(colLocation);
+                if (locationSometimesEmpty!= null && locationSometimesEmpty.length() <= 0) {
+                    locationSometimesEmpty = null;
+                }
+
+                stops[i++] = new Stop(stopID, result.getString(colName), null,
+                        locationSometimesEmpty, type, splitLinesString(lines),
+                        result.getDouble(colLat), result.getDouble(colLon));
+            }
+
+        } catch(SQLiteException e) {
+            Log.e(DEBUG_TAG, "SQLiteException occurred");
+            e.printStackTrace();
+            return stops;
+        }
+
+        result.close();
+        db.close();
+
+        return stops;
     }
 
     /**
@@ -168,6 +262,10 @@ public class NextGenDB extends SQLiteOpenHelper{
         db.setTransactionSuccessful();
         db.endTransaction();
         return success;
+    }
+
+    public static List<String> splitLinesString(String linesStr){
+        return Arrays.asList(linesStr.split("\\s*,\\s*"));
     }
 
     public static final class Contract{
