@@ -34,8 +34,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class FiveTAPIFetcher implements ArrivalsFetcher{
 
-    private static final String SECRET_KEY="759C97DC7D115966C30FD9169BB200D9";
     private static final String DEBUG_NAME = "FiveTAPIFetcher";
+    private final Map<String,String> defaultHeaders = getDefaultHeaders();
     final static LinkedList<String> apiDays = new LinkedList<>(Arrays.asList("dom","lun","mar","mer","gio","ven","sab"));
 
     @Override
@@ -314,21 +314,14 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
 
     /**
      * Useful to get all the headers for the GTT server
-     * @param url of the request
      * @return the request headers
-     * @throws UnsupportedEncodingException from inner method
-     * @throws NoSuchAlgorithmException from inner methods
      */
-    public static Map<String,String> getHeadersForRequest(String url) throws UnsupportedEncodingException, NoSuchAlgorithmException {
-        final Date d = new Date();
+    public static Map<String, String> getDefaultHeaders(){
         HashMap<String, String> param = new HashMap<>();
-        param.put("TOKEN",getAccessToken(url,d));
-        param.put("TIMESTAMP",String.valueOf(d.getTime()));
-        param.put("Accept-Encoding","gzip");
+        param.put("Host","www.5t.torino.it");
         param.put("Connection","Keep-Alive");
-
+        param.put("Accept-Encoding", "gzip");
         return param;
-
     }
 
     /**
@@ -346,9 +339,9 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         try {
             String address  = getURLForOperation(t,stopID);
             //Log.d(DEBUG_NAME,"The address to query is: "+address);
-            param = getHeadersForRequest(address);
+            param = getDefaultHeaders();
             u = new URL(address);
-        } catch (UnsupportedEncodingException | NoSuchAlgorithmException |MalformedURLException e) {
+        } catch (UnsupportedEncodingException |MalformedURLException e) {
             e.printStackTrace();
             res.set(result.PARSER_ERROR);
             return null;
@@ -356,35 +349,6 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         String response = networkTools.queryURL(u,res,param);
 
         return response;
-    }
-
-    /**
-     * Get the Token needed to access the API
-     * @param URL the URL of the request
-     * @return token
-     * @throws NoSuchAlgorithmException if the system doesn't support MD5
-     * @throws UnsupportedEncodingException if we made mistakes in writing utf-8
-     */
-    private static String getAccessToken(String URL,Date d) throws NoSuchAlgorithmException,UnsupportedEncodingException{
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        String strippedQuery = URL.replace("http://www.5t.torino.it/proxyws","");
-        //return the time in milliseconds
-        long timeMilli = d.getTime();
-        StringBuilder sb = new StringBuilder();
-        sb.append(strippedQuery);
-        sb.append(timeMilli);
-        sb.append(SECRET_KEY);
-        String stringToBeHashed =  sb.toString();
-        //Log.d(DEBUG_NAME,"Hashing string: "+stringToBeHashed);
-        md.reset();
-        byte[] data = md.digest(stringToBeHashed.getBytes("UTF-8"));
-        sb = new StringBuilder();
-        for (byte b : data){
-            sb.append(String.format("%02x",b));
-        }
-        String result = sb.toString();
-        //Log.d(DEBUG_NAME,"getting token:\n\treduced URL: "+strippedQuery+"\n\ttimestamp: "+timeMilli+"\nTOKEN:"+result.toLowerCase());
-        return result.toLowerCase();
     }
 
     /**
@@ -396,7 +360,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
      */
     public static String getURLForOperation(QueryType t,@Nullable String stopID) throws UnsupportedEncodingException {
         final StringBuilder sb = new StringBuilder();
-        sb.append("http://www.5t.torino.it/proxyws/ws2.1/rest/");
+        sb.append("http://www.5t.torino.it/ws2.1/rest/");
         if(t!=QueryType.LINES) sb.append("stops/");
         switch (t){
             case ARRIVALS:

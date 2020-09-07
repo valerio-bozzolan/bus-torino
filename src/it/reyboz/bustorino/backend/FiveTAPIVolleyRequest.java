@@ -67,7 +67,7 @@ public class FiveTAPIVolleyRequest extends Request<Palina> {
             Log.e(LOG_TAG,"Cannot get an URL for the operation");
             return null;
         }
-        return new FiveTAPIVolleyRequest(Method.POST,url,stopID,type,listener,errorListener);
+        return new FiveTAPIVolleyRequest(Method.GET,url,stopID,type,listener,errorListener);
     }
 
     @Override
@@ -109,15 +109,9 @@ public class FiveTAPIVolleyRequest extends Request<Palina> {
     }
 
     @Override
-    public Map<String, String> getHeaders() throws AuthFailureError {
-        Map<String,String> headers;
-        try{
-            headers = FiveTAPIFetcher.getHeadersForRequest(url);
-        } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            throw new AuthFailureError("Cannot get the token for the authorization");
-        }
-        return headers;
+    public Map<String, String> getHeaders() {
+       return  FiveTAPIFetcher.getDefaultHeaders();
+
     }
     //from https://stackoverflow.com/questions/21867929/android-how-handle-message-error-from-the-server-using-volley
     @Override
