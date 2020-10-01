@@ -7,10 +7,10 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.0'
+        classpath 'com.android.tools.build:gradle:3.2.0'
     }
     ext {
-        support_ver = "25.4.0"
+        support_ver = "28.0.0"
     }
 }
 allprojects {
@@ -25,13 +25,13 @@ allprojects {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
+    buildToolsVersion '29.0.3'
 
     defaultConfig {
         applicationId "it.reyboz.bustorino"
-        minSdkVersion 9
-        targetSdkVersion 25
+        minSdkVersion 14
+        targetSdkVersion 28
         versionCode 30
         versionName "1.13.1"
         vectorDrawables.useSupportLibrary = true
