@@ -17,7 +17,7 @@
  */
 package it.reyboz.bustorino.fragments;
 
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.widget.AbsListView;
 

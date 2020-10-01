@@ -18,7 +18,7 @@
 
 package it.reyboz.bustorino.backend;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 public final class Passaggio implements Comparable<Passaggio> {

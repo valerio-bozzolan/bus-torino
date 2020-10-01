@@ -19,21 +19,19 @@ package it.reyboz.bustorino.middleware;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
-import it.reyboz.bustorino.R;
+
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 

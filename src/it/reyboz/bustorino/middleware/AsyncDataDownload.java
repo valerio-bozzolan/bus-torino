@@ -20,12 +20,11 @@ package it.reyboz.bustorino.middleware;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
-import it.reyboz.bustorino.R;
+
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.fragments.FragmentHelper;
 import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;

@@ -20,9 +20,9 @@ package it.reyboz.bustorino.middleware;
 import android.app.IntentService;
 import android.content.*;
 import android.database.sqlite.SQLiteDatabase;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
-import it.reyboz.bustorino.ActivityMain;
+
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.FiveTAPIFetcher;
@@ -31,7 +31,6 @@ import it.reyboz.bustorino.backend.Stop;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 

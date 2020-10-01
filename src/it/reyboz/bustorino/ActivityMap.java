@@ -28,11 +28,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.support.annotation.RequiresApi;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.preference.PreferenceManager;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 
-import android.widget.Toast;
 import it.reyboz.bustorino.middleware.NextGenDB;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -55,7 +54,6 @@ import java.util.*;
 
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.map.CustomInfoWindow;
-import it.reyboz.bustorino.middleware.StopsDB;
 
 public class ActivityMap extends AppCompatActivity {
 
