@@ -19,22 +19,16 @@ package it.reyboz.bustorino.middleware;
 
 import android.app.IntentService;
 import android.content.*;
-import android.database.sqlite.SQLiteDatabase;
 import androidx.annotation.Nullable;
 import android.util.Log;
 
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.FiveTAPIFetcher;
-import it.reyboz.bustorino.backend.Route;
-import it.reyboz.bustorino.backend.Stop;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -125,6 +119,10 @@ public class DatabaseUpdateService extends IntentService {
     }
     private boolean performDBUpdate(AtomicReference<Fetcher.result> gres){
 
+        if(!setDBUpdatingFlag(true))
+           return false;
+
+        /*
         final FiveTAPIFetcher f = new FiveTAPIFetcher();
         final ArrayList<Stop> stops = f.getAllStopsFromGTT(gres);
         //final ArrayList<ContentProviderOperation> cpOp = new ArrayList<>();
@@ -211,6 +209,9 @@ public class DatabaseUpdateService extends IntentService {
         Log.d(DEBUG_TAG,"Inserting lines took: "+((double) (endTime-startTime)/1000)+" s");
         dbHelp.close();
         return true;
+
+         */
+        return DatabaseUpdate.performDBUpdate(getApplication(),gres) == DatabaseUpdate.Result.DONE;
     }
     private int getNewVersion(UpdateRequestParams params){
         AtomicReference<Fetcher.result> gres = new AtomicReference<>();
@@ -251,7 +252,7 @@ public class DatabaseUpdateService extends IntentService {
         }
     }
 
-    /**
+    /*
      * Probably useless
      *
      * Spoiler: IT IS

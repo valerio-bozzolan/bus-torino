@@ -28,10 +28,15 @@ import android.provider.BaseColumns;
 import androidx.annotation.Nullable;
 import android.util.Log;
 
+import it.reyboz.bustorino.backend.Fetcher;
+import it.reyboz.bustorino.backend.FiveTAPIFetcher;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 
@@ -93,22 +98,6 @@ public class NextGenDB extends SQLiteOpenHelper{
         appContext = context.getApplicationContext();
     }
 
-    /**
-     * Lazy initialization singleton getter, thread-safe with double checked locking
-     * from https://en.wikipedia.org/wiki/Singleton_pattern
-     * @return the instance
-     */
-    /*
-    public static NextGenDB getInstance(Context context){
-        if(instance==null){
-            synchronized (NextGenDB.class){
-                if(instance==null){
-                    instance = new NextGenDB(context);
-                }
-            }
-        }
-        return instance;
-    }*/
 
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -362,5 +351,4 @@ public class NextGenDB extends SQLiteOpenHelper{
             super(message);
         }
     }
-
 }
