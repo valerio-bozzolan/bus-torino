@@ -28,6 +28,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import androidx.annotation.NonNull;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
 import com.google.android.material.snackbar.Snackbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -159,17 +163,13 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
         busStopSearchByIDEditText.setSelectAllOnFocus(true);
         busStopSearchByIDEditText
-                .setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                    @Override
-                    public boolean onEditorAction(TextView v, int actionId,
-                                                  KeyEvent event) {
-                        // IME_ACTION_SEARCH alphabetical option
-                        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                            onSearchClick(v);
-                            return true;
-                        }
-                        return false;
+                .setOnEditorActionListener((v, actionId, event) -> {
+                    // IME_ACTION_SEARCH alphabetical option
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                        onSearchClick(v);
+                        return true;
                     }
+                    return false;
                 });
         busStopSearchByNameEditText
                 .setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -261,7 +261,11 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         }
         //Try (hopefully) database update
         //TODO: Start the service in foreground, check last time it ran before
-        DatabaseUpdateService.startDBUpdate(getApplicationContext());
+        //DatabaseUpdateService.startDBUpdate(getApplicationContext());
+        WorkRequest wr = new OneTimeWorkRequest.Builder(DBUpdateWorker.class)
+                .setInputData(new Data.Builder().putBoolean(DBUpdateWorker.FORCED_UPDATE, true).build())
+                .build();
+        WorkManager.getInstance(this).enqueue(wr);
         /*
         Set database update
          */
