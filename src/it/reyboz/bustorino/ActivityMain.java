@@ -17,10 +17,11 @@
  */
 package it.reyboz.bustorino;
 
-import android.annotation.SuppressLint;
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.*;
 import android.net.Uri;
@@ -36,13 +37,15 @@ import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
-import androidx.work.WorkRequest;
+
 import com.google.android.material.snackbar.Snackbar;
+
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.core.app.NavUtils;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -60,6 +63,7 @@ import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -92,7 +96,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      * Options
      */
     private final String OPTION_SHOW_LEGEND = "show_legend";
-    private final String LOCATION_PERMISSION_GIVEN = "loc_permission";
     /*
      * Status
      */
@@ -142,6 +145,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute();
         }
     };
+
 
     //// MAIN METHOD ///
 
@@ -268,6 +272,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         //Try (hopefully) database update
         //TODO: Start the service in foreground, check last time it ran before
         //DatabaseUpdateService.startDBUpdate(getApplicationContext());
+        /*
         WorkRequest wr = new OneTimeWorkRequest.Builder(DBUpdateWorker.class)
                 .setInputData(new Data.Builder().putBoolean(DBUpdateWorker.FORCED_UPDATE, true).build())
                 .build();
@@ -306,6 +311,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         };
         prefsManager = new DBStatusManager(getApplicationContext(), updatelistener);
         prefsManager.registerListener();
+
 
         //locationHandler = new GPSLocationAdapter(getApplicationContext());
         //--------- NEARBY STOPS--------//
@@ -406,8 +412,25 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 startActivity(new Intent(ActivityMain.this, ActivityFavorites.class));
                 return true;
             case R.id.action_map:
-                startActivity(new Intent(ActivityMain.this, ActivityMap.class));
+                //ensure storage permission is granted
+                final String permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+                int result = askForPermissionIfNeeded(permission, STORAGE_PERMISSION_REQ);
+                switch (result) {
+                    case PERMISSION_OK:
+                        startActivity(new Intent(ActivityMain.this, ActivityMap.class));
+                        break;
+                    case PERMISSION_ASKING:
+                        permissionDoneRunnables.put(permission,
+                                () -> startActivity(new Intent(ActivityMain.this, ActivityMap.class)));
+                        break;
+                    case PERMISSION_NEG_CANNOT_ASK:
+                        Resources res = getResources();
+                        String storage_perm = res.getString(R.string.storage_permission);
+                        String text = res.getString(R.string.too_many_permission_asks,  storage_perm);
+                        Toast.makeText(getApplicationContext(),text, Toast.LENGTH_LONG).show();
+                }
                 return true;
+
             case R.id.action_about:
                 startActivity(new Intent(ActivityMain.this, ActivityAbout.class));
                 return true;
@@ -442,7 +465,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             //new asyncWgetBusStopFromBusStopID(busStopID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
 
             if (busStopID == null || busStopID.length() <= 0) {
-                showMessage(R.string.insert_bus_stop_number_error);
+                showToastMessage(R.string.insert_bus_stop_number_error, true);
                 toggleSpinner(false);
             } else {
                 new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute(busStopID);
@@ -475,6 +498,31 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                     setOption(LOCATION_PERMISSION_GIVEN, false);
                 }
                 //add other cases for permissions
+                break;
+            case STORAGE_PERMISSION_REQ:
+                final String storageKey = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(DEBUG_TAG, "Permissions check: " + Arrays.toString(permissions));
+
+                    if (permissionDoneRunnables.containsKey(storageKey)) {
+                        Runnable toRun = permissionDoneRunnables.get(storageKey);
+                        if (toRun != null)
+                            toRun.run();
+                        permissionDoneRunnables.remove(storageKey);
+                    }
+                } else {
+                    //permission denied
+                    showToastMessage(R.string.permission_storage_maps_msg, false);
+                    /*final int canGetPermission = askForPermissionIfNeeded(Manifest.permission.ACCESS_FINE_LOCATION, STORAGE_PERMISSION_REQ);
+                    switch (canGetPermission) {
+                        case PERMISSION_ASKING:
+
+                            break;
+                        case PERMISSION_NEG_CANNOT_ASK:
+                            permissionDoneRunnables.remove(storageKey);
+                            showToastMessage(R.string.closing_act_crash_msg, false);
+                    }*/
+                }
         }
 
     }
@@ -485,7 +533,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         //new asyncWgetBusStopFromBusStopID(ID, ArrivalFetchersRecursionHelper,lastSuccessfullySearchedBusStop);
         if (ID == null || ID.length() <= 0) {
             // we're still in UI thread, no need to mess with Progress
-            showMessage(R.string.insert_bus_stop_number_error);
+            showToastMessage(R.string.insert_bus_stop_number_error, true);
             toggleSpinner(false);
         } else {
             new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute(ID);
@@ -508,6 +556,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      * Receive the Barcode Scanner Intent
      */
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
 
         Uri uri;
@@ -585,12 +634,13 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     };
 
     class NearbyStopsRequester implements Runnable {
-        @SuppressLint("MissingPermission")
         @Override
         public void run() {
             final boolean canRunPosition = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || getOption(LOCATION_PERMISSION_GIVEN, false);
+            final boolean notHavePermission = ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED;
 
-            if (!canRunPosition) {
+            if (!canRunPosition || notHavePermission) {
                 pendingNearbyStopsRequest = true;
                 assertLocationPermissions();
                 return;
@@ -618,6 +668,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 //Wait for the providers
                 Log.d(DEBUG_TAG, "Queuing position request");
                 pendingNearbyStopsRequest = true;
+
                 locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10, 0.1f, locListener);
             }
 
@@ -746,16 +797,10 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     }
 
     ////////////////////////////////////// GUI HELPERS /////////////////////////////////////////////
-    @Override
     public void showKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         View view = searchMode == SEARCH_BY_ID ? busStopSearchByIDEditText : busStopSearchByNameEditText;
         imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
-    }
-
-    @Override
-    public void showMessage(int messageID) {
-        Toast.makeText(getApplicationContext(), messageID, Toast.LENGTH_SHORT).show();
     }
 
     private void setSearchModeBusStopID() {

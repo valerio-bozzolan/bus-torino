@@ -116,6 +116,7 @@
     <string name="bt_follow_me_description">Segui posizione</string>
 
     <string name="default_notification_channel_description">Canale unico delle notifiche</string>
-
-
+    <string name="too_many_permission_asks">Chiesto troppe volte per il permesso %1$s</string>
+    <string name="permission_storage_maps_msg">Non si può usare questa funzionalità senza il permesso di archivio</string>
+    <string name="storage_permission">di archivio</string>
 </resources>
