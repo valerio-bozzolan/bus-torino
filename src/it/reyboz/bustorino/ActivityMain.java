@@ -27,9 +27,14 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+
 import androidx.annotation.NonNull;
-import androidx.work.Data;
-import androidx.work.OneTimeWorkRequest;
+import androidx.core.app.ActivityCompat;
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 import com.google.android.material.snackbar.Snackbar;
@@ -56,6 +61,7 @@ import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.*;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class ActivityMain extends GeneralActivity implements FragmentListener {
 
@@ -266,6 +272,16 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 .setInputData(new Data.Builder().putBoolean(DBUpdateWorker.FORCED_UPDATE, true).build())
                 .build();
         WorkManager.getInstance(this).enqueue(wr);
+
+         */
+
+        PeriodicWorkRequest wr = new PeriodicWorkRequest.Builder(DBUpdateWorker.class, 1, TimeUnit.DAYS)
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.MINUTES)
+                .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build())
+                .build();
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
+                ExistingPeriodicWorkPolicy.KEEP, wr);
         /*
         Set database update
          */
