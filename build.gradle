@@ -10,11 +10,14 @@ buildscript {
         classpath 'com.android.tools.build:gradle:3.3.3'
     }
     ext {
+        //libraries versions
         fragment_version = "1.2.5"
         activity_version = "1.1.0"
         appcompat_version = "1.2.0"
         preference_version = "1.1.1"
         work_version = "2.4.0"
+
+        acra_version = "5.7.0"
 
     }
 }
@@ -89,11 +92,16 @@ android {
         implementation 'com.google.android.material:material:1.2.1'
 
 
-
         implementation 'org.jsoup:jsoup:1.11.3'
         implementation 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
         implementation 'com.android.volley:volley:1.1.1'
 
         implementation 'org.osmdroid:osmdroid-android:6.1.8'
+
+        // ACRA
+        implementation "ch.acra:acra-mail:$acra_version"
+        implementation "ch.acra:acra-dialog:$acra_version"
+
+
     }
 }

@@ -119,4 +119,5 @@
     <string name="too_many_permission_asks">Chiesto troppe volte per il permesso %1$s</string>
     <string name="permission_storage_maps_msg">Non si può usare questa funzionalità senza il permesso di archivio</string>
     <string name="storage_permission">di archivio</string>
+    <string name="message_crash">L\'app è andata in crash. Aggiungi un commento ed invia il report agli sviluppatori toccando OK</string>
 </resources>

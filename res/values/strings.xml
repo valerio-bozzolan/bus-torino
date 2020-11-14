@@ -134,4 +134,5 @@
     <string name="too_many_permission_asks">Asked for  %1$s permission too many times</string>
     <string name="permission_storage_maps_msg">Cannot use the map with the storage permission!</string>
     <string name="storage_permission">storage</string>
+    <string name="message_crash">The application has crashed. Please input a comment and send the report via email to the developers by pressing \"OK\"</string>
 </resources>
