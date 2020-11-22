@@ -119,5 +119,9 @@
     <string name="too_many_permission_asks">Chiesto troppe volte per il permesso %1$s</string>
     <string name="permission_storage_maps_msg">Non si può usare questa funzionalità senza il permesso di archivio</string>
     <string name="storage_permission">di archivio</string>
-    <string name="message_crash">L\'app è andata in crash. Aggiungi un commento ed invia il report agli sviluppatori toccando OK</string>
+    <string name="message_crash">L\'app è andata in crash. Invia il report agli sviluppatori toccando OK.
+        \n Il report potrebbe contenere informazioni sulla tua configurazione del telefono, o sullo stato al momento del crash.
+        \n Tutte le informazioni sensibili nel report verranno utilizzate solo per scopi diagnostici dagli sviluppatori, e non verranno mai pubblicate e/o divulgate.</string>
+    <string name="acra_email_message">L\'applicazione è crashata, e il crash report è stato messo negli allegati. Se vuoi, descrivi cosa stavi facendo prima del crash: \n</string>
+
 </resources>
