@@ -1,5 +1,6 @@
 package it.reyboz.bustorino.middleware;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -41,6 +42,7 @@ public class DBUpdateWorker extends Worker{
         super(context, workerParams);
     }
 
+    @SuppressLint("RestrictedApi")
     @NonNull
     @Override
     public Result doWork() {
@@ -48,7 +50,7 @@ public class DBUpdateWorker extends Worker{
         final Context con = getApplicationContext();
         Notifications.createDefaultNotificationChannel(con);
         final SharedPreferences shPr = con.getSharedPreferences(con.getString(R.string.mainSharedPreferences),MODE_PRIVATE);
-        final int current_DB_version = shPr.getInt(DatabaseUpdate.DB_VERSION_KEY,-1);
+        final int current_DB_version = shPr.getInt(DatabaseUpdate.DB_VERSION_KEY,-10);
 
         final int new_DB_version = DatabaseUpdate.getNewVersion();
 

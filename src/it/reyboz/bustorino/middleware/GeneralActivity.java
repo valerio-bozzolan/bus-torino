@@ -51,6 +51,10 @@ public abstract class GeneralActivity extends AppCompatActivity {
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         return preferences.getBoolean(optionName, optDefault);
     }
+
+    protected SharedPreferences getMainSharedPreferences(){
+        return getSharedPreferences(getString(R.string.mainSharedPreferences),MODE_PRIVATE);
+    }
     public void hideKeyboard() {
         View view = getCurrentFocus();
         if (view != null) {
