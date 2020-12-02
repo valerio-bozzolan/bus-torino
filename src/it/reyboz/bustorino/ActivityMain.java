@@ -614,17 +614,27 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         }
     };
 
+    /**
+     * Run location requests separately and asynchronously
+     */
     class NearbyStopsRequester implements Runnable {
         @Override
         public void run() {
             final boolean canRunPosition = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || getOption(LOCATION_PERMISSION_GIVEN, false);
-            final boolean notHavePermission = ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            final boolean noPermission = ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                     ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED;
 
-            if (!canRunPosition || notHavePermission) {
-                pendingNearbyStopsRequest = true;
-                assertLocationPermissions();
-                return;
+            //if we don't have the permission, we have to ask for it, if we haven't
+            // asked too many times before
+            if (noPermission) {
+                if (!canRunPosition) {
+                    pendingNearbyStopsRequest = true;
+                    assertLocationPermissions();
+                    Log.w(DEBUG_TAG, "Cannot get position: Asking permission, noPositionFromSys: " + noPermission);
+                    return;
+                } else {
+                    Toast.makeText(getApplicationContext(), "Asked for permission position too many times", Toast.LENGTH_LONG).show();
+                }
             } else setOption(LOCATION_PERMISSION_GIVEN, true);
 
             LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
