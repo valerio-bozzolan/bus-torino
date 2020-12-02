@@ -20,6 +20,7 @@ package it.reyboz.bustorino;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
@@ -36,6 +37,7 @@ import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -96,11 +98,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      * Options
      */
     private final String OPTION_SHOW_LEGEND = "show_legend";
-    /*
-     * Status
-     */
-    private DBStatusManager prefsManager;
-    private DBStatusManager.OnDBUpdateStatusChangeListener updatelistener;
+
     private static final String DEBUG_TAG = "BusTO - MainActivity";
     /* // useful for testing:
     public class MockFetcher implements ArrivalsFetcher {
@@ -113,8 +111,8 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     }
     private ArrivalsFetcher[] ArrivalFetchers = {new MockFetcher(), new MockFetcher(), new MockFetcher(), new MockFetcher(), new MockFetcher()};*/
 
-    private RecursionHelper<ArrivalsFetcher> ArrivalFetchersRecursionHelper = new RecursionHelper<>(new ArrivalsFetcher[]{new GTTJSONFetcher(), new FiveTScraperFetcher()});
-    private RecursionHelper<StopsFinderByName> StopsFindersByNameRecursionHelper = new RecursionHelper<>(new StopsFinderByName[]{new GTTStopsFetcher(), new FiveTStopsFetcher()});
+    private final RecursionHelper<ArrivalsFetcher> ArrivalFetchersRecursionHelper = new RecursionHelper<>(new ArrivalsFetcher[]{new GTTJSONFetcher(), new FiveTScraperFetcher()});
+    private final RecursionHelper<StopsFinderByName> StopsFindersByNameRecursionHelper = new RecursionHelper<>(new StopsFinderByName[]{new GTTStopsFetcher(), new FiveTStopsFetcher()});
     /*
      * Position
      */
@@ -122,11 +120,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     private final Criteria cr = new Criteria();
     private boolean pendingNearbyStopsRequest = false;
     private LocationManager locmgr;
-    /*
-     * Database Access
-     */
-    private StopsDB stopsDB;
-    private UserDB userDB;
     private FragmentHelper fh;
 
     ///////////////////////////////// EVENT HANDLERS ///////////////////////////////////////////////
@@ -134,7 +127,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     /*
      * @see swipeRefreshLayout
      */
-    private Handler handler = new Handler();
+    private final Handler theHandler = new Handler();
     private final Runnable refreshing = new Runnable() {
         public void run() {
             if (framan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
@@ -153,23 +146,20 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         framan = getSupportFragmentManager();
-        this.stopsDB = new StopsDB(getApplicationContext());
-        this.userDB = new UserDB(getApplicationContext());
+        final SharedPreferences theShPr = getMainSharedPreferences();
+        /*
+         * Database Access
+         */
         setContentView(R.layout.activity_main);
-        busStopSearchByIDEditText = (EditText) findViewById(R.id.busStopSearchByIDEditText);
-        busStopSearchByNameEditText = (EditText) findViewById(R.id.busStopSearchByNameEditText);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        howDoesItWorkTextView = (TextView) findViewById(R.id.howDoesItWorkTextView);
-        hideHintButton = (Button) findViewById(R.id.hideHintButton);
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.listRefreshLayout);
-        floatingActionButton = (FloatingActionButton) findViewById(R.id.floatingActionButton);
+        busStopSearchByIDEditText = findViewById(R.id.busStopSearchByIDEditText);
+        busStopSearchByNameEditText = findViewById(R.id.busStopSearchByNameEditText);
+        progressBar = findViewById(R.id.progressBar);
+        howDoesItWorkTextView = findViewById(R.id.howDoesItWorkTextView);
+        hideHintButton = findViewById(R.id.hideHintButton);
+        swipeRefreshLayout = findViewById(R.id.listRefreshLayout);
+        floatingActionButton = findViewById(R.id.floatingActionButton);
 
-        framan.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
-            @Override
-            public void onBackStackChanged() {
-                Log.d("MainActivity, BusTO", "BACK STACK CHANGED");
-            }
-        });
+        framan.addOnBackStackChangedListener(() -> Log.d("MainActivity, BusTO", "BACK STACK CHANGED"));
 
         busStopSearchByIDEditText.setSelectAllOnFocus(true);
         busStopSearchByIDEditText
@@ -182,27 +172,18 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                     return false;
                 });
         busStopSearchByNameEditText
-                .setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                    @Override
-                    public boolean onEditorAction(TextView v, int actionId,
-                                                  KeyEvent event) {
-                        // IME_ACTION_SEARCH alphabetical option
-                        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                            onSearchClick(v);
-                            return true;
-                        }
-                        return false;
+                .setOnEditorActionListener((v, actionId, event) -> {
+                    // IME_ACTION_SEARCH alphabetical option
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                        onSearchClick(v);
+                        return true;
                     }
+                    return false;
                 });
 
         // Called when the layout is pulled down
         swipeRefreshLayout
-                .setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                    @Override
-                    public void onRefresh() {
-                        handler.post(refreshing);
-                    }
-                });
+                .setOnRefreshListener(() -> theHandler.post(refreshing));
 
         /**
          * @author Marco Gagino!!!
@@ -270,47 +251,53 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             createFragmentForStop(busStopID);
         }
         //Try (hopefully) database update
-        //TODO: Start the service in foreground, check last time it ran before
+        //TODO: Check if service shows the notification
+        //Old code for the db update
         //DatabaseUpdateService.startDBUpdate(getApplicationContext());
-        /*
-        WorkRequest wr = new OneTimeWorkRequest.Builder(DBUpdateWorker.class)
-                .setInputData(new Data.Builder().putBoolean(DBUpdateWorker.FORCED_UPDATE, true).build())
-                .build();
-        WorkManager.getInstance(this).enqueue(wr);
 
-         */
 
         PeriodicWorkRequest wr = new PeriodicWorkRequest.Builder(DBUpdateWorker.class, 1, TimeUnit.DAYS)
                 .setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.MINUTES)
                 .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
                         .build())
                 .build();
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
+        final WorkManager workManager = WorkManager.getInstance(this);
+
+        final int version = theShPr.getInt(DatabaseUpdate.DB_VERSION_KEY, -10);
+        if (version >= 0)
+        workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
                 ExistingPeriodicWorkPolicy.KEEP, wr);
+        else workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
+                ExistingPeriodicWorkPolicy.REPLACE, wr);
         /*
         Set database update
          */
-        updatelistener = new DBStatusManager.OnDBUpdateStatusChangeListener() {
-            @Override
-            public boolean defaultStatusValue() {
-                return true;
-            }
+        workManager.getWorkInfosForUniqueWorkLiveData(DBUpdateWorker.DEBUG_TAG)
+                .observe(this, workInfoList -> {
+                    // If there are no matching work info, do nothing
+                    if (workInfoList == null || workInfoList.isEmpty()) {
+                        return;
+                    }
+                    Log.d(DEBUG_TAG, "WorkerInfo: "+workInfoList);
 
-            @Override
-            public void onDBStatusChanged(boolean updating) {
+                    boolean showProgress = false;
+                    for (WorkInfo workInfo : workInfoList) {
+                        if (workInfo.getState() == WorkInfo.State.RUNNING) {
+                            showProgress = true;
+                        }
+                    }
 
-                if (updating) {
-                    createDefaultSnackbar();
-                } else if (snackbar != null) {
-                    snackbar.dismiss();
-                    snackbar = null;
-                }
+                    if (showProgress) {
+                        createDefaultSnackbar();
+                    } else {
+                        if(snackbar!=null) {
+                            snackbar.dismiss();
+                            snackbar = null;
+                        }
+                    }
 
+                });
 
-            }
-        };
-        prefsManager = new DBStatusManager(getApplicationContext(), updatelistener);
-        prefsManager.registerListener();
 
 
         //locationHandler = new GPSLocationAdapter(getApplicationContext());
@@ -323,7 +310,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         cr.setCostAllowed(true);
         cr.setPowerRequirement(Criteria.NO_REQUIREMENT);
         //We want the nearby bus stops!
-        handler.post(new NearbyStopsRequester());
+        theHandler.post(new NearbyStopsRequester());
         //If there are no providers available, then, wait for them
 
 
@@ -362,7 +349,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         super.onPause();
         fh.stopLastRequestIfNeeded();
         fh.setBlockAllActivities(true);
-        if (updatelistener != null && prefsManager != null) prefsManager.unregisterListener();
         locmgr.removeUpdates(locListener);
     }
 
@@ -370,14 +356,9 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     protected void onResume() {
         super.onResume();
         fh.setBlockAllActivities(false);
-        if (updatelistener != null && prefsManager != null) {
-            prefsManager.registerListener();
-            if (prefsManager.isDBUpdating(true)) {
-                createDefaultSnackbar();
-            }
-        }
+        //TODO: check if current LiveData-bound observer works
         if (pendingNearbyStopsRequest)
-            handler.post(new NearbyStopsRequester());
+            theHandler.post(new NearbyStopsRequester());
     }
 
     @Override
@@ -490,7 +471,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                     //if we sent a request for a new NearbyStopsFragment
                     if (pendingNearbyStopsRequest) {
                         pendingNearbyStopsRequest = false;
-                        handler.post(new NearbyStopsRequester());
+                        theHandler.post(new NearbyStopsRequester());
                     }
 
                 } else {
@@ -604,7 +585,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         Log.d(DEBUG_TAG, "Provider " + provider + " got enabled");
         if (locmgr != null && pendingNearbyStopsRequest && locmgr.getProvider(provider).meetsCriteria(cr)) {
             pendingNearbyStopsRequest = false;
-            handler.post(new NearbyStopsRequester());
+            theHandler.post(new NearbyStopsRequester());
         }
     }
 
