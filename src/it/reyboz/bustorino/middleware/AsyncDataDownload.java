@@ -54,13 +54,13 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
     public AsyncDataDownload(RequestType type,FragmentHelper fh) {
         t = type;
         helperRef = new WeakReference<>(fh);
-        fh.setLastTaskRef(new WeakReference<AsyncDataDownload>(this));
+        fh.setLastTaskRef(new WeakReference<>(this));
         res = new AtomicReference<>();
     }
 
     @Override
     protected Object doInBackground(String... params) {
-        RecursionHelper r;
+        RecursionHelper<Fetcher> r;
         boolean success=false;
         Object result;
         switch (t){
@@ -229,10 +229,10 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
     }
 
     public class BranchInserter implements Runnable{
-        private List<Route> routesToInsert;
+        private final List<Route> routesToInsert;
 
         private String stopID;
-        private FragmentHelper fragmentHelper;
+        private final FragmentHelper fragmentHelper;
 
         public BranchInserter(List<Route> routesToInsert,FragmentHelper fh,String stopID) {
             this.routesToInsert = routesToInsert;
