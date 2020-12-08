@@ -26,11 +26,23 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import it.reyboz.bustorino.R;
+import it.reyboz.bustorino.adapters.PalinaAdapter;
 import it.reyboz.bustorino.backend.DBStatusManager;
+import it.reyboz.bustorino.backend.FiveTNormalizer;
+import it.reyboz.bustorino.backend.Palina;
+import it.reyboz.bustorino.backend.Route;
+import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.middleware.AppDataProvider;
 import it.reyboz.bustorino.middleware.NextGenDB;
 import it.reyboz.bustorino.middleware.UserDB;
@@ -42,12 +54,16 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     private final static String DEBUG_TAG = "BUSTOArrivalsFragment";
     private final static int loaderFavId = 2;
     private final static int loaderStopId = 1;
+    static final String STOP_TITLE = "messageExtra";
+
     private @Nullable String stopID,stopName;
-    private TextView messageTextView;
     private DBStatusManager prefs;
     private DBStatusManager.OnDBUpdateStatusChangeListener listener;
     private boolean justCreated = false;
-    private ImageButton addToFavorites;
+    private Palina lastUpdatedPalina = null;
+
+    //Views
+    protected ImageButton addToFavorites;
 
 
     public static ArrivalsFragment newInstance(String stopID){
@@ -73,12 +89,12 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         stopID = getArguments().getString(KEY_STOP_ID);
         //this might really be null
         stopName = getArguments().getString(KEY_STOP_NAME);
-        final ArrivalsFragment f = this;
+        final ArrivalsFragment arrivalsFragment = this;
         listener = new DBStatusManager.OnDBUpdateStatusChangeListener() {
             @Override
             public void onDBStatusChanged(boolean updating) {
                 if(!updating){
-                    getLoaderManager().restartLoader(loaderFavId,getArguments(),f);
+                    getLoaderManager().restartLoader(loaderFavId,getArguments(),arrivalsFragment);
                 } else {
                     final LoaderManager lm = getLoaderManager();
                     lm.destroyLoader(loaderFavId);
@@ -94,6 +110,49 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         prefs = new DBStatusManager(getContext().getApplicationContext(),listener);
         justCreated = true;
 
+    }
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View root = inflater.inflate(R.layout.fragment_arrivals, container, false);
+        messageTextView = (TextView) root.findViewById(R.id.messageTextView);
+        addToFavorites = (ImageButton) root.findViewById(R.id.addToFavorites);
+        resultsListView = (ListView) root.findViewById(R.id.resultsListView);
+        //Button
+        addToFavorites.setClickable(true);
+        addToFavorites.setOnClickListener(v -> {
+            // add/remove the stop in the favorites
+            mListener.toggleLastStopToFavorites();
+        });
+
+        resultsListView.setOnItemClickListener((parent, view, position, id) -> {
+            String routeName;
+
+            Route r = (Route) parent.getItemAtPosition(position);
+            routeName = FiveTNormalizer.routeInternalToDisplay(r.getNameForDisplay());
+            if (routeName == null) {
+                routeName = r.getNameForDisplay();
+            }
+            if (r.destinazione == null || r.destinazione.length() == 0) {
+                Toast.makeText(getContext(),
+                        getString(R.string.route_towards_unknown, routeName), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(),
+                        getString(R.string.route_towards_destination, routeName, r.destinazione), Toast.LENGTH_SHORT).show();
+            }
+        });
+        String displayName = getArguments().getString(STOP_TITLE);
+        setTextViewMessage(String.format(
+                getString(R.string.passages), displayName));
+
+
+        String probablemessage = getArguments().getString(MESSAGE_TEXT_VIEW);
+        if (probablemessage != null) {
+            //Log.d("BusTO fragment " + this.getTag(), "We have a possible message here in the savedInstaceState: " + probablemessage);
+            messageTextView.setText(probablemessage);
+            messageTextView.setVisibility(View.VISIBLE);
+        }
+        return root;
     }
 
     @Override
@@ -119,6 +178,17 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     @Nullable
     public String getStopID() {
         return stopID;
+    }
+
+
+    public void updateFragmentData(Palina p, PalinaAdapter adapter){
+
+        super.resetListAdapter(adapter);
+    }
+
+    @Override
+    public void setNewListAdapter(ListAdapter adapter) {
+        throw new UnsupportedOperationException();
     }
 
     /**

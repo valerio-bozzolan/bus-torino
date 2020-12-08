@@ -70,7 +70,7 @@ public class StopListFragment extends ResultListFragment implements LoaderManage
         LoaderManager loaderManager  = getLoaderManager();
         if(stopList!=null) {
             mListAdapter = new StopAdapter(getContext(),stopList);
-            setListAdapter(mListAdapter);
+            resetListAdapter(mListAdapter);
             for (int i = 0; i < stopList.size(); i++) {
                 final Bundle b = new Bundle();
                 b.putString(KEY_STOP_ID, stopList.get(i).ID);

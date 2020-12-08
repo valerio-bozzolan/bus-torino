@@ -65,7 +65,7 @@ public class FragmentHelper {
     /**
      * Get the last successfully searched bus stop or NULL
      *
-     * @return
+     * @return the stop
      */
     public Stop getLastSuccessfullySearchedBusStop() {
         return lastSuccessfullySearchedBusStop;
@@ -92,7 +92,6 @@ public class FragmentHelper {
             return;
         }
 
-        SwipeRefreshLayout srl = (SwipeRefreshLayout) act.findViewById(swipeRefID);
         FragmentManager fm = act.getSupportFragmentManager();
 
         if(fm.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
@@ -119,7 +118,10 @@ public class FragmentHelper {
             arrivalsFragment = (ArrivalsFragment) fm.findFragmentById(R.id.resultFrame);
         }
 
-        arrivalsFragment.setListAdapter(new PalinaAdapter(act.getApplicationContext(),p));
+        final PalinaAdapter adapter = new PalinaAdapter(act.getApplicationContext(), p);
+        // DO NOT CALL `setListAdapter` ever on arrivals fragment
+        arrivalsFragment.updateFragmentData(p, adapter);
+
         act.hideKeyboard();
         toggleSpinner(false);
     }
