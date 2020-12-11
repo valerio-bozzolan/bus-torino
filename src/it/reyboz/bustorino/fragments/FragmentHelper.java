@@ -120,7 +120,7 @@ public class FragmentHelper {
 
         final PalinaAdapter adapter = new PalinaAdapter(act.getApplicationContext(), p);
         // DO NOT CALL `setListAdapter` ever on arrivals fragment
-        arrivalsFragment.updateFragmentData(p, adapter);
+        arrivalsFragment.updateFragmentData(p);
 
         act.hideKeyboard();
         toggleSpinner(false);

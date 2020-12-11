@@ -41,6 +41,7 @@ import it.reyboz.bustorino.adapters.PalinaAdapter;
 import it.reyboz.bustorino.backend.DBStatusManager;
 import it.reyboz.bustorino.backend.FiveTNormalizer;
 import it.reyboz.bustorino.backend.Palina;
+import it.reyboz.bustorino.backend.Passaggio;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.middleware.AppDataProvider;
@@ -61,9 +62,11 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     private DBStatusManager.OnDBUpdateStatusChangeListener listener;
     private boolean justCreated = false;
     private Palina lastUpdatedPalina = null;
+    private boolean needUpdateOnAttach = false;
 
     //Views
     protected ImageButton addToFavorites;
+    protected TextView timesSourceTextView;
 
 
     public static ArrivalsFragment newInstance(String stopID){
@@ -118,6 +121,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         messageTextView = (TextView) root.findViewById(R.id.messageTextView);
         addToFavorites = (ImageButton) root.findViewById(R.id.addToFavorites);
         resultsListView = (ListView) root.findViewById(R.id.resultsListView);
+        timesSourceTextView = (TextView) root.findViewById(R.id.timesSourceTextView);
         //Button
         addToFavorites.setClickable(true);
         addToFavorites.setOnClickListener(v -> {
@@ -175,15 +179,68 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         }
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (needUpdateOnAttach){
+            updateFragmentData(null);
+        }
+    }
+
     @Nullable
     public String getStopID() {
         return stopID;
     }
 
+    /**
+     * Update the UI with the new data
+     * @param p the full Palina
+     */
+    public void updateFragmentData(@Nullable Palina p){
+        if (p!=null)
+            lastUpdatedPalina = p;
 
-    public void updateFragmentData(Palina p, PalinaAdapter adapter){
+        if (!isAdded()){
+            //defer update at next show
+            if (p==null)
+                Log.w(DEBUG_TAG, "Asked to update the data, but we're not attached and the data is null");
+            else needUpdateOnAttach = true;
+        } else {
 
-        super.resetListAdapter(adapter);
+            final PalinaAdapter adapter = new PalinaAdapter(getContext(), lastUpdatedPalina);
+            showArrivalsSources(lastUpdatedPalina);
+            super.resetListAdapter(adapter);
+        }
+    }
+
+    /**
+     * Set the message of the arrival times source
+     * @param p Palina with the arrival times
+     */
+    protected void showArrivalsSources(Palina p){
+        final Passaggio.Source source = p.getPassaggiSourceIfAny();
+
+        String source_txt;
+        switch (source){
+            case GTTJSON:
+                source_txt = getString(R.string.gttjsonfetcher);
+                break;
+            case FiveTAPI:
+                source_txt = getString(R.string.fivetapifetcher);
+                break;
+            case FiveTScraper:
+                source_txt = getString(R.string.fivetscraper);
+                break;
+            case UNKNOWN:
+                //Don't show the view
+                timesSourceTextView.setVisibility(View.GONE);
+                return;
+            default:
+                throw new IllegalStateException("Unexpected value: " + source);
+        }
+        final String base_message = getString(R.string.times_source_fmt, source_txt);
+        timesSourceTextView.setVisibility(View.VISIBLE);
+        timesSourceTextView.setText(base_message);
     }
 
     @Override

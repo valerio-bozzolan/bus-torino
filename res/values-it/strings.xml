@@ -115,4 +115,12 @@
     <string name="bt_center_map_description">La mia posizione</string>
     <string name="bt_follow_me_description">Segui posizione</string>
 
+    <!--
+    Arrival times sources
+    !-->
+    <string name="times_source_fmt">Fonte orari: %1$s</string>
+    <string name="fivetapifetcher">App GTT</string>
+    <string name="gttjsonfetcher">Sito GTT</string>
+    <string name="fivetscraper">Sito 5T Torino</string>
+
 </resources>

@@ -126,4 +126,11 @@
     <string name="bt_center_map_description">Center on my location</string>
     <string name="bt_follow_me_description">Follow me</string>
 
+    <!--
+    Arrival times sources
+    !-->
+    <string name="times_source_fmt">Arrivals source: %1$s</string>
+    <string name="fivetapifetcher">GTT App</string>
+    <string name="gttjsonfetcher">GTT Website</string>
+    <string name="fivetscraper">5T Torino website</string>
 </resources>
