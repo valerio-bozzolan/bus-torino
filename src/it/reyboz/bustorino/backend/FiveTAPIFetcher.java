@@ -68,6 +68,11 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         return p;
     }
 
+    @Override
+    public Passaggio.Source getSourceForFetcher() {
+        return Passaggio.Source.FiveTAPI;
+    }
+
     List<Route> parseArrivalsServerResponse(String JSONresponse, AtomicReference<result> res) throws JSONException{
         ArrayList<Route> routes = new ArrayList<>(3);
         /*

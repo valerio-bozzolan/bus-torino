@@ -108,4 +108,9 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         return p;
     }
 
+    @Override
+    public Passaggio.Source getSourceForFetcher() {
+        return Passaggio.Source.GTTJSON;
+    }
+
 }

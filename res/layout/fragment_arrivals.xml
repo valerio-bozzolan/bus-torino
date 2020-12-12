@@ -88,7 +88,7 @@
                             android:layout_marginLeft="15dp"
                             android:text="Source of arrivals"
                             android:textAppearance="?android:attr/textAppearanceMedium"
-                            android:textSize="20sp"
+                            android:textSize="19sp"
 
                             />
                 </LinearLayout>

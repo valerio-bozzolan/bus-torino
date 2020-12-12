@@ -122,5 +122,7 @@
     <string name="fivetapifetcher">App GTT</string>
     <string name="gttjsonfetcher">Sito GTT</string>
     <string name="fivetscraper">Sito 5T Torino</string>
+    <string name="arrival_source_changing">Cambiamento fonte orari...</string>
+
 
 </resources>

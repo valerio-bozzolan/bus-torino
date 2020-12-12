@@ -154,6 +154,6 @@ public final class Passaggio implements Comparable<Passaggio> {
 //        }
 //    }
     public enum Source{
-        FiveTAPI,GTTJSON,FiveTScraper, UNKNOWN
+        FiveTAPI,GTTJSON,FiveTScraper, UNDETERMINED
     }
 }

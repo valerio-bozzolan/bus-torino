@@ -165,12 +165,12 @@ public class Palina extends Stop {
                 } else if (mSource != pass.source){
                     Log.w("BusTO-CheckPassaggi",
                             "Cannot determine the source, have got "+mSource +" so far, the next one is "+pass.source );
-                    mSource = Passaggio.Source.UNKNOWN;
+                    mSource = Passaggio.Source.UNDETERMINED;
 
                     break;
                 }
             }
-            if(mSource == Passaggio.Source.UNKNOWN)
+            if(mSource == Passaggio.Source.UNDETERMINED)
                 break;
         }
         //finished with the check, setting flags

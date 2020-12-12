@@ -21,6 +21,7 @@ package it.reyboz.bustorino.fragments;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -29,21 +30,30 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.adapters.PalinaAdapter;
+import it.reyboz.bustorino.backend.ArrivalsFetcher;
 import it.reyboz.bustorino.backend.DBStatusManager;
+import it.reyboz.bustorino.backend.Fetcher;
+import it.reyboz.bustorino.backend.FiveTAPIFetcher;
 import it.reyboz.bustorino.backend.FiveTNormalizer;
+import it.reyboz.bustorino.backend.FiveTScraperFetcher;
+import it.reyboz.bustorino.backend.GTTJSONFetcher;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Passaggio;
 import it.reyboz.bustorino.backend.Route;
-import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.middleware.AppDataProvider;
 import it.reyboz.bustorino.middleware.NextGenDB;
 import it.reyboz.bustorino.middleware.UserDB;
@@ -55,6 +65,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     private final static String DEBUG_TAG = "BUSTOArrivalsFragment";
     private final static int loaderFavId = 2;
     private final static int loaderStopId = 1;
+    private final static ArrivalsFetcher[] defaultFetchers = new ArrivalsFetcher[]{new FiveTAPIFetcher(), new GTTJSONFetcher(), new FiveTScraperFetcher()};
     static final String STOP_TITLE = "messageExtra";
 
     private @Nullable String stopID,stopName;
@@ -68,20 +79,22 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     protected ImageButton addToFavorites;
     protected TextView timesSourceTextView;
 
+    private List<ArrivalsFetcher> fetchers = new ArrayList<>(Arrays.asList(defaultFetchers));
+
 
     public static ArrivalsFragment newInstance(String stopID){
+        return newInstance(stopID, null);
+    }
+
+    public static ArrivalsFragment newInstance(@NonNull String stopID, @Nullable String stopName){
+        ArrivalsFragment fragment = new ArrivalsFragment();
         Bundle args = new Bundle();
         args.putString(KEY_STOP_ID,stopID);
-        ArrivalsFragment fragment = new ArrivalsFragment();
         //parameter for ResultListFragment
         args.putSerializable(LIST_TYPE,FragmentKind.ARRIVALS);
-        fragment.setArguments(args);
-        return fragment;
-    }
-    public static ArrivalsFragment newInstance(String stopID,String stopName){
-        ArrivalsFragment fragment = newInstance(stopID);
-        Bundle args = fragment.getArguments();
-        args.putString(KEY_STOP_NAME,stopName);
+        if (stopName != null){
+            args.putString(KEY_STOP_NAME,stopName);
+        }
         fragment.setArguments(args);
         return fragment;
     }
@@ -114,6 +127,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         justCreated = true;
 
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -122,6 +136,15 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         addToFavorites = (ImageButton) root.findViewById(R.id.addToFavorites);
         resultsListView = (ListView) root.findViewById(R.id.resultsListView);
         timesSourceTextView = (TextView) root.findViewById(R.id.timesSourceTextView);
+        timesSourceTextView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                rotateFetchers();
+                timesSourceTextView.setText(R.string.arrival_source_changing);
+                mListener.createFragmentForStop(stopID);
+                return true;
+            }
+        });
         //Button
         addToFavorites.setClickable(true);
         addToFavorites.setOnClickListener(v -> {
@@ -193,6 +216,28 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     }
 
     /**
+     * Give the fetchers
+     * @return the list of the fetchers
+     */
+    public ArrayList<Fetcher> getCurrentFetchers(){
+        ArrayList<Fetcher> v = new ArrayList<Fetcher>();
+        for (ArrivalsFetcher fetcher: fetchers){
+            v.add(fetcher);
+        }
+        return v;
+    }
+    public Fetcher[] getCurrentFetchersAsArray(){
+        Fetcher[] arr = new Fetcher[fetchers.size()];
+        fetchers.toArray(arr);
+        return arr;
+    }
+
+    private void rotateFetchers(){
+        Collections.rotate(fetchers, -1);
+    }
+
+
+    /**
      * Update the UI with the new data
      * @param p the full Palina
      */
@@ -231,7 +276,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             case FiveTScraper:
                 source_txt = getString(R.string.fivetscraper);
                 break;
-            case UNKNOWN:
+            case UNDETERMINED:
                 //Don't show the view
                 timesSourceTextView.setVisibility(View.GONE);
                 return;

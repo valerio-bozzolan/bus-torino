@@ -51,6 +51,8 @@ import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ActivityMain extends GeneralActivity implements FragmentListener {
@@ -100,8 +102,8 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     }
     private ArrivalsFetcher[] ArrivalFetchers = {new MockFetcher(), new MockFetcher(), new MockFetcher(), new MockFetcher(), new MockFetcher()};*/
 
-    private RecursionHelper<ArrivalsFetcher> ArrivalFetchersRecursionHelper = new RecursionHelper<>(new ArrivalsFetcher[]{new GTTJSONFetcher(), new FiveTScraperFetcher()});
-    private RecursionHelper<StopsFinderByName> StopsFindersByNameRecursionHelper = new RecursionHelper<>(new StopsFinderByName[]{new GTTStopsFetcher(), new FiveTStopsFetcher()});
+    private ArrivalsFetcher[] arrivalsFetchers = new ArrivalsFetcher[]{new FiveTAPIFetcher(), new GTTJSONFetcher(), new FiveTScraperFetcher()};
+    private StopsFinderByName[] stopsFinderByNames = new StopsFinderByName[]{new GTTStopsFetcher(), new FiveTStopsFetcher()};
     /*
      * Position
      */
@@ -127,9 +129,10 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             if (framan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
                 ArrivalsFragment fragment = (ArrivalsFragment) framan.findFragmentById(R.id.resultFrame);
                 String stopName = fragment.getStopID();
-                new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute(stopName);
-            } else
-                new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute();
+
+                new AsyncDataDownload(fh, fragment.getCurrentFetchersAsArray()).execute(stopName);
+            } else //we create a new fragment, which is WRONG
+                new AsyncDataDownload(fh, arrivalsFetchers).execute();
         }
     };
 
@@ -241,7 +244,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             if (tryedFromIntent) {
 
                 // This shows a luser warning
-                ArrivalFetchersRecursionHelper.reset();
                 Toast.makeText(getApplicationContext(),
                         R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT).show();
             }
@@ -314,7 +316,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      * Log.d("ActivityMain", "onPostResume fired. Last successfully bus stop ID: " + fh.getLastSuccessfullySearchedBusStop());
      * if (searchMode == SEARCH_BY_ID && fh.getLastSuccessfullySearchedBusStop() != null) {
      * setBusStopSearchByIDEditText(fh.getLastSuccessfullySearchedBusStop().ID);
-     * //new asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStop.ID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
      * new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute();
      * } else {
      * //we have new activity or we don't have a new searched stop.
@@ -418,20 +419,12 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     public void onSearchClick(View v) {
         if (searchMode == SEARCH_BY_ID) {
             String busStopID = busStopSearchByIDEditText.getText().toString();
-            //OLD ASYNCTASK
-            //new asyncWgetBusStopFromBusStopID(busStopID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
 
-            if (busStopID == null || busStopID.length() <= 0) {
-                showMessage(R.string.insert_bus_stop_number_error);
-                toggleSpinner(false);
-            } else {
-                new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute(busStopID);
-                Log.d("MainActiv", "Started search for arrivals of stop " + busStopID);
-            }
+            createFragmentForStop(busStopID);
         } else { // searchMode == SEARCH_BY_NAME
             String query = busStopSearchByNameEditText.getText().toString();
             //new asyncWgetBusStopSuggestions(query, stopsDB, StopsFindersByNameRecursionHelper);
-            new AsyncDataDownload(AsyncDataDownload.RequestType.STOPS, fh).execute(query);
+            new AsyncDataDownload(fh, stopsFinderByNames).execute(query);
         }
     }
 
@@ -462,13 +455,22 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
     @Override
     public void createFragmentForStop(String ID) {
-        //new asyncWgetBusStopFromBusStopID(ID, ArrivalFetchersRecursionHelper,lastSuccessfullySearchedBusStop);
         if (ID == null || ID.length() <= 0) {
             // we're still in UI thread, no need to mess with Progress
             showMessage(R.string.insert_bus_stop_number_error);
             toggleSpinner(false);
-        } else {
-            new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute(ID);
+        } else  if (framan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
+            ArrivalsFragment fragment = (ArrivalsFragment) framan.findFragmentById(R.id.resultFrame);
+            if (fragment.getStopID() != null && fragment.getStopID().equals(ID)){
+                // Run with previous fetchers
+                //fragment.getCurrentFetchers().toArray()
+                new AsyncDataDownload(fh,fragment.getCurrentFetchersAsArray()).execute(ID);
+            } else{
+                new AsyncDataDownload(fh, arrivalsFetchers).execute(ID);
+            }
+        }
+        else {
+            new AsyncDataDownload(fh,arrivalsFetchers).execute(ID);
             Log.d("MainActiv", "Started search for arrivals of stop " + ID);
         }
     }

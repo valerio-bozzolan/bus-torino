@@ -168,6 +168,11 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
         return p;
     }
 
+    @Override
+    public Passaggio.Source getSourceForFetcher() {
+        return Passaggio.Source.FiveTScraper;
+    }
+
     // preserved for future generations:
 //    /*
 //     * I've sent many emails to the public email info@5t.torino.it to write down something like:

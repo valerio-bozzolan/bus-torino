@@ -117,8 +117,6 @@ public class FragmentHelper {
             Log.d("BusTO", "Same bus stop, accessing existing fragment");
             arrivalsFragment = (ArrivalsFragment) fm.findFragmentById(R.id.resultFrame);
         }
-
-        final PalinaAdapter adapter = new PalinaAdapter(act.getApplicationContext(), p);
         // DO NOT CALL `setListAdapter` ever on arrivals fragment
         arrivalsFragment.updateFragmentData(p);
 
