@@ -22,7 +22,8 @@ import android.content.ContentValues;
 import android.database.SQLException;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import it.reyboz.bustorino.backend.*;

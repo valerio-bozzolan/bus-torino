@@ -21,10 +21,10 @@ package it.reyboz.bustorino.fragments;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteException;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.widget.SwipeRefreshLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.util.Log;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.adapters.PalinaAdapter;
@@ -206,25 +206,30 @@ public class FragmentHelper {
             case OK:
                 break;
             case CLIENT_OFFLINE:
-                act.showMessage(R.string.network_error);
+                act.showToastMessage(R.string.network_error, true);
                 break;
             case SERVER_ERROR:
                 if (act.isConnected()) {
-                    act.showMessage(R.string.parsing_error);
+                    act.showToastMessage(R.string.parsing_error, true);
                 } else {
-                    act.showMessage(R.string.network_error);
+                    act.showToastMessage(R.string.network_error, true);
                 }
             case PARSER_ERROR:
             default:
-                act.showMessage(R.string.internal_error);
+                showShortToast(R.string.internal_error);
                 break;
             case QUERY_TOO_SHORT:
-                act.showMessage(R.string.query_too_short);
+                showShortToast(R.string.query_too_short);
                 break;
             case EMPTY_RESULT_SET:
-                act.showMessage(R.string.no_bus_stop_have_this_name);
+                showShortToast(R.string.no_bus_stop_have_this_name);
                 break;
         }
+    }
+
+    public void showShortToast(int message){
+        if (act!=null)
+        act.showToastMessage(message,true);
     }
 
 }

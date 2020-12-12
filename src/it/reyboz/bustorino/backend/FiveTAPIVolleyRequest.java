@@ -18,14 +18,13 @@
 
 package it.reyboz.bustorino.backend;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 import com.android.volley.*;
 import com.android.volley.toolbox.HttpHeaderParser;
 import org.json.JSONException;
 
 import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
