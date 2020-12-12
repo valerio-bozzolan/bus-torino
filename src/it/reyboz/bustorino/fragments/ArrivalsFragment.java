@@ -38,7 +38,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -74,6 +73,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     private boolean justCreated = false;
     private Palina lastUpdatedPalina = null;
     private boolean needUpdateOnAttach = false;
+    private boolean requestedNewArrivalTimes = false;
 
     //Views
     protected ImageButton addToFavorites;
@@ -136,14 +136,19 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         addToFavorites = (ImageButton) root.findViewById(R.id.addToFavorites);
         resultsListView = (ListView) root.findViewById(R.id.resultsListView);
         timesSourceTextView = (TextView) root.findViewById(R.id.timesSourceTextView);
-        timesSourceTextView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
+        timesSourceTextView.setOnLongClickListener(view -> {
+            if(!requestedNewArrivalTimes){
                 rotateFetchers();
                 timesSourceTextView.setText(R.string.arrival_source_changing);
                 mListener.createFragmentForStop(stopID);
+                requestedNewArrivalTimes = true;
                 return true;
             }
+            return false;
+        });
+        timesSourceTextView.setOnClickListener(view -> {
+            Toast.makeText(getContext(), R.string.change_arrivals_source_message, Toast.LENGTH_SHORT)
+                    .show();
         });
         //Button
         addToFavorites.setClickable(true);
@@ -286,6 +291,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         final String base_message = getString(R.string.times_source_fmt, source_txt);
         timesSourceTextView.setVisibility(View.VISIBLE);
         timesSourceTextView.setText(base_message);
+        requestedNewArrivalTimes = false;
     }
 
     @Override
