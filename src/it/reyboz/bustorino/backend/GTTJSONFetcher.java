@@ -89,7 +89,11 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
                 passaggi = thisroute.getJSONArray("PassaggiRT");
                 howManyPassaggi = passaggi.length();
                 for(j = 0; j < howManyPassaggi; j++) {
-                    p.addPassaggio(passaggi.getString(j).concat("*"), Passaggio.Source.GTTJSON, pos);
+                    String mPassaggio = passaggi.getString(j);
+                    if (mPassaggio.contains("__")){
+                        mPassaggio = mPassaggio.replace("_", "");
+                    }
+                    p.addPassaggio(mPassaggio.concat("*"), Passaggio.Source.GTTJSON, pos);
                 }
 
                 passaggi = thisroute.getJSONArray("PassaggiPR"); // now the non-real-time ones
