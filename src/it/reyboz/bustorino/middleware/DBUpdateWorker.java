@@ -31,7 +31,7 @@ public class DBUpdateWorker extends Worker{
     public static final int SUCCESS_NO_ACTION_NEEDED = 9;
     public static final int SUCCESS_UPDATE_DONE = 1;
 
-    private int notifi_ID=62341;
+    private final int notifi_ID=62341;
 
     public static final String FORCED_UPDATE = "FORCED-UPDATE";
 
@@ -123,7 +123,7 @@ public class DBUpdateWorker extends Worker{
                 .setContentTitle("Libre BusTO - Updating Database")
                 .setProgress(0,0,true)
                 .setPriority(NotificationCompat.PRIORITY_LOW);
-        builder.setSmallIcon(R.drawable.ic_star_filled);
+        builder.setSmallIcon(R.drawable.ic_bus_orange);
         final NotificationManagerCompat notifcManager = NotificationManagerCompat.from(getApplicationContext());
         final  int notification_ID = 32198;
         notifcManager.notify(notification_ID,builder.build());
