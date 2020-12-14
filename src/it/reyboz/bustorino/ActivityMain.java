@@ -641,7 +641,9 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 Log.e(DEBUG_TAG, "location manager is nihil, cannot create NearbyStopsFragment");
                 return;
             }
-            if (anyLocationProviderMatchesCriteria(locManager, cr, true) && fh.getLastSuccessfullySearchedBusStop() == null) {
+            if (anyLocationProviderMatchesCriteria(locManager, cr, true)
+                    && fh.getLastSuccessfullySearchedBusStop() == null
+                    && !framan.isDestroyed()) {
                 //Go ahead with the request
                 Log.d("mainActivity", "Recreating stop fragment");
                 swipeRefreshLayout.setVisibility(View.VISIBLE);
