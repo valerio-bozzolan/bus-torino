@@ -33,6 +33,8 @@ import java.util.List;
  */
 public class Palina extends Stop {
     private ArrayList<Route> routes = new ArrayList<>();
+    private boolean routesModified = false;
+    private Passaggio.Source allSource = null;
 
     public Palina(String stopID) {
         super(stopID);
@@ -52,6 +54,7 @@ public class Palina extends Stop {
      */
     public void addPassaggio(String TimeGTT, Passaggio.Source src,int arrayIndex) {
         this.routes.get(arrayIndex).addPassaggio(TimeGTT,src);
+        routesModified = true;
     }
 
     /**
@@ -76,11 +79,13 @@ public class Palina extends Stop {
      * @return array index for this route
      */
     public int addRoute(String routeID, String destinazione, Route.Type type) {
-        this.routes.add(new Route(routeID, destinazione, type, new ArrayList<Passaggio>(6)));
+        this.routes.add(new Route(routeID, destinazione, type, new ArrayList<>(6)));
+        routesModified = true;
         return this.routes.size() - 1; // last inserted element and pray that direct access to ArrayList elements really is direct
     }
     public int addRoute(Route r){
         this.routes.add(r);
+        routesModified = true;
         return this.routes.size()-1;
     }
     public void setRoutes(List<Route> routeList){
@@ -151,6 +156,35 @@ public class Palina extends Stop {
 //    public List<Passaggio> queryRouteByIndex(int index) {
 //        return this.routes.get(index).getPassaggi();
 //    }
+    protected void checkPassaggi(){
+        Passaggio.Source mSource = null;
+        for (Route r: routes){
+            for(Passaggio pass: r.passaggi){
+                if (mSource == null) {
+                    mSource = pass.source;
+                } else if (mSource != pass.source){
+                    Log.w("BusTO-CheckPassaggi",
+                            "Cannot determine the source, have got "+mSource +" so far, the next one is "+pass.source );
+                    mSource = Passaggio.Source.UNDETERMINED;
+
+                    break;
+                }
+            }
+            if(mSource == Passaggio.Source.UNDETERMINED)
+                break;
+        }
+        //finished with the check, setting flags
+        routesModified = false;
+        allSource = mSource;
+    }
+
+    public Passaggio.Source getPassaggiSourceIfAny(){
+        if(allSource==null || routesModified){
+            checkPassaggi();
+        }
+        assert allSource != null;
+        return allSource;
+    }
 
     /**
      * Gets every route and its timetable.
@@ -233,8 +267,6 @@ public class Palina extends Stop {
         }
         return count;
     }
-
-
 
 //    /**
 //     * Route with terminus (destinazione) and timetables (passaggi), internal implementation.

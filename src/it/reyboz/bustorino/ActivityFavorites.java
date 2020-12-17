@@ -18,8 +18,8 @@
 package it.reyboz.bustorino;
 
 import android.database.Cursor;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.Loader;
 import android.widget.*;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.adapters.StopAdapter;
@@ -30,11 +30,10 @@ import it.reyboz.bustorino.middleware.UserDB;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v4.app.NavUtils;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.app.NavUtils;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -45,8 +44,6 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-
-import org.osmdroid.util.GeoPoint;
 
 import java.util.List;
 

@@ -49,4 +49,10 @@ public interface ArrivalsFetcher extends Fetcher {
      * @see FiveTNormalizer
      */
     Palina ReadArrivalTimesAll(String stopID, AtomicReference<result> res);
+
+    /**
+     * Get the determined source for the Fetcher
+     * @return the source of the arrival times
+     */
+    Passaggio.Source getSourceForFetcher();
 }

@@ -17,7 +17,7 @@
  */
 package it.reyboz.bustorino.backend;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,8 +27,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -66,6 +64,11 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         res.set(result.OK);
         p.sortRoutes();
         return p;
+    }
+
+    @Override
+    public Passaggio.Source getSourceForFetcher() {
+        return Passaggio.Source.FiveTAPI;
     }
 
     List<Route> parseArrivalsServerResponse(String JSONresponse, AtomicReference<result> res) throws JSONException{

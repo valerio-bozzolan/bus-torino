@@ -17,23 +17,37 @@
  */
 package it.reyboz.bustorino;
 
-import android.annotation.SuppressLint;
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.*;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.NavUtils;
-import android.support.v4.widget.SwipeRefreshLayout;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+
+import com.google.android.material.snackbar.Snackbar;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.app.NavUtils;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -45,13 +59,16 @@ import android.widget.*;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
-import android.support.design.widget.FloatingActionButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class ActivityMain extends GeneralActivity implements FragmentListener {
 
@@ -82,12 +99,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      * Options
      */
     private final String OPTION_SHOW_LEGEND = "show_legend";
-    private final String LOCATION_PERMISSION_GIVEN = "loc_permission";
-    /*
-     * Status
-     */
-    private DBStatusManager prefsManager;
-    private DBStatusManager.OnDBUpdateStatusChangeListener updatelistener;
+
     private static final String DEBUG_TAG = "BusTO - MainActivity";
     /* // useful for testing:
     public class MockFetcher implements ArrivalsFetcher {
@@ -99,9 +111,8 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         }
     }
     private ArrivalsFetcher[] ArrivalFetchers = {new MockFetcher(), new MockFetcher(), new MockFetcher(), new MockFetcher(), new MockFetcher()};*/
-
-    private RecursionHelper<ArrivalsFetcher> ArrivalFetchersRecursionHelper = new RecursionHelper<>(new ArrivalsFetcher[]{new GTTJSONFetcher(), new FiveTScraperFetcher()});
-    private RecursionHelper<StopsFinderByName> StopsFindersByNameRecursionHelper = new RecursionHelper<>(new StopsFinderByName[]{new GTTStopsFetcher(), new FiveTStopsFetcher()});
+    private ArrivalsFetcher[] arrivalsFetchers = new ArrivalsFetcher[]{new FiveTAPIFetcher(), new GTTJSONFetcher(), new FiveTScraperFetcher()};
+    private StopsFinderByName[] stopsFinderByNames = new StopsFinderByName[]{new GTTStopsFetcher(), new FiveTStopsFetcher()};
     /*
      * Position
      */
@@ -109,11 +120,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     private final Criteria cr = new Criteria();
     private boolean pendingNearbyStopsRequest = false;
     private LocationManager locmgr;
-    /*
-     * Database Access
-     */
-    private StopsDB stopsDB;
-    private UserDB userDB;
     private FragmentHelper fh;
 
     ///////////////////////////////// EVENT HANDLERS ///////////////////////////////////////////////
@@ -121,17 +127,19 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     /*
      * @see swipeRefreshLayout
      */
-    private Handler handler = new Handler();
+    private final Handler theHandler = new Handler();
     private final Runnable refreshing = new Runnable() {
         public void run() {
             if (framan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
                 ArrivalsFragment fragment = (ArrivalsFragment) framan.findFragmentById(R.id.resultFrame);
                 String stopName = fragment.getStopID();
-                new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute(stopName);
-            } else
-                new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute();
+
+                new AsyncDataDownload(fh, fragment.getCurrentFetchersAsArray()).execute(stopName);
+            } else //we create a new fragment, which is WRONG
+                new AsyncDataDownload(fh, arrivalsFetchers).execute();
         }
     };
+
 
     //// MAIN METHOD ///
 
@@ -139,60 +147,44 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         framan = getSupportFragmentManager();
-        this.stopsDB = new StopsDB(getApplicationContext());
-        this.userDB = new UserDB(getApplicationContext());
+        final SharedPreferences theShPr = getMainSharedPreferences();
+        /*
+         * Database Access
+         */
         setContentView(R.layout.activity_main);
-        busStopSearchByIDEditText = (EditText) findViewById(R.id.busStopSearchByIDEditText);
-        busStopSearchByNameEditText = (EditText) findViewById(R.id.busStopSearchByNameEditText);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        howDoesItWorkTextView = (TextView) findViewById(R.id.howDoesItWorkTextView);
-        hideHintButton = (Button) findViewById(R.id.hideHintButton);
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.listRefreshLayout);
-        floatingActionButton = (FloatingActionButton) findViewById(R.id.floatingActionButton);
+        busStopSearchByIDEditText = findViewById(R.id.busStopSearchByIDEditText);
+        busStopSearchByNameEditText = findViewById(R.id.busStopSearchByNameEditText);
+        progressBar = findViewById(R.id.progressBar);
+        howDoesItWorkTextView = findViewById(R.id.howDoesItWorkTextView);
+        hideHintButton = findViewById(R.id.hideHintButton);
+        swipeRefreshLayout = findViewById(R.id.listRefreshLayout);
+        floatingActionButton = findViewById(R.id.floatingActionButton);
 
-        framan.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
-            @Override
-            public void onBackStackChanged() {
-                Log.d("MainActivity, BusTO", "BACK STACK CHANGED");
-            }
-        });
+        framan.addOnBackStackChangedListener(() -> Log.d("MainActivity, BusTO", "BACK STACK CHANGED"));
 
         busStopSearchByIDEditText.setSelectAllOnFocus(true);
         busStopSearchByIDEditText
-                .setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                    @Override
-                    public boolean onEditorAction(TextView v, int actionId,
-                                                  KeyEvent event) {
-                        // IME_ACTION_SEARCH alphabetical option
-                        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                            onSearchClick(v);
-                            return true;
-                        }
-                        return false;
+                .setOnEditorActionListener((v, actionId, event) -> {
+                    // IME_ACTION_SEARCH alphabetical option
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                        onSearchClick(v);
+                        return true;
                     }
+                    return false;
                 });
         busStopSearchByNameEditText
-                .setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                    @Override
-                    public boolean onEditorAction(TextView v, int actionId,
-                                                  KeyEvent event) {
-                        // IME_ACTION_SEARCH alphabetical option
-                        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                            onSearchClick(v);
-                            return true;
-                        }
-                        return false;
+                .setOnEditorActionListener((v, actionId, event) -> {
+                    // IME_ACTION_SEARCH alphabetical option
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                        onSearchClick(v);
+                        return true;
                     }
+                    return false;
                 });
 
         // Called when the layout is pulled down
         swipeRefreshLayout
-                .setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                    @Override
-                    public void onRefresh() {
-                        handler.post(refreshing);
-                    }
-                });
+                .setOnRefreshListener(() -> theHandler.post(refreshing));
 
         /**
          * @author Marco Gagino!!!
@@ -241,7 +233,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             if (tryedFromIntent) {
 
                 // This shows a luser warning
-                ArrivalFetchersRecursionHelper.reset();
                 Toast.makeText(getApplicationContext(),
                         R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT).show();
             }
@@ -260,32 +251,54 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             createFragmentForStop(busStopID);
         }
         //Try (hopefully) database update
-        //TODO: Start the service in foreground, check last time it ran before
-        DatabaseUpdateService.startDBUpdate(getApplicationContext());
+        //TODO: Check if service shows the notification
+        //Old code for the db update
+        //DatabaseUpdateService.startDBUpdate(getApplicationContext());
+
+
+        PeriodicWorkRequest wr = new PeriodicWorkRequest.Builder(DBUpdateWorker.class, 1, TimeUnit.DAYS)
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.MINUTES)
+                .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build())
+                .build();
+        final WorkManager workManager = WorkManager.getInstance(this);
+
+        final int version = theShPr.getInt(DatabaseUpdate.DB_VERSION_KEY, -10);
+        if (version >= 0)
+        workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
+                ExistingPeriodicWorkPolicy.KEEP, wr);
+        else workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
+                ExistingPeriodicWorkPolicy.REPLACE, wr);
         /*
         Set database update
          */
-        updatelistener = new DBStatusManager.OnDBUpdateStatusChangeListener() {
-            @Override
-            public boolean defaultStatusValue() {
-                return true;
-            }
+        workManager.getWorkInfosForUniqueWorkLiveData(DBUpdateWorker.DEBUG_TAG)
+                .observe(this, workInfoList -> {
+                    // If there are no matching work info, do nothing
+                    if (workInfoList == null || workInfoList.isEmpty()) {
+                        return;
+                    }
+                    Log.d(DEBUG_TAG, "WorkerInfo: "+workInfoList);
 
-            @Override
-            public void onDBStatusChanged(boolean updating) {
+                    boolean showProgress = false;
+                    for (WorkInfo workInfo : workInfoList) {
+                        if (workInfo.getState() == WorkInfo.State.RUNNING) {
+                            showProgress = true;
+                        }
+                    }
 
-                if (updating) {
-                    createDefaultSnackbar();
-                } else if (snackbar != null) {
-                    snackbar.dismiss();
-                    snackbar = null;
-                }
+                    if (showProgress) {
+                        createDefaultSnackbar();
+                    } else {
+                        if(snackbar!=null) {
+                            snackbar.dismiss();
+                            snackbar = null;
+                        }
+                    }
+
+                });
 
 
-            }
-        };
-        prefsManager = new DBStatusManager(getApplicationContext(), updatelistener);
-        prefsManager.registerListener();
 
         //locationHandler = new GPSLocationAdapter(getApplicationContext());
         //--------- NEARBY STOPS--------//
@@ -297,7 +310,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         cr.setCostAllowed(true);
         cr.setPowerRequirement(Criteria.NO_REQUIREMENT);
         //We want the nearby bus stops!
-        handler.post(new NearbyStopsRequester());
+        theHandler.post(new NearbyStopsRequester());
         //If there are no providers available, then, wait for them
 
 
@@ -314,7 +327,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      * Log.d("ActivityMain", "onPostResume fired. Last successfully bus stop ID: " + fh.getLastSuccessfullySearchedBusStop());
      * if (searchMode == SEARCH_BY_ID && fh.getLastSuccessfullySearchedBusStop() != null) {
      * setBusStopSearchByIDEditText(fh.getLastSuccessfullySearchedBusStop().ID);
-     * //new asyncWgetBusStopFromBusStopID(lastSuccessfullySearchedBusStop.ID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
      * new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS,fh).execute();
      * } else {
      * //we have new activity or we don't have a new searched stop.
@@ -336,7 +348,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         super.onPause();
         fh.stopLastRequestIfNeeded();
         fh.setBlockAllActivities(true);
-        if (updatelistener != null && prefsManager != null) prefsManager.unregisterListener();
         locmgr.removeUpdates(locListener);
     }
 
@@ -344,14 +355,9 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     protected void onResume() {
         super.onResume();
         fh.setBlockAllActivities(false);
-        if (updatelistener != null && prefsManager != null) {
-            prefsManager.registerListener();
-            if (prefsManager.isDBUpdating(true)) {
-                createDefaultSnackbar();
-            }
-        }
+        //TODO: check if current LiveData-bound observer works
         if (pendingNearbyStopsRequest)
-            handler.post(new NearbyStopsRequester());
+            theHandler.post(new NearbyStopsRequester());
     }
 
     @Override
@@ -386,8 +392,25 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 startActivity(new Intent(ActivityMain.this, ActivityFavorites.class));
                 return true;
             case R.id.action_map:
-                startActivity(new Intent(ActivityMain.this, ActivityMap.class));
+                //ensure storage permission is granted
+                final String permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+                int result = askForPermissionIfNeeded(permission, STORAGE_PERMISSION_REQ);
+                switch (result) {
+                    case PERMISSION_OK:
+                        startActivity(new Intent(ActivityMain.this, ActivityMap.class));
+                        break;
+                    case PERMISSION_ASKING:
+                        permissionDoneRunnables.put(permission,
+                                () -> startActivity(new Intent(ActivityMain.this, ActivityMap.class)));
+                        break;
+                    case PERMISSION_NEG_CANNOT_ASK:
+                        Resources res = getResources();
+                        String storage_perm = res.getString(R.string.storage_permission);
+                        String text = res.getString(R.string.too_many_permission_asks,  storage_perm);
+                        Toast.makeText(getApplicationContext(),text, Toast.LENGTH_LONG).show();
+                }
                 return true;
+
             case R.id.action_about:
                 startActivity(new Intent(ActivityMain.this, ActivityAbout.class));
                 return true;
@@ -418,20 +441,11 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     public void onSearchClick(View v) {
         if (searchMode == SEARCH_BY_ID) {
             String busStopID = busStopSearchByIDEditText.getText().toString();
-            //OLD ASYNCTASK
-            //new asyncWgetBusStopFromBusStopID(busStopID, ArrivalFetchersRecursionHelper, lastSuccessfullySearchedBusStop);
-
-            if (busStopID == null || busStopID.length() <= 0) {
-                showMessage(R.string.insert_bus_stop_number_error);
-                toggleSpinner(false);
-            } else {
-                new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute(busStopID);
-                Log.d("MainActiv", "Started search for arrivals of stop " + busStopID);
-            }
+            createFragmentForStop(busStopID);
         } else { // searchMode == SEARCH_BY_NAME
             String query = busStopSearchByNameEditText.getText().toString();
             //new asyncWgetBusStopSuggestions(query, stopsDB, StopsFindersByNameRecursionHelper);
-            new AsyncDataDownload(AsyncDataDownload.RequestType.STOPS, fh).execute(query);
+            new AsyncDataDownload(fh, stopsFinderByNames).execute(query);
         }
     }
 
@@ -447,7 +461,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                     //if we sent a request for a new NearbyStopsFragment
                     if (pendingNearbyStopsRequest) {
                         pendingNearbyStopsRequest = false;
-                        handler.post(new NearbyStopsRequester());
+                        theHandler.post(new NearbyStopsRequester());
                     }
 
                 } else {
@@ -455,6 +469,31 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                     setOption(LOCATION_PERMISSION_GIVEN, false);
                 }
                 //add other cases for permissions
+                break;
+            case STORAGE_PERMISSION_REQ:
+                final String storageKey = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(DEBUG_TAG, "Permissions check: " + Arrays.toString(permissions));
+
+                    if (permissionDoneRunnables.containsKey(storageKey)) {
+                        Runnable toRun = permissionDoneRunnables.get(storageKey);
+                        if (toRun != null)
+                            toRun.run();
+                        permissionDoneRunnables.remove(storageKey);
+                    }
+                } else {
+                    //permission denied
+                    showToastMessage(R.string.permission_storage_maps_msg, false);
+                    /*final int canGetPermission = askForPermissionIfNeeded(Manifest.permission.ACCESS_FINE_LOCATION, STORAGE_PERMISSION_REQ);
+                    switch (canGetPermission) {
+                        case PERMISSION_ASKING:
+
+                            break;
+                        case PERMISSION_NEG_CANNOT_ASK:
+                            permissionDoneRunnables.remove(storageKey);
+                            showToastMessage(R.string.closing_act_crash_msg, false);
+                    }*/
+                }
         }
 
     }
@@ -462,13 +501,22 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
     @Override
     public void createFragmentForStop(String ID) {
-        //new asyncWgetBusStopFromBusStopID(ID, ArrivalFetchersRecursionHelper,lastSuccessfullySearchedBusStop);
         if (ID == null || ID.length() <= 0) {
             // we're still in UI thread, no need to mess with Progress
-            showMessage(R.string.insert_bus_stop_number_error);
+            showToastMessage(R.string.insert_bus_stop_number_error, true);
             toggleSpinner(false);
-        } else {
-            new AsyncDataDownload(AsyncDataDownload.RequestType.ARRIVALS, fh).execute(ID);
+        } else  if (framan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
+            ArrivalsFragment fragment = (ArrivalsFragment) framan.findFragmentById(R.id.resultFrame);
+            if (fragment.getStopID() != null && fragment.getStopID().equals(ID)){
+                // Run with previous fetchers
+                //fragment.getCurrentFetchers().toArray()
+                new AsyncDataDownload(fh,fragment.getCurrentFetchersAsArray()).execute(ID);
+            } else{
+                new AsyncDataDownload(fh, arrivalsFetchers).execute(ID);
+            }
+        }
+        else {
+            new AsyncDataDownload(fh,arrivalsFetchers).execute(ID);
             Log.d("MainActiv", "Started search for arrivals of stop " + ID);
         }
     }
@@ -488,6 +536,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      * Receive the Barcode Scanner Intent
      */
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
 
         Uri uri;
@@ -535,7 +584,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         Log.d(DEBUG_TAG, "Provider " + provider + " got enabled");
         if (locmgr != null && pendingNearbyStopsRequest && locmgr.getProvider(provider).meetsCriteria(cr)) {
             pendingNearbyStopsRequest = false;
-            handler.post(new NearbyStopsRequester());
+            theHandler.post(new NearbyStopsRequester());
         }
     }
 
@@ -564,16 +613,27 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         }
     };
 
+    /**
+     * Run location requests separately and asynchronously
+     */
     class NearbyStopsRequester implements Runnable {
-        @SuppressLint("MissingPermission")
         @Override
         public void run() {
             final boolean canRunPosition = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || getOption(LOCATION_PERMISSION_GIVEN, false);
+            final boolean noPermission = ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED;
 
-            if (!canRunPosition) {
-                pendingNearbyStopsRequest = true;
-                assertLocationPermissions();
-                return;
+            //if we don't have the permission, we have to ask for it, if we haven't
+            // asked too many times before
+            if (noPermission) {
+                if (!canRunPosition) {
+                    pendingNearbyStopsRequest = true;
+                    assertLocationPermissions();
+                    Log.w(DEBUG_TAG, "Cannot get position: Asking permission, noPositionFromSys: " + noPermission);
+                    return;
+                } else {
+                    Toast.makeText(getApplicationContext(), "Asked for permission position too many times", Toast.LENGTH_LONG).show();
+                }
             } else setOption(LOCATION_PERMISSION_GIVEN, true);
 
             LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -581,7 +641,9 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 Log.e(DEBUG_TAG, "location manager is nihil, cannot create NearbyStopsFragment");
                 return;
             }
-            if (anyLocationProviderMatchesCriteria(locManager, cr, true) && fh.getLastSuccessfullySearchedBusStop() == null) {
+            if (anyLocationProviderMatchesCriteria(locManager, cr, true)
+                    && fh.getLastSuccessfullySearchedBusStop() == null
+                    && !framan.isDestroyed()) {
                 //Go ahead with the request
                 Log.d("mainActivity", "Recreating stop fragment");
                 swipeRefreshLayout.setVisibility(View.VISIBLE);
@@ -598,6 +660,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 //Wait for the providers
                 Log.d(DEBUG_TAG, "Queuing position request");
                 pendingNearbyStopsRequest = true;
+
                 locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10, 0.1f, locListener);
             }
 
@@ -726,16 +789,10 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     }
 
     ////////////////////////////////////// GUI HELPERS /////////////////////////////////////////////
-    @Override
     public void showKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         View view = searchMode == SEARCH_BY_ID ? busStopSearchByIDEditText : busStopSearchByNameEditText;
         imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
-    }
-
-    @Override
-    public void showMessage(int messageID) {
-        Toast.makeText(getApplicationContext(), messageID, Toast.LENGTH_SHORT).show();
     }
 
     private void setSearchModeBusStopID() {

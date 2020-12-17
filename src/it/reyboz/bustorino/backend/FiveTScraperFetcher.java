@@ -159,13 +159,18 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
                     // Yes... Sometimes there is an EMPTY td ._.
                     continue;
                 }
-                p.addPassaggio(time, Passaggio.Source.FiveTScraper,routeIndex);
+                p.addPassaggio(time, Passaggio.Source.FiveTScraper, routeIndex);
             }
         }
 
         p.sortRoutes();
         res.set(result.OK);
         return p;
+    }
+
+    @Override
+    public Passaggio.Source getSourceForFetcher() {
+        return Passaggio.Source.FiveTScraper;
     }
 
     // preserved for future generations:

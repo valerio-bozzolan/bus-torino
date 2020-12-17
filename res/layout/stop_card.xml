@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView
+<androidx.cardview.widget.CardView
 		xmlns:card_view="http://schemas.android.com/apk/res-auto"
 		xmlns:android="http://schemas.android.com/apk/res/android"
-		xmlns:tools="http://schemas.android.com/tools" android:id="@+id/stop_cardView"
+		android:id="@+id/stop_cardView"
 		android:foreground="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:focusable="true"
@@ -113,4 +113,4 @@
 				android:padding="5dp" android:maxWidth="100sp" android:layout_gravity="center_vertical|end"
 				android:layout_marginRight="5dp"/>
 	</LinearLayout>
-</android.support.v7.widget.CardView>
+</androidx.cardview.widget.CardView>

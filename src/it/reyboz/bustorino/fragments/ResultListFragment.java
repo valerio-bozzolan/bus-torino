@@ -23,16 +23,16 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.widget.SwipeRefreshLayout;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.*;
-import android.support.design.widget.FloatingActionButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.FiveTNormalizer;
@@ -49,20 +49,19 @@ import it.reyboz.bustorino.middleware.UserDB;
 public class ResultListFragment extends Fragment{
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     static final String LIST_TYPE = "list-type";
-    private static final String STOP_TITLE = "messageExtra";
     protected static final String LIST_STATE = "list_state";
 
 
-    private static final String MESSAGE_TEXT_VIEW = "message_text_view";
+    protected static final String MESSAGE_TEXT_VIEW = "message_text_view";
     private FragmentKind adapterKind;
 
     private boolean adapterSet = false;
     protected FragmentListener mListener;
-    private TextView messageTextView;
-    private ImageButton addToFavorites;
+    protected TextView messageTextView;
+    protected ListView resultsListView;
+
 
     private FloatingActionButton fabutton;
-    private ListView resultsListView;
     private ListAdapter mListAdapter = null;
     boolean listShown;
     private Parcelable mListInstanceState = null;
@@ -87,7 +86,7 @@ public class ResultListFragment extends Fragment{
         Bundle args = new Bundle();
         args.putSerializable(LIST_TYPE, listType);
         if (eventualStopTitle != null) {
-            args.putString(STOP_TITLE, eventualStopTitle);
+            args.putString(ArrivalsFragment.STOP_TITLE, eventualStopTitle);
         }
         fragment.setArguments(args);
         return fragment;
@@ -107,7 +106,7 @@ public class ResultListFragment extends Fragment{
 
     /**
      * Check if the last Bus Stop is in the favorites
-     * @return
+     * @return true if it iss
      */
     public boolean isStopInFavorites(String busStopId) {
         boolean found = false;
@@ -126,7 +125,6 @@ public class ResultListFragment extends Fragment{
                              Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_list_view, container, false);
         messageTextView = (TextView) root.findViewById(R.id.messageTextView);
-        addToFavorites = (ImageButton) root.findViewById(R.id.addToFavorites);
         if (adapterKind != null) {
             resultsListView = (ListView) root.findViewById(R.id.resultsListView);
             switch (adapterKind) {
@@ -167,7 +165,7 @@ public class ResultListFragment extends Fragment{
                             }
                         }
                     });
-                    String displayName = getArguments().getString(STOP_TITLE);
+                    String displayName = getArguments().getString(ArrivalsFragment.STOP_TITLE);
                     setTextViewMessage(String.format(
                             getString(R.string.passages), displayName));
                     break;
@@ -204,7 +202,7 @@ public class ResultListFragment extends Fragment{
 
             ListAdapter adapter = mListAdapter;
             mListAdapter = null;
-            setListAdapter(adapter);
+            resetListAdapter(adapter);
         }
         if (mListInstanceState != null) {
             Log.d("resultsListView", "trying to restore instance state");
@@ -277,13 +275,16 @@ public class ResultListFragment extends Fragment{
         }
     }
 
-    public void setListAdapter(ListAdapter adapter) {
+    protected void resetListAdapter(ListAdapter adapter) {
         boolean hadAdapter = mListAdapter != null;
         mListAdapter = adapter;
         if (resultsListView != null) {
             resultsListView.setAdapter(adapter);
             resultsListView.setVisibility(View.VISIBLE);
         }
+    }
+    public void setNewListAdapter(ListAdapter adapter){
+        resetListAdapter(adapter);
     }
 
     /**
@@ -292,23 +293,6 @@ public class ResultListFragment extends Fragment{
      */
     public void setTextViewMessage(String message) {
         messageTextView.setText(message);
-        switch (adapterKind) {
-            case ARRIVALS:
-                addToFavorites.setClickable(true);
-                addToFavorites.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        // add/remove the stop in the favorites
-                        mListener.toggleLastStopToFavorites();
-                    }
-                });
-                break;
-            case STOPS:
-                addToFavorites.setClickable(false);
-                addToFavorites.setVisibility(View.INVISIBLE);
-                break;
-        }
-
         messageTextView.setVisibility(View.VISIBLE);
     }
 }

@@ -4,45 +4,40 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-        <android.support.v7.widget.CardView
-            android:id="@+id/favorites_cardView"
+    <androidx.cardview.widget.CardView
+            android:id="@+id/messageCardView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             fab:cardElevation="2dp"
             fab:cardCornerRadius="5dp"
             android:layout_margin="16dp">
 
-                <TextView
-                    android:id="@+id/messageTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toLeftOf="@+id/addToFavorites"
-                    android:gravity="center_vertical"
-                    android:layout_marginLeft="4dp"
-                    android:minHeight="48dp"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:layout_toStartOf="@+id/addToFavorites"
-                    android:layout_marginStart="4dp"
-                    android:foreground="?attr/selectableItemBackground" />
+        <TextView
+            android:id="@+id/messageTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@+id/addToFavorites"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="15dp"
+            android:layout_marginStart="15dp"
 
-                <ImageButton
-                    android:id="@+id/addToFavorites"
-                    android:layout_width="45dp"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="end"
-                    android:background="@android:color/transparent"
-                    fab:srcCompat="@drawable/ic_star_outline"
-                    tools:ignore="OnClick"
-                    android:foreground="?attr/selectableItemBackground" />
+            android:minHeight="48dp"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_toStartOf="@+id/addToFavorites"
+            android:foreground="?attr/selectableItemBackground" />
 
-        </android.support.v7.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
         <ListView
             android:id="@+id/resultsListView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/favorites_cardView"
             android:clickable="true"
+            android:focusable="true"
+            android:layout_below="@id/messageCardView"
             android:descendantFocusability="blocksDescendants"
-            android:visibility="visible" />
+            android:visibility="visible" >
+
+
+        </ListView>
 </RelativeLayout>

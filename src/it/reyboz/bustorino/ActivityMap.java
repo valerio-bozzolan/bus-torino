@@ -19,8 +19,10 @@
 
 package it.reyboz.bustorino;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
@@ -28,12 +30,16 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.support.annotation.RequiresApi;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.preference.PreferenceManager;
 
-import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.preference.PreferenceManager;
+
+import it.reyboz.bustorino.middleware.GeneralActivity;
 import it.reyboz.bustorino.middleware.NextGenDB;
+
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.events.DelayedMapListener;
@@ -55,9 +61,8 @@ import java.util.*;
 
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.map.CustomInfoWindow;
-import it.reyboz.bustorino.middleware.StopsDB;
 
-public class ActivityMap extends AppCompatActivity {
+public class ActivityMap extends GeneralActivity {
 
     private static final String TAG = "Busto-MapActivity";
     private static final String MAP_CURRENT_ZOOM_KEY = "map-current-zoom";
@@ -84,12 +89,15 @@ public class ActivityMap extends AppCompatActivity {
     protected ImageButton btFollowMe;
 
     @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
-    @Override public void onCreate(Bundle savedInstanceState) {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         //handle permissions first, before map is created. not depicted here
 
-        //load/initialize the osmdroid configuration, this can be done
+        //load/initialize the osmdroid configuration
+
+
         ctx = getApplicationContext();
         Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
         //setting this before the layout is inflated is a good idea
@@ -138,7 +146,6 @@ public class ActivityMap extends AppCompatActivity {
         }));
 
 
-
         btCenterMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -165,12 +172,13 @@ public class ActivityMap extends AppCompatActivity {
 
     }
 
+
     public void startMap(Bundle incoming, Bundle savedInstanceState) {
         //parse incoming bundle
         GeoPoint marker = null;
         String name = null;
         String ID = null;
-        if(incoming != null) {
+        if (incoming != null) {
             double lat = incoming.getDouble(BUNDLE_LATIT);
             double lon = incoming.getDouble(BUNDLE_LONGIT);
             marker = new GeoPoint(lat, lon);
@@ -184,11 +192,17 @@ public class ActivityMap extends AppCompatActivity {
         IMapController mapController = map.getController();
         GeoPoint startPoint = null;
 
+        boolean havePositionPermission = true;
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            askForPermissionIfNeeded(Manifest.permission.ACCESS_FINE_LOCATION, PERMISSION_REQUEST_POSITION);
+            havePositionPermission = false;
+        }
+
         if (marker != null) {
             startPoint = marker;
             mapController.setZoom(POSITION_FOUND_ZOOM);
-        }
-        else if (savedInstanceState != null) {
+        } else if (savedInstanceState != null || !havePositionPermission) {
             mapController.setZoom(savedInstanceState.getDouble(MAP_CURRENT_ZOOM_KEY));
             mapController.setCenter(new GeoPoint(savedInstanceState.getDouble(MAP_CENTER_LAT_KEY),
                     savedInstanceState.getDouble(MAP_CENTER_LON_KEY)));
@@ -196,7 +210,8 @@ public class ActivityMap extends AppCompatActivity {
             boolean found = false;
             LocationManager locationManager =
                     (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-            if(locationManager!=null) {
+            if (locationManager != null) {
+
                 Location userLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                 if (userLocation != null) {
                     mapController.setZoom(POSITION_FOUND_ZOOM);
@@ -390,4 +405,25 @@ public class ActivityMap extends AppCompatActivity {
         outState.putDouble(MAP_CENTER_LON_KEY, map.getMapCenter().getLongitude());
     }
 
+    /**
+     * PERMISSION STUFF
+     **/
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_POSITION:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    setOption(LOCATION_PERMISSION_GIVEN, true);
+                    //if we sent a request for a new NearbyStopsFragment
+
+
+                } else {
+                    //permission denied
+                    setOption(LOCATION_PERMISSION_GIVEN, false);
+                }
+                break;
+                //add other cases for permissions
+        }
+
+    }
 }

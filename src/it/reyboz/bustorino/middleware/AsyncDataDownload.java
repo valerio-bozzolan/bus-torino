@@ -20,12 +20,12 @@ package it.reyboz.bustorino.middleware;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.annotation.NonNull;
 import android.util.Log;
-import it.reyboz.bustorino.R;
+
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.fragments.FragmentHelper;
 import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
@@ -44,36 +44,40 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
     private static final String TAG = "BusTO-DataDownload";
     private boolean failedAll = false;
 
-    private AtomicReference<Fetcher.result> res;
-    private RequestType t;
+    private final AtomicReference<Fetcher.result> res;
+    private final RequestType t;
     private String query;
     WeakReference<FragmentHelper> helperRef;
-    private ArrayList<Thread> otherActivities = new ArrayList<>();
+    private final ArrayList<Thread> otherActivities = new ArrayList<>();
+    private final Fetcher[] theFetchers;
 
 
-    public AsyncDataDownload(RequestType type,FragmentHelper fh) {
-        t = type;
+    public AsyncDataDownload(FragmentHelper fh, @NonNull Fetcher[] fetchers) {
+        RequestType type;
         helperRef = new WeakReference<>(fh);
-        fh.setLastTaskRef(new WeakReference<AsyncDataDownload>(this));
+        fh.setLastTaskRef(new WeakReference<>(this));
         res = new AtomicReference<>();
+
+        theFetchers = fetchers;
+        if (theFetchers.length < 1){
+            throw new IllegalArgumentException("You have to put at least one Fetcher, idiot!");
+        }
+        if (theFetchers[0] instanceof ArrivalsFetcher){
+            type = RequestType.ARRIVALS;
+        } else if (theFetchers[0] instanceof StopsFinderByName){
+            type = RequestType.STOPS;
+        } else{
+            type = null;
+        }
+        t = type;
+
     }
 
     @Override
     protected Object doInBackground(String... params) {
-        RecursionHelper r;
+        RecursionHelper<Fetcher> r = new RecursionHelper<>(theFetchers);
         boolean success=false;
         Object result;
-        switch (t){
-            case ARRIVALS:
-                r = new RecursionHelper<>(new ArrivalsFetcher[] {new FiveTAPIFetcher(),new GTTJSONFetcher(), new FiveTScraperFetcher()});
-                break;
-            case STOPS:
-                r = new RecursionHelper<>(new StopsFinderByName[] {new GTTStopsFetcher(), new FiveTStopsFetcher()});
-                break;
-            default:
-                //TODO put error message
-                return null;
-        }
         FragmentHelper fh = helperRef.get();
         //If the FragmentHelper is null, that means the activity doesn't exist anymore
         if (fh == null){
@@ -229,10 +233,10 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
     }
 
     public class BranchInserter implements Runnable{
-        private List<Route> routesToInsert;
+        private final List<Route> routesToInsert;
 
         private String stopID;
-        private FragmentHelper fragmentHelper;
+        private final FragmentHelper fragmentHelper;
 
         public BranchInserter(List<Route> routesToInsert,FragmentHelper fh,String stopID) {
             this.routesToInsert = routesToInsert;

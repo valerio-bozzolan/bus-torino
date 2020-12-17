@@ -20,9 +20,9 @@ package it.reyboz.bustorino.fragments;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.CursorLoader;
+import androidx.loader.content.Loader;
 import android.util.Log;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
@@ -70,7 +70,7 @@ public class StopListFragment extends ResultListFragment implements LoaderManage
         LoaderManager loaderManager  = getLoaderManager();
         if(stopList!=null) {
             mListAdapter = new StopAdapter(getContext(),stopList);
-            setListAdapter(mListAdapter);
+            resetListAdapter(mListAdapter);
             for (int i = 0; i < stopList.size(); i++) {
                 final Bundle b = new Bundle();
                 b.putString(KEY_STOP_ID, stopList.get(i).ID);

@@ -46,7 +46,7 @@ public class DBStatusManager {
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
                 Log.d("BUSTO-PrefListener", "Changed key " + key + " in the sharedPref");
 
-                if (key.equals(DB_UPDATING)) {
+                if (dbUpdateListener!=null && key.equals(DB_UPDATING)) {
                     dbUpdateListener.onDBStatusChanged(sharedPreferences.getBoolean(DB_UPDATING, dbUpdateListener.defaultStatusValue()));
 
                 }

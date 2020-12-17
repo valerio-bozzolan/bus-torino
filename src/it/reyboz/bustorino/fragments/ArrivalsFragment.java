@@ -21,16 +21,40 @@ package it.reyboz.bustorino.fragments;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.CursorLoader;
+import androidx.loader.content.Loader;
+
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import it.reyboz.bustorino.R;
+import it.reyboz.bustorino.adapters.PalinaAdapter;
+import it.reyboz.bustorino.backend.ArrivalsFetcher;
 import it.reyboz.bustorino.backend.DBStatusManager;
+import it.reyboz.bustorino.backend.Fetcher;
+import it.reyboz.bustorino.backend.FiveTAPIFetcher;
+import it.reyboz.bustorino.backend.FiveTNormalizer;
+import it.reyboz.bustorino.backend.FiveTScraperFetcher;
+import it.reyboz.bustorino.backend.GTTJSONFetcher;
+import it.reyboz.bustorino.backend.Palina;
+import it.reyboz.bustorino.backend.Passaggio;
+import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.middleware.AppDataProvider;
 import it.reyboz.bustorino.middleware.NextGenDB;
 import it.reyboz.bustorino.middleware.UserDB;
@@ -42,27 +66,37 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     private final static String DEBUG_TAG = "BUSTOArrivalsFragment";
     private final static int loaderFavId = 2;
     private final static int loaderStopId = 1;
+    private final static ArrivalsFetcher[] defaultFetchers = new ArrivalsFetcher[]{new FiveTAPIFetcher(), new GTTJSONFetcher(), new FiveTScraperFetcher()};
+    static final String STOP_TITLE = "messageExtra";
+
     private @Nullable String stopID,stopName;
-    private TextView messageTextView;
     private DBStatusManager prefs;
     private DBStatusManager.OnDBUpdateStatusChangeListener listener;
     private boolean justCreated = false;
-    private ImageButton addToFavorites;
+    private Palina lastUpdatedPalina = null;
+    private boolean needUpdateOnAttach = false;
+    private boolean requestedNewArrivalTimes = false;
+
+    //Views
+    protected ImageButton addToFavorites;
+    protected TextView timesSourceTextView;
+
+    private List<ArrivalsFetcher> fetchers = new ArrayList<>(Arrays.asList(defaultFetchers));
 
 
     public static ArrivalsFragment newInstance(String stopID){
+        return newInstance(stopID, null);
+    }
+
+    public static ArrivalsFragment newInstance(@NonNull String stopID, @Nullable String stopName){
+        ArrivalsFragment fragment = new ArrivalsFragment();
         Bundle args = new Bundle();
         args.putString(KEY_STOP_ID,stopID);
-        ArrivalsFragment fragment = new ArrivalsFragment();
         //parameter for ResultListFragment
         args.putSerializable(LIST_TYPE,FragmentKind.ARRIVALS);
-        fragment.setArguments(args);
-        return fragment;
-    }
-    public static ArrivalsFragment newInstance(String stopID,String stopName){
-        ArrivalsFragment fragment = newInstance(stopID);
-        Bundle args = fragment.getArguments();
-        args.putString(KEY_STOP_NAME,stopName);
+        if (stopName != null){
+            args.putString(KEY_STOP_NAME,stopName);
+        }
         fragment.setArguments(args);
         return fragment;
     }
@@ -73,12 +107,12 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         stopID = getArguments().getString(KEY_STOP_ID);
         //this might really be null
         stopName = getArguments().getString(KEY_STOP_NAME);
-        final ArrivalsFragment f = this;
+        final ArrivalsFragment arrivalsFragment = this;
         listener = new DBStatusManager.OnDBUpdateStatusChangeListener() {
             @Override
             public void onDBStatusChanged(boolean updating) {
                 if(!updating){
-                    getLoaderManager().restartLoader(loaderFavId,getArguments(),f);
+                    getLoaderManager().restartLoader(loaderFavId,getArguments(),arrivalsFragment);
                 } else {
                     final LoaderManager lm = getLoaderManager();
                     lm.destroyLoader(loaderFavId);
@@ -94,6 +128,65 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         prefs = new DBStatusManager(getContext().getApplicationContext(),listener);
         justCreated = true;
 
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View root = inflater.inflate(R.layout.fragment_arrivals, container, false);
+        messageTextView = (TextView) root.findViewById(R.id.messageTextView);
+        addToFavorites = (ImageButton) root.findViewById(R.id.addToFavorites);
+        resultsListView = (ListView) root.findViewById(R.id.resultsListView);
+        timesSourceTextView = (TextView) root.findViewById(R.id.timesSourceTextView);
+        timesSourceTextView.setOnLongClickListener(view -> {
+            if(!requestedNewArrivalTimes){
+                rotateFetchers();
+                timesSourceTextView.setText(R.string.arrival_source_changing);
+                mListener.createFragmentForStop(stopID);
+                requestedNewArrivalTimes = true;
+                return true;
+            }
+            return false;
+        });
+        timesSourceTextView.setOnClickListener(view -> {
+            Toast.makeText(getContext(), R.string.change_arrivals_source_message, Toast.LENGTH_SHORT)
+                    .show();
+        });
+        //Button
+        addToFavorites.setClickable(true);
+        addToFavorites.setOnClickListener(v -> {
+            // add/remove the stop in the favorites
+            mListener.toggleLastStopToFavorites();
+        });
+
+        resultsListView.setOnItemClickListener((parent, view, position, id) -> {
+            String routeName;
+
+            Route r = (Route) parent.getItemAtPosition(position);
+            routeName = FiveTNormalizer.routeInternalToDisplay(r.getNameForDisplay());
+            if (routeName == null) {
+                routeName = r.getNameForDisplay();
+            }
+            if (r.destinazione == null || r.destinazione.length() == 0) {
+                Toast.makeText(getContext(),
+                        getString(R.string.route_towards_unknown, routeName), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(),
+                        getString(R.string.route_towards_destination, routeName, r.destinazione), Toast.LENGTH_SHORT).show();
+            }
+        });
+        String displayName = getArguments().getString(STOP_TITLE);
+        setTextViewMessage(String.format(
+                getString(R.string.passages), displayName));
+
+
+        String probablemessage = getArguments().getString(MESSAGE_TEXT_VIEW);
+        if (probablemessage != null) {
+            //Log.d("BusTO fragment " + this.getTag(), "We have a possible message here in the savedInstaceState: " + probablemessage);
+            messageTextView.setText(probablemessage);
+            messageTextView.setVisibility(View.VISIBLE);
+        }
+        return root;
     }
 
     @Override
@@ -116,9 +209,96 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         }
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (needUpdateOnAttach){
+            updateFragmentData(null);
+        }
+    }
+
     @Nullable
     public String getStopID() {
         return stopID;
+    }
+
+    /**
+     * Give the fetchers
+     * @return the list of the fetchers
+     */
+    public ArrayList<Fetcher> getCurrentFetchers(){
+        ArrayList<Fetcher> v = new ArrayList<Fetcher>();
+        for (ArrivalsFetcher fetcher: fetchers){
+            v.add(fetcher);
+        }
+        return v;
+    }
+    public Fetcher[] getCurrentFetchersAsArray(){
+        Fetcher[] arr = new Fetcher[fetchers.size()];
+        fetchers.toArray(arr);
+        return arr;
+    }
+
+    private void rotateFetchers(){
+        Collections.rotate(fetchers, -1);
+    }
+
+
+    /**
+     * Update the UI with the new data
+     * @param p the full Palina
+     */
+    public void updateFragmentData(@Nullable Palina p){
+        if (p!=null)
+            lastUpdatedPalina = p;
+
+        if (!isAdded()){
+            //defer update at next show
+            if (p==null)
+                Log.w(DEBUG_TAG, "Asked to update the data, but we're not attached and the data is null");
+            else needUpdateOnAttach = true;
+        } else {
+
+            final PalinaAdapter adapter = new PalinaAdapter(getContext(), lastUpdatedPalina);
+            showArrivalsSources(lastUpdatedPalina);
+            super.resetListAdapter(adapter);
+        }
+    }
+
+    /**
+     * Set the message of the arrival times source
+     * @param p Palina with the arrival times
+     */
+    protected void showArrivalsSources(Palina p){
+        final Passaggio.Source source = p.getPassaggiSourceIfAny();
+
+        String source_txt;
+        switch (source){
+            case GTTJSON:
+                source_txt = getString(R.string.gttjsonfetcher);
+                break;
+            case FiveTAPI:
+                source_txt = getString(R.string.fivetapifetcher);
+                break;
+            case FiveTScraper:
+                source_txt = getString(R.string.fivetscraper);
+                break;
+            case UNDETERMINED:
+                //Don't show the view
+                timesSourceTextView.setVisibility(View.GONE);
+                return;
+            default:
+                throw new IllegalStateException("Unexpected value: " + source);
+        }
+        final String base_message = getString(R.string.times_source_fmt, source_txt);
+        timesSourceTextView.setVisibility(View.VISIBLE);
+        timesSourceTextView.setText(base_message);
+        requestedNewArrivalTimes = false;
+    }
+
+    @Override
+    public void setNewListAdapter(ListAdapter adapter) {
+        throw new UnsupportedOperationException();
     }
 
     /**

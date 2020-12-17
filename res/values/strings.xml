@@ -46,6 +46,7 @@
         <b>Tap the star</b>
         to add the bus stop to the favourites\n\n<b>How to read timelines:</b>\n<b>&#160;&#160;&#160;12:56*</b> Real-time
         arrivals\n<b>&#160;&#160;&#160;12:56</b> &#160; Scheduled arrivals\n\n<b>Pull down to refresh</b> the timetable
+        \n <b>Long press on Arrivals source</b> to change the source of the arrival times
     </string>
     <string name="hint_button">GOT IT!</string>
     <string name="about_history">
@@ -126,4 +127,25 @@
     <string name="bt_center_map_description">Center on my location</string>
     <string name="bt_follow_me_description">Follow me</string>
 
+    <!--
+    Arrival times sources
+    !-->
+    <string name="times_source_fmt">Arrivals source: %1$s</string>
+    <string name="fivetapifetcher">GTT App</string>
+    <string name="gttjsonfetcher">GTT Website</string>
+    <string name="fivetscraper">5T Torino website</string>
+    <string name="arrival_source_changing">Changing arrival times source…</string>
+    <string name="change_arrivals_source_message">Long press to change the source of arrivals</string>
+
+    <!--
+    Notifications
+    -->
+    <string name="default_notification_channel" translatable="false">Default</string>
+    <string name="default_notification_channel_description">Default channel for notifications</string>
+    <string name="too_many_permission_asks">Asked for  %1$s permission too many times</string>
+    <string name="permission_storage_maps_msg">Cannot use the map with the storage permission!</string>
+    <string name="storage_permission">storage</string>
+    <string name="message_crash">The application has crashed. If you want, you can send the send the report via email to the developers by pressing \"OK\".
+        \n Note that sensitive information may be contained in the report, and if so, it will be only used for diagnostic purposes by the developers, and never published.</string>
+    <string name="acra_email_message">The application crashed and the crash report is in the attachments. Please describe what you were doing before the crash: \n</string>
 </resources>

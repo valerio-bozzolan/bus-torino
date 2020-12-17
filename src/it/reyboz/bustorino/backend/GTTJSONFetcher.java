@@ -18,7 +18,7 @@
 
 package it.reyboz.bustorino.backend;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -89,7 +89,11 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
                 passaggi = thisroute.getJSONArray("PassaggiRT");
                 howManyPassaggi = passaggi.length();
                 for(j = 0; j < howManyPassaggi; j++) {
-                    p.addPassaggio(passaggi.getString(j).concat("*"), Passaggio.Source.GTTJSON, pos);
+                    String mPassaggio = passaggi.getString(j);
+                    if (mPassaggio.contains("__")){
+                        mPassaggio = mPassaggio.replace("_", "");
+                    }
+                    p.addPassaggio(mPassaggio.concat("*"), Passaggio.Source.GTTJSON, pos);
                 }
 
                 passaggi = thisroute.getJSONArray("PassaggiPR"); // now the non-real-time ones
@@ -106,6 +110,11 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         p.sortRoutes();
         res.set(result.OK);
         return p;
+    }
+
+    @Override
+    public Passaggio.Source getSourceForFetcher() {
+        return Passaggio.Source.GTTJSON;
     }
 
 }

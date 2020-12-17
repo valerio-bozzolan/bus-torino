@@ -18,9 +18,9 @@
 package it.reyboz.bustorino.util;
 
 import android.location.Location;
-import android.support.v4.util.Pair;
+import androidx.core.util.Pair;
 import android.util.Log;
-import it.reyboz.bustorino.adapters.ArrivalsStopAdapter;
+
 import it.reyboz.bustorino.backend.Passaggio;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;

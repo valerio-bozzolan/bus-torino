@@ -18,7 +18,7 @@
 
 package it.reyboz.bustorino.backend;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 public final class Passaggio implements Comparable<Passaggio> {
@@ -29,7 +29,7 @@ public final class Passaggio implements Comparable<Passaggio> {
     private final String passaggioGTT;
     public final int hh,mm;
     public final boolean isInRealTime;
-    public final Source passageSource;
+    public final Source source;
 
 
     /**
@@ -55,7 +55,7 @@ public final class Passaggio implements Comparable<Passaggio> {
     */
     public Passaggio(@NonNull String TimeGTT, @NonNull Source sorgente) {
         passaggioGTT = TimeGTT;
-        passageSource = sorgente;
+        source = sorgente;
         String[] parts = TimeGTT.split(":");
         String hh,mm;
         boolean realtime;
@@ -95,7 +95,7 @@ public final class Passaggio implements Comparable<Passaggio> {
         this.hh = hour;
         this.mm = minutes;
         this.isInRealTime = realtime;
-        this.passageSource = sorgente;
+        this.source = sorgente;
         //Build the passaggio string
         StringBuilder sb = new StringBuilder();
         sb.append(hour).append(":").append(minutes);
@@ -154,6 +154,6 @@ public final class Passaggio implements Comparable<Passaggio> {
 //        }
 //    }
     public enum Source{
-        FiveTAPI,GTTJSON,FiveTScraper
+        FiveTAPI,GTTJSON,FiveTScraper, UNDETERMINED
     }
 }

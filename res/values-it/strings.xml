@@ -30,13 +30,16 @@
     <string name="cant_add_to_favorites">Impossibile aggiungere ai preferiti (memoria piena o database corrotto?)!</string>
     <string name="title_activity_favorites">Preferiti</string>
     <string name="title_activity_map">Mappa</string>
-    <string name="tip_add_favorite">Nessun preferito? Arghh! Schiaccia sulla stella di una fermata per aggiungerla a questa lista!</string>
+    <string name="tip_add_favorite">Nessun preferito? Arghh!\nSchiaccia sulla stella di una fermata per aggiungerla a questa lista!</string>
     <string name="action_remove_from_favourites">Rimuovi</string>
     <string name="action_rename_bus_stop_username">Rinomina</string>
     <string name="dialog_rename_bus_stop_username_title">Rinomina fermata</string>
     <string name="dialog_rename_bus_stop_username_reset_button">Reset</string>
     <string name="about">Informazioni</string>
-    <string name="howDoesItWork"><b>Tocca la stella</b> per aggiungere la fermata ai preferiti\n\n<b>Come leggere gli orari:</b>\n<b>&#160;&#160;&#160;12:56*</b> Orario in tempo reale\n<b>&#160;&#160;&#160;12:56</b> &#160; Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario.</string>
+    <string name="howDoesItWork"><b>Tocca la stella</b> per aggiungere la fermata ai preferiti\n\n<b>Come leggere gli orari:</b>
+        \n<b>&#160;&#160;&#160;12:56*</b> Orario in tempo reale\n<b>&#160;&#160;&#160;12:56</b> &#160; Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario.
+        \n<b>Tocca a lungo</b> su <b>Fonte Orari</b> per cambiare sorgente degli orari di arrivo.
+    </string>
     <string name="hint_button">OK!</string>
     <string name="about_history">
 <![CDATA[
@@ -114,5 +117,25 @@
     !-->
     <string name="bt_center_map_description">La mia posizione</string>
     <string name="bt_follow_me_description">Segui posizione</string>
+
+    <!--
+    Arrival times sources
+    !-->
+    <string name="times_source_fmt">Fonte orari: %1$s</string>
+    <string name="fivetapifetcher">App GTT</string>
+    <string name="gttjsonfetcher">Sito GTT</string>
+    <string name="fivetscraper">Sito 5T Torino</string>
+    <string name="arrival_source_changing">Cambiamento sorgente orari…</string>
+    <string name="change_arrivals_source_message">Premi a lungo per cambiare la sorgente degli orari</string>
+
+
+    <string name="default_notification_channel_description">Canale unico delle notifiche</string>
+    <string name="too_many_permission_asks">Chiesto troppe volte per il permesso %1$s</string>
+    <string name="permission_storage_maps_msg">Non si può usare questa funzionalità senza il permesso di archivio</string>
+    <string name="storage_permission">di archivio</string>
+    <string name="message_crash">L\'app è andata in crash. Invia il report agli sviluppatori toccando OK.
+        \n Il report potrebbe contenere informazioni sulla tua configurazione del telefono, o sullo stato al momento del crash.
+        \n Tutte le informazioni sensibili nel report verranno utilizzate solo per scopi diagnostici dagli sviluppatori, e non verranno mai pubblicate e/o divulgate.</string>
+    <string name="acra_email_message">L\'applicazione è crashata, e il crash report è stato messo negli allegati. Se vuoi, descrivi cosa stavi facendo prima del crash: \n</string>
 
 </resources>
