@@ -1,0 +1,3 @@
+* bug fixing
+* cambio di provider degli orari
+* ottimizzazione profonda con cambio totale delle librerie per una società più salda e più sicura (cit)
