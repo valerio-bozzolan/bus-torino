@@ -24,6 +24,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
 
+import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.backend.DBStatusManager;
 import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
 
@@ -31,7 +32,7 @@ import java.util.List;
 
 public class AppDataProvider extends ContentProvider {
 
-    public static final String AUTHORITY = "it.reyboz.bustorino.provider";
+    public static final String AUTHORITY = BuildConfig.APPLICATION_ID +".provider";
     private static final int STOP_OP = 1;
     private static final int LINE_OP = 2;
     private static final int BRANCH_OP = 3;
