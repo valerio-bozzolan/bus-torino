@@ -21,8 +21,8 @@
     <string name="action_help">Aiuto</string>
     <string name="action_about">Informazioni</string>
     <string name="action_about_more">Più informazioni</string>
-    <string name="action_news">News</string>
-    <string name="action_bugs">Invia bug</string>
+    <string name="action_hack">Hack</string>
+    <string name="hack_url">https://gitpull.it/w/librebusto/it/</string>
     <string name="action_source">Codice sorgente</string>
     <string name="action_licence">Licenza</string>
     <string name="action_author">Incontra l\'autore</string>
@@ -61,7 +61,8 @@
 		<p>Ingredienti:<br>
 		- <b>Fabio Mazza</b> attuale rockstar developer anziano.<br>
 		- <b>Andrea Ugo</b> attuale rockstar developer in formazione.<br>
-		- <b>Ludovico Pavesi</b> ex rockstar developer anziano.<br>
+		- <b>Silviu Chiriac</b> designer del logo 2021.<br>
+		- <b>Ludovico Pavesi</b> ex rockstar developer anziano asd.<br>
 		- <b>Valerio Bozzolan</b> attuale manutentore.<br>
 		- <b>Marco Gagino</b> apprezzato ex collaboratore, ideatore icona e grafica.<br>
 		- <b>JSoup</b> libreria per "<i>web scaping</i>".<br>

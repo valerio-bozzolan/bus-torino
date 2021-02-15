@@ -26,10 +26,10 @@
     <string name="action_help">Help</string>
     <string name="action_about">About</string>
     <string name="action_about_more">More about</string>
-    <string name="action_news">News releases</string>
-    <string name="action_bugs">Bug submission</string>
+    <string name="action_hack">Hack</string>
+    <string name="hack_url">https://gitpull.it/w/librebusto/en/</string>
     <string name="action_source">Source code</string>
-    <string name="action_licence">Licence</string>
+    <string name="action_licence">Licence</string>11
     <string name="action_author">Meet the author</string>
     <string name="added_in_favorites">Bus stop is now in your favorites</string>
     <string name="removed_from_favorites">Bus stop removed from your favorites</string>
@@ -69,7 +69,8 @@
 		<p>Who worked on BusTO:<br>
 		- <b>Fabio Mazza</b> current senior rockstar developer.<br>
         - <b>Andrea Ugo</b> current junior rockstar developer.<br>
-		- <b>Ludovico Pavesi</b> previous senior rockstar developer.<br>
+		- <b>Silviu Chiriac</b> designer of the 2021 logo.<br>
+		- <b>Ludovico Pavesi</b> previous senior rockstar developer asd.<br>
 		- <b>Valerio Bozzolan</b> maintainer and infrastructure sponsor.<br>
 		- <b>Marco Gagino</b> contributor and icon creator.<br>
 		- <b>JSoup</b> web scraper library.<br>
