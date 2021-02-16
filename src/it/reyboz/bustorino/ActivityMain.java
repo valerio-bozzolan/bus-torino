@@ -380,6 +380,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
+        Resources res = getResources();
         switch (item.getItemId()) {
             case android.R.id.home:
                 // Respond to the action bar's Up/Home button
@@ -404,7 +405,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                                 () -> startActivity(new Intent(ActivityMain.this, ActivityMap.class)));
                         break;
                     case PERMISSION_NEG_CANNOT_ASK:
-                        Resources res = getResources();
                         String storage_perm = res.getString(R.string.storage_permission);
                         String text = res.getString(R.string.too_many_permission_asks,  storage_perm);
                         Toast.makeText(getApplicationContext(),text, Toast.LENGTH_LONG).show();
@@ -414,14 +414,11 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             case R.id.action_about:
                 startActivity(new Intent(ActivityMain.this, ActivityAbout.class));
                 return true;
-            case R.id.action_news:
-                openIceweasel("https://gitpull.it/w/librebusto/#how-to-get-news");
-                return true;
-            case R.id.action_bugs:
-                openIceweasel("https://gitpull.it/w/librebusto/#how-to-create-a-bug-feature");
+            case R.id.action_hack:
+                openIceweasel(res.getString(R.string.hack_url));
                 return true;
             case R.id.action_source:
-                openIceweasel("https://gitpull.it/w/librebusto/#how-to-hack-busto");
+                openIceweasel("https://gitpull.it/source/libre-busto/");
                 return true;
             case R.id.action_licence:
                 openIceweasel("https://www.gnu.org/licenses/gpl-3.0.html");

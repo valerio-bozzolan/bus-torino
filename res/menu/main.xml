@@ -24,13 +24,9 @@
                 android:orderInCategory="4"
                 android:title="@string/action_about_more" />
             <item
-                android:id="@+id/action_news"
-                android:orderInCategory="5"
-                android:title="@string/action_news" />
-            <item
-                android:id="@+id/action_bugs"
+                android:id="@+id/action_hack"
                 android:orderInCategory="6"
-                android:title="@string/action_bugs"
+                android:title="@string/action_hack"
                 app:showAsAction="never" />
             <item
                 android:id="@+id/action_source"
