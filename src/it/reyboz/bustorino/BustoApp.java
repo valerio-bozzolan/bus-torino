@@ -30,7 +30,7 @@ public class BustoApp extends Application {
         builder.getPluginConfigurationBuilder(DialogConfigurationBuilder.class).setResText(R.string.message_crash)
                 .setResTheme(R.style.AppTheme)
                 .setEnabled(true);
-
-        ACRA.init(this, builder);
+        if (!it.reyboz.bustorino.BuildConfig.DEBUG)
+            ACRA.init(this, builder);
     }
 }

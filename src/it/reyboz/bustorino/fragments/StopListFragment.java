@@ -26,8 +26,8 @@ import androidx.loader.content.Loader;
 import android.util.Log;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
-import it.reyboz.bustorino.middleware.AppDataProvider;
-import it.reyboz.bustorino.middleware.NextGenDB.Contract.StopsTable;
+import it.reyboz.bustorino.data.AppDataProvider;
+import it.reyboz.bustorino.data.NextGenDB.Contract.StopsTable;
 import it.reyboz.bustorino.adapters.StopAdapter;
 
 import java.util.Arrays;

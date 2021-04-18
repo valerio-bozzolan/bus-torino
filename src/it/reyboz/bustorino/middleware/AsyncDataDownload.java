@@ -27,8 +27,9 @@ import androidx.annotation.NonNull;
 import android.util.Log;
 
 import it.reyboz.bustorino.backend.*;
+import it.reyboz.bustorino.data.AppDataProvider;
 import it.reyboz.bustorino.fragments.FragmentHelper;
-import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
+import it.reyboz.bustorino.data.NextGenDB.Contract.*;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -235,12 +236,10 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
     public class BranchInserter implements Runnable{
         private final List<Route> routesToInsert;
 
-        private String stopID;
         private final FragmentHelper fragmentHelper;
 
         public BranchInserter(List<Route> routesToInsert,FragmentHelper fh,String stopID) {
             this.routesToInsert = routesToInsert;
-            this.stopID = stopID;
             this.fragmentHelper = fh;
         }
 

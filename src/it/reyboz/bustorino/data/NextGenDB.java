@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.reyboz.bustorino.middleware;
+package it.reyboz.bustorino.data;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -25,20 +25,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
-import androidx.annotation.Nullable;
 import android.util.Log;
 
-import it.reyboz.bustorino.backend.Fetcher;
-import it.reyboz.bustorino.backend.FiveTAPIFetcher;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
-import static it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
+import static it.reyboz.bustorino.data.NextGenDB.Contract.*;
 
 public class NextGenDB extends SQLiteOpenHelper{
     public static final String DATABASE_NAME = "bustodatabase.db";

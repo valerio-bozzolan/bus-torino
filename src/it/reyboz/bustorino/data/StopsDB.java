@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.reyboz.bustorino.middleware;
+package it.reyboz.bustorino.data;
 
 import android.content.Context;
 import android.database.Cursor;

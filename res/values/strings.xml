@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name" translatable="false">BusTO</string>
+    <string name="app_name_debug" translatable="false">BusTO Debug</string>
     <string name="app_description">You\'re using the latest in technology when it comes to respecting your privacy.
     </string>
     <string name="search">Search</string>
@@ -143,10 +144,21 @@
     -->
     <string name="default_notification_channel" translatable="false">Default</string>
     <string name="default_notification_channel_description">Default channel for notifications</string>
-    <string name="too_many_permission_asks">Asked for  %1$s permission too many times</string>
+    <string name="too_many_permission_asks">Asked for %1$s permission too many times</string>
     <string name="permission_storage_maps_msg">Cannot use the map with the storage permission!</string>
     <string name="storage_permission">storage</string>
-    <string name="message_crash">The application has crashed. If you want, you can send the send the report via email to the developers by pressing \"OK\".
-        \n Note that sensitive information may be contained in the report, and if so, it will be only used for diagnostic purposes by the developers, and never published.</string>
-    <string name="acra_email_message">The application crashed and the crash report is in the attachments. Please describe what you were doing before the crash: \n</string>
+    <string name="message_crash">The application has crashed. If you want, you can send the send the report via email to
+        the developers by pressing \"OK\".
+        \n Note that sensitive information may be contained in the report, and if so, it will be only used for
+        diagnostic purposes by the developers, and never published.
+    </string>
+    <string name="acra_email_message">The application crashed and the crash report is in the attachments. Please
+        describe what you were doing before the crash: \n
+    </string>
+    <string name="nav_arrivals_text">Arrivals</string>
+    <string name="nav_map_text">Map</string>
+    <string name="nav_favorites_text">Favorites</string>
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+    <string name="experiments">Experiments</string>
 </resources>

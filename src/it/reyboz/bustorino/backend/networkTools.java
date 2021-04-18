@@ -83,12 +83,13 @@ public abstract class networkTools {
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
         } catch(IOException e) {
+            //e.printStackTrace();
             res.set(Fetcher.result.SERVER_ERROR); // even when offline, urlConnection works fine. WHY.
             return null;
         }
 
         // TODO: make this configurable?
-        urlConnection.setConnectTimeout(5000);
+        urlConnection.setConnectTimeout(3000);
         urlConnection.setReadTimeout(10000);
         if(headers!= null){
             for(String key : headers.keySet()){
@@ -123,15 +124,21 @@ public abstract class networkTools {
 
         try {
             in.close();
-        } catch(Exception ignored) {}
+        } catch(IOException ignored) {
+            //ignored.printStackTrace();
+        }
 
         try {
             urlConnection.disconnect();
-        } catch(Exception ignored) {}
+        } catch(Exception ignored) {
+            //ignored.printStackTrace();
+        }
 
         if(s.length() == 0) {
+            Log.w("NET TOOLS", "string is empty");
             return null;
         } else {
+            //Log.d("NET TOOLS", s);
             return s;
         }
     }

@@ -55,9 +55,11 @@ import it.reyboz.bustorino.backend.GTTJSONFetcher;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Passaggio;
 import it.reyboz.bustorino.backend.Route;
-import it.reyboz.bustorino.middleware.AppDataProvider;
-import it.reyboz.bustorino.middleware.NextGenDB;
-import it.reyboz.bustorino.middleware.UserDB;
+import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.data.AppDataProvider;
+import it.reyboz.bustorino.data.NextGenDB;
+import it.reyboz.bustorino.data.UserDB;
+import it.reyboz.bustorino.middleware.AsyncStopFavoriteAction;
 
 public class ArrivalsFragment extends ResultListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -75,7 +77,8 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     private boolean justCreated = false;
     private Palina lastUpdatedPalina = null;
     private boolean needUpdateOnAttach = false;
-    private boolean requestedNewArrivalTimes = false;
+    private boolean fetchersChangeRequestPending = false;
+    private boolean stopIsInFavorites = false;
 
     //Views
     protected ImageButton addToFavorites;
@@ -139,11 +142,13 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         resultsListView = (ListView) root.findViewById(R.id.resultsListView);
         timesSourceTextView = (TextView) root.findViewById(R.id.timesSourceTextView);
         timesSourceTextView.setOnLongClickListener(view -> {
-            if(!requestedNewArrivalTimes){
+            if(!fetchersChangeRequestPending){
                 rotateFetchers();
+                //Show we are changing provider
                 timesSourceTextView.setText(R.string.arrival_source_changing);
-                mListener.createFragmentForStop(stopID);
-                requestedNewArrivalTimes = true;
+
+                mListener.requestArrivalsForStopID(stopID);
+                fetchersChangeRequestPending = true;
                 return true;
             }
             return false;
@@ -156,7 +161,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         addToFavorites.setClickable(true);
         addToFavorites.setOnClickListener(v -> {
             // add/remove the stop in the favorites
-            mListener.toggleLastStopToFavorites();
+            toggleLastStopToFavorites();
         });
 
         resultsListView.setOnItemClickListener((parent, view, position, id) -> {
@@ -197,7 +202,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         if(stopID!=null){
             //refresh the arrivals
             if(!justCreated)
-                mListener.createFragmentForStop(stopID);
+                mListener.requestArrivalsForStopID(stopID);
             else justCreated = false;
             //start the loader
             if(prefs.isDBUpdating(true)){
@@ -290,10 +295,18 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             default:
                 throw new IllegalStateException("Unexpected value: " + source);
         }
+        int count = 0;
+        while (source != fetchers.get(0).getSourceForFetcher() && count < 100){
+            //we need to update the fetcher that is requested
+            rotateFetchers();
+            count++;
+        }
+        if (count>10)
+            Log.w(DEBUG_TAG, "Tried to update the source fetcher but it didn't work");
         final String base_message = getString(R.string.times_source_fmt, source_txt);
         timesSourceTextView.setVisibility(View.VISIBLE);
         timesSourceTextView.setText(base_message);
-        requestedNewArrivalTimes = false;
+        fetchersChangeRequestPending = false;
     }
 
     @Override
@@ -320,9 +333,11 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         }
 
         // whatever is the case, update the star icon
-        mListener.updateStarIconFromLastBusStop();
+        //updateStarIconFromLastBusStop();
+
     }
 
+    @NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         if(args.getString(KEY_STOP_ID)==null) return null;
@@ -354,13 +369,20 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             case loaderFavId:
                 final int colUserName = data.getColumnIndex(UserDB.getFavoritesColumnNamesAsArray[1]);
                 if(data.getCount()>0){
+                    // IT'S IN FAVORITES
                     data.moveToFirst();
                     final String probableName = data.getString(colUserName);
+                    stopIsInFavorites = true;
                     if(probableName!=null && !probableName.isEmpty()){
-                    stopName = probableName;
-                    updateMessage();
+                        stopName = probableName;
+                        //update the message in the textview
+                        updateMessage();
                     }
+                } else {
+                    stopIsInFavorites =false;
                 }
+                updateStarIcon();
+
                 if(stopName == null){
                     //stop is not inside the favorites and wasn't provided
                     Log.d("ArrivalsFragment"+getTag(),"Stop wasn't in the favorites and has no name, looking in the DB");
@@ -392,4 +414,71 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     public void onLoaderReset(Loader<Cursor> loader) {
         //NOTHING TO DO
     }
+
+
+    public void toggleLastStopToFavorites() {
+
+        Stop stop = lastUpdatedPalina;
+        if (stop != null) {
+
+            // toggle the status in background
+            new AsyncStopFavoriteAction(getContext().getApplicationContext(), AsyncStopFavoriteAction.Action.TOGGLE,
+                    v->updateStarIconFromLastBusStop(v)).execute(stop);
+        } else {
+            // this case have no sense, but just immediately update the favorite icon
+            updateStarIconFromLastBusStop(true);
+        }
+    }
+    /**
+     * Update the star "Add to favorite" icon
+     */
+    public void updateStarIconFromLastBusStop(Boolean toggleDone) {
+        if (stopIsInFavorites)
+            stopIsInFavorites = !toggleDone;
+        else stopIsInFavorites = toggleDone;
+
+        updateStarIcon();
+
+        // check if there is a last Stop
+        /*
+        if (stopID == null) {
+            addToFavorites.setVisibility(View.INVISIBLE);
+        } else {
+            // filled or outline?
+            if (isStopInFavorites(stopID)) {
+                addToFavorites.setImageResource(R.drawable.ic_star_filled);
+            } else {
+                addToFavorites.setImageResource(R.drawable.ic_star_outline);
+            }
+
+            addToFavorites.setVisibility(View.VISIBLE);
+        }
+         */
+    }
+
+    /**
+     * Update the star icon according to `stopIsInFavorites`
+     */
+    public void updateStarIcon() {
+
+        // no favorites no party!
+
+        // check if there is a last Stop
+
+        if (stopID == null) {
+            addToFavorites.setVisibility(View.INVISIBLE);
+        } else {
+            // filled or outline?
+            if (stopIsInFavorites) {
+                addToFavorites.setImageResource(R.drawable.ic_star_filled);
+            } else {
+                addToFavorites.setImageResource(R.drawable.ic_star_outline);
+            }
+
+            addToFavorites.setVisibility(View.VISIBLE);
+        }
+
+
+    }
+
 }

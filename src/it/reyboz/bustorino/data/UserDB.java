@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.reyboz.bustorino.middleware;
+package it.reyboz.bustorino.data;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -118,11 +118,10 @@ public class UserDB extends SQLiteOpenHelper {
             if (len > 0) {
 
                 try {
-                    Stop stopStopStopStopStop;
                     for (int i = 0; i < len; i++) {
-                        stopStopStopStopStop = new Stop(ID.get(i));
-                        stopStopStopStopStop.setStopUserName(username.get(i));
-                        addOrUpdateStop(stopStopStopStopStop, newdb);
+                        final Stop mStop = new Stop(ID.get(i));
+                        mStop.setStopUserName(username.get(i));
+                        addOrUpdateStop(mStop, newdb);
                     }
                 } catch(Exception ignored) {
                     // partial data is better than no data at all, no transactions here
@@ -277,5 +276,15 @@ public class UserDB extends SQLiteOpenHelper {
         } catch(SQLiteException e) {
             return false;
         }
+    }
+    public static boolean checkStopInFavorites(String stopID, Context con){
+        boolean found = false;
+        // no stop no party
+        if (stopID != null) {
+            SQLiteDatabase userDB = new UserDB(con).getReadableDatabase();
+            found = UserDB.isStopInFavorites(userDB, stopID);
+        }
+
+        return found;
     }
 }

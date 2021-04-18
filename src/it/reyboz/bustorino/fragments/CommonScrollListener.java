@@ -25,12 +25,12 @@ import java.lang.ref.WeakReference;
 
 public class CommonScrollListener extends RecyclerView.OnScrollListener implements AbsListView.OnScrollListener{
 
-    WeakReference<FragmentListener> listenerWeakReference;
+    WeakReference<FragmentListenerMain> listenerWeakReference;
     //enable swipeRefreshLayout when scrolling down or not
     boolean enableRefreshLayout;
     int lastvisibleitem;
 
-    public CommonScrollListener(FragmentListener lis,boolean enableRefreshLayout){
+    public CommonScrollListener(FragmentListenerMain lis, boolean enableRefreshLayout){
         listenerWeakReference = new WeakReference<>(lis);
         this.enableRefreshLayout = enableRefreshLayout;
     }
@@ -43,7 +43,7 @@ public class CommonScrollListener extends RecyclerView.OnScrollListener implemen
 
     @Override
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-        FragmentListener listener = listenerWeakReference.get();
+        FragmentListenerMain listener = listenerWeakReference.get();
         if(listener==null){
             //can't do anything, sorry
             Log.i(this.getClass().getName(),"called onScroll but FragmentListener is null");
@@ -77,7 +77,7 @@ public class CommonScrollListener extends RecyclerView.OnScrollListener implemen
 
     @Override
     public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-        FragmentListener listener = listenerWeakReference.get();
+        FragmentListenerMain listener = listenerWeakReference.get();
         if(newState!=SCROLL_STATE_IDLE) listener.showFloatingActionButton(false);
         else listener.showFloatingActionButton(true);
 

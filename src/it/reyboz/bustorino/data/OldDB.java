@@ -16,13 +16,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.reyboz.bustorino.middleware;
+package it.reyboz.bustorino.data;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
-import java.io.File;
 
 public class OldDB extends SQLiteOpenHelper {
     private static final String DATABASE_NAME_OLD = "bustorino.db";

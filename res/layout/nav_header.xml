@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/grey_100"
+    android:padding="16dp"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark"
+    android:gravity="bottom">
+
+    <ImageView
+        android:id="@+id/nav_img"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:minHeight="40dp"
+        app:srcCompat="@drawable/ic_mars2020" />
+
+    <TextView
+
+        android:layout_width="match_parent"
+
+        android:layout_height="wrap_content"
+
+        android:text="@string/app_name"
+
+        android:textAppearance="@style/ThemeOverlay.AppCompat.Light"
+        android:textSize="20sp"
+ />
+
+</LinearLayout>

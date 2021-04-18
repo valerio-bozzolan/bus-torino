@@ -24,6 +24,8 @@ import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.loader.app.LoaderManager;
@@ -47,8 +49,8 @@ import it.reyboz.bustorino.adapters.ArrivalsStopAdapter;
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.backend.FiveTAPIFetcher.QueryType;
 import it.reyboz.bustorino.middleware.AppLocationManager;
-import it.reyboz.bustorino.middleware.AppDataProvider;
-import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
+import it.reyboz.bustorino.data.AppDataProvider;
+import it.reyboz.bustorino.data.NextGenDB.Contract.*;
 import it.reyboz.bustorino.adapters.SquareStopAdapter;
 import it.reyboz.bustorino.util.LocationCriteria;
 import it.reyboz.bustorino.util.StopSorterByDistance;
@@ -57,7 +59,7 @@ import java.util.*;
 
 public class NearbyStopsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private FragmentListener mListener;
+    private FragmentListenerMain mListener;
     private FragmentLocationListener fragmentLocationListener;
     private final String[] PROJECTION = {StopsTable.COL_ID,StopsTable.COL_LAT,StopsTable.COL_LONG,
             StopsTable.COL_NAME,StopsTable.COL_TYPE,StopsTable.COL_LINES_STOPPING};
@@ -215,8 +217,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof FragmentListener) {
-            mListener = (FragmentListener) context;
+        if (context instanceof FragmentListenerMain) {
+            mListener = (FragmentListenerMain) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -283,6 +285,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         if(arrivalsManager!=null) arrivalsManager.cancelAllRequests();
     }
 
+    @NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         //BUILD URI
@@ -300,7 +303,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
 
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         if (0 > MAX_DISTANCE) throw new AssertionError();
         //Cursor might be null
         if(data==null){
@@ -425,7 +428,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             arrivalsStopAdapter.setRoutesPairListAndPosition(routesPairList,lastReceivedLocation);
         }
 
-        arrivalsStopAdapter.notifyDataSetChanged();
+        //arrivalsStopAdapter.notifyDataSetChanged();
 
         showRecyclerHidingLoadMessage();
     }

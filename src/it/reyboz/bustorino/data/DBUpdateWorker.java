@@ -1,7 +1,6 @@
-package it.reyboz.bustorino.middleware;
+package it.reyboz.bustorino.data;
 
 import android.annotation.SuppressLint;
-import android.app.Notification;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;

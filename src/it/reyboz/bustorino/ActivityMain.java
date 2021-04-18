@@ -31,7 +31,10 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.preference.PreferenceManager;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
@@ -49,7 +52,6 @@ import androidx.core.app.NavUtils;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -62,15 +64,17 @@ import com.google.zxing.integration.android.IntentResult;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import it.reyboz.bustorino.backend.*;
+import it.reyboz.bustorino.data.DBUpdateWorker;
+import it.reyboz.bustorino.data.DatabaseUpdate;
+import it.reyboz.bustorino.data.UserDB;
 import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class ActivityMain extends GeneralActivity implements FragmentListener {
+public class ActivityMain extends GeneralActivity implements FragmentListenerMain {
 
     /*
      * Layout elements
@@ -80,7 +84,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     private ProgressBar progressBar;
     private TextView howDoesItWorkTextView;
     private Button hideHintButton;
-    private MenuItem actionHelpMenuItem;
+    private MenuItem actionHelpMenuItem, experimentsMenuItem;
     private SwipeRefreshLayout swipeRefreshLayout;
     private FloatingActionButton floatingActionButton;
     private FragmentManager framan;
@@ -146,12 +150,15 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         framan = getSupportFragmentManager();
         final SharedPreferences theShPr = getMainSharedPreferences();
         /*
-         * Database Access
+         * UI
          */
         setContentView(R.layout.activity_main);
+        Toolbar defToolbar = findViewById(R.id.that_toolbar);
+        setSupportActionBar(defToolbar);
         busStopSearchByIDEditText = findViewById(R.id.busStopSearchByIDEditText);
         busStopSearchByNameEditText = findViewById(R.id.busStopSearchByNameEditText);
         progressBar = findViewById(R.id.progressBar);
@@ -248,7 +255,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             //set stop as last succe
             fh.setLastSuccessfullySearchedBusStop(nextStop);
             */
-            createFragmentForStop(busStopID);
+            requestArrivalsForStopID(busStopID);
         }
         //Try (hopefully) database update
         //TODO: Check if service shows the notification
@@ -318,10 +325,9 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
     }
 
-    /**
+    /*
      * Reload bus stop timetable when it's fulled resumed from background.
-     */
-    /**
+
      * @Override protected void onPostResume() {
      * super.onPostResume();
      * Log.d("ActivityMain", "onPostResume fired. Last successfully bus stop ID: " + fh.getLastSuccessfullySearchedBusStop());
@@ -358,6 +364,17 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         //TODO: check if current LiveData-bound observer works
         if (pendingNearbyStopsRequest)
             theHandler.post(new NearbyStopsRequester());
+        ActionBar bar = getSupportActionBar();
+        if(bar!=null) bar.show();
+        else Log.w(DEBUG_TAG, "ACTION BAR IS NULL");
+
+        //check if we can display the experiments or not
+        SharedPreferences shPr = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        boolean exper_On = shPr.getBoolean(getString(R.string.pref_key_experimental), false);
+        //Log.w(DEBUG_TAG, "Preference experimental is "+exper_On);
+        //MenuItem experimentsItem =
+        if (experimentsMenuItem != null)
+            experimentsMenuItem.setVisible(exper_On);
     }
 
     @Override
@@ -366,6 +383,10 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
         getMenuInflater().inflate(R.menu.main, menu);
 
         actionHelpMenuItem = menu.findItem(R.id.action_help);
+        experimentsMenuItem = menu.findItem(R.id.action_experiments);
+        SharedPreferences shPr = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        boolean exper_On = shPr.getBoolean(getString(R.string.pref_key_experimental), false);
+        experimentsMenuItem.setVisible(exper_On);
         return true;
     }
 
@@ -426,6 +447,9 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
             case R.id.action_settings:
                 Log.d("MAINBusTO", "Pressed button preferences");
                 startActivity(new Intent(ActivityMain.this, ActivitySettings.class));
+                return true;
+            case R.id.action_experiments:
+                startActivity(new Intent(this, ActivityPrincipal.class));
         }
         return super.onOptionsItemSelected(item);
     }
@@ -438,7 +462,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     public void onSearchClick(View v) {
         if (searchMode == SEARCH_BY_ID) {
             String busStopID = busStopSearchByIDEditText.getText().toString();
-            createFragmentForStop(busStopID);
+            requestArrivalsForStopID(busStopID);
         } else { // searchMode == SEARCH_BY_NAME
             String query = busStopSearchByNameEditText.getText().toString();
             //new asyncWgetBusStopSuggestions(query, stopsDB, StopsFindersByNameRecursionHelper);
@@ -451,6 +475,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
      **/
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case PERMISSION_REQUEST_POSITION:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -497,14 +522,14 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
 
     @Override
-    public void createFragmentForStop(String ID) {
+    public void requestArrivalsForStopID(String ID) {
         if (ID == null || ID.length() <= 0) {
             // we're still in UI thread, no need to mess with Progress
             showToastMessage(R.string.insert_bus_stop_number_error, true);
             toggleSpinner(false);
         } else  if (framan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
             ArrivalsFragment fragment = (ArrivalsFragment) framan.findFragmentById(R.id.resultFrame);
-            if (fragment.getStopID() != null && fragment.getStopID().equals(ID)){
+            if (fragment !=null && fragment.getStopID() != null && fragment.getStopID().equals(ID)){
                 // Run with previous fetchers
                 //fragment.getCurrentFetchers().toArray()
                 new AsyncDataDownload(fh,fragment.getCurrentFetchersAsArray()).execute(ID);
@@ -547,7 +572,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
         String busStopID = getBusStopIDFromUri(uri);
         busStopSearchByIDEditText.setText(busStopID);
-        createFragmentForStop(busStopID);
+        requestArrivalsForStopID(busStopID);
     }
 
     public void onHideHint(View v) {
@@ -675,57 +700,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
 
 
     ///////////////////////////////// OTHER STUFF //////////////////////////////////////////////////
-
-    /**
-     * Get the last successfully searched bus stop or NULL
-     *
-     * @return
-     */
-    @Override
-    public Stop getLastSuccessfullySearchedBusStop() {
-        return fh.getLastSuccessfullySearchedBusStop();
-    }
-
-    /**
-     * Get the last successfully searched bus stop ID or NULL
-     *
-     * @return
-     */
-    @Override
-    public String getLastSuccessfullySearchedBusStopID() {
-        Stop stop = getLastSuccessfullySearchedBusStop();
-        return stop == null ? null : stop.ID;
-    }
-
-    /**
-     * Update the star "Add to favorite" icon
-     */
-    @Override
-    public void updateStarIconFromLastBusStop() {
-
-        // no favorites no party!
-        addToFavorites = (ImageButton) findViewById(R.id.addToFavorites);
-        if (addToFavorites == null) {
-            Log.d("MainActivity", "Why the fuck the star is not here?!");
-            return;
-        }
-
-        // check if there is a last Stop
-        String stopID = getLastSuccessfullySearchedBusStopID();
-        if (stopID == null) {
-            addToFavorites.setVisibility(View.INVISIBLE);
-        } else {
-            // filled or outline?
-            if (isStopInFavorites(stopID)) {
-                addToFavorites.setImageResource(R.drawable.ic_star_filled);
-            } else {
-                addToFavorites.setImageResource(R.drawable.ic_star_outline);
-            }
-
-            addToFavorites.setVisibility(View.VISIBLE);
-        }
-    }
-
     /**
      * Check if the last Bus Stop is in the favorites
      *
@@ -746,33 +720,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
     /**
      * Add the last Stop to favorites
      */
-    @Override
-    public void toggleLastStopToFavorites() {
-        Stop stop = getLastSuccessfullySearchedBusStop();
-        if (stop != null) {
 
-            // toggle the status in background
-            new AsyncStopFavoriteAction(getApplicationContext(), AsyncStopFavoriteAction.Action.TOGGLE) {
-
-                /**
-                 * Callback fired when the Stop is saved in the favorites
-                 * @param result
-                 */
-                @Override
-                protected void onPostExecute(Boolean result) {
-                    super.onPostExecute(result);
-
-
-                    // update the star icon
-                    updateStarIconFromLastBusStop();
-                }
-
-            }.execute(stop);
-        } else {
-            // this case have no sense, but just immediately update the favorite icon
-            updateStarIconFromLastBusStop();
-        }
-    }
 
     @Override
     public void showFloatingActionButton(boolean yes) {
@@ -939,22 +887,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListener {
                 busStopID = null;
         }
         return busStopID;
-    }
-
-    public void changeStarType(String stopID) {
-        if (isStopInFavorites(stopID)) {
-            changeStarFilled();
-        } else {
-            changeStarOutline();
-        }
-    }
-
-    public void changeStarFilled() {
-        addToFavorites.setImageResource(R.drawable.ic_star_filled);
-    }
-
-    public void changeStarOutline() {
-        addToFavorites.setImageResource(R.drawable.ic_star_outline);
     }
 
 }

@@ -19,6 +19,7 @@ package it.reyboz.bustorino.adapters;
 
 import android.content.Context;
 import android.location.Location;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,9 +28,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.*;
-import it.reyboz.bustorino.fragments.FragmentListener;
+import it.reyboz.bustorino.fragments.FragmentListenerMain;
 import it.reyboz.bustorino.util.RoutePositionSorter;
 import it.reyboz.bustorino.util.StopSorterByDistance;
 
@@ -39,13 +41,13 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
     private final static int layoutRes = R.layout.arrivals_nearby_card;
     //private List<Stop> stops;
     private @Nullable Location userPosition;
-    private FragmentListener listener;
+    private FragmentListenerMain listener;
     private List< Pair<Stop, Route> > routesPairList = new ArrayList<>();
-    private Context context;
+    private final Context context;
     //Maximum number of stops to keep
     private final int MAX_STOPS = 20; //TODO: make it programmable
 
-    public ArrivalsStopAdapter(@Nullable List< Pair<Stop, Route> > routesPairList, FragmentListener fragmentListener, Context con, @Nullable Location pos) {
+    public ArrivalsStopAdapter(@Nullable List< Pair<Stop, Route> > routesPairList, FragmentListenerMain fragmentListener, Context con, @Nullable Location pos) {
         listener  = fragmentListener;
         userPosition = pos;
         this.routesPairList = routesPairList;
@@ -65,11 +67,11 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             //DO THE ACTUAL WORK TO PUT THE DATA
         if(routesPairList==null || routesPairList.size() == 0) return; //NO STOPS
         final Pair<Stop,Route> stopRoutePair = routesPairList.get(position);
-        if(stopRoutePair!=null){
+        if(stopRoutePair!=null && stopRoutePair.first!=null){
             final Stop stop = stopRoutePair.first;
             final Route r = stopRoutePair.second;
             final Double distance = stop.getDistanceFromLocation(userPosition);
@@ -81,7 +83,15 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
             final String stopText = String.format(context.getResources().getString(R.string.two_strings_format),stop.getStopDisplayName(),stop.ID);
             holder.stopNameView.setText(stopText);
             //final String routeName = String.format(context.getResources().getString(R.string.two_strings_format),r.getNameForDisplay(),r.destinazione);
-            holder.lineNameTextView.setText(r.getNameForDisplay());
+            if (r!=null) {
+                holder.lineNameTextView.setText(r.getNameForDisplay());
+                holder.lineDirectionTextView.setText(r.destinazione);
+                holder.arrivalsTextView.setText(r.getPassaggiToString(0,2,true));
+            } else {
+                holder.lineNameTextView.setVisibility(View.INVISIBLE);
+                holder.lineDirectionTextView.setVisibility(View.INVISIBLE);
+                //holder.arrivalsTextView.setVisibility(View.INVISIBLE);
+            }
             /* EXPERIMENTS
             if(r.destinazione==null || r.destinazione.trim().isEmpty()){
                 holder.lineDirectionTextView.setVisibility(View.GONE);
@@ -96,8 +106,6 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
 
             }
              */
-            holder.lineDirectionTextView.setText(r.destinazione);
-            holder.arrivalsTextView.setText(r.getPassaggiToString(0,2,true));
             holder.stopID =stop.ID;
         } else {
             Log.w("SquareStopAdapter","!! The selected stop is null !!");
@@ -131,7 +139,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
 
         @Override
         public void onClick(View v) {
-            listener.createFragmentForStop(stopID);
+            listener.requestArrivalsForStopID(stopID);
         }
 
     }
@@ -155,15 +163,61 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
         this.userPosition = userPosition;
     }
 
-    public void setRoutesPairListAndPosition(List<Pair<Stop, Route>> routesPairList, @Nullable Location pos) {
-        if(routesPairList!=null)
-            this.routesPairList = routesPairList;
+    public void setRoutesPairListAndPosition(List<Pair<Stop, Route>> mRoutesPairList, @Nullable Location pos) {
         if(pos!=null){
             this.userPosition = pos;
         }
-        resetListAndPosition();
+        if(mRoutesPairList!=null){
+            //this.routesPairList = routesPairList;
+            //remove duplicates
+            sortAndRemoveDuplicates(mRoutesPairList, this.userPosition);
+            //routesPairList = mRoutesPairList;
+            //STUPID CODE
+            if (this.routesPairList == null || routesPairList.size() == 0){
+                routesPairList = mRoutesPairList;
+                notifyDataSetChanged();
+            } else{
+
+                final HashMap<Pair<String,String>, Integer> indexMapIn = getRouteIndexMap(mRoutesPairList);
+                final HashMap<Pair<String,String>, Integer> indexMapExisting = getRouteIndexMap(routesPairList);
+                //List<Pair<Stop,Route>> oldList = routesPairList;
+                routesPairList = mRoutesPairList;
+                /*
+                for (Pair<String,String> pair: indexMapIn.keySet()){
+                    final Integer posIn = indexMapIn.get(pair);
+                    if (posIn == null) continue;
+                    if (indexMapExisting.containsKey(pair)){
+                        final Integer posExisting = indexMapExisting.get(pair);
+                        //THERE IS ALREADY
+                        //routesPairList.remove(posExisting.intValue());
+                        //routesPairList.add(posIn,mRoutesPairList.get(posIn));
+
+                        notifyItemMoved(posExisting, posIn);
+                        indexMapExisting.remove(pair);
+                    } else{
+                        //INSERT IT
+                        //routesPairList.add(posIn,mRoutesPairList.get(posIn));
+                        notifyItemInserted(posIn);
+                    }
+                }//
+                //REMOVE OLD STOPS
+                for (Pair<String,String> pair: indexMapExisting.keySet()) {
+                    final Integer posExisting = indexMapExisting.get(pair);
+                    if (posExisting == null) continue;
+                    //routesPairList.remove(posExisting.intValue());
+                    notifyItemRemoved(posExisting);
+                }
+                //*/notifyDataSetChanged();
+
+            }
+            //remove and join the
+        }
 
     }
+
+    /**
+     * Sort and remove the repetitions for the routesPairList
+     */
     private void resetListAndPosition(){
         Collections.sort(this.routesPairList,new RoutePositionSorter(userPosition));
         //All of this to get only the first occurrences of a line (name & direction)
@@ -171,15 +225,48 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
         Set<Pair<String,String>> allRoutesDirections = new HashSet<>();
         while(iterator.hasNext()){
             final Pair<Stop,Route> stopRoutePair = iterator.next();
-            final Pair<String,String> routeNameDirection = new Pair<>(stopRoutePair.second.getName(),stopRoutePair.second.destinazione);
-            if(allRoutesDirections.contains(routeNameDirection)){
-                iterator.remove();
-            } else {
-                allRoutesDirections.add(routeNameDirection);
+            if (stopRoutePair.second != null) {
+                final Pair<String, String> routeNameDirection = new Pair<>(stopRoutePair.second.getName(), stopRoutePair.second.destinazione);
+                if (allRoutesDirections.contains(routeNameDirection)) {
+                    iterator.remove();
+                } else {
+                    allRoutesDirections.add(routeNameDirection);
+                }
+            }
+        }
+    }
+    /**
+     * Sort and remove the repetitions in the list
+     */
+    private static void sortAndRemoveDuplicates(List< Pair<Stop, Route> > routesPairList, Location positionToSort ){
+        Collections.sort(routesPairList,new RoutePositionSorter(positionToSort));
+        //All of this to get only the first occurrences of a line (name & direction)
+        ListIterator<Pair<Stop,Route>> iterator = routesPairList.listIterator();
+        Set<Pair<String,String>> allRoutesDirections = new HashSet<>();
+        while(iterator.hasNext()){
+            final Pair<Stop,Route> stopRoutePair = iterator.next();
+            if (stopRoutePair.second != null) {
+                final Pair<String, String> routeNameDirection = new Pair<>(stopRoutePair.second.getName(), stopRoutePair.second.destinazione);
+                if (allRoutesDirections.contains(routeNameDirection)) {
+                    iterator.remove();
+                } else {
+                    allRoutesDirections.add(routeNameDirection);
+                }
             }
         }
     }
 
-
+    private static HashMap<Pair<String, String>, Integer> getRouteIndexMap(List<Pair<Stop, Route>> routesPairList){
+        final HashMap<Pair<String, String>, Integer> myMap = new HashMap<>();
+        for (int i=0; i<routesPairList.size(); i++){
+            final Route r = routesPairList.get(i).second;
+            if (r==null) continue;
+            final String name = r.getName();
+            final String destination = r.destinazione;
+            if (name!= null && destination!=null)
+            myMap.put(new Pair<>(name.toLowerCase(Locale.ROOT).trim(),destination.toLowerCase(Locale.ROOT).trim()), i);
+        }
+        return myMap;
+    }
 
 }

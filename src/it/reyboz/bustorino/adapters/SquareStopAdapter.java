@@ -28,7 +28,7 @@ import android.widget.TextView;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.util.StopSorterByDistance;
-import it.reyboz.bustorino.fragments.FragmentListener;
+import it.reyboz.bustorino.fragments.FragmentListenerMain;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,10 +37,10 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
     private final static int layoutRes = R.layout.stop_card;
     //private List<Stop> stops;
     private @Nullable Location userPosition;
-    private FragmentListener listener;
+    private FragmentListenerMain listener;
     private List<Stop> stops;
 
-    public SquareStopAdapter(@Nullable List<Stop> stopList, FragmentListener fragmentListener, @Nullable Location pos) {
+    public SquareStopAdapter(@Nullable List<Stop> stopList, FragmentListenerMain fragmentListener, @Nullable Location pos) {
         listener  = fragmentListener;
         userPosition = pos;
         stops = stopList;
@@ -107,7 +107,7 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
 
         @Override
         public void onClick(View v) {
-            listener.createFragmentForStop(stopID);
+            listener.requestArrivalsForStopID(stopID);
         }
 
     }

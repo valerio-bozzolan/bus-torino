@@ -24,12 +24,13 @@ import android.os.AsyncTask;
 import android.widget.Toast;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.data.UserDB;
 
 /**
  * Handler to add or remove or toggle a Stop in your favorites
  */
 public class AsyncStopFavoriteAction extends AsyncTask<Stop, Void, Boolean> {
-    private Context context;
+    private final Context context;
 
     /**
      * Kind of actions available
@@ -43,15 +44,18 @@ public class AsyncStopFavoriteAction extends AsyncTask<Stop, Void, Boolean> {
      */
     private Action action;
 
+    // extra stuff to do after we've done it
+    private ResultListener listener;
     /**
      * Constructor
      *
      * @param context
      * @param action
      */
-    public AsyncStopFavoriteAction(Context context, Action action) {
+    public AsyncStopFavoriteAction(Context context, Action action, ResultListener listener) {
         this.context = context.getApplicationContext();
         this.action = action;
+        this.listener = listener;
     }
 
     @Override
@@ -116,5 +120,15 @@ public class AsyncStopFavoriteAction extends AsyncTask<Stop, Void, Boolean> {
             // wtf
             Toast.makeText(this.context, R.string.cant_add_to_favorites, Toast.LENGTH_SHORT).show();
         }
+        listener.doStuffWithResult(result);
     }
+
+    public interface ResultListener{
+        /**
+         * Do what you need to to update the UI with the result
+         * @param result true if the action is done
+         */
+        void doStuffWithResult(Boolean result);
+    }
+
 }

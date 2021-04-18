@@ -101,6 +101,8 @@ android {
         // ACRA
         implementation "ch.acra:acra-mail:$acra_version"
         implementation "ch.acra:acra-dialog:$acra_version"
+        // google transit realtime
+        implementation 'com.google.protobuf:protobuf-java:3.14.0'
 
     }
 }

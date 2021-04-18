@@ -39,7 +39,7 @@ import it.reyboz.bustorino.backend.FiveTNormalizer;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
-import it.reyboz.bustorino.middleware.UserDB;
+import it.reyboz.bustorino.data.UserDB;
 
 /**
  *  This is a generalized fragment that can be used both for
@@ -56,7 +56,7 @@ public class ResultListFragment extends Fragment{
     private FragmentKind adapterKind;
 
     private boolean adapterSet = false;
-    protected FragmentListener mListener;
+    protected FragmentListenerMain mListener;
     protected TextView messageTextView;
     protected ListView resultsListView;
 
@@ -138,7 +138,7 @@ public class ResultListFragment extends Fragment{
                              * @url http://stackoverflow.com/questions/30549485/androids-list-view-parameterized-type-in-adapterview-onitemclicklistener
                              */
                             Stop busStop = (Stop) parent.getItemAtPosition(position);
-                            mListener.createFragmentForStop(busStop.ID);
+                            mListener.requestArrivalsForStopID(busStop.ID);
                         }
                     });
 
@@ -226,7 +226,7 @@ public class ResultListFragment extends Fragment{
     @Override
     public void onPause() {
         if (adapterKind.equals(FragmentKind.ARRIVALS)) {
-            SwipeRefreshLayout reflay = (SwipeRefreshLayout) getActivity().findViewById(R.id.listRefreshLayout);
+            SwipeRefreshLayout reflay = getActivity().findViewById(R.id.listRefreshLayout);
             reflay.setEnabled(false);
             Log.d("BusTO Fragment " + this.getTag(), "RefreshLayout disabled");
         }
@@ -236,8 +236,8 @@ public class ResultListFragment extends Fragment{
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof FragmentListener) {
-            mListener = (FragmentListener) context;
+        if (context instanceof FragmentListenerMain) {
+            mListener = (FragmentListenerMain) context;
             fabutton = (FloatingActionButton) getActivity().findViewById(R.id.floatingActionButton);
         } else {
             throw new RuntimeException(context.toString()

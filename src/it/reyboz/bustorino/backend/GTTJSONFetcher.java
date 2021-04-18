@@ -18,6 +18,8 @@
 
 package it.reyboz.bustorino.backend;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import org.json.JSONArray;
@@ -26,9 +28,11 @@ import org.json.JSONObject;
 
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GTTJSONFetcher implements ArrivalsFetcher  {
+    private final String DEBUG_TAG = "GTTJSONFetcher-BusTO";
     @Override @NonNull
     public Palina ReadArrivalTimesAll(String stopID, AtomicReference<result> res) {
         URL url;
@@ -42,21 +46,28 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         JSONArray passaggi;
 
         try {
-            url = new URL("http://www.gtt.to.it/cms/index.php?option=com_gtt&task=palina.getTransitiOld&palina=" + URLEncoder.encode(stopID, "utf-8") + "&realtime=true");
+            url = new URL("https://www.gtt.to.it/cms/index.php?option=com_gtt&task=palina.getTransitiOld&palina=" + URLEncoder.encode(stopID, "utf-8") + "&bacino=U&realtime=true&get_param=value");
         } catch (Exception e) {
             res.set(result.PARSER_ERROR);
             return p;
         }
+        HashMap<String, String> headers = new HashMap<>();
+        //headers.put("Referer","https://www.gtt.to.it/cms/percorari/urbano?view=percorsi&bacino=U&linea=15&Regol=GE");
+        headers.put("Host", "www.gtt.to.it");
 
-        content = networkTools.queryURL(url, res);
+        content = networkTools.queryURL(url, res, headers);
         if(content == null) {
+            Log.w("GTTJSONFetcher", "NULL CONTENT");
             return p;
         }
 
         try {
             json = new JSONArray(content);
         } catch(JSONException e) {
+            Log.w(DEBUG_TAG, "Error parsing JSON: \n"+content);
+            Log.w(DEBUG_TAG, e);
             res.set(result.PARSER_ERROR);
+
             return p;
         }
 
@@ -64,6 +75,7 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
             // returns [{"PassaggiRT":[],"Passaggi":[]}] for non existing stops!
             json.getJSONObject(0).getString("Linea"); // if we can get this, then there's something useful in the array.
         } catch(JSONException e) {
+            Log.w(DEBUG_TAG, "No existing lines");
             res.set(result.EMPTY_RESULT_SET);
             return p;
         }

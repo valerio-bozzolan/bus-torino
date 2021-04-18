@@ -20,7 +20,7 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme.NoActionBar">
         <activity
                 android:name=".ActivityMain"
                 android:label="@string/app_name"
@@ -99,15 +99,19 @@
                 android:value=".ActivityMain"/>
         </activity>
 
+        <activity android:name=".ActivityPrincipal"
+            android:label="Principal" >
+        </activity>
+
         <provider
-                android:name=".middleware.AppDataProvider"
+                android:name=".data.AppDataProvider"
                 android:authorities="it.reyboz.bustorino.provider"
                 android:enabled="true"
                 android:exported="false">
         </provider>
 
         <service
-                android:name=".middleware.DatabaseUpdateService"
+                android:name=".data.DatabaseUpdateService"
                 android:exported="false">
         </service>
         <!-- Don't show the additional frame on samsung phones -->

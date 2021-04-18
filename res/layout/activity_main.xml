@@ -1,13 +1,33 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="@dimen/activity_vertical_margin"
     android:id="@+id/mainActivityLayout"
+    android:orientation="vertical"
+
     tools:context="it.reyboz.bustorino.ActivityMain">
+
+    <androidx.appcompat.widget.Toolbar
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:id="@+id/that_toolbar"
+        android:fitsSystemWindows="true"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/activity_vertical_margin">
 
     <ImageButton
         android:id="@+id/QRButton"
+        style="?android:attr/borderlessButtonStyle"
         android:layout_width="30dip"
         android:layout_height="30dip"
         android:layout_alignBottom="@+id/searchButton"
@@ -17,7 +37,7 @@
         android:layout_marginStart="16dp"
         android:background="@drawable/qrcode_button_custom"
         android:contentDescription="@string/qrcode"
-        android:onClick="onQRButtonClick"/>
+        android:onClick="onQRButtonClick" />
 
     <EditText
         android:id="@+id/busStopSearchByIDEditText"
@@ -35,8 +55,9 @@
         android:imeOptions="actionSearch"
         android:inputType="number"
         android:selectAllOnFocus="true"
-        android:singleLine="true">
-        
+        android:singleLine="true"
+        >
+
         <requestFocus />
     </EditText>
 
@@ -60,21 +81,21 @@
         android:visibility="gone">
 
         <requestFocus />
-
     </EditText>
 
     <ImageButton
         android:id="@+id/searchButton"
+        style="?android:attr/borderlessButtonStyle"
         android:layout_width="40dip"
         android:layout_height="40dip"
-        android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:layout_alignTop="@+id/busStopSearchByIDEditText"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
         android:background="@drawable/search_button_custom"
         android:contentDescription="@string/search"
-        android:onClick="onSearchClick"/>
+        android:onClick="onSearchClick" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -93,13 +114,11 @@
         android:indeterminateOnly="true"
         android:visibility="gone" />
 
-
     <TextView
             android:id="@+id/howDoesItWorkTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/progressBar"
-            android:paddingTop="10dp"
+            android:layout_marginBottom="10dp"
             android:layout_marginEnd="16dp"
             android:layout_marginLeft="16dip"
             android:layout_marginRight="16dp"
@@ -109,7 +128,7 @@
             android:text="@string/howDoesItWork"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="@color/blue_500"
-            android:visibility="gone"/>
+            android:visibility="gone" android:layout_below="@+id/searchButton"/>
 
     <Button
         android:id="@+id/hideHintButton"
@@ -127,21 +146,23 @@
         android:textColor="@color/grey_100"
         android:textSize="19sp"
         android:visibility="gone" />
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/listRefreshLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@+id/howDoesItWorkTextView"
+        android:id="@+id/listRefreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/howDoesItWorkTextView"
+        android:animateLayoutChanges="true"
+        android:visibility="gone">
 
-    >
-    <FrameLayout
-            android:layout_width="match_parent"
-            android:id="@+id/resultFrame"
-            android:layout_height="fill_parent"
-            android:layout_alignParentLeft="true" android:layout_alignParentStart="true">
-    </FrameLayout>
+        <FrameLayout
+                android:layout_width="match_parent"
+                android:id="@+id/resultFrame"
+                android:layout_height="fill_parent"
+                android:layout_alignParentLeft="true" android:layout_alignParentStart="true"/>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
     <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/floatingActionButton"
             android:layout_width="wrap_content"
@@ -157,6 +178,7 @@
             backgroundTint="@color/teal_500"
             rippleColor="@color/teal_300"
             elevation="15dp"
-    />
 
-</RelativeLayout>
+    />
+    </RelativeLayout>
+</LinearLayout>

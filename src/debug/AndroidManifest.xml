@@ -7,10 +7,17 @@
 
     <application
         tools:node="merge"
+        android:label="@string/app_name_debug"
+        tools:replace="android:label"
         >
+        <activity
+                android:name=".ActivityMain"
+                android:label="@string/app_name_debug"
+                tools:replace="android:label"
+        />
 
         <provider
-                android:name=".middleware.AppDataProvider"
+                android:name=".data.AppDataProvider"
                 android:authorities="it.reyboz.bustorino.debug.provider"
                 android:enabled="true"
                 android:exported="false"

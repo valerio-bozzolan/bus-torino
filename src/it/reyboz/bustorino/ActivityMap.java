@@ -33,12 +33,11 @@ import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.preference.PreferenceManager;
 
 import it.reyboz.bustorino.middleware.GeneralActivity;
-import it.reyboz.bustorino.middleware.NextGenDB;
+import it.reyboz.bustorino.data.NextGenDB;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -410,6 +409,7 @@ public class ActivityMap extends GeneralActivity {
      **/
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case PERMISSION_REQUEST_POSITION:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -422,7 +422,7 @@ public class ActivityMap extends GeneralActivity {
                     setOption(LOCATION_PERMISSION_GIVEN, false);
                 }
                 break;
-                //add other cases for permissions
+            //add other cases for permissions
         }
 
     }

@@ -47,7 +47,12 @@
             android:visible="true" />
     <item
         android:id="@+id/action_help"
-        android:orderInCategory="4"
+        android:orderInCategory="8"
         android:title="@string/action_help"
         android:visible="true" />
+    <item
+        android:id="@+id/action_experiments"
+        android:title="@string/experiments"
+        android:orderInCategory="4"
+    />
 </menu>

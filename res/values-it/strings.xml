@@ -138,5 +138,11 @@
         \n Il report potrebbe contenere informazioni sulla tua configurazione del telefono, o sullo stato al momento del crash.
         \n Tutte le informazioni sensibili nel report verranno utilizzate solo per scopi diagnostici dagli sviluppatori, e non verranno mai pubblicate e/o divulgate.</string>
     <string name="acra_email_message">L\'applicazione è crashata, e il crash report è stato messo negli allegati. Se vuoi, descrivi cosa stavi facendo prima del crash: \n</string>
+    <string name="nav_arrivals_text">Arrivi</string>
+    <string name="nav_map_text">Mappa</string>
+    <string name="nav_favorites_text">Preferiti</string>
+    <string name="drawer_open">Apri drawer</string>
+    <string name="drawer_close">Chiudi drawer</string>
+    <string name="experiments">Esperimenti</string>
 
 </resources>

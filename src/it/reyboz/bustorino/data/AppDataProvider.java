@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.reyboz.bustorino.middleware;
+package it.reyboz.bustorino.data;
 
 import android.content.*;
 import android.database.Cursor;
@@ -26,7 +26,7 @@ import android.util.Log;
 
 import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.backend.DBStatusManager;
-import it.reyboz.bustorino.middleware.NextGenDB.Contract.*;
+import it.reyboz.bustorino.data.NextGenDB.Contract.*;
 
 import java.util.List;
 
@@ -46,7 +46,7 @@ public class AppDataProvider extends ContentProvider {
     private static final String DEBUG_TAG="AppDataProvider";
     private Context con;
     private NextGenDB appDBHelper;
-    private UserDB udbhelper;
+    private UserDB userDBHelper;
     private SQLiteDatabase db;
     private DBStatusManager preferences;
     public AppDataProvider() {
@@ -185,7 +185,7 @@ public class AppDataProvider extends ContentProvider {
     public boolean onCreate() {
         con = getContext();
         appDBHelper = new NextGenDB(getContext());
-        udbhelper = new UserDB(getContext());
+        userDBHelper = new UserDB(getContext());
         if(con!=null) {
             preferences = new DBStatusManager(con,null);
         } else {
@@ -232,7 +232,7 @@ public class AppDataProvider extends ContentProvider {
 
             case FAVORITES_OP:
                 final String stopFavSelection = UserDB.getFavoritesColumnNamesAsArray[0]+" = ?";
-                db = udbhelper.getReadableDatabase();
+                db = userDBHelper.getReadableDatabase();
                 Log.d(DEBUG_TAG,"Asked information on Favorites about stop with id "+uri.getLastPathSegment());
                 return db.query(UserDB.TABLE_NAME,projection,stopFavSelection,new String[]{uri.getLastPathSegment()},null,null,sortOrder);
             case STOP_OP:

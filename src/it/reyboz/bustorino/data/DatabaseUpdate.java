@@ -1,4 +1,4 @@
-package it.reyboz.bustorino.middleware;
+package it.reyboz.bustorino.data;
 
 import android.content.ContentValues;
 import android.content.Context;
