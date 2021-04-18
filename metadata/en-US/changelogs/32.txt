@@ -1,0 +1,3 @@
+* fix API URL (now requires https)
+* add experimental activities
+* misc improvements
