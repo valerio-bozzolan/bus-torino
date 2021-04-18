@@ -1,0 +1,3 @@
+* fix API URL (ora richiede https)
+* aggiunta sezione sperimentale
+* miglioramenti generali
