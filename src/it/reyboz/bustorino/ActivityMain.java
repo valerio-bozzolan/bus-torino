@@ -444,6 +444,9 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
             case R.id.action_licence:
                 openIceweasel("https://www.gnu.org/licenses/gpl-3.0.html");
                 return true;
+            case R.id.action_donate:
+                openIceweasel("https://www.liberapay.com/Libre_BusTO/");
+                return true;
             case R.id.action_settings:
                 Log.d("MAINBusTO", "Pressed button preferences");
                 startActivity(new Intent(ActivityMain.this, ActivitySettings.class));

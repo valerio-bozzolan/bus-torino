@@ -21,7 +21,7 @@
     <string name="action_help">Aiuto</string>
     <string name="action_about">Informazioni</string>
     <string name="action_about_more">Più informazioni</string>
-    <string name="action_hack">Hack</string>
+    <string name="action_wiki">Contribuisci</string>
     <string name="hack_url">https://gitpull.it/w/librebusto/it/</string>
     <string name="action_source">Codice sorgente</string>
     <string name="action_licence">Licenza</string>
@@ -144,5 +144,6 @@
     <string name="drawer_open">Apri drawer</string>
     <string name="drawer_close">Chiudi drawer</string>
     <string name="experiments">Esperimenti</string>
+    <string name="donate_now">Offrici un caffè</string>
 
 </resources>
