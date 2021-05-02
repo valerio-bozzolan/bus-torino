@@ -9,7 +9,7 @@
         <item
             android:id="@+id/action_hack"
             android:orderInCategory="6"
-            android:title="@string/action_hack"
+            android:title="@string/action_wiki"
             app:showAsAction="never" />
         <item
             android:id="@+id/action_source"
