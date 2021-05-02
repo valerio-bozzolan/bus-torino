@@ -1,39 +1,70 @@
 package it.reyboz.bustorino;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NavUtils;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 
+import java.util.concurrent.TimeUnit;
+
+import it.reyboz.bustorino.data.DBUpdateWorker;
+import it.reyboz.bustorino.data.DatabaseUpdate;
+import it.reyboz.bustorino.fragments.FragmentKind;
+import it.reyboz.bustorino.fragments.FragmentListenerMain;
+import it.reyboz.bustorino.fragments.MainScreenFragment;
 import it.reyboz.bustorino.middleware.GeneralActivity;
 
-public class ActivityPrincipal extends GeneralActivity {
+import static it.reyboz.bustorino.backend.utils.getBusStopIDFromUri;
+import static it.reyboz.bustorino.backend.utils.openIceweasel;
+
+public class ActivityPrincipal extends GeneralActivity implements FragmentListenerMain {
     private DrawerLayout mDrawer;
     private NavigationView mNavView;
     private ActionBarDrawerToggle drawerToggle;
     private final static String DEBUG_TAG="BusTO Act Principal";
 
+    private Snackbar snackbar;
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.new_main_activity);
+        setContentView(R.layout.activity_principal);
+        final SharedPreferences theShPr = getMainSharedPreferences();
+
 
         Toolbar mToolbar = findViewById(R.id.default_toolbar);
         setSupportActionBar(mToolbar);
         if (getSupportActionBar()!=null)
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         else Log.w(DEBUG_TAG, "NO ACTION BAR");
+
+        mToolbar.setOnMenuItemClickListener(new ToolbarItemClickListener());
 
 
         mDrawer = findViewById(R.id.drawer_layout);
@@ -50,6 +81,101 @@ public class ActivityPrincipal extends GeneralActivity {
         setupDrawerContent(mNavView);
 
 
+        /// LEGACY CODE
+        //---------------------------- START INTENT CHECK QUEUE ------------------------------------
+
+        // Intercept calls from URL intent
+        boolean tryedFromIntent = false;
+
+        String busStopID = null;
+        Uri data = getIntent().getData();
+        if (data != null) {
+            busStopID = getBusStopIDFromUri(data);
+            tryedFromIntent = true;
+        }
+
+        // Intercept calls from other activities
+        if (!tryedFromIntent) {
+            Bundle b = getIntent().getExtras();
+            if (b != null) {
+                busStopID = b.getString("bus-stop-ID");
+
+                /**
+                 * I'm not very sure if you are coming from an Intent.
+                 * Some launchers work in strange ways.
+                 */
+                tryedFromIntent = busStopID != null;
+            }
+        }
+
+        //---------------------------- END INTENT CHECK QUEUE --------------------------------------
+
+        if (busStopID == null) {
+            // Show keyboard if can't start from intent
+            // JUST DON'T
+            // showKeyboard();
+
+            // You haven't obtained anything... from an intent?
+            if (tryedFromIntent) {
+
+                // This shows a luser warning
+                Toast.makeText(getApplicationContext(),
+                        R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            // If you are here an intent has worked successfully
+            //setBusStopSearchByIDEditText(busStopID);
+
+            requestArrivalsForStopID(busStopID);
+        }
+        //Try (hopefully) database update
+
+
+        PeriodicWorkRequest wr = new PeriodicWorkRequest.Builder(DBUpdateWorker.class, 1, TimeUnit.DAYS)
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.MINUTES)
+                .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build())
+                .build();
+        final WorkManager workManager = WorkManager.getInstance(this);
+
+        final int version = theShPr.getInt(DatabaseUpdate.DB_VERSION_KEY, -10);
+        if (version >= 0)
+            workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
+                    ExistingPeriodicWorkPolicy.KEEP, wr);
+        else workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
+                ExistingPeriodicWorkPolicy.REPLACE, wr);
+        /*
+        Set database update
+         */
+        workManager.getWorkInfosForUniqueWorkLiveData(DBUpdateWorker.DEBUG_TAG)
+                .observe(this, workInfoList -> {
+                    // If there are no matching work info, do nothing
+                    if (workInfoList == null || workInfoList.isEmpty()) {
+                        return;
+                    }
+                    Log.d(DEBUG_TAG, "WorkerInfo: "+workInfoList);
+
+                    boolean showProgress = false;
+                    for (WorkInfo workInfo : workInfoList) {
+                        if (workInfo.getState() == WorkInfo.State.RUNNING) {
+                            showProgress = true;
+                        }
+                    }
+
+                    if (showProgress) {
+                        createDefaultSnackbar();
+                    } else {
+                        if(snackbar!=null) {
+                            snackbar.dismiss();
+                            snackbar = null;
+                        }
+                    }
+
+                });
+        // show the main fragment
+        showMainFragment();
+
+
     }
     private ActionBarDrawerToggle setupDrawerToggle(Toolbar toolbar) {
         // NOTE: Make sure you pass in a valid toolbar reference.  ActionBarDrawToggle() does not require it
@@ -60,7 +186,12 @@ public class ActivityPrincipal extends GeneralActivity {
     private void setupDrawerContent(NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(
                 menuItem -> {
-
+                    if (menuItem.getItemId() == R.id.drawer_action_settings) {
+                        Log.d("MAINBusTO", "Pressed button preferences");
+                        closeDrawerIfOpen();
+                        startActivity(new Intent(ActivityPrincipal.this, ActivitySettings.class));
+                        return true;
+                    }
                     //selectDrawerItem(menuItem);
                     Log.d(DEBUG_TAG, "pressed item "+menuItem.toString());
 
@@ -68,6 +199,11 @@ public class ActivityPrincipal extends GeneralActivity {
 
                 });
 
+    }
+
+    private void closeDrawerIfOpen(){
+        if (mDrawer.isDrawerOpen(GravityCompat.START))
+            mDrawer.closeDrawer(GravityCompat.START);
     }
 
 
@@ -89,20 +225,24 @@ public class ActivityPrincipal extends GeneralActivity {
         drawerToggle.onConfigurationChanged(newConfig);
 
     }
-    @Override
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.extra_menu_items, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
         int[] cases = {R.id.nav_arrivals, R.id.nav_favorites_item};
+        Log.d(DEBUG_TAG, "Item pressed");
+
 
         switch (item.getItemId()){
             case android.R.id.home:
                 mDrawer.openDrawer(GravityCompat.START);
                 return true;
-
-            case R.id.nav_arrivals:
-                //do something
-                break;
             default:
 
         }
@@ -118,9 +258,116 @@ public class ActivityPrincipal extends GeneralActivity {
 
     @Override
     public void onBackPressed() {
+        boolean foundFragment = false;
+        Fragment shownFrag = getSupportFragmentManager().findFragmentById(R.id.mainActContentFrame);
         if (mDrawer.isDrawerOpen(GravityCompat.START))
             mDrawer.closeDrawer(GravityCompat.START);
+        else if(shownFrag != null && shownFrag.isVisible() && shownFrag.getChildFragmentManager().getBackStackEntryCount() > 0){
+            shownFrag.getChildFragmentManager().popBackStack();
+        }
+        else if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStack();
+        }
         else
             super.onBackPressed();
+    }
+
+    private void createDefaultSnackbar() {
+        if (snackbar == null) {
+            snackbar = Snackbar.make(findViewById(R.id.searchButton), R.string.database_update_message, Snackbar.LENGTH_INDEFINITE);
+        }
+        snackbar.show();
+    }
+
+    private MainScreenFragment showMainFragment(){
+        FragmentManager fraMan = getSupportFragmentManager();
+
+        MainScreenFragment fragment = MainScreenFragment.newInstance();
+
+        FragmentTransaction transaction = fraMan.beginTransaction();
+        transaction.replace(R.id.mainActContentFrame, fragment, MainScreenFragment.FRAGMENT_TAG);
+        transaction.commit();
+        return fragment;
+    }
+    @Nullable
+    private MainScreenFragment getMainFragmentIfVisible(){
+        FragmentManager fraMan = getSupportFragmentManager();
+        Fragment fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
+        if (fragment!= null && fragment.isVisible()) return (MainScreenFragment) fragment;
+        else return null;
+    }
+
+    @Override
+    public void showFloatingActionButton(boolean yes) {
+        //TODO
+    }
+
+    @Override
+    public void readyGUIfor(FragmentKind fragmentType) {
+        MainScreenFragment probableFragment = getMainFragmentIfVisible();
+        if (probableFragment!=null){
+            probableFragment.readyGUIfor(fragmentType);
+        }
+    }
+
+    @Override
+    public void requestArrivalsForStopID(String ID) {
+        FragmentManager fraMan = getSupportFragmentManager();
+        Fragment fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
+        MainScreenFragment mainScreenFragment = null;
+        if (fragment==null | !(fragment instanceof MainScreenFragment)){
+            mainScreenFragment = showMainFragment();
+        }
+        else if(!fragment.isVisible()){
+
+            fraMan.beginTransaction().replace(R.id.mainActContentFrame, fragment)
+                    .addToBackStack(null)
+                    .commit();
+            mainScreenFragment = (MainScreenFragment) fragment;
+            Log.d(DEBUG_TAG, "Found the main fragment");
+        } else{
+            mainScreenFragment = (MainScreenFragment) fragment;
+        }
+
+        mainScreenFragment.requestArrivalsForStopID(ID);
+    }
+
+    @Override
+    public void toggleSpinner(boolean state) {
+        MainScreenFragment probableFragment = getMainFragmentIfVisible();
+        if (probableFragment!=null){
+            probableFragment.toggleSpinner(state);
+        }
+    }
+
+    @Override
+    public void enableRefreshLayout(boolean yes) {
+        MainScreenFragment probableFragment = getMainFragmentIfVisible();
+        if (probableFragment!=null){
+            probableFragment.enableRefreshLayout(yes);
+        }
+    }
+
+    class ToolbarItemClickListener implements Toolbar.OnMenuItemClickListener{
+
+        @Override
+        public boolean onMenuItemClick(MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_about:
+                    startActivity(new Intent(ActivityPrincipal.this, ActivityAbout.class));
+                    return true;
+                case R.id.action_hack:
+                    openIceweasel(getString(R.string.hack_url), getApplicationContext());
+                    return true;
+                case R.id.action_source:
+                    openIceweasel("https://gitpull.it/source/libre-busto/", getApplicationContext());
+                    return true;
+                case R.id.action_licence:
+                    openIceweasel("https://www.gnu.org/licenses/gpl-3.0.html", getApplicationContext());
+                    return true;
+                default:
+            }
+            return false;
+        }
     }
 }

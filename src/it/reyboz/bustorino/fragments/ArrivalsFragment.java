@@ -276,7 +276,10 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
      */
     protected void showArrivalsSources(Palina p){
         final Passaggio.Source source = p.getPassaggiSourceIfAny();
-
+        if (source == null){
+            Log.e(DEBUG_TAG, "NULL SOURCE");
+            return;
+        }
         String source_txt;
         switch (source){
             case GTTJSON:

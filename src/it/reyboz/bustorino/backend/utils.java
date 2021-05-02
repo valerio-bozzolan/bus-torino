@@ -1,6 +1,11 @@
 package it.reyboz.bustorino.backend;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
+import android.util.Log;
 import android.view.View;
 
 public abstract class utils {
@@ -27,5 +32,68 @@ public abstract class utils {
         int width = containerView.getWidth();
         float ncols = ((float)width)/pixelsize;
         return (int) Math.floor(ncols);
+    }
+
+    /**
+     * Check if there is an internet connection
+     * @param con context object to get the system service
+     * @return true if we are
+     */
+    public static boolean isConnected(Context con) {
+        ConnectivityManager connMgr = (ConnectivityManager) con.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
+    }
+
+
+    ///////////////////// INTENT HELPER ////////////////////////////////////////////////////////////
+
+    /**
+     * Try to extract the bus stop ID from a URi
+     *
+     * @param uri The URL
+     * @return bus stop ID or null
+     */
+    public static String getBusStopIDFromUri(Uri uri) {
+        String busStopID;
+
+        // everithing catches fire when passing null to a switch.
+        String host = uri.getHost();
+        if (host == null) {
+            Log.e("ActivityMain", "Not an URL: " + uri);
+            return null;
+        }
+
+        switch (host) {
+            case "m.gtt.to.it":
+                // http://m.gtt.to.it/m/it/arrivi.jsp?n=1254
+                busStopID = uri.getQueryParameter("n");
+                if (busStopID == null) {
+                    Log.e("ActivityMain", "Expected ?n from: " + uri);
+                }
+                break;
+            case "www.gtt.to.it":
+            case "gtt.to.it":
+                // http://www.gtt.to.it/cms/percorari/arrivi?palina=1254
+                busStopID = uri.getQueryParameter("palina");
+                if (busStopID == null) {
+                    Log.e("ActivityMain", "Expected ?palina from: " + uri);
+                }
+                break;
+            default:
+                Log.e("ActivityMain", "Unexpected intent URL: " + uri);
+                busStopID = null;
+        }
+        return busStopID;
+    }
+
+    /**
+     * Open an URL in the default browser.
+     *
+     * @param url URL
+     */
+    public static void openIceweasel(String url, Context context) {
+        Intent browserIntent1 = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        context.startActivity(browserIntent1);
     }
 }

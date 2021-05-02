@@ -16,4 +16,9 @@
             android:title="@string/nav_favorites_text" />
     </group>
 
+    <item android:id="@+id/drawer_action_settings"
+        android:title="@string/action_settings"
+        android:icon="@drawable/ic_baseline_settings_24"
+        />
+
 </menu>

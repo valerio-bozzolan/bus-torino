@@ -17,6 +17,7 @@
  */
 package it.reyboz.bustorino;
 
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NavUtils;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,19 +41,18 @@ public class ActivityAbout extends AppCompatActivity {
         aboutTextView.setText(htmlText);
         aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
 
-        // Back button
-        ActionBar ab = getSupportActionBar();
-        assert ab != null;
-        ab.setDisplayHomeAsUpEnabled(true);
+        Toolbar mToolbar = findViewById(R.id.default_toolbar);
+        setSupportActionBar(mToolbar);
+        if (getSupportActionBar()!=null)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            // Respond to the action bar's Up/Home button
-            case android.R.id.home:
-                NavUtils.navigateUpFromSameTask(this);
-                return true;
+        // Respond to the action bar's Up/Home button
+        if (item.getItemId() == android.R.id.home) {//NavUtils.navigateUpFromSameTask(this);
+            onBackPressed();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }

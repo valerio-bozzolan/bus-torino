@@ -104,6 +104,7 @@ public class AppLocationManager implements LocationListener {
             Log.d(DEBUG_TAG,"Added new stop requester, instance of "+req.getClass().getSimpleName());
         }
         if(requestersRef.size()>0){
+            Log.d(DEBUG_TAG,"Requesting position updates");
             requestGPSPositionUpdates();
 
         }
@@ -136,7 +137,7 @@ public class AppLocationManager implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d("GPSLocationListener","found location:\nlat: "+location.getLatitude()+" lon: "+location.getLongitude()+"\naccuracy: "+location.getAccuracy());
+        Log.d(DEBUG_TAG,"found location:\nlat: "+location.getLatitude()+" lon: "+location.getLongitude()+"\naccuracy: "+location.getAccuracy());
         ListIterator<WeakReference<LocationRequester>> iter = requestersRef.listIterator();
         int new_min_interval = Integer.MAX_VALUE;
         while(iter.hasNext()){
@@ -175,16 +176,19 @@ public class AppLocationManager implements LocationListener {
             }
                 oldGPSLocStatus = status;
             }
+        Log.d(DEBUG_TAG, "Provider: "+provider+" status: "+status);
     }
 
     @Override
     public void onProviderEnabled(String provider) {
         requestGPSPositionUpdates();
+        Log.d(DEBUG_TAG, "Provider: "+provider+" enabled");
     }
 
     @Override
     public void onProviderDisabled(String provider) {
         locMan.removeUpdates(this);
+        Log.d(DEBUG_TAG, "Provider: "+provider+" disabled");
     }
 
     /**

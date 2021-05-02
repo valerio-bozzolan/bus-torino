@@ -87,7 +87,7 @@ public class ActivityMap extends GeneralActivity {
     protected ImageButton btCenterMap;
     protected ImageButton btFollowMe;
 
-    @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
+    //@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -20,6 +20,8 @@ package it.reyboz.bustorino.backend;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -173,11 +175,14 @@ public class Palina extends Stop {
             if(mSource == Passaggio.Source.UNDETERMINED)
                 break;
         }
+        // if the Source is still null, set undetermined
+        if (mSource == null) mSource = Passaggio.Source.UNDETERMINED;
         //finished with the check, setting flags
         routesModified = false;
         allSource = mSource;
     }
 
+    @NonNull
     public Passaggio.Source getPassaggiSourceIfAny(){
         if(allSource==null || routesModified){
             checkPassaggi();

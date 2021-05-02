@@ -139,15 +139,15 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_nearby_stops, container, false);
-        gridRecyclerView = (RecyclerView) root.findViewById(R.id.stopGridRecyclerView);
+        gridRecyclerView = root.findViewById(R.id.stopGridRecyclerView);
         gridLayoutManager = new AutoFitGridLayoutManager(getContext().getApplicationContext(), utils.convertDipToPixels(getContext(),COLUMN_WIDTH_DP));
         gridRecyclerView.setLayoutManager(gridLayoutManager);
         gridRecyclerView.setHasFixedSize(false);
-        circlingProgressBar = (ProgressBar) root.findViewById(R.id.loadingBar);
-        flatProgressBar = (ProgressBar) root.findViewById(R.id.horizontalProgressBar);
-        messageTextView = (TextView) root.findViewById(R.id.messageTextView);
-        titleTextView = (TextView) root.findViewById(R.id.titleTextView);
-        switchButton = (AppCompatButton) root.findViewById(R.id.switchButton);
+        circlingProgressBar = root.findViewById(R.id.loadingBar);
+        flatProgressBar = root.findViewById(R.id.horizontalProgressBar);
+        messageTextView = root.findViewById(R.id.messageTextView);
+        titleTextView = root.findViewById(R.id.titleTextView);
+        switchButton = root.findViewById(R.id.switchButton);
 
         preferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
@@ -217,6 +217,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        /// TODO: RISOLVERE PROBLEMA: il context qui e' l'Activity non il Fragment
         if (context instanceof FragmentListenerMain) {
             mListener = (FragmentListenerMain) context;
         } else {

@@ -3,7 +3,9 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context=".fragments.MainScreenFragment">
+             tools:context=".fragments.MainScreenFragment"
+             android:paddingTop="10dip"
+    >
 
     <ImageButton
             android:id="@+id/QRButton"
@@ -17,7 +19,7 @@
             android:layout_marginStart="16dp"
             android:background="@drawable/qrcode_button_custom"
             android:contentDescription="@string/qrcode"
-            android:onClick="onQRButtonClick" />
+        />
 
     <EditText
             android:id="@+id/busStopSearchByIDEditText"
@@ -44,21 +46,22 @@
     <!--android:layout_alignParentLeft="true"
     android:layout_alignParentStart="true"-->
     <EditText
-            android:id="@+id/busStopSearchByNameEditText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="5dp"
-            android:layout_marginLeft="5dip"
-            android:layout_marginRight="5dip"
-            android:layout_toEndOf="@+id/QRButton"
-            android:layout_toLeftOf="@+id/searchButton"
-            android:layout_toRightOf="@+id/QRButton"
-            android:layout_toStartOf="@+id/searchButton"
-            android:ems="10"
-            android:hint="@string/insert_bus_stop_name"
-            android:imeOptions="actionSearch"
-            android:singleLine="true"
-            android:visibility="gone">
+        android:id="@+id/busStopSearchByNameEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+        android:layout_toEndOf="@+id/QRButton"
+        android:layout_toLeftOf="@+id/searchButton"
+        android:layout_toRightOf="@+id/QRButton"
+        android:layout_toStartOf="@+id/searchButton"
+
+        android:ems="10"
+        android:hint="@string/insert_bus_stop_name"
+        android:imeOptions="actionSearch"
+        android:singleLine="true"
+        android:visibility="gone">
 
         <requestFocus />
     </EditText>
@@ -75,7 +78,7 @@
             android:layout_marginRight="16dp"
             android:background="@drawable/search_button_custom"
             android:contentDescription="@string/search"
-            android:onClick="onSearchClick" />
+            />
 
     <ProgressBar
             android:id="@+id/progressBar"
@@ -121,7 +124,6 @@
             android:layout_marginEnd="16dp"
             android:layout_marginRight="16dp"
             android:background="@drawable/route_background_bus"
-            android:onClick="onHideHint"
             android:text="@string/hint_button"
             android:textColor="@color/grey_100"
             android:textSize="19sp"
@@ -152,7 +154,6 @@
             android:layout_alignParentRight="true"
             android:layout_gravity="bottom|end"
             android:layout_margin="16dp"
-            android:onClick="onToggleKeyboardLayout"
             android:src="@drawable/alphabetical"
             fabSize="normal"
             backgroundTint="@color/teal_500"

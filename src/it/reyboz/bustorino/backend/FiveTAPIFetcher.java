@@ -59,6 +59,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
             }
         } catch (JSONException ex){
             res.set(result.PARSER_ERROR);
+            Log.w(DEBUG_NAME, "Couldn't get the JSON repr of:\n"+response);
             return null;
         }
         res.set(result.OK);

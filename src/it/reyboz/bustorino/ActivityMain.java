@@ -18,6 +18,7 @@
 package it.reyboz.bustorino;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -69,10 +70,13 @@ import it.reyboz.bustorino.data.DatabaseUpdate;
 import it.reyboz.bustorino.data.UserDB;
 import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.*;
+import it.reyboz.bustorino.util.Permissions;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static it.reyboz.bustorino.backend.utils.getBusStopIDFromUri;
 
 public class ActivityMain extends GeneralActivity implements FragmentListenerMain {
 
@@ -132,15 +136,19 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
      * @see swipeRefreshLayout
      */
     private final Handler theHandler = new Handler();
-    private final Runnable refreshing = new Runnable() {
+    private final Runnable refreshStop = new Runnable() {
         public void run() {
             if (framan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
                 ArrivalsFragment fragment = (ArrivalsFragment) framan.findFragmentById(R.id.resultFrame);
-                String stopName = fragment.getStopID();
+                if (fragment == null){
+                    new AsyncDataDownload(fh, arrivalsFetchers, getApplicationContext()).execute();
+                } else{
+                    String stopName = fragment.getStopID();
 
-                new AsyncDataDownload(fh, fragment.getCurrentFetchersAsArray()).execute(stopName);
+                    new AsyncDataDownload(fh, fragment.getCurrentFetchersAsArray(), getApplicationContext()).execute(stopName);
+                }
             } else //we create a new fragment, which is WRONG
-                new AsyncDataDownload(fh, arrivalsFetchers).execute();
+                new AsyncDataDownload(fh, arrivalsFetchers, getApplicationContext()).execute();
         }
     };
 
@@ -191,14 +199,14 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
 
         // Called when the layout is pulled down
         swipeRefreshLayout
-                .setOnRefreshListener(() -> theHandler.post(refreshing));
+                .setOnRefreshListener(() -> theHandler.post(refreshStop));
 
         /**
          * @author Marco Gagino!!!
          */
         //swipeRefreshLayout.setColorSchemeColors(R.color.blue_500, R.color.orange_500); // setColorScheme is deprecated, setColorSchemeColors isn't
         swipeRefreshLayout.setColorSchemeResources(R.color.blue_500, R.color.orange_500);
-        fh = new FragmentHelper(this, R.id.listRefreshLayout, R.id.resultFrame);
+        fh = new FragmentHelper(this, framan, getApplicationContext(),R.id.resultFrame);
         setSearchModeBusStopID();
 
         //---------------------------- START INTENT CHECK QUEUE ------------------------------------
@@ -258,9 +266,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
             requestArrivalsForStopID(busStopID);
         }
         //Try (hopefully) database update
-        //TODO: Check if service shows the notification
-        //Old code for the db update
-        //DatabaseUpdateService.startDBUpdate(getApplicationContext());
 
 
         PeriodicWorkRequest wr = new PeriodicWorkRequest.Builder(DBUpdateWorker.class, 1, TimeUnit.DAYS)
@@ -317,7 +322,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
         cr.setCostAllowed(true);
         cr.setPowerRequirement(Criteria.NO_REQUIREMENT);
         //We want the nearby bus stops!
-        theHandler.post(new NearbyStopsRequester());
+        theHandler.post(new NearbyStopsRequester(this));
         //If there are no providers available, then, wait for them
 
 
@@ -363,7 +368,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
         fh.setBlockAllActivities(false);
         //TODO: check if current LiveData-bound observer works
         if (pendingNearbyStopsRequest)
-            theHandler.post(new NearbyStopsRequester());
+            theHandler.post(new NearbyStopsRequester(this));
         ActionBar bar = getSupportActionBar();
         if(bar!=null) bar.show();
         else Log.w(DEBUG_TAG, "ACTION BAR IS NULL");
@@ -469,7 +474,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
         } else { // searchMode == SEARCH_BY_NAME
             String query = busStopSearchByNameEditText.getText().toString();
             //new asyncWgetBusStopSuggestions(query, stopsDB, StopsFindersByNameRecursionHelper);
-            new AsyncDataDownload(fh, stopsFinderByNames).execute(query);
+            new AsyncDataDownload(fh, stopsFinderByNames, getApplicationContext()).execute(query);
         }
     }
 
@@ -486,7 +491,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
                     //if we sent a request for a new NearbyStopsFragment
                     if (pendingNearbyStopsRequest) {
                         pendingNearbyStopsRequest = false;
-                        theHandler.post(new NearbyStopsRequester());
+                        theHandler.post(new NearbyStopsRequester(this));
                     }
 
                 } else {
@@ -535,13 +540,13 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
             if (fragment !=null && fragment.getStopID() != null && fragment.getStopID().equals(ID)){
                 // Run with previous fetchers
                 //fragment.getCurrentFetchers().toArray()
-                new AsyncDataDownload(fh,fragment.getCurrentFetchersAsArray()).execute(ID);
+                new AsyncDataDownload(fh,fragment.getCurrentFetchersAsArray(), this).execute(ID);
             } else{
-                new AsyncDataDownload(fh, arrivalsFetchers).execute(ID);
+                new AsyncDataDownload(fh, arrivalsFetchers, this).execute(ID);
             }
         }
         else {
-            new AsyncDataDownload(fh,arrivalsFetchers).execute(ID);
+            new AsyncDataDownload(fh, arrivalsFetchers, this).execute(ID);
             Log.d("MainActiv", "Started search for arrivals of stop " + ID);
         }
     }
@@ -609,7 +614,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
         Log.d(DEBUG_TAG, "Provider " + provider + " got enabled");
         if (locmgr != null && pendingNearbyStopsRequest && locmgr.getProvider(provider).meetsCriteria(cr)) {
             pendingNearbyStopsRequest = false;
-            theHandler.post(new NearbyStopsRequester());
+            theHandler.post(new NearbyStopsRequester(this));
         }
     }
 
@@ -642,6 +647,13 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
      * Run location requests separately and asynchronously
      */
     class NearbyStopsRequester implements Runnable {
+
+        Activity runningAct;
+
+        public NearbyStopsRequester(Activity runningAct) {
+            this.runningAct = runningAct;
+        }
+
         @Override
         public void run() {
             final boolean canRunPosition = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || getOption(LOCATION_PERMISSION_GIVEN, false);
@@ -653,7 +665,7 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
             if (noPermission) {
                 if (!canRunPosition) {
                     pendingNearbyStopsRequest = true;
-                    assertLocationPermissions();
+                    Permissions.assertLocationPermissions(getApplicationContext(),runningAct);
                     Log.w(DEBUG_TAG, "Cannot get position: Asking permission, noPositionFromSys: " + noPermission);
                     return;
                 } else {
@@ -703,26 +715,6 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
 
 
     ///////////////////////////////// OTHER STUFF //////////////////////////////////////////////////
-    /**
-     * Check if the last Bus Stop is in the favorites
-     *
-     * @return
-     */
-    public boolean isStopInFavorites(String busStopId) {
-        boolean found = false;
-
-        // no stop no party
-        if (busStopId != null) {
-            SQLiteDatabase userDB = new UserDB(getApplicationContext()).getReadableDatabase();
-            found = UserDB.isStopInFavorites(userDB, busStopId);
-        }
-
-        return found;
-    }
-
-    /**
-     * Add the last Stop to favorites
-     */
 
 
     @Override
@@ -841,55 +833,8 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
 
     }
 
-    /**
-     * Open an URL in the default browser.
-     *
-     * @param url URL
-     */
-    public void openIceweasel(String url) {
-        Intent browserIntent1 = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        startActivity(browserIntent1);
-    }
-
-    ///////////////////// INTENT HELPER ////////////////////////////////////////////////////////////
-
-    /**
-     * Try to extract the bus stop ID from a URi
-     *
-     * @param uri The URL
-     * @return bus stop ID or null
-     */
-    public static String getBusStopIDFromUri(Uri uri) {
-        String busStopID;
-
-        // everithing catches fire when passing null to a switch.
-        String host = uri.getHost();
-        if (host == null) {
-            Log.e("ActivityMain", "Not an URL: " + uri);
-            return null;
-        }
-
-        switch (host) {
-            case "m.gtt.to.it":
-                // http://m.gtt.to.it/m/it/arrivi.jsp?n=1254
-                busStopID = uri.getQueryParameter("n");
-                if (busStopID == null) {
-                    Log.e("ActivityMain", "Expected ?n from: " + uri);
-                }
-                break;
-            case "www.gtt.to.it":
-            case "gtt.to.it":
-                // http://www.gtt.to.it/cms/percorari/arrivi?palina=1254
-                busStopID = uri.getQueryParameter("palina");
-                if (busStopID == null) {
-                    Log.e("ActivityMain", "Expected ?palina from: " + uri);
-                }
-                break;
-            default:
-                Log.e("ActivityMain", "Unexpected intent URL: " + uri);
-                busStopID = null;
-        }
-        return busStopID;
+    private void openIceweasel(String url){
+        utils.openIceweasel(url, this);
     }
 
 }

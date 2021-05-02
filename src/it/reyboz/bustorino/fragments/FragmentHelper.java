@@ -18,18 +18,18 @@
 package it.reyboz.bustorino.fragments;
 
 
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.database.sqlite.SQLiteException;
+import android.content.Context;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.util.Log;
+import android.widget.Toast;
+
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.backend.utils;
 import it.reyboz.bustorino.data.NextGenDB;
 import it.reyboz.bustorino.middleware.*;
 
@@ -40,28 +40,30 @@ import java.util.List;
  * Helper class to manage the fragments and their needs
  */
 public class FragmentHelper {
-    GeneralActivity act;
+    //GeneralActivity act;
+    private final FragmentListenerMain listenerMain;
+    private final WeakReference<FragmentManager> managerWeakRef;
     private Stop lastSuccessfullySearchedBusStop;
     //support for multiple frames
     private final int secondaryFrameLayout;
-    private final int swipeRefID;
     private final int primaryFrameLayout;
+    private final Context context;
     public static final int NO_FRAME = -3;
+    private static final String DEBUG_TAG = "BusTO FragmHelper";
     private WeakReference<AsyncDataDownload> lastTaskRef;
-    private NextGenDB newDBHelper;
     private boolean shouldHaltAllActivities=false;
 
 
-    public FragmentHelper(GeneralActivity act, int swipeRefID, int mainFrame) {
-        this(act,swipeRefID,mainFrame,NO_FRAME);
+    public FragmentHelper(FragmentListenerMain listener, FragmentManager framan, Context context, int mainFrame) {
+        this(listener,framan, context,mainFrame,NO_FRAME);
     }
 
-    public FragmentHelper(GeneralActivity act, int swipeRefID, int primaryFrameLayout, int secondaryFrameLayout) {
-        this.act = act;
-        this.swipeRefID = swipeRefID;
+    public FragmentHelper(FragmentListenerMain listener, FragmentManager fraMan, Context context, int primaryFrameLayout, int secondaryFrameLayout) {
+        this.listenerMain = listener;
+        this.managerWeakRef = new WeakReference<>(fraMan);
         this.primaryFrameLayout = primaryFrameLayout;
         this.secondaryFrameLayout = secondaryFrameLayout;
-        newDBHelper = new NextGenDB(act.getApplicationContext());
+        this.context = context.getApplicationContext();
     }
 
     /**
@@ -89,19 +91,23 @@ public class FragmentHelper {
         boolean sameFragment;
         ArrivalsFragment arrivalsFragment;
 
-        if(act==null || shouldHaltAllActivities) {
+        if(managerWeakRef.get()==null || shouldHaltAllActivities) {
             //SOMETHING WENT VERY WRONG
+            Log.e(DEBUG_TAG, "We are asked for a new stop but we can't show anything");
             return;
         }
 
-        FragmentManager fm = act.getSupportFragmentManager();
+        FragmentManager fm = managerWeakRef.get();
 
         if(fm.findFragmentById(primaryFrameLayout) instanceof ArrivalsFragment) {
             arrivalsFragment = (ArrivalsFragment) fm.findFragmentById(primaryFrameLayout);
+            //Log.d(DEBUG_TAG, "Arrivals are for fragment with same stop?");
             sameFragment = arrivalsFragment.isFragmentForTheSameStop(p);
-        } else
+        } else {
             sameFragment = false;
+            Log.d(DEBUG_TAG, "We aren't showing an ArrivalsFragment");
 
+        }
         setLastSuccessfullySearchedBusStop(p);
 
         if(!sameFragment) {
@@ -122,7 +128,7 @@ public class FragmentHelper {
         // DO NOT CALL `setListAdapter` ever on arrivals fragment
         arrivalsFragment.updateFragmentData(p);
 
-        act.hideKeyboard();
+        listenerMain.hideKeyboard();
         toggleSpinner(false);
     }
 
@@ -132,9 +138,14 @@ public class FragmentHelper {
      * @param query String queried
      */
     public void createFragmentFor(List<Stop> resultList,String query){
-        act.hideKeyboard();
+        listenerMain.hideKeyboard();
         StopListFragment listfragment = StopListFragment.newInstance(query);
-        attachFragmentToContainer(act.getSupportFragmentManager(),listfragment,false,"search_"+query);
+        if(managerWeakRef.get()==null || shouldHaltAllActivities) {
+            //SOMETHING WENT VERY WRONG
+            Log.e(DEBUG_TAG, "We are asked for a new stop but we can't show anything");
+            return;
+        }
+        attachFragmentToContainer(managerWeakRef.get(),listfragment,false,"search_"+query);
         listfragment.setStopList(resultList);
         toggleSpinner(false);
 
@@ -145,12 +156,7 @@ public class FragmentHelper {
      * @param on new status of spinner system
      */
     public void toggleSpinner(boolean on){
-        if (act instanceof FragmentListenerMain)
-            ((FragmentListenerMain) act).toggleSpinner(on);
-        else {
-            SwipeRefreshLayout srl = (SwipeRefreshLayout) act.findViewById(swipeRefID);
-            srl.setRefreshing(false);
-        }
+        listenerMain.toggleSpinner(on);
     }
 
     /**
@@ -169,21 +175,6 @@ public class FragmentHelper {
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE);
         ft.commit();
         //fm.executePendingTransactions();
-    }
-
-    synchronized public int insertBatchDataInNextGenDB(ContentValues[] valuesArr,String tableName){
-        if(newDBHelper !=null)
-            try {
-                return newDBHelper.insertBatchContent(valuesArr, tableName);
-            } catch (SQLiteException exc){
-                Log.w("DB Batch inserting: ","ERROR Inserting the data batch: ",exc.fillInStackTrace());
-                return -2;
-            }
-        else return -1;
-    }
-
-    synchronized public ContentResolver getContentResolver(){
-        return act.getContentResolver();
     }
 
     public void setBlockAllActivities(boolean shouldI) {
@@ -208,13 +199,13 @@ public class FragmentHelper {
             case OK:
                 break;
             case CLIENT_OFFLINE:
-                act.showToastMessage(R.string.network_error, true);
+                showToastMessage(R.string.network_error, true);
                 break;
             case SERVER_ERROR:
-                if (act.isConnected()) {
-                    act.showToastMessage(R.string.parsing_error, true);
+                if (utils.isConnected(context)) {
+                    showToastMessage(R.string.parsing_error, true);
                 } else {
-                    act.showToastMessage(R.string.network_error, true);
+                    showToastMessage(R.string.network_error, true);
                 }
             case PARSER_ERROR:
             default:
@@ -229,9 +220,13 @@ public class FragmentHelper {
         }
     }
 
-    public void showShortToast(int message){
-        if (act!=null)
-        act.showToastMessage(message,true);
+    public void showToastMessage(int messageID, boolean short_lenght) {
+        final int length = short_lenght ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG;
+        if (context != null)
+        Toast.makeText(context, messageID, length).show();
+    }
+    private void showShortToast(int messageID){
+        showToastMessage(messageID, true);
     }
 
 }

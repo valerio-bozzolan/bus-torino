@@ -19,6 +19,7 @@ package it.reyboz.bustorino.middleware;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.SQLException;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -28,6 +29,7 @@ import android.util.Log;
 
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.data.AppDataProvider;
+import it.reyboz.bustorino.data.NextGenDB;
 import it.reyboz.bustorino.fragments.FragmentHelper;
 import it.reyboz.bustorino.data.NextGenDB.Contract.*;
 
@@ -51,13 +53,15 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
     WeakReference<FragmentHelper> helperRef;
     private final ArrayList<Thread> otherActivities = new ArrayList<>();
     private final Fetcher[] theFetchers;
+    private Context context;
 
 
-    public AsyncDataDownload(FragmentHelper fh, @NonNull Fetcher[] fetchers) {
+    public AsyncDataDownload(FragmentHelper fh, @NonNull Fetcher[] fetchers, Context context) {
         RequestType type;
         helperRef = new WeakReference<>(fh);
         fh.setLastTaskRef(new WeakReference<>(this));
         res = new AtomicReference<>();
+        this.context = context.getApplicationContext();
 
         theFetchers = fetchers;
         if (theFetchers.length < 1){
@@ -118,7 +122,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                         List<Route> branches = ((FiveTAPIFetcher) f).getDirectionsForStop(stopID,gres);
                         if(gres.get() == Fetcher.result.OK){
                             p.addInfoFromRoutes(branches);
-                            Thread t = new Thread(new BranchInserter(branches,fh,stopID));
+                            Thread t = new Thread(new BranchInserter(branches, context));
                             t.start();
                             otherActivities.add(t);
 
@@ -236,11 +240,13 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
     public class BranchInserter implements Runnable{
         private final List<Route> routesToInsert;
 
-        private final FragmentHelper fragmentHelper;
+        private final Context context;
+        private final NextGenDB nextGenDB;
 
-        public BranchInserter(List<Route> routesToInsert,FragmentHelper fh,String stopID) {
+        public BranchInserter(List<Route> routesToInsert,@NonNull Context con) {
             this.routesToInsert = routesToInsert;
-            this.fragmentHelper = fh;
+            this.context = con;
+            nextGenDB = new NextGenDB(context);
         }
 
         @Override
@@ -298,7 +304,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                 }
             }
             starttime = System.currentTimeMillis();
-            ContentResolver cr = fragmentHelper.getContentResolver();
+            ContentResolver cr = context.getContentResolver();
             try {
                 cr.bulkInsert(Uri.parse("content://" + AppDataProvider.AUTHORITY + "/branches/"), values);
                 endtime = System.currentTimeMillis();
@@ -313,7 +319,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
             starttime = System.currentTimeMillis();
             ContentValues[] valArr = connectionsVals.toArray(new ContentValues[0]);
             Log.d("DataDownloadInsert","inserting "+valArr.length+" connections");
-            int rows = fragmentHelper.insertBatchDataInNextGenDB(valArr,ConnectionsTable.TABLE_NAME);
+            int rows = nextGenDB.insertBatchContent(valArr,ConnectionsTable.TABLE_NAME);
             endtime = System.currentTimeMillis();
             Log.d("DataDownload","Inserted connections found, took "+(endtime-starttime)+" ms, inserted "+rows+" rows");
         }

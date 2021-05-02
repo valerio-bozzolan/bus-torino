@@ -21,4 +21,9 @@ public interface CommonFragmentListener {
      * @param ID the Stop ID
      */
     void requestArrivalsForStopID(String ID);
+
+    /**
+     * Method to call when we want to hide the keyboard
+     */
+    void hideKeyboard();
 }

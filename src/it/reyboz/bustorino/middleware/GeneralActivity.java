@@ -63,21 +63,10 @@ public abstract class GeneralActivity extends AppCompatActivity {
                             InputMethodManager.HIDE_NOT_ALWAYS);
         }
     }
-    public boolean isConnected() {
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnected();
-    }
 
     public void showToastMessage(int messageID, boolean short_lenght) {
         final int length = short_lenght ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG;
         Toast.makeText(getApplicationContext(), messageID, length).show();
-    }
-
-    public void assertLocationPermissions() {
-        if(ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_POSITION);
-        }
     }
 
     public int askForPermissionIfNeeded(String permission, int requestID){
