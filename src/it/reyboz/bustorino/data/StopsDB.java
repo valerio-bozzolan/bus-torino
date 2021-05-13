@@ -121,35 +121,6 @@ public class StopsDB extends SQLiteAssetHelper implements StopsDBInterface {
         return routes;
     }
 
-    public String getNameFromID(@NonNull String stopID) {
-        String[] uselessArray = {stopID};
-        int count;
-        String name;
-        Cursor result;
-
-        if(this.db == null) {
-            return null;
-        }
-
-        try {
-            result = this.db.query(QUERY_TABLE_stops, QUERY_COLUMN_name, QUERY_WHERE_ID, uselessArray, null, null, null);
-        } catch(SQLiteException e) {
-            return null;
-        }
-
-        count = result.getCount();
-        if(count == 0) {
-            return null;
-        }
-
-        result.moveToNext();
-        name = result.getString(0);
-
-        result.close();
-
-        return name;
-    }
-
     public String getLocationFromID(@NonNull String stopID) {
         String[] uselessArray = {stopID};
         int count;

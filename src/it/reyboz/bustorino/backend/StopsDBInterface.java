@@ -37,15 +37,6 @@ public interface StopsDBInterface {
     @Nullable List<String> getRoutesByStop(@NonNull String stopID);
 
     /**
-     * Stop ID goes in, stop name comes out.
-     * GTT API doesn't return this useful piece of information, so here we go, get it from the database!
-     *
-     * @param stopID stop ID, in normalized form
-     * @return stop name or null if not found (or database closed)
-     */
-    @Nullable String getNameFromID(@NonNull String stopID);
-
-    /**
      * Stop ID goes in, stop location comes out.
      * This is sometimes missing in GTT API, but database contains meaningful locations for nearly every stop...
      *

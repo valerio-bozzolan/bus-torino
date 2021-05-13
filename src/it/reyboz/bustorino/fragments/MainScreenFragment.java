@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
@@ -37,7 +38,6 @@ import android.widget.Toast;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.zxing.integration.android.IntentIntegrator;
 
-import it.reyboz.bustorino.ActivityMain;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.ArrivalsFetcher;
 import it.reyboz.bustorino.backend.FiveTAPIFetcher;
@@ -45,9 +45,7 @@ import it.reyboz.bustorino.backend.FiveTScraperFetcher;
 import it.reyboz.bustorino.backend.FiveTStopsFetcher;
 import it.reyboz.bustorino.backend.GTTJSONFetcher;
 import it.reyboz.bustorino.backend.GTTStopsFetcher;
-import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.StopsFinderByName;
-import it.reyboz.bustorino.data.UserDB;
 import it.reyboz.bustorino.middleware.AsyncDataDownload;
 import it.reyboz.bustorino.util.Permissions;
 
@@ -63,7 +61,8 @@ import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSION_GIVEN;
 public class MainScreenFragment extends BaseFragment implements  FragmentListenerMain{
 
 
-    private final String OPTION_SHOW_LEGEND = "show_legend";
+    private static final String OPTION_SHOW_LEGEND = "show_legend";
+    private static final String SAVED_FRAGMENT="saved_fragment";
 
     private static final String DEBUG_TAG = "BusTO - MainFragment";
 
@@ -82,6 +81,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
     private FloatingActionButton floatingActionButton;
 
     private boolean setupOnAttached = true;
+    private boolean suppressArrivalsReload = false;
     //private Snackbar snackbar;
     /*
      * Search mode
@@ -123,6 +123,8 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
 
     //// ACTIVITY ATTACHED (LISTENER ///
     private CommonFragmentListener mListener;
+
+    private String pendingStopID = null;
 
     public MainScreenFragment() {
         // Required empty public constructor
@@ -207,11 +209,59 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         cr.setPowerRequirement(Criteria.NO_REQUIREMENT);
 
         locmgr = (LocationManager) getContext().getSystemService(LOCATION_SERVICE);
+
+        Log.d(DEBUG_TAG, "OnCreateView, savedInstanceState null: "+(savedInstanceState==null));
+
+
+
         return root;
     }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        Log.d(DEBUG_TAG, "onViewCreated, SwipeRefreshLayout visible: "+(swipeRefreshLayout.getVisibility()==View.VISIBLE));
+        Log.d(DEBUG_TAG, "Setup on attached: "+setupOnAttached);
+        //Restore instance state
+        if (savedInstanceState!=null){
+            Fragment fragment = getChildFragmentManager().getFragment(savedInstanceState, SAVED_FRAGMENT);
+            if (fragment!=null){
+                getChildFragmentManager().beginTransaction().add(R.id.resultFrame, fragment).commit();
+                setupOnAttached = false;
+            }
+        }
+        if (getChildFragmentManager().findFragmentById(R.id.resultFrame)!= null){
+            swipeRefreshLayout.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Fragment fragment = getChildFragmentManager().findFragmentById(R.id.resultFrame);
+        if (fragment!=null)
+        getChildFragmentManager().putFragment(outState, SAVED_FRAGMENT, fragment);
+    }
+
+    public void setSuppressArrivalsReload(boolean value){
+       suppressArrivalsReload = value;
+        // we have to suppress the reloading of the (possible) ArrivalsFragment
+        /*if(value) {
+            Fragment fragment = getChildFragmentManager().findFragmentById(R.id.resultFrame);
+            if (fragment instanceof ArrivalsFragment) {
+                ArrivalsFragment frag = (ArrivalsFragment) fragment;
+                frag.setReloadOnResume(false);
+            }
+        }
+
+         */
+    }
+
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
+        Log.d(DEBUG_TAG, "OnAttach called, setupOnAttach: "+setupOnAttached);
         mainHandler = new Handler();
         if (context instanceof CommonFragmentListener) {
             mListener = (CommonFragmentListener) context;
@@ -219,12 +269,17 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
             throw new RuntimeException(context.toString()
                     + " must implement CommonFragmentListener");
         }
-        if (setupOnAttached){
+        if (setupOnAttached) {
+            if (pendingStopID==null)
             //We want the nearby bus stops!
-            mainHandler.post(new NearbyStopsRequester(getContext(),cr, locListener));
+            mainHandler.post(new NearbyStopsRequester(getContext(), cr, locListener));
+            else{
+                ///TODO: if there is a stop displayed, we need to hold the update
+            }
             //If there are no providers available, then, wait for them
 
             setupOnAttached = false;
+        } else {
         }
 
     }
@@ -232,6 +287,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    //    setupOnAttached = true;
     }
 
 
@@ -245,6 +301,23 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
             Log.w(DEBUG_TAG, "Context is null at onResume");
         }
         super.onResume();
+        // if we have a pending stopID request, do it
+        Log.d(DEBUG_TAG, "Pending stop ID for arrivals: "+pendingStopID);
+        //this is the second time we are attaching this fragment
+        Log.d(DEBUG_TAG, "Waiting for new stop request: "+ suppressArrivalsReload);
+        if (suppressArrivalsReload){
+            // we have to suppress the reloading of the (possible) ArrivalsFragment
+            Fragment fragment = getChildFragmentManager().findFragmentById(R.id.resultFrame);
+            if (fragment instanceof ArrivalsFragment){
+                ArrivalsFragment frag = (ArrivalsFragment) fragment;
+                frag.setReloadOnResume(false);
+            }
+            suppressArrivalsReload = false;
+        }
+        if(pendingStopID!=null){
+            requestArrivalsForStopID(pendingStopID);
+            pendingStopID = null;
+        }
     }
 
     @Override
@@ -311,6 +384,8 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
     ////////////////////////////////////// GUI HELPERS /////////////////////////////////////////////
 
     public void showKeyboard() {
+        if (getActivity() == null)
+            return;
         InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         View view = searchMode == SEARCH_BY_ID ? busStopSearchByIDEditText : busStopSearchByNameEditText;
         imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
@@ -423,9 +498,24 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
 
     }
 
+    /**
+     * Main method for stops requests
+     * @param ID the Stop ID
+     */
     @Override
     public void requestArrivalsForStopID(String ID) {
+        if (!isResumed()){
+            //defer request
+            pendingStopID = ID;
+            Log.d(DEBUG_TAG, "Deferring update for stop "+ID);
+            return;
+        }
+        final boolean delayedRequest = !(pendingStopID==null);
         final FragmentManager framan = getChildFragmentManager();
+        if (getContext()==null){
+            Log.e(DEBUG_TAG, "Asked for arrivals with null context");
+            return;
+        }
         if (ID == null || ID.length() <= 0) {
             // we're still in UI thread, no need to mess with Progress
             showToastMessage(R.string.insert_bus_stop_number_error, true);
@@ -442,7 +532,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         }
         else {
             new AsyncDataDownload(fragmentHelper,arrivalsFetchers, getContext()).execute(ID);
-            Log.d("MainActiv", "Started search for arrivals of stop " + ID);
+            Log.d(DEBUG_TAG, "Started search for arrivals of stop " + ID);
         }
     }
     /////////// LOCATION METHODS //////////

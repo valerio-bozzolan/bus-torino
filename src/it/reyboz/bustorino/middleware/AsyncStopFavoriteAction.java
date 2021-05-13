@@ -20,10 +20,12 @@ package it.reyboz.bustorino.middleware;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.widget.Toast;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.data.AppDataProvider;
 import it.reyboz.bustorino.data.UserDB;
 
 /**
@@ -31,11 +33,13 @@ import it.reyboz.bustorino.data.UserDB;
  */
 public class AsyncStopFavoriteAction extends AsyncTask<Stop, Void, Boolean> {
     private final Context context;
+    private final Uri FAVORITES_URI = AppDataProvider.getUriBuilderToComplete().appendPath(
+            AppDataProvider.FAVORITES).build();
 
     /**
      * Kind of actions available
      */
-    public enum Action { ADD, REMOVE, TOGGLE };
+    public enum Action { ADD, REMOVE, TOGGLE , UPDATE};
 
     /**
      * Action chosen
@@ -86,6 +90,9 @@ public class AsyncStopFavoriteAction extends AsyncTask<Stop, Void, Boolean> {
             if(Action.ADD.equals(action)) {
                 // add
                 result = UserDB.addOrUpdateStop(stop, db);
+            } else if (Action.UPDATE.equals(action)){
+
+                result = UserDB.updateStop(stop, db);
             } else {
                 // remove
                 result = UserDB.deleteStop(stop, db);
@@ -108,11 +115,12 @@ public class AsyncStopFavoriteAction extends AsyncTask<Stop, Void, Boolean> {
         super.onPostExecute(result);
 
         if(result) {
+            UserDB.notifyContentProvider(context);
             // at this point the action should be just ADD or REMOVE
             if(Action.ADD.equals(action)) {
                 // now added
                 Toast.makeText(this.context, R.string.added_in_favorites, Toast.LENGTH_SHORT).show();
-            } else {
+            } else if (Action.REMOVE.equals(action)) {
                 // now removed
                 Toast.makeText(this.context, R.string.removed_from_favorites, Toast.LENGTH_SHORT).show();
             }

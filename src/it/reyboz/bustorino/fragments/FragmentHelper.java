@@ -19,6 +19,7 @@ package it.reyboz.bustorino.fragments;
 
 
 import android.content.Context;
+
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -30,7 +31,6 @@ import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.utils;
-import it.reyboz.bustorino.data.NextGenDB;
 import it.reyboz.bustorino.middleware.*;
 
 import java.lang.ref.WeakReference;
@@ -87,7 +87,7 @@ public class FragmentHelper {
      * Called when you need to create a fragment for a specified Palina
      * @param p the Stop that needs to be displayed
      */
-    public void createOrUpdateStopFragment(Palina p){
+    public void createOrUpdateStopFragment(Palina p, boolean addToBackStack){
         boolean sameFragment;
         ArrivalsFragment arrivalsFragment;
 
@@ -102,6 +102,7 @@ public class FragmentHelper {
         if(fm.findFragmentById(primaryFrameLayout) instanceof ArrivalsFragment) {
             arrivalsFragment = (ArrivalsFragment) fm.findFragmentById(primaryFrameLayout);
             //Log.d(DEBUG_TAG, "Arrivals are for fragment with same stop?");
+            assert arrivalsFragment != null;
             sameFragment = arrivalsFragment.isFragmentForTheSameStop(p);
         } else {
             sameFragment = false;
@@ -120,13 +121,16 @@ public class FragmentHelper {
             } else {
                 arrivalsFragment = ArrivalsFragment.newInstance(p.ID);
             }
-            attachFragmentToContainer(fm,arrivalsFragment,true,ResultListFragment.getFragmentTag(p));
+            String probableTag = ResultListFragment.getFragmentTag(p);
+            attachFragmentToContainer(fm,arrivalsFragment,new AttachParameters(probableTag, true, addToBackStack));
         } else {
             Log.d("BusTO", "Same bus stop, accessing existing fragment");
             arrivalsFragment = (ArrivalsFragment) fm.findFragmentById(primaryFrameLayout);
         }
         // DO NOT CALL `setListAdapter` ever on arrivals fragment
         arrivalsFragment.updateFragmentData(p);
+        // enable fragment auto refresh
+        arrivalsFragment.setReloadOnResume(true);
 
         listenerMain.hideKeyboard();
         toggleSpinner(false);
@@ -137,7 +141,7 @@ public class FragmentHelper {
      * @param resultList the List of stops found
      * @param query String queried
      */
-    public void createFragmentFor(List<Stop> resultList,String query){
+    public void createStopListFragment(List<Stop> resultList, String query, boolean addToBackStack){
         listenerMain.hideKeyboard();
         StopListFragment listfragment = StopListFragment.newInstance(query);
         if(managerWeakRef.get()==null || shouldHaltAllActivities) {
@@ -145,7 +149,8 @@ public class FragmentHelper {
             Log.e(DEBUG_TAG, "We are asked for a new stop but we can't show anything");
             return;
         }
-        attachFragmentToContainer(managerWeakRef.get(),listfragment,false,"search_"+query);
+        attachFragmentToContainer(managerWeakRef.get(),listfragment,
+                new AttachParameters("search_"+query, false,addToBackStack));
         listfragment.setStopList(resultList);
         toggleSpinner(false);
 
@@ -163,15 +168,22 @@ public class FragmentHelper {
      * Attach a new fragment to a cointainer
      * @param fm the FragmentManager
      * @param fragment the Fragment
-     * @param sendToSecondaryFrame needs to be displayed in secondary frame or not
-     * @param tag tag for the fragment
+     * @param parameters attach parameters
      */
-    public void attachFragmentToContainer(FragmentManager fm,Fragment fragment, boolean sendToSecondaryFrame, String tag){
+    protected void attachFragmentToContainer(FragmentManager fm,Fragment fragment, AttachParameters parameters){
         FragmentTransaction ft = fm.beginTransaction();
-        if(sendToSecondaryFrame && secondaryFrameLayout!=NO_FRAME)
-            ft.replace(secondaryFrameLayout,fragment,tag);
-        else ft.replace(primaryFrameLayout,fragment,tag);
-        ft.addToBackStack("state_"+tag);
+        int frameID;
+        if(parameters.attachToSecondaryFrame && secondaryFrameLayout!=NO_FRAME)
+           // ft.replace(secondaryFrameLayout,fragment,tag);
+            frameID = secondaryFrameLayout;
+        else frameID = primaryFrameLayout;
+        switch (parameters.transaction){
+            case REPLACE:
+                ft.replace(frameID,fragment,parameters.tag);
+
+        }
+        if (parameters.addToBackStack)
+            ft.addToBackStack("state_"+parameters.tag);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE);
         ft.commit();
         //fm.executePendingTransactions();
@@ -229,4 +241,27 @@ public class FragmentHelper {
         showToastMessage(messageID, true);
     }
 
+    enum Transaction{
+        REPLACE,
+    }
+    static final class AttachParameters {
+        String tag;
+        boolean attachToSecondaryFrame;
+        Transaction transaction;
+        boolean addToBackStack;
+
+        public AttachParameters(String tag, boolean attachToSecondaryFrame, Transaction transaction, boolean addToBackStack) {
+            this.tag = tag;
+            this.attachToSecondaryFrame = attachToSecondaryFrame;
+            this.transaction = transaction;
+            this.addToBackStack = addToBackStack;
+        }
+
+        public AttachParameters(String tag, boolean attachToSecondaryFrame, boolean addToBackStack) {
+            this.tag = tag;
+            this.attachToSecondaryFrame = attachToSecondaryFrame;
+            this.addToBackStack = addToBackStack;
+            this.transaction = Transaction.REPLACE;
+        }
+    }
 }

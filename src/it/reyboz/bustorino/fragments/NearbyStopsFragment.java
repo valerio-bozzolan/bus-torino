@@ -165,6 +165,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         switchButton.setOnClickListener(v -> {
            switchFragmentType();
         });
+        Log.d(DEBUG_TAG, "onCreateView");
         return root;
     }
 
@@ -224,6 +225,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
         }
+        Log.d(DEBUG_TAG, "OnAttach called");
 
     }
 
@@ -271,12 +273,12 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         MIN_NUM_STOPS = Integer.parseInt(shpr.getString(getString(R.string.pref_key_num_recents),"12"));
     }
 
+
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         gridRecyclerView.setVisibility(View.INVISIBLE);
         gridRecyclerView.addOnScrollListener(scrollListener);
-
     }
 
     @Override

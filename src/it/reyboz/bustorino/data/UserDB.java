@@ -24,9 +24,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,7 +43,11 @@ public class UserDB extends SQLiteOpenHelper {
     private final static String[] usernameColumnNameAsArray = {"username"};
     public final static String[] getFavoritesColumnNamesAsArray = {"ID", "username"};
 
-	public UserDB(Context context) {
+    private static final Uri FAVORITES_URI = AppDataProvider.getUriBuilderToComplete().appendPath(
+            AppDataProvider.FAVORITES).build();
+
+
+    public UserDB(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.c = context;
 	}
@@ -224,7 +230,6 @@ public class UserDB extends SQLiteOpenHelper {
                     l.add(s);
                 }
             }
-
             c.close();
         } catch(SQLiteException ignored) {}
 
@@ -232,6 +237,31 @@ public class UserDB extends SQLiteOpenHelper {
         Collections.sort(l);
 
         return l;
+    }
+    public static void notifyContentProvider(Context context){
+        context.
+                getContentResolver().
+                notifyChange(FAVORITES_URI, null);
+    }
+
+    public static ArrayList<Stop> getFavoritesFromCursor(Cursor cursor, String[] columns){
+        List<String> colsList = Arrays.asList(columns);
+        if (!colsList.contains(getFavoritesColumnNamesAsArray[0]) || !colsList.contains(getFavoritesColumnNamesAsArray[1])){
+            throw new IllegalArgumentException();
+        }
+        ArrayList<Stop> l = new ArrayList<>();
+        final int colID = cursor.getColumnIndex("ID");
+        final int colUser = cursor.getColumnIndex("username");
+        while(cursor.moveToNext()) {
+            final String stopUserName = cursor.getString(colUser);
+            final String stopID = cursor.getString(colID);
+            final Stop s = new Stop(stopID.trim());
+            if (stopUserName!=null) s.setStopUserName(stopUserName);
+
+            l.add(s);
+        }
+        return l;
+
     }
 
     public static boolean addOrUpdateStop(Stop s, SQLiteDatabase db) {

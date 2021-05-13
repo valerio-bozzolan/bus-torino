@@ -54,6 +54,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
     private final ArrayList<Thread> otherActivities = new ArrayList<>();
     private final Fetcher[] theFetchers;
     private Context context;
+    private final boolean replaceFragment;
 
 
     public AsyncDataDownload(FragmentHelper fh, @NonNull Fetcher[] fetchers, Context context) {
@@ -62,6 +63,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
         fh.setLastTaskRef(new WeakReference<>(this));
         res = new AtomicReference<>();
         this.context = context.getApplicationContext();
+        this.replaceFragment = true;
 
         theFetchers = fetchers;
         if (theFetchers.length < 1){
@@ -206,13 +208,13 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
         switch (t){
             case ARRIVALS:
                 Palina palina = (Palina) o;
-                fh.createOrUpdateStopFragment(palina);
+                fh.createOrUpdateStopFragment(palina, replaceFragment);
                 break;
             case STOPS:
                 //this should never be a problem
                 List<Stop> stopList = (List<Stop>) o;
                 if(query!=null && !isCancelled()) {
-                    fh.createFragmentFor(stopList,query);
+                    fh.createStopListFragment(stopList,query, replaceFragment);
                 } else Log.e(TAG,"QUERY NULL, COULD NOT CREATE FRAGMENT");
                 break;
             case DBUPDATE:

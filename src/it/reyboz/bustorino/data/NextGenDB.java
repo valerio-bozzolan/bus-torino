@@ -76,16 +76,18 @@ public class NextGenDB extends SQLiteOpenHelper{
             Contract.StopsTable.COL_LOCATION+" TEXT, "+Contract.StopsTable.COL_PLACE+" TEXT, "+
             Contract.StopsTable.COL_LINES_STOPPING +" TEXT )";
 
-    private static final String[] QUERY_COLUMN_stops_all = {
+    public static final String[] QUERY_COLUMN_stops_all = {
             StopsTable.COL_ID, StopsTable.COL_NAME, StopsTable.COL_LOCATION,
             StopsTable.COL_TYPE, StopsTable.COL_LAT, StopsTable.COL_LONG, StopsTable.COL_LINES_STOPPING};
 
-    private static final String QUERY_WHERE_LAT_AND_LNG_IN_RANGE = StopsTable.COL_LAT + " >= ? AND " +
+    public static final String QUERY_WHERE_LAT_AND_LNG_IN_RANGE = StopsTable.COL_LAT + " >= ? AND " +
             StopsTable.COL_LAT + " <= ? AND "+ StopsTable.COL_LONG +
             " >= ? AND "+ StopsTable.COL_LONG + " <= ?";
 
+    public static String QUERY_WHERE_ID = StopsTable.COL_ID+" = ?";
 
-    private Context appContext;
+
+    private final Context appContext;
 
     public NextGenDB(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -164,9 +166,6 @@ public class NextGenDB extends SQLiteOpenHelper{
         String minLngRaw = String.valueOf(minLng);
         String maxLngRaw = String.valueOf(maxLng);
 
-        String[] queryColumns = {};
-        String stopID;
-        Route.Type type;
 
         if(db == null) {
             return stops;
@@ -176,34 +175,7 @@ public class NextGenDB extends SQLiteOpenHelper{
             result = db.query(StopsTable.TABLE_NAME, QUERY_COLUMN_stops_all, QUERY_WHERE_LAT_AND_LNG_IN_RANGE,
                     new String[] {minLatRaw, maxLatRaw, minLngRaw, maxLngRaw},
                     null, null, null);
-
-            int colID = result.getColumnIndex(StopsTable.COL_ID);
-            int colName = result.getColumnIndex(StopsTable.COL_NAME);
-            int colLocation = result.getColumnIndex(StopsTable.COL_LOCATION);
-            int colType = result.getColumnIndex(StopsTable.COL_TYPE);
-            int colLat = result.getColumnIndex(StopsTable.COL_LAT);
-            int colLon = result.getColumnIndex(StopsTable.COL_LONG);
-            int colLines = result.getColumnIndex(StopsTable.COL_LINES_STOPPING);
-
-            count = result.getCount();
-            stops = new Stop[count];
-
-            int i = 0;
-            while(result.moveToNext()) {
-
-                stopID = result.getString(colID);
-                type = Route.getTypeFromSymbol(result.getString(colType));
-                String lines = result.getString(colLines).trim();
-
-                String locationSometimesEmpty = result.getString(colLocation);
-                if (locationSometimesEmpty!= null && locationSometimesEmpty.length() <= 0) {
-                    locationSometimesEmpty = null;
-                }
-
-                stops[i++] = new Stop(stopID, result.getString(colName), null,
-                        locationSometimesEmpty, type, splitLinesString(lines),
-                        result.getDouble(colLat), result.getDouble(colLon));
-            }
+            stops = getStopsFromCursorAllFields(result);
 
         } catch(SQLiteException e) {
             Log.e(DEBUG_TAG, "SQLiteException occurred");
@@ -214,6 +186,42 @@ public class NextGenDB extends SQLiteOpenHelper{
         result.close();
         db.close();
 
+        return stops;
+    }
+
+    /**
+     * Get the list of stop in the query, with all the possible fields {NextGenDB.QUERY_COLUMN_stops_all}
+     * @param result cursor from query
+     * @return an Array of the stops found in the query
+     */
+    public static Stop[] getStopsFromCursorAllFields(Cursor result){
+        int colID = result.getColumnIndex(StopsTable.COL_ID);
+        int colName = result.getColumnIndex(StopsTable.COL_NAME);
+        int colLocation = result.getColumnIndex(StopsTable.COL_LOCATION);
+        int colType = result.getColumnIndex(StopsTable.COL_TYPE);
+        int colLat = result.getColumnIndex(StopsTable.COL_LAT);
+        int colLon = result.getColumnIndex(StopsTable.COL_LONG);
+        int colLines = result.getColumnIndex(StopsTable.COL_LINES_STOPPING);
+
+        int count = result.getCount();
+        Stop[] stops = new Stop[count];
+
+        int i = 0;
+        while(result.moveToNext()) {
+
+            final String stopID = result.getString(colID).trim();
+            final Route.Type type = Route.getTypeFromSymbol(result.getString(colType));
+            String lines = result.getString(colLines).trim();
+
+            String locationSometimesEmpty = result.getString(colLocation);
+            if (locationSometimesEmpty!= null && locationSometimesEmpty.length() <= 0) {
+                locationSometimesEmpty = null;
+            }
+
+            stops[i++] = new Stop(stopID, result.getString(colName), null,
+                    locationSometimesEmpty, type, splitLinesString(lines),
+                    result.getDouble(colLat), result.getDouble(colLon));
+        }
         return stops;
     }
 

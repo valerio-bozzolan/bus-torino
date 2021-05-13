@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import it.reyboz.bustorino.data.DBUpdateWorker;
 import it.reyboz.bustorino.data.DatabaseUpdate;
+import it.reyboz.bustorino.fragments.FavoritesFragment;
 import it.reyboz.bustorino.fragments.FragmentKind;
 import it.reyboz.bustorino.fragments.FragmentListenerMain;
 import it.reyboz.bustorino.fragments.MainScreenFragment;
@@ -48,7 +49,10 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     private ActionBarDrawerToggle drawerToggle;
     private final static String DEBUG_TAG="BusTO Act Principal";
 
+    private final static String TAG_FAVORITES="favorites_frag";
     private Snackbar snackbar;
+
+    private boolean showingMainFragmentFromOther = false;
 
 
     @Override
@@ -191,6 +195,20 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                         closeDrawerIfOpen();
                         startActivity(new Intent(ActivityPrincipal.this, ActivitySettings.class));
                         return true;
+                    } else if(menuItem.getItemId() == R.id.nav_favorites_item){
+                        closeDrawerIfOpen();
+                        //get Fragment
+                        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                        FavoritesFragment fragment = FavoritesFragment.newInstance();
+                        ft.replace(R.id.mainActContentFrame,fragment, TAG_FAVORITES);
+                        ft.addToBackStack(null);
+                        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                        ft.commit();
+                        return true;
+                    } else if(menuItem.getItemId() == R.id.nav_arrivals){
+                        closeDrawerIfOpen();
+                        showMainFragment();
+                        return true;
                     }
                     //selectDrawerItem(menuItem);
                     Log.d(DEBUG_TAG, "pressed item "+menuItem.toString());
@@ -239,12 +257,9 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         Log.d(DEBUG_TAG, "Item pressed");
 
 
-        switch (item.getItemId()){
-            case android.R.id.home:
-                mDrawer.openDrawer(GravityCompat.START);
-                return true;
-            default:
-
+        if (item.getItemId() == android.R.id.home) {
+            mDrawer.openDrawer(GravityCompat.START);
+            return true;
         }
 
         if (drawerToggle.onOptionsItemSelected(item)) {
@@ -263,7 +278,11 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         if (mDrawer.isDrawerOpen(GravityCompat.START))
             mDrawer.closeDrawer(GravityCompat.START);
         else if(shownFrag != null && shownFrag.isVisible() && shownFrag.getChildFragmentManager().getBackStackEntryCount() > 0){
-            shownFrag.getChildFragmentManager().popBackStack();
+            //if we have been asked to show a stop from another fragment, we should go back even in the main
+            shownFrag.getChildFragmentManager().popBackStackImmediate();
+            if(showingMainFragmentFromOther && getSupportFragmentManager().getBackStackEntryCount() > 0){
+                getSupportFragmentManager().popBackStack();
+            }
         }
         else if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
             getSupportFragmentManager().popBackStack();
@@ -279,7 +298,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         snackbar.show();
     }
 
-    private MainScreenFragment showMainFragment(){
+    private MainScreenFragment createAndShowMainFragment(){
         FragmentManager fraMan = getSupportFragmentManager();
 
         MainScreenFragment fragment = MainScreenFragment.newInstance();
@@ -289,6 +308,44 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         transaction.commit();
         return fragment;
     }
+
+    /**
+     * Show the fragment by adding it to the backstack
+     * @param fraMan the fragmentManager
+     * @param fragment the fragment
+     */
+    private static void showMainFragment(FragmentManager fraMan, MainScreenFragment fragment){
+        fraMan.beginTransaction().replace(R.id.mainActContentFrame, fragment)
+                .setReorderingAllowed(true)
+                .addToBackStack(null)
+                /*.setCustomAnimations(
+                        R.anim.slide_in,  // enter
+                        R.anim.fade_out,  // exit
+                        R.anim.fade_in,   // popEnter
+                        R.anim.slide_out  // popExit
+                )*/
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                .commit();
+    }
+
+    private MainScreenFragment showMainFragment(){
+        FragmentManager fraMan = getSupportFragmentManager();
+        Fragment fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
+        MainScreenFragment mainScreenFragment = null;
+        if (fragment==null | !(fragment instanceof MainScreenFragment)){
+            mainScreenFragment = createAndShowMainFragment();
+        }
+        else if(!fragment.isVisible()){
+
+
+            mainScreenFragment = (MainScreenFragment) fragment;
+            showMainFragment(fraMan, mainScreenFragment);
+            Log.d(DEBUG_TAG, "Found the main fragment");
+        } else{
+            mainScreenFragment = (MainScreenFragment) fragment;
+        }
+        return mainScreenFragment;
+    }
     @Nullable
     private MainScreenFragment getMainFragmentIfVisible(){
         FragmentManager fraMan = getSupportFragmentManager();
@@ -296,6 +353,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         if (fragment!= null && fragment.isVisible()) return (MainScreenFragment) fragment;
         else return null;
     }
+
 
     @Override
     public void showFloatingActionButton(boolean yes) {
@@ -312,24 +370,26 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     @Override
     public void requestArrivalsForStopID(String ID) {
-        FragmentManager fraMan = getSupportFragmentManager();
-        Fragment fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
-        MainScreenFragment mainScreenFragment = null;
-        if (fragment==null | !(fragment instanceof MainScreenFragment)){
-            mainScreenFragment = showMainFragment();
-        }
-        else if(!fragment.isVisible()){
+        //register if the request came from the main fragment or not
+        MainScreenFragment probableFragment = getMainFragmentIfVisible();
+        showingMainFragmentFromOther = (probableFragment==null);
 
-            fraMan.beginTransaction().replace(R.id.mainActContentFrame, fragment)
-                    .addToBackStack(null)
-                    .commit();
-            mainScreenFragment = (MainScreenFragment) fragment;
-            Log.d(DEBUG_TAG, "Found the main fragment");
-        } else{
-            mainScreenFragment = (MainScreenFragment) fragment;
+        if (showingMainFragmentFromOther){
+            FragmentManager fraMan = getSupportFragmentManager();
+            Fragment fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
+            if(fragment!=null){
+                //the fragment is there but not shown
+                probableFragment = (MainScreenFragment) fragment;
+                // set the flag
+                probableFragment.setSuppressArrivalsReload(true);
+                showMainFragment(fraMan, probableFragment);
+            } else {
+                // we have no fragment
+                probableFragment = createAndShowMainFragment();
+            }
         }
-
-        mainScreenFragment.requestArrivalsForStopID(ID);
+        probableFragment.requestArrivalsForStopID(ID);
+        mNavView.setCheckedItem(R.id.nav_arrivals);
     }
 
     @Override

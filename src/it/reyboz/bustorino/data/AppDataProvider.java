@@ -26,9 +26,12 @@ import android.util.Log;
 
 import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.backend.DBStatusManager;
+import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.NextGenDB.Contract.*;
 
 import java.util.List;
+
+import static it.reyboz.bustorino.data.UserDB.getFavoritesColumnNamesAsArray;
 
 public class AppDataProvider extends ContentProvider {
 
@@ -42,6 +45,9 @@ public class AppDataProvider extends ContentProvider {
     private static final int LINE_INSERT_OP = 7;
     private static final int CONNECTIONS = 8;
     private static final int LOCATION_SEARCH = 9;
+    private static final int GET_ALL_FAVORITES =10;
+
+    public static final String FAVORITES = "favorites";
 
     private static final String DEBUG_TAG="AppDataProvider";
     private Context con;
@@ -74,6 +80,7 @@ public class AppDataProvider extends ContentProvider {
         sUriMatcher.addURI(AUTHORITY,"branches",ADD_UPDATE_BRANCHES);
         sUriMatcher.addURI(AUTHORITY,"connections",CONNECTIONS);
         sUriMatcher.addURI(AUTHORITY,"favorites/#",FAVORITES_OP);
+        sUriMatcher.addURI(AUTHORITY,FAVORITES,GET_ALL_FAVORITES);
     }
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
@@ -231,7 +238,7 @@ public class AppDataProvider extends ContentProvider {
                 }
 
             case FAVORITES_OP:
-                final String stopFavSelection = UserDB.getFavoritesColumnNamesAsArray[0]+" = ?";
+                final String stopFavSelection = getFavoritesColumnNamesAsArray[0]+" = ?";
                 db = userDBHelper.getReadableDatabase();
                 Log.d(DEBUG_TAG,"Asked information on Favorites about stop with id "+uri.getLastPathSegment());
                 return db.query(UserDB.TABLE_NAME,projection,stopFavSelection,new String[]{uri.getLastPathSegment()},null,null,sortOrder);
@@ -241,8 +248,15 @@ public class AppDataProvider extends ContentProvider {
                 final String stopSelection = StopsTable.COL_ID+" = ?";
                 Log.d(DEBUG_TAG,"Asked information about stop with id "+selectionValues[0]);
                 return db.query(StopsTable.TABLE_NAME,projection,stopSelection,selectionValues,null,null,sortOrder);
+            case MANY_STOPS:
+                return db.query(StopsTable.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+
+            case GET_ALL_FAVORITES:
+                db = userDBHelper.getReadableDatabase();
+                return db.query(UserDB.TABLE_NAME, projection, selection, selectionArgs, null, null,sortOrder);
+
             default:
-                Log.d("DataProvider","got request "+uri.getPath()+" which doesn't match anything");
+                Log.e("DataProvider","got request "+uri.getPath()+" which doesn't match anything");
             }
 
         throw new UnsupportedOperationException("Not yet implemented");

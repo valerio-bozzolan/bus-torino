@@ -96,7 +96,7 @@ public class Stop implements Comparable<Stop> {
         }
 
         // no string yet? build it!
-        return buildString();
+        return buildRoutesString();
     }
 
     @Nullable
@@ -117,7 +117,7 @@ public class Stop implements Comparable<Stop> {
         return routesThatStopHere;
     }
 
-    private @Nullable String buildString() {
+    private @Nullable String buildRoutesString() {
         // no routes => no string
         if(this.routesThatStopHere == null || this.routesThatStopHere.size() == 0) {
             return null;

@@ -190,7 +190,7 @@ public class ResultListFragment extends Fragment{
     }
 
     public static String getFragmentTag(Palina p) {
-        return p.ID;
+        return "palina_"+p.ID;
     }
 
 

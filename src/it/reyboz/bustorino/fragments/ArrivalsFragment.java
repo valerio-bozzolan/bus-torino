@@ -65,7 +65,8 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
 
     private final static String KEY_STOP_ID = "stopid";
     private final static String KEY_STOP_NAME = "stopname";
-    private final static String DEBUG_TAG = "BUSTOArrivalsFragment";
+    private final static String DEBUG_TAG_ALL = "BUSTOArrivalsFragment";
+    private String DEBUG_TAG = DEBUG_TAG_ALL;
     private final static int loaderFavId = 2;
     private final static int loaderStopId = 1;
     private final static ArrivalsFetcher[] defaultFetchers = new ArrivalsFetcher[]{new FiveTAPIFetcher(), new GTTJSONFetcher(), new FiveTScraperFetcher()};
@@ -86,6 +87,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
 
     private List<ArrivalsFetcher> fetchers = new ArrayList<>(Arrays.asList(defaultFetchers));
 
+    private boolean reloadOnResume = true;
 
     public static ArrivalsFragment newInstance(String stopID){
         return newInstance(stopID, null);
@@ -95,7 +97,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         ArrivalsFragment fragment = new ArrivalsFragment();
         Bundle args = new Bundle();
         args.putString(KEY_STOP_ID,stopID);
-        //parameter for ResultListFragment
+        //parameter for ResultListFragmentrequestArrivalsForStopID
         args.putSerializable(LIST_TYPE,FragmentKind.ARRIVALS);
         if (stopName != null){
             args.putString(KEY_STOP_NAME,stopName);
@@ -108,6 +110,8 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         stopID = getArguments().getString(KEY_STOP_ID);
+        DEBUG_TAG = DEBUG_TAG_ALL+" "+stopID;
+
         //this might really be null
         stopName = getArguments().getString(KEY_STOP_NAME);
         final ArrivalsFragment arrivalsFragment = this;
@@ -198,21 +202,25 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     public void onResume() {
         super.onResume();
         LoaderManager loaderManager  = getLoaderManager();
-
+        Log.d(DEBUG_TAG, "OnResume, justCreated "+justCreated);
         if(stopID!=null){
             //refresh the arrivals
-            if(!justCreated)
-                mListener.requestArrivalsForStopID(stopID);
+            if(!justCreated){
+                if (reloadOnResume)
+                    mListener.requestArrivalsForStopID(stopID);
+            }
             else justCreated = false;
             //start the loader
             if(prefs.isDBUpdating(true)){
                 prefs.registerListener();
             } else {
+                Log.d(DEBUG_TAG, "Restarting loader for stop");
                 loaderManager.restartLoader(loaderFavId, getArguments(), this);
             }
             updateMessage();
         }
     }
+
 
     @Override
     public void onStart() {
@@ -221,10 +229,28 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             updateFragmentData(null);
         }
     }
+    @Override
+    public void onPause() {
+        if(listener!=null)
+            prefs.unregisterListener();
+        super.onPause();
+        LoaderManager loaderManager  = getLoaderManager();
+        Log.d(DEBUG_TAG, "onPause, have running loaders: "+loaderManager.hasRunningLoaders());
+        loaderManager.destroyLoader(loaderFavId);
+
+    }
 
     @Nullable
     public String getStopID() {
         return stopID;
+    }
+
+    public boolean reloadsOnResume() {
+        return reloadOnResume;
+    }
+
+    public void setReloadOnResume(boolean reloadOnResume) {
+        this.reloadOnResume = reloadOnResume;
     }
 
     /**
@@ -376,11 +402,10 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
                     data.moveToFirst();
                     final String probableName = data.getString(colUserName);
                     stopIsInFavorites = true;
-                    if(probableName!=null && !probableName.isEmpty()){
-                        stopName = probableName;
-                        //update the message in the textview
-                        updateMessage();
-                    }
+                    stopName = probableName;
+                    //update the message in the textview
+                    updateMessage();
+
                 } else {
                     stopIsInFavorites =false;
                 }
@@ -404,13 +429,6 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
                 }
         }
 
-    }
-
-    @Override
-    public void onPause() {
-        if(listener!=null)
-            prefs.unregisterListener();
-        super.onPause();
     }
 
     @Override
