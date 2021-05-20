@@ -45,6 +45,7 @@ import java.util.Calendar;
 public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
 
     private static final String TAG = "BusTO-DataDownload";
+    private static final String DEBUG_TAG = TAG;
     private boolean failedAll = false;
 
     private final AtomicReference<Fetcher.result> res;
@@ -212,9 +213,24 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                 break;
             case STOPS:
                 //this should never be a problem
-                List<Stop> stopList = (List<Stop>) o;
+                if(!(o instanceof List<?>)){
+                    throw new IllegalStateException();
+                }
+                List<?> list = (List<?>) o;
+                if (list.size() ==0) return;
+                Object firstItem = list.get(0);
+                if(!(firstItem instanceof Stop)) return;
+                ArrayList<Stop> stops = new ArrayList<>();
+                for(Object x: list){
+                    if(x instanceof Stop) stops.add((Stop) x);
+                }
+                if(list.size() != stops.size()){
+                    Log.w(DEBUG_TAG, "Wrong stop list size:\n incoming: "+
+                            list.size()+" out: "+stops.size());
+                }
+                //List<Stop> stopList = (List<Stop>) list;
                 if(query!=null && !isCancelled()) {
-                    fh.createStopListFragment(stopList,query, replaceFragment);
+                    fh.createStopListFragment(stops,query, replaceFragment);
                 } else Log.e(TAG,"QUERY NULL, COULD NOT CREATE FRAGMENT");
                 break;
             case DBUPDATE:
@@ -239,20 +255,21 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
         ARRIVALS,STOPS,DBUPDATE
     }
 
-    public class BranchInserter implements Runnable{
+    public static class BranchInserter implements Runnable{
         private final List<Route> routesToInsert;
 
         private final Context context;
-        private final NextGenDB nextGenDB;
+        //private final NextGenDB nextGenDB;
 
         public BranchInserter(List<Route> routesToInsert,@NonNull Context con) {
             this.routesToInsert = routesToInsert;
-            this.context = con;
-            nextGenDB = new NextGenDB(context);
+            this.context = con.getApplicationContext();
+            //nextGenDB = new NextGenDB(context);
         }
 
         @Override
         public void run() {
+            final NextGenDB nextGenDB = new NextGenDB(context);
             ContentValues[] values = new ContentValues[routesToInsert.size()];
             ArrayList<ContentValues> connectionsVals = new ArrayList<>(routesToInsert.size()*4);
             long starttime,endtime;
@@ -324,6 +341,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
             int rows = nextGenDB.insertBatchContent(valArr,ConnectionsTable.TABLE_NAME);
             endtime = System.currentTimeMillis();
             Log.d("DataDownload","Inserted connections found, took "+(endtime-starttime)+" ms, inserted "+rows+" rows");
+            nextGenDB.close();
         }
     }
 }

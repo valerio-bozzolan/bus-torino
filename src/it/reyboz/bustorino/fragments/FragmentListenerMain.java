@@ -23,14 +23,7 @@ public interface FragmentListenerMain extends CommonFragmentListener {
 
     void toggleSpinner(boolean state);
 
-
-    /*
-        Unused method
-     * Add the last successfully searched stop to the favorites
-     */
-
-    //void toggleLastStopToFavorites();
-
+    //TODO: implement void showStopOnMap()
 
     /**
      * Tell activity that we need to enable/disable the refreshLayout

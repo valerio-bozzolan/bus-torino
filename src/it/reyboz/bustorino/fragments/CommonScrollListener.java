@@ -51,11 +51,11 @@ public class CommonScrollListener extends RecyclerView.OnScrollListener implemen
         }
         if (firstVisibleItem>=0) {
             if (lastvisibleitem < firstVisibleItem) {
-                Log.i("Busto", "Scrolling DOWN");
+                //Log.i("Busto", "Scrolling DOWN");
                 listener.showFloatingActionButton(false);
                 //lastScrollUp = true;
             } else if (lastvisibleitem > firstVisibleItem) {
-                Log.i("Busto", "Scrolling UP");
+                //Log.i("Busto", "Scrolling UP");
                 listener.showFloatingActionButton(true);
                 //lastScrollUp =  false;
             }

@@ -45,6 +45,8 @@ public class FavoritesFragment extends BaseFragment {
     @Nullable
     private CommonFragmentListener mListener;
 
+    public static final String FRAGMENT_TAG = "BusTOFavFragment";
+
 
 
 
@@ -56,7 +58,7 @@ public class FavoritesFragment extends BaseFragment {
         fragment.setArguments(args);
         return fragment;
     }
-    private FavoritesFragment(){
+    public FavoritesFragment(){
 
     }
 
@@ -124,6 +126,12 @@ public class FavoritesFragment extends BaseFragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (mListener!=null) mListener.readyGUIfor(FragmentKind.FAVORITES);
+    }
+
+    @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
                 .getMenuInfo();
@@ -176,6 +184,7 @@ public class FavoritesFragment extends BaseFragment {
                 return super.onContextItemSelected(item);
         }
     }
+
 
     void showStops(List<Stop> busStops){
         // If no data is found show a friendly message

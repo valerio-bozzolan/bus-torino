@@ -32,6 +32,7 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.preference.PreferenceManager;
@@ -86,6 +87,21 @@ public class ActivityMap extends GeneralActivity {
     private FolderOverlay stopsFolderOverlay = null;
     protected ImageButton btCenterMap;
     protected ImageButton btFollowMe;
+
+    private final  CustomInfoWindow.TouchResponder touchResponder = new CustomInfoWindow.TouchResponder() {
+        @Override
+        public void onActionUp(@NonNull String stopID, @Nullable String stopName) {
+            Intent intent = new Intent(ctx, ActivityMain.class);
+            Bundle b = new Bundle();
+            b.putString("bus-stop-ID", stopID);
+            b.putString("bus-stop-display-name", stopName);
+            intent.putExtras(b);
+            intent.setFlags(Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP);
+
+            // start ActivityMain with the previous intent
+            ctx.startActivity(intent);
+        }
+    };
 
     //@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
     @Override
@@ -268,7 +284,7 @@ public class ActivityMap extends GeneralActivity {
         Marker marker = new Marker(map);
 
         // set custom info window as info window
-        CustomInfoWindow popup = new CustomInfoWindow(map, ID, stopName);
+        CustomInfoWindow popup = new CustomInfoWindow(map, ID, stopName, touchResponder);
         marker.setInfoWindow(popup);
 
         // make the marker clickable
@@ -367,6 +383,12 @@ public class ActivityMap extends GeneralActivity {
 
         }
 
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        ctx = this;
     }
 
     protected boolean detachMapFromPosition(){

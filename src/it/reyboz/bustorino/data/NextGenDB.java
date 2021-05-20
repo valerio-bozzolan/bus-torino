@@ -157,7 +157,7 @@ public class NextGenDB extends SQLiteOpenHelper{
         Stop[] stops = new Stop[0];
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor result;
+        //Cursor result=null;
         int count;
 
         // coordinates must be strings in the where condition
@@ -172,19 +172,18 @@ public class NextGenDB extends SQLiteOpenHelper{
         }
 
         try {
-            result = db.query(StopsTable.TABLE_NAME, QUERY_COLUMN_stops_all, QUERY_WHERE_LAT_AND_LNG_IN_RANGE,
+            final Cursor result = db.query(StopsTable.TABLE_NAME, QUERY_COLUMN_stops_all, QUERY_WHERE_LAT_AND_LNG_IN_RANGE,
                     new String[] {minLatRaw, maxLatRaw, minLngRaw, maxLngRaw},
                     null, null, null);
             stops = getStopsFromCursorAllFields(result);
-
+            result.close();
         } catch(SQLiteException e) {
             Log.e(DEBUG_TAG, "SQLiteException occurred");
             e.printStackTrace();
             return stops;
+        }finally {
+            db.close();
         }
-
-        result.close();
-        db.close();
 
         return stops;
     }

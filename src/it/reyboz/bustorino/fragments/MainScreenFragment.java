@@ -318,6 +318,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
             requestArrivalsForStopID(pendingStopID);
             pendingStopID = null;
         }
+        mListener.readyGUIfor(FragmentKind.MAIN_SCREEN_FRAGMENT);
     }
 
     @Override
@@ -326,6 +327,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         locmgr = null;
         super.onPause();
     }
+
     /*
     GUI METHODS
      */
@@ -490,7 +492,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
                     prepareGUIForBusStops();
                     break;
                 default:
-                    Log.e("BusTO Activity", "Called readyGUI with unsupported type of Fragment");
+                    Log.d(DEBUG_TAG, "Fragment type is unknown");
                     return;
             }
         // Shows hints

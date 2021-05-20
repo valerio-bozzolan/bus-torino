@@ -32,12 +32,14 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.concurrent.TimeUnit;
 
+import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.DBUpdateWorker;
 import it.reyboz.bustorino.data.DatabaseUpdate;
 import it.reyboz.bustorino.fragments.FavoritesFragment;
 import it.reyboz.bustorino.fragments.FragmentKind;
 import it.reyboz.bustorino.fragments.FragmentListenerMain;
 import it.reyboz.bustorino.fragments.MainScreenFragment;
+import it.reyboz.bustorino.fragments.MapFragment;
 import it.reyboz.bustorino.middleware.GeneralActivity;
 
 import static it.reyboz.bustorino.backend.utils.getBusStopIDFromUri;
@@ -209,6 +211,10 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                         closeDrawerIfOpen();
                         showMainFragment();
                         return true;
+                    } else if(menuItem.getItemId() == R.id.nav_map_item){
+                        closeDrawerIfOpen();
+                        createAndShowMapFragment(null);
+                        return true;
                     }
                     //selectDrawerItem(menuItem);
                     Log.d(DEBUG_TAG, "pressed item "+menuItem.toString());
@@ -359,12 +365,42 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     public void showFloatingActionButton(boolean yes) {
         //TODO
     }
+    /*
+    public void setDrawerSelectedItem(String fragmentTag){
+        switch (fragmentTag){
+            case MainScreenFragment.FRAGMENT_TAG:
+                mNavView.setCheckedItem(R.id.nav_arrivals);
+                break;
+            case MapFragment.FRAGMENT_TAG:
+
+                break;
+
+            case FavoritesFragment.FRAGMENT_TAG:
+                mNavView.setCheckedItem(R.id.nav_favorites_item);
+                break;
+        }
+    }*/
 
     @Override
     public void readyGUIfor(FragmentKind fragmentType) {
         MainScreenFragment probableFragment = getMainFragmentIfVisible();
         if (probableFragment!=null){
             probableFragment.readyGUIfor(fragmentType);
+        }
+        switch (fragmentType){
+            case MAP:
+                mNavView.setCheckedItem(R.id.nav_map_item);
+                break;
+            case FAVORITES:
+                mNavView.setCheckedItem(R.id.nav_favorites_item);
+                break;
+            case ARRIVALS:
+            case NEARBY_STOPS:
+            case STOPS:
+            case MAIN_SCREEN_FRAGMENT:
+            case NEARBY_ARRIVALS:
+                mNavView.setCheckedItem(R.id.nav_arrivals);
+                break;
         }
     }
 
@@ -406,6 +442,17 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         if (probableFragment!=null){
             probableFragment.enableRefreshLayout(yes);
         }
+    }
+
+    //Map Fragment stuff
+    void createAndShowMapFragment(@Nullable Stop stop){
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        MapFragment fragment = stop == null? MapFragment.getInstance(): MapFragment.getInstance(stop);
+        ft.replace(R.id.mainActContentFrame, fragment, MapFragment.FRAGMENT_TAG);
+        ft.addToBackStack(null);
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        ft.commit();
     }
 
     class ToolbarItemClickListener implements Toolbar.OnMenuItemClickListener{
