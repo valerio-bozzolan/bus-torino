@@ -6,6 +6,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 
 public abstract class utils {
@@ -24,9 +25,15 @@ public abstract class utils {
         return Math.abs(EarthRadius*c);
 
     }
+    /*
     public static int convertDipToPixels(Context con,float dips)
     {
         return (int) (dips * con.getResources().getDisplayMetrics().density + 0.5f);
+    }
+     */
+
+    public static float convertDipToPixels(Context con, float dp){
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,con.getResources().getDisplayMetrics());
     }
     public static int calculateNumColumnsFromSize(View containerView, int pixelsize){
         int width = containerView.getWidth();

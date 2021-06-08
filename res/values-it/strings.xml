@@ -102,7 +102,7 @@
     <string name="settings_group_database">Gestione del database</string>
     <string name="settings_reset_database">Comincia aggiornamento manuale del database</string>
 
-
+    <string name="enable_position_message_map">Consenti l\'accesso alla posizione per mostrarla sulla mappa</string>
     <string name="enableGpsText">Abilitare il GPS</string>
     <string name="settings_search_radius">Raggio di ricerca</string>
     <string name="settings_experimental">Funzionalità sperimentali</string>
@@ -134,10 +134,11 @@
     <string name="too_many_permission_asks">Chiesto troppe volte per il permesso %1$s</string>
     <string name="permission_storage_maps_msg">Non si può usare questa funzionalità senza il permesso di archivio</string>
     <string name="storage_permission">di archivio</string>
-    <string name="message_crash">L\'app è andata in crash. Invia il report agli sviluppatori toccando OK.
-        \n Il report potrebbe contenere informazioni sulla tua configurazione del telefono, o sullo stato al momento del crash.
-        \n Tutte le informazioni sensibili nel report verranno utilizzate solo per scopi diagnostici dagli sviluppatori, e non verranno mai pubblicate e/o divulgate.</string>
-    <string name="acra_email_message">L\'applicazione è crashata, e il crash report è stato messo negli allegati. Se vuoi, descrivi cosa stavi facendo prima del crash: \n</string>
+    <string name="message_crash">Un bug ha fatto crashare l\'app!
+        \nPremi \"OK\" per inviare il report agli sviluppatori via email, così potranno scovare e risolvere il tuo bug!
+        \nIl report contiene piccole informazioni non sensibili sulla configurazione del tuo telefono e sullo stato dell\'app al momento del crash.
+    </string>
+    <string name="acra_email_message">L\'applicazione è crashata, e il crash report è stato messo negli allegati. Se vuoi, descrivi cosa stavi facendo prima che si interrompesse: \n</string>
     <string name="nav_arrivals_text">Arrivi</string>
     <string name="nav_map_text">Mappa</string>
     <string name="nav_favorites_text">Preferiti</string>
@@ -145,5 +146,7 @@
     <string name="drawer_close">Chiudi drawer</string>
     <string name="experiments">Esperimenti</string>
     <string name="donate_now">Offrici un caffè</string>
+    <string name="map">Mappa</string>
+    <string name="stop_search_view_title">Ricerca fermate</string>
 
 </resources>

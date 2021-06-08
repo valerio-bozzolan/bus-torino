@@ -17,13 +17,21 @@
  */
 package it.reyboz.bustorino.util;
 
+import android.location.Criteria;
+
 /**
  * Own Location Criteria, because it's fun
+ *
  */
-public class LocationCriteria {
+public class LocationCriteria extends Criteria {
     private final float minAccuracy;
     private final int timeInterval;
 
+    /**
+     * Constructor
+     * @param minAccuracy in meters
+     * @param timeInterval in milliseconds
+     */
     public LocationCriteria(float minAccuracy,int timeInterval){
         this.minAccuracy = minAccuracy;
         this.timeInterval = timeInterval;

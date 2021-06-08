@@ -2,12 +2,16 @@ package it.reyboz.bustorino.middleware;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import com.google.android.material.snackbar.Snackbar;
+
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +24,7 @@ import android.widget.Toast;
 import java.util.HashMap;
 
 import it.reyboz.bustorino.R;
+import it.reyboz.bustorino.backend.utils;
 
 /**
  * Activity class that contains all the generally useful methods
@@ -81,7 +86,7 @@ public abstract class GeneralActivity extends AppCompatActivity {
         synchronized (this){
             if (permissionAsked.containsKey(permission)){
                 num_trials = permissionAsked.get(permission);
-                if (num_trials != null && num_trials > 3)
+                if (num_trials != null && num_trials > 4)
                     alreadyAsked = true;
 
             }
@@ -121,4 +126,29 @@ public abstract class GeneralActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this,permissionstoRequest.toArray(new String[permissionstoRequest]));
     }
     */
+
+    //KEYBOARD STUFF
+    protected  View getRootView() {
+        return findViewById(android.R.id.content);
+    }
+
+    /**
+     * This method doesn't work, DO NOT USE
+     * @return if the keyboard is open
+     * TODO: fix this if you want
+     */
+    @Deprecated
+    public Boolean isKeyboardOpen(){
+        Rect visibleBounds = new Rect();
+        this.getRootView().getWindowVisibleDisplayFrame(visibleBounds);
+
+        double heightDiff = getRootView().getHeight() - visibleBounds.height();
+        final double marginOfError = Math.round(utils.convertDipToPixels(this,50f));
+        return heightDiff > marginOfError;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
 }

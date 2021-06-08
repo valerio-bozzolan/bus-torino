@@ -8,8 +8,11 @@ import android.location.Criteria;
 import android.location.LocationManager;
 import android.util.Log;
 
+import androidx.activity.result.ActivityResultCaller;
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 
 import java.util.List;
 
@@ -24,6 +27,9 @@ public class Permissions {
     final static public int PERMISSION_ASKING = 11;
     final static public int PERMISSION_NEG_CANNOT_ASK = -3;
 
+    final static public String[] LOCATION_PERMISSIONS={Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION};
+
     public static boolean anyLocationProviderMatchesCriteria(LocationManager mng, Criteria cr, boolean enabled) {
         List<String> providers = mng.getProviders(cr, enabled);
         Log.d(DEBUG_TAG, "Getting enabled location providers: ");
@@ -32,9 +38,18 @@ public class Permissions {
         }
         return providers.size() > 0;
     }
+    public static boolean isPermissionGranted(Context con,String permission){
+        return ContextCompat.checkSelfPermission(con, permission) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    public static boolean locationPermissionGranted(Context con){
+        return isPermissionGranted(con, Manifest.permission.ACCESS_FINE_LOCATION) &&
+                isPermissionGranted(con, Manifest.permission.ACCESS_COARSE_LOCATION);
+    }
 
     public static void assertLocationPermissions(Context con, Activity activity) {
-        if(ContextCompat.checkSelfPermission(con, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
+        if(!isPermissionGranted(con, Manifest.permission.ACCESS_FINE_LOCATION) ||
+                !isPermissionGranted(con,Manifest.permission.ACCESS_COARSE_LOCATION)){
             ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_POSITION);
         }
     }

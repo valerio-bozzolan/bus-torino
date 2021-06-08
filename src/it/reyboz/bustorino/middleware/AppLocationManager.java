@@ -17,7 +17,10 @@
  */
 package it.reyboz.bustorino.middleware;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -25,7 +28,11 @@ import android.location.LocationProvider;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
+
 import it.reyboz.bustorino.util.LocationCriteria;
+import it.reyboz.bustorino.util.Permissions;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -39,37 +46,42 @@ public class AppLocationManager implements LocationListener {
     public static final int LOCATION_GPS_AVAILABLE = 22;
     public static final int LOCATION_UNAVAILABLE = -22;
 
-    private Context con;
-    private LocationManager locMan;
+    private final Context appContext;
+    private final LocationManager locMan;
     public static final String DEBUG_TAG = "BUSTO LocAdapter";
     private final String BUNDLE_LOCATION =  "location";
     private static AppLocationManager instance;
     private int oldGPSLocStatus = LOCATION_UNAVAILABLE;
     private int minimum_time_milli = -1;
 
-    private ArrayList<WeakReference<LocationRequester>> requestersRef = new ArrayList<>();
+    private boolean isLocationPermissionGiven = false;
+
+    private final ArrayList<WeakReference<LocationRequester>> requestersRef = new ArrayList<>();
 
 
-    private AppLocationManager(Context con) {
-        this.con = con.getApplicationContext();
-        locMan  = (LocationManager) con.getSystemService(Context.LOCATION_SERVICE);
+    private AppLocationManager(Context context) {
+        this.appContext = context.getApplicationContext();
+        locMan  = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        isLocationPermissionGiven = checkLocationPermission(context);
     }
 
     public static AppLocationManager getInstance(Context con) {
-        if(instance==null) instance = new AppLocationManager(con.getApplicationContext());
+        if(instance==null) instance = new AppLocationManager(con);
         return instance;
+    }
+
+    public static boolean checkLocationPermission(Context context){
+        return ContextCompat.checkSelfPermission(context,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED;
     }
     
 
-    private void requestGPSPositionUpdates(){
+    private void requestGPSPositionUpdates() throws SecurityException{
         final int timeinterval = (minimum_time_milli>0 && minimum_time_milli<Integer.MAX_VALUE)? minimum_time_milli : 2000;
-        try {
-            locMan.removeUpdates(this);
-            locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, timeinterval, 5, this);
-        } catch (SecurityException exc){
-            exc.printStackTrace();
-            Toast.makeText(con,"Cannot access GPS location",Toast.LENGTH_SHORT).show();
-        }
+
+        locMan.removeUpdates(this);
+        locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, timeinterval, 5, this);
+
     }
     private void cleanAndUpdateRequesters(){
         minimum_time_milli = Integer.MAX_VALUE;
@@ -88,15 +100,19 @@ public class AppLocationManager implements LocationListener {
     public void addLocationRequestFor(LocationRequester req){
         boolean present = false;
         minimum_time_milli = Integer.MAX_VALUE;
+        int countNull = 0;
         ListIterator<WeakReference<LocationRequester>> iter = requestersRef.listIterator();
         while(iter.hasNext()){
             final LocationRequester cReq = iter.next().get();
-            if(cReq==null) iter.remove();
-            else if(cReq.equals(req)){
+            if(cReq==null) {
+                countNull++;
+                iter.remove();
+            } else if(cReq.equals(req)){
                 present = true;
                 minimum_time_milli = Math.min(cReq.getLocationCriteria().getTimeInterval(),minimum_time_milli);
             }
         }
+        Log.d(DEBUG_TAG, countNull+" listeners have been removed because null");
         if(!present) {
             WeakReference<LocationRequester> newref = new WeakReference<>(req);
             requestersRef.add(newref);
@@ -104,7 +120,7 @@ public class AppLocationManager implements LocationListener {
             Log.d(DEBUG_TAG,"Added new stop requester, instance of "+req.getClass().getSimpleName());
         }
         if(requestersRef.size()>0){
-            Log.d(DEBUG_TAG,"Requesting position updates");
+            Log.d(DEBUG_TAG,"Requesting location updates");
             requestGPSPositionUpdates();
 
         }
@@ -133,6 +149,12 @@ public class AppLocationManager implements LocationListener {
             if(cReq==null) iter.remove();
             else cReq.onLocationStatusChanged(status);
         }
+    }
+    public boolean isRequesterRegistered(LocationRequester requester){
+        for(WeakReference<LocationRequester> regRef: requestersRef){
+            if(regRef.get()!=null && regRef.get() ==requester) return true;
+        }
+        return false;
     }
 
     @Override
@@ -176,21 +198,35 @@ public class AppLocationManager implements LocationListener {
             }
                 oldGPSLocStatus = status;
             }
-        Log.d(DEBUG_TAG, "Provider: "+provider+" status: "+status);
+        Log.d(DEBUG_TAG, "Provider status changed: "+provider+" status: "+status);
     }
 
     @Override
     public void onProviderEnabled(String provider) {
+        cleanAndUpdateRequesters();
         requestGPSPositionUpdates();
         Log.d(DEBUG_TAG, "Provider: "+provider+" enabled");
+        for(WeakReference<LocationRequester> req: requestersRef){
+            if(req.get()==null) continue;
+            req.get().onLocationProviderAvailable();
+        }
+
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-        locMan.removeUpdates(this);
+        cleanAndUpdateRequesters();
+        for(WeakReference<LocationRequester> req: requestersRef){
+            if(req.get()==null) continue;
+            req.get().onLocationDisabled();
+        }
+        //locMan.removeUpdates(this);
         Log.d(DEBUG_TAG, "Provider: "+provider+" disabled");
     }
 
+    public boolean anyLocationProviderMatchesCriteria(Criteria cr) {
+        return Permissions.anyLocationProviderMatchesCriteria(locMan, cr, true);
+    }
     /**
      * Interface to be implemented to get the location request
      */
@@ -206,6 +242,16 @@ public class AppLocationManager implements LocationListener {
          * @param status new status
          */
         void onLocationStatusChanged(int status);
+
+        /**
+         * We have a location provider available
+         */
+        void onLocationProviderAvailable();
+        /**
+         * Called when location is disabled
+         */
+        void onLocationDisabled();
+
 
         /**
          * Give the last time of update the requester has

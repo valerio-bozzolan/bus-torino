@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name" translatable="false">BusTO</string>
+    <string name="app_name_full" translatable="false">Libre BusTO</string>
     <string name="app_name_debug" translatable="false">BusTO Debug</string>
     <string name="app_description">You\'re using the latest in technology when it comes to respecting your privacy.
     </string>
@@ -115,6 +116,7 @@
     <string name="settings_group_database">Database management</string>
     <string name="settings_reset_database">Launch manual database update</string>
 
+    <string name="enable_position_message_map">Allow access to position to show it on the map</string>
     <string name="enableGpsText">Please enable GPS</string>
     <string name="database_update_message">Database update in progress&#8230;</string>
     <string name="bus_arriving_at">is arriving at</string>
@@ -147,10 +149,9 @@
     <string name="too_many_permission_asks">Asked for %1$s permission too many times</string>
     <string name="permission_storage_maps_msg">Cannot use the map with the storage permission!</string>
     <string name="storage_permission">storage</string>
-    <string name="message_crash">The application has crashed. If you want, you can send the send the report via email to
-        the developers by pressing \"OK\".
-        \n Note that sensitive information may be contained in the report, and if so, it will be only used for
-        diagnostic purposes by the developers, and never published.
+    <string name="message_crash">The application has crashed because you encountered a bug.
+        \nIf you want, you can help the developers by sending the crash report via email.
+        \nNote that no sensitive data is contained in the report, just small bits of info on your phone and app configuration/state.
     </string>
     <string name="acra_email_message">The application crashed and the crash report is in the attachments. Please
         describe what you were doing before the crash: \n
@@ -162,4 +163,6 @@
     <string name="drawer_close">Close navigation drawer</string>
     <string name="experiments">Experiments</string>
     <string name="donate_now">Buy us a coffee</string>
+    <string name="map">Map</string>
+    <string name="stop_search_view_title">Search by stop</string>
 </resources>

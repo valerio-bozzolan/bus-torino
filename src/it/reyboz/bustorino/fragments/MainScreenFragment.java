@@ -5,12 +5,12 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.os.Build;
 import android.os.Bundle;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageButton;
@@ -38,6 +38,8 @@ import android.widget.Toast;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.zxing.integration.android.IntentIntegrator;
 
+import java.util.Map;
+
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.ArrivalsFetcher;
 import it.reyboz.bustorino.backend.FiveTAPIFetcher;
@@ -45,11 +47,14 @@ import it.reyboz.bustorino.backend.FiveTScraperFetcher;
 import it.reyboz.bustorino.backend.FiveTStopsFetcher;
 import it.reyboz.bustorino.backend.GTTJSONFetcher;
 import it.reyboz.bustorino.backend.GTTStopsFetcher;
+import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.StopsFinderByName;
+import it.reyboz.bustorino.middleware.AppLocationManager;
 import it.reyboz.bustorino.middleware.AsyncDataDownload;
+import it.reyboz.bustorino.util.LocationCriteria;
 import it.reyboz.bustorino.util.Permissions;
 
-import static android.content.Context.LOCATION_SERVICE;
+import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSIONS;
 import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSION_GIVEN;
 
 
@@ -112,14 +117,74 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         }
     };
 
-
-
-
     /// LOCATION STUFF ///
     boolean pendingNearbyStopsRequest = false;
-    LocationManager locmgr;
+    boolean locationPermissionGranted, locationPermissionAsked = false;
+    AppLocationManager locationManager;
 
-    private final Criteria cr = new Criteria();
+
+    private final LocationCriteria cr = new LocationCriteria(2000, 10000);
+    //Location
+    private AppLocationManager.LocationRequester requester = new AppLocationManager.LocationRequester() {
+        @Override
+        public void onLocationChanged(Location loc) {
+
+        }
+
+        @Override
+        public void onLocationStatusChanged(int status) {
+
+            if(status == AppLocationManager.LOCATION_GPS_AVAILABLE && !isNearbyFragmentShown()){
+                //request Stops
+                pendingNearbyStopsRequest = false;
+
+                mainHandler.post(new NearbyStopsRequester(getContext(), cr));
+            }
+        }
+
+        @Override
+        public long getLastUpdateTimeMillis() {
+            return 50;
+        }
+
+        @Override
+        public LocationCriteria getLocationCriteria() {
+            return cr;
+        }
+
+        @Override
+        public void onLocationProviderAvailable() {
+            //Log.w(DEBUG_TAG, "pendingNearbyStopRequest: "+pendingNearbyStopsRequest);
+            if(!isNearbyFragmentShown()){
+                pendingNearbyStopsRequest = false;
+                mainHandler.post(new NearbyStopsRequester(getContext(), cr));
+            }
+        }
+
+        @Override
+        public void onLocationDisabled() {
+
+        }
+    };
+    private final ActivityResultLauncher<String[]> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
+                @Override
+                public void onActivityResult(Map<String, Boolean> result) {
+                    if(result==null || result.get(Manifest.permission.ACCESS_COARSE_LOCATION) == null
+                    ||result.get(Manifest.permission.ACCESS_FINE_LOCATION) ) return;
+
+                    if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) && result.get(Manifest.permission.ACCESS_FINE_LOCATION)){
+                        locationPermissionGranted = true;
+                        Log.w(DEBUG_TAG, "Starting position");
+                        if (mListener!= null && getContext()!=null){
+                            if (locationManager==null)
+                                locationManager = AppLocationManager.getInstance(getContext());
+                            locationManager.addLocationRequestFor(requester);
+                        }
+                    }
+                }
+            });
+
 
     //// ACTIVITY ATTACHED (LISTENER ///
     private CommonFragmentListener mListener;
@@ -208,7 +273,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         cr.setCostAllowed(true);
         cr.setPowerRequirement(Criteria.NO_REQUIREMENT);
 
-        locmgr = (LocationManager) getContext().getSystemService(LOCATION_SERVICE);
+       locationManager = AppLocationManager.getInstance(getContext());
 
         Log.d(DEBUG_TAG, "OnCreateView, savedInstanceState null: "+(savedInstanceState==null));
 
@@ -272,15 +337,14 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         if (setupOnAttached) {
             if (pendingStopID==null)
             //We want the nearby bus stops!
-            mainHandler.post(new NearbyStopsRequester(getContext(), cr, locListener));
+            mainHandler.post(new NearbyStopsRequester(context, cr));
             else{
                 ///TODO: if there is a stop displayed, we need to hold the update
             }
-            //If there are no providers available, then, wait for them
 
             setupOnAttached = false;
-        } else {
         }
+
 
     }
     @Override
@@ -295,8 +359,24 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
     public void onResume() {
 
         final Context con = getContext();
-        if (con != null)
-            locmgr = (LocationManager) getContext().getSystemService(LOCATION_SERVICE);
+        Log.w(DEBUG_TAG, "OnResume called");
+        if (con != null) {
+            if(locationManager==null)
+                locationManager = AppLocationManager.getInstance(con);
+
+            if(Permissions.locationPermissionGranted(con)){
+                Log.d(DEBUG_TAG, "Location permission OK");
+                if(!locationManager.isRequesterRegistered(requester))
+                    locationManager.addLocationRequestFor(requester);
+            } else if(shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)){
+                //we have already asked for the location, and we should show an explanation in order
+                // to ask again (TODO)
+                //do nothing
+            } else{
+                //request permission
+                requestPermissionLauncher.launch(Permissions.LOCATION_PERMISSIONS);
+            }
+        }
         else {
             Log.w(DEBUG_TAG, "Context is null at onResume");
         }
@@ -324,7 +404,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
     @Override
     public void onPause() {
         //mainHandler = null;
-        locmgr = null;
+        locationManager.removeLocationRequestFor(requester);
         super.onPause();
     }
 
@@ -384,10 +464,8 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
     }
 
     ////////////////////////////////////// GUI HELPERS /////////////////////////////////////////////
-
     public void showKeyboard() {
-        if (getActivity() == null)
-            return;
+        if(getActivity() == null) return;
         InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         View view = searchMode == SEARCH_BY_ID ? busStopSearchByIDEditText : busStopSearchByNameEditText;
         imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
@@ -407,6 +485,10 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         busStopSearchByIDEditText.setText("");
         busStopSearchByNameEditText.setVisibility(View.VISIBLE);
         floatingActionButton.setImageResource(R.drawable.numeric);
+    }
+    protected boolean isNearbyFragmentShown(){
+        Fragment fragment = getChildFragmentManager().findFragmentByTag(NearbyStopsFragment.FRAGMENT_TAG);
+        return (fragment!= null && fragment.isVisible());
     }
 
     /**
@@ -456,6 +538,17 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         //actionHelpMenuItem.setVisible(false);
     }
 
+    void showNearbyStopsFragment(){
+        swipeRefreshLayout.setVisibility(View.VISIBLE);
+        NearbyStopsFragment fragment = NearbyStopsFragment.newInstance(NearbyStopsFragment.TYPE_STOPS);
+        Fragment oldFrag = fragMan.findFragmentById(R.id.resultFrame);
+        FragmentTransaction ft = fragMan.beginTransaction();
+        if (oldFrag != null)
+            ft.remove(oldFrag);
+        ft.add(R.id.resultFrame, fragment, NearbyStopsFragment.FRAGMENT_TAG);
+        ft.commit();
+    }
+
 
     @Override
     public void showFloatingActionButton(boolean yes) {
@@ -475,7 +568,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
 
         //if we are getting results, already, stop waiting for nearbyStops
         if (pendingNearbyStopsRequest && (fragmentType == FragmentKind.ARRIVALS || fragmentType == FragmentKind.STOPS)) {
-            locmgr.removeUpdates(locListener);
+            locationManager.removeLocationRequestFor(requester);
             pendingNearbyStopsRequest = false;
         }
 
@@ -538,38 +631,16 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         }
     }
     /////////// LOCATION METHODS //////////
-    final LocationListener locListener = new LocationListener() {
-        @Override
-        public void onLocationChanged(Location location) {
-            Log.d(DEBUG_TAG, "Location changed");
-        }
 
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-            Log.d(DEBUG_TAG, "Location provider status: " + status);
-            if (status == LocationProvider.AVAILABLE) {
-                resolveStopRequest(provider);
-            }
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-            resolveStopRequest(provider);
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-
-        }
-    };
-
-    private void resolveStopRequest(String provider) {
+    /*
+    private void startStopRequest(String provider) {
         Log.d(DEBUG_TAG, "Provider " + provider + " got enabled");
         if (locmgr != null && mainHandler != null && pendingNearbyStopsRequest && locmgr.getProvider(provider).meetsCriteria(cr)) {
-            pendingNearbyStopsRequest = false;
-            mainHandler.post(new NearbyStopsRequester(getContext(), cr, locListener));
+
         }
     }
+
+     */
 
     /**
      * Run location requests separately and asynchronously
@@ -577,26 +648,31 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
     class NearbyStopsRequester implements Runnable {
         Context appContext;
         Criteria cr;
-        LocationListener listener;
 
-        public NearbyStopsRequester(Context appContext, Criteria criteria, LocationListener listener) {
+        public NearbyStopsRequester(Context appContext, Criteria criteria) {
             this.appContext = appContext.getApplicationContext();
             this.cr = criteria;
-            this.listener = listener;
         }
 
         @Override
         public void run() {
-            final boolean canRunPosition = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || getOption(LOCATION_PERMISSION_GIVEN, false);
+            if(isNearbyFragmentShown()) {
+                //nothing to do
+                Log.w(DEBUG_TAG, "launched nearby fragment request but we already are showing");
+                return;
+            }
+
+            final boolean isOldVersion = Build.VERSION.SDK_INT < Build.VERSION_CODES.M;
             final boolean noPermission = ActivityCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                     ActivityCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED;
 
             //if we don't have the permission, we have to ask for it, if we haven't
             // asked too many times before
             if (noPermission) {
-                if (!canRunPosition) {
+                if (!isOldVersion) {
                     pendingNearbyStopsRequest = true;
-                    Permissions.assertLocationPermissions(appContext,getActivity());
+                    //Permissions.assertLocationPermissions(appContext,getActivity());
+                    requestPermissionLauncher.launch(LOCATION_PERMISSIONS);
                     Log.w(DEBUG_TAG, "Cannot get position: Asking permission, noPositionFromSys: " + noPermission);
                     return;
                 } else {
@@ -604,32 +680,17 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
                 }
             } else setOption(LOCATION_PERMISSION_GIVEN, true);
 
-            LocationManager locManager = (LocationManager) appContext.getSystemService(LOCATION_SERVICE);
-            if (locManager == null) {
-                Log.e(DEBUG_TAG, "location manager is nihil, cannot create NearbyStopsFragment");
-                return;
-            }
-            if (Permissions.anyLocationProviderMatchesCriteria(locManager, cr, true)
+            AppLocationManager appLocationManager = AppLocationManager.getInstance(appContext);
+            final boolean haveProviders = appLocationManager.anyLocationProviderMatchesCriteria(cr);
+            if (haveProviders
                     && fragmentHelper.getLastSuccessfullySearchedBusStop() == null
                     && !fragMan.isDestroyed()) {
                 //Go ahead with the request
                 Log.d("mainActivity", "Recreating stop fragment");
-                swipeRefreshLayout.setVisibility(View.VISIBLE);
-                NearbyStopsFragment fragment = NearbyStopsFragment.newInstance(NearbyStopsFragment.TYPE_STOPS);
-                Fragment oldFrag = fragMan.findFragmentById(R.id.resultFrame);
-                FragmentTransaction ft = fragMan.beginTransaction();
-                if (oldFrag != null)
-                    ft.remove(oldFrag);
-                ft.add(R.id.resultFrame, fragment, "nearbyStop_correct");
-                ft.commit();
-                //fragMan.executePendingTransactions();
+                showNearbyStopsFragment();
                 pendingNearbyStopsRequest = false;
-            } else if (!Permissions.anyLocationProviderMatchesCriteria(locManager, cr, true)) {
-                //Wait for the providers
-                Log.d(DEBUG_TAG, "Queuing position request");
-                pendingNearbyStopsRequest = true;
-
-                locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10, 0.1f, listener);
+            } else if(!haveProviders){
+                Log.e(DEBUG_TAG, "NO PROVIDERS FOR POSITION");
             }
 
         }

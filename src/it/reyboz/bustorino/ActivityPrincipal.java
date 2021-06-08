@@ -1,13 +1,16 @@
 package it.reyboz.bustorino;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,6 +33,7 @@ import androidx.work.WorkManager;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import it.reyboz.bustorino.backend.Stop;
@@ -82,10 +86,31 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         drawerToggle.syncState();
         mDrawer.addDrawerListener(drawerToggle);
 
+        mDrawer.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
+
+            }
+
+            @Override
+            public void onDrawerOpened(@NonNull View drawerView) {
+                hideKeyboard();
+            }
+
+            @Override
+            public void onDrawerClosed(@NonNull View drawerView) {
+
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+            }
+        });
+
+
         mNavView = findViewById(R.id.nvView);
 
         setupDrawerContent(mNavView);
-
 
         /// LEGACY CODE
         //---------------------------- START INTENT CHECK QUEUE ------------------------------------
@@ -135,8 +160,6 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             requestArrivalsForStopID(busStopID);
         }
         //Try (hopefully) database update
-
-
         PeriodicWorkRequest wr = new PeriodicWorkRequest.Builder(DBUpdateWorker.class, 1, TimeUnit.DAYS)
                 .setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.MINUTES)
                 .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
@@ -189,6 +212,11 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         return new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.drawer_open,  R.string.drawer_close);
 
     }
+
+    /**
+     * Setup drawer actions
+     * @param navigationView the navigation view on which to set the callbacks
+     */
     private void setupDrawerContent(NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(
                 menuItem -> {
@@ -213,7 +241,21 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                         return true;
                     } else if(menuItem.getItemId() == R.id.nav_map_item){
                         closeDrawerIfOpen();
-                        createAndShowMapFragment(null);
+                        final String permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+                        int result = askForPermissionIfNeeded(permission, STORAGE_PERMISSION_REQ);
+                        switch (result) {
+                            case PERMISSION_OK:
+                                createAndShowMapFragment(null);
+                                break;
+                            case PERMISSION_ASKING:
+                                permissionDoneRunnables.put(permission,
+                                        () -> createAndShowMapFragment(null));
+                                break;
+                            case PERMISSION_NEG_CANNOT_ASK:
+                                String storage_perm = getString(R.string.storage_permission);
+                                String text = getString(R.string.too_many_permission_asks,  storage_perm);
+                                Toast.makeText(getApplicationContext(),text, Toast.LENGTH_LONG).show();
+                        }
                         return true;
                     }
                     //selectDrawerItem(menuItem);
@@ -254,6 +296,27 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.extra_menu_items, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode==STORAGE_PERMISSION_REQ){
+            final String storagePerm = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(DEBUG_TAG, "Permissions check: " + Arrays.toString(permissions));
+
+                if (permissionDoneRunnables.containsKey(storagePerm)) {
+                    Runnable toRun = permissionDoneRunnables.get(storagePerm);
+                    if (toRun != null)
+                        toRun.run();
+                    permissionDoneRunnables.remove(storagePerm);
+                }
+            } else {
+                //permission denied
+                showToastMessage(R.string.permission_storage_maps_msg, false);
+            }
+        }
     }
 
     @Override
@@ -387,21 +450,35 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         if (probableFragment!=null){
             probableFragment.readyGUIfor(fragmentType);
         }
+        int titleResId;
         switch (fragmentType){
             case MAP:
                 mNavView.setCheckedItem(R.id.nav_map_item);
+                titleResId = R.string.map;
                 break;
             case FAVORITES:
                 mNavView.setCheckedItem(R.id.nav_favorites_item);
+                titleResId = R.string.nav_favorites_text;
                 break;
             case ARRIVALS:
-            case NEARBY_STOPS:
-            case STOPS:
-            case MAIN_SCREEN_FRAGMENT:
-            case NEARBY_ARRIVALS:
+                titleResId = R.string.nav_arrivals_text;
                 mNavView.setCheckedItem(R.id.nav_arrivals);
                 break;
+            case STOPS:
+                titleResId = R.string.stop_search_view_title;
+                mNavView.setCheckedItem(R.id.nav_arrivals);
+                break;
+            case MAIN_SCREEN_FRAGMENT:
+            case NEARBY_STOPS:
+            case NEARBY_ARRIVALS:
+                titleResId=R.string.app_name_full;
+                mNavView.setCheckedItem(R.id.nav_arrivals);
+                break;
+            default:
+                titleResId = 0;
         }
+        if(getSupportActionBar()!=null && titleResId!=0)
+            getSupportActionBar().setTitle(titleResId);
     }
 
     @Override

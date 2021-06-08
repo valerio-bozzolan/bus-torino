@@ -1,9 +1,9 @@
 package it.reyboz.bustorino.fragments;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
@@ -13,10 +13,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.preference.PreferenceManager;
 
@@ -40,6 +43,7 @@ import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Stop;
@@ -47,8 +51,7 @@ import it.reyboz.bustorino.data.NextGenDB;
 import it.reyboz.bustorino.map.CustomInfoWindow;
 import it.reyboz.bustorino.map.LocationOverlay;
 import it.reyboz.bustorino.middleware.GeneralActivity;
-
-import static it.reyboz.bustorino.util.Permissions.PERMISSION_REQUEST_POSITION;
+import it.reyboz.bustorino.util.Permissions;
 
 public class MapFragment extends BaseFragment {
 
@@ -107,6 +110,30 @@ public class MapFragment extends BaseFragment {
             followingLocation=true;
         }
     };
+
+    private final ActivityResultLauncher<String[]> positionRequestLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
+                @Override
+                @SuppressLint("MissingPermission")
+                public void onActivityResult(Map<String, Boolean> result) {
+                    if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) && result.get(Manifest.permission.ACCESS_FINE_LOCATION)){
+
+                        map.getOverlays().remove(mLocationOverlay);
+                        startLocationOverlay(true);
+                        if(getContext()==null || getContext().getSystemService(Context.LOCATION_SERVICE)==null)
+                            return;
+                        LocationManager locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+                        Location userLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        if (userLocation != null) {
+                            map.getController().setZoom(POSITION_FOUND_ZOOM);
+                            GeoPoint startPoint = new GeoPoint(userLocation);
+                            setLocationFollowing(true);
+                            map.getController().setCenter(startPoint);
+                        }
+                    }
+                    else Log.w(DEBUG_TAG,"No location permission");
+                }
+            });
 
     public MapFragment() {
     }
@@ -181,13 +208,21 @@ public class MapFragment extends BaseFragment {
 
         btCenterMap.setOnClickListener(v -> {
             //Log.i(TAG, "centerMap clicked ");
-            final GeoPoint myPosition = mLocationOverlay.getMyLocation();
-            map.getController().animateTo(myPosition);
+            if(Permissions.locationPermissionGranted(getContext())) {
+                final GeoPoint myPosition = mLocationOverlay.getMyLocation();
+                map.getController().animateTo(myPosition);
+            } else
+                Toast.makeText(getContext(), R.string.enable_position_message_map, Toast.LENGTH_SHORT)
+                        .show();
         });
 
         btFollowMe.setOnClickListener(v -> {
             //Log.i(TAG, "btFollowMe clicked ");
-            switchLocationFollowing(!followingLocation);
+            if(Permissions.locationPermissionGranted(getContext()))
+                setLocationFollowing(!followingLocation);
+            else
+                Toast.makeText(getContext(), R.string.enable_position_message_map, Toast.LENGTH_SHORT)
+                    .show();
         });
 
         return root;
@@ -261,8 +296,11 @@ public class MapFragment extends BaseFragment {
      * Switch following the location on and off
      * @param value true if we want to follow location
      */
-    public void switchLocationFollowing(Boolean value){
+    public void setLocationFollowing(Boolean value){
         followingLocation = value;
+        if(mLocationOverlay==null || getContext() == null)
+            //nothing else to do
+            return;
         if (value){
             mLocationOverlay.enableFollowLocation();
         } else {
@@ -280,6 +318,26 @@ public class MapFragment extends BaseFragment {
         else
             btFollowMe.setImageResource(R.drawable.ic_follow_me);
 
+    }
+
+    /**
+     * Start the location overlay. Enable only when
+     * a) we know we have the permission
+     * b) the location map is set
+     */
+    private void startLocationOverlay(boolean enableLocation){
+        if(getActivity()== null) throw new IllegalStateException("Cannot enable LocationOverlay now");
+        // Location Overlay
+        // from OpenBikeSharing (THANK GOD)
+        Log.d(DEBUG_TAG, "Starting position overlay");
+        GpsMyLocationProvider imlp = new GpsMyLocationProvider(getActivity().getBaseContext());
+        imlp.setLocationUpdateMinDistance(5);
+        imlp.setLocationUpdateMinTime(2000);
+        this.mLocationOverlay = new LocationOverlay(imlp,map, locationCallbacks);
+        if (enableLocation) mLocationOverlay.enableMyLocation();
+        mLocationOverlay.setOptionsMenuEnabled(true);
+
+        map.getOverlays().add(this.mLocationOverlay);
     }
 
     public void startMap(Bundle incoming, Bundle savedInstanceState) {
@@ -312,52 +370,48 @@ public class MapFragment extends BaseFragment {
         IMapController mapController = map.getController();
         GeoPoint startPoint = null;
 
-        boolean havePositionPermission = true;
-
-        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            activity.askForPermissionIfNeeded(Manifest.permission.ACCESS_FINE_LOCATION, PERMISSION_REQUEST_POSITION);
-            havePositionPermission = false;
-        }
-        // Location Overlay
-        // from OpenBikeSharing (THANK GOD)
-        GpsMyLocationProvider imlp = new GpsMyLocationProvider(activity.getBaseContext());
-        imlp.setLocationUpdateMinDistance(5);
-        imlp.setLocationUpdateMinTime(2000);
-        this.mLocationOverlay = new LocationOverlay(imlp,map, locationCallbacks);
-        mLocationOverlay.enableMyLocation();
-        mLocationOverlay.setOptionsMenuEnabled(true);
-
+        // set the center point
         if (marker != null) {
             startPoint = marker;
             mapController.setZoom(POSITION_FOUND_ZOOM);
-            switchLocationFollowing(false);
+            setLocationFollowing(false);
         } else if (savedInstanceState != null) {
             mapController.setZoom(savedInstanceState.getDouble(MAP_CURRENT_ZOOM_KEY));
             mapController.setCenter(new GeoPoint(savedInstanceState.getDouble(MAP_CENTER_LAT_KEY),
                     savedInstanceState.getDouble(MAP_CENTER_LON_KEY)));
             Log.d(DEBUG_TAG, "Location following from savedInstanceState: "+savedInstanceState.getBoolean(FOLLOWING_LOCAT_KEY));
-            switchLocationFollowing(savedInstanceState.getBoolean(FOLLOWING_LOCAT_KEY));
+            setLocationFollowing(savedInstanceState.getBoolean(FOLLOWING_LOCAT_KEY));
         } else {
             Log.d(DEBUG_TAG, "No position found from intent or saved state");
             boolean found = false;
             LocationManager locationManager =
                     (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
-            if (locationManager != null) {
+            //check for permission
+            if (locationManager != null && Permissions.locationPermissionGranted(activity)) {
 
+                @SuppressLint("MissingPermission")
                 Location userLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                 if (userLocation != null) {
                     mapController.setZoom(POSITION_FOUND_ZOOM);
                     startPoint = new GeoPoint(userLocation);
                     found = true;
-                    switchLocationFollowing(true);
+                    setLocationFollowing(true);
                 }
+            } else if(!Permissions.locationPermissionGranted(activity)){
+                if(shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)){
+                    //TODO: show dialog for permission rationale
+                    Toast.makeText(activity, R.string.enable_position_message_map, Toast.LENGTH_SHORT).show();
+                }
+                    positionRequestLauncher.launch(Permissions.LOCATION_PERMISSIONS);
+
             }
             if(!found){
                 startPoint = new GeoPoint(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON);
-                mapController.setZoom(16.0);
-                switchLocationFollowing(false);
+                mapController.setZoom(17.0);
+                setLocationFollowing(false);
             }
         }
+        startLocationOverlay(Permissions.locationPermissionGranted(activity));
 
         // set the minimum zoom level
         map.setMinZoomLevel(15.0);
@@ -365,10 +419,6 @@ public class MapFragment extends BaseFragment {
         if (startPoint != null) {
             mapController.setCenter(startPoint);
         }
-
-
-
-        map.getOverlays().add(this.mLocationOverlay);
 
         //add stops overlay
         map.getOverlays().add(this.stopsFolderOverlay);

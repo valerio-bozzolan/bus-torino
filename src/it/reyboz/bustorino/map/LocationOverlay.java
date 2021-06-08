@@ -44,6 +44,7 @@ public class LocationOverlay extends MyLocationNewOverlay {
 
     @Override
     public void disableFollowLocation() {
+
         super.disableFollowLocation();
         callbacks.onDisableFollowMyLocation();
     }

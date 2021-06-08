@@ -185,6 +185,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             }
         });
         String displayName = getArguments().getString(STOP_TITLE);
+        if(displayName!=null)
         setTextViewMessage(String.format(
                 getString(R.string.passages), displayName));
 

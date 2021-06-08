@@ -14,5 +14,6 @@
     <color name="accent">#009688</color>-->
     <color name="metro_red">#DE0908</color>
     <color name="blue_extraurbano">#2060DD</color>
+    <color name="white">#FFFFFF</color>
 
 </resources>

@@ -1,5 +1,7 @@
 package it.reyboz.bustorino.fragments;
 
+import android.view.View;
+
 public interface CommonFragmentListener {
 
 

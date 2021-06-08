@@ -23,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import it.reyboz.bustorino.ActivityFavorites;
@@ -93,6 +94,8 @@ public class FavoritesFragment extends BaseFragment {
 
         FavoritesViewModel model = new ViewModelProvider(this).get(FavoritesViewModel.class);
         model.getFavorites().observe(getViewLifecycleOwner(), this::showStops);
+
+        showStops(new ArrayList<>());
         return root;
     }
     @Override

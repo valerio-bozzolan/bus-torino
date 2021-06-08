@@ -68,6 +68,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     public final static int TYPE_STOPS = 19, TYPE_ARRIVALS = 20;
     private int fragment_type;
 
+    public final static String FRAGMENT_TAG="NearbyStopsFrag";
+
     //data Bundle
     private final String BUNDLE_LOCATION =  "location";
     private final int LOADER_ID = 0;
@@ -135,12 +137,13 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        if (getContext() == null) throw new RuntimeException();
         View root = inflater.inflate(R.layout.fragment_nearby_stops, container, false);
         gridRecyclerView = root.findViewById(R.id.stopGridRecyclerView);
-        gridLayoutManager = new AutoFitGridLayoutManager(getContext().getApplicationContext(), utils.convertDipToPixels(getContext(),COLUMN_WIDTH_DP));
+        gridLayoutManager = new AutoFitGridLayoutManager(getContext().getApplicationContext(), Float.valueOf(utils.convertDipToPixels(getContext(),COLUMN_WIDTH_DP)).intValue());
         gridRecyclerView.setLayoutManager(gridLayoutManager);
         gridRecyclerView.setHasFixedSize(false);
         circlingProgressBar = root.findViewById(R.id.loadingBar);
@@ -226,7 +229,6 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
                     + " must implement OnFragmentInteractionListener");
         }
         Log.d(DEBUG_TAG, "OnAttach called");
-
     }
 
     @Override
@@ -408,6 +410,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             gridRecyclerView.setVisibility(View.VISIBLE);
         }
         messageTextView.setVisibility(View.GONE);
+
+        if(mListener!=null) mListener.readyGUIfor(FragmentKind.NEARBY_STOPS);
     }
 
     private void showArrivalsInRecycler(List<Palina> palinas){
@@ -434,6 +438,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         //arrivalsStopAdapter.notifyDataSetChanged();
 
         showRecyclerHidingLoadMessage();
+        if(mListener!=null) mListener.readyGUIfor(FragmentKind.NEARBY_ARRIVALS);
+
     }
 
     private void setNoStopsLayout(){
@@ -601,7 +607,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         @Override
         public LocationCriteria getLocationCriteria() {
 
-            return new LocationCriteria(60,TIME_INTERVAL_REQUESTS);
+            return new LocationCriteria(120,TIME_INTERVAL_REQUESTS);
         }
 
         @Override
@@ -610,6 +616,16 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         }
         void resetUpdateTime(){
             lastUpdateTime = -1;
+        }
+
+        @Override
+        public void onLocationProviderAvailable() {
+
+        }
+
+        @Override
+        public void onLocationDisabled() {
+
         }
     }
 
