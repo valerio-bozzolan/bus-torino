@@ -9,6 +9,9 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 public abstract class utils {
     private static final double EarthRadius = 6371e3;
     public static Double measuredistanceBetween(double lat1,double long1,double lat2,double long2){
@@ -102,5 +105,26 @@ public abstract class utils {
     public static void openIceweasel(String url, Context context) {
         Intent browserIntent1 = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         context.startActivity(browserIntent1);
+    }
+    /**
+     * Print the first i lines of the the trace of an exception
+     * https://stackoverflow.com/questions/21706722/fetch-only-first-n-lines-of-a-stack-trace
+     */
+    public static String traceCaller(Exception ex, int i) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        StringBuilder sb = new StringBuilder();
+        ex.printStackTrace(pw);
+        String ss = sw.toString();
+        String[] splitted = ss.split("\n");
+        sb.append("\n");
+        if(splitted.length > 2 + i) {
+            for(int x = 2; x < i+2; x++) {
+                sb.append(splitted[x].trim());
+                sb.append("\n");
+            }
+            return sb.toString();
+        }
+        return "Trace too Short.";
     }
 }

@@ -78,6 +78,8 @@ public class MapFragment extends BaseFragment {
     protected FragmentListenerMain listenerMain;
 
     private HashSet<String> shownStops = null;
+    //the asynctask used to get the stops from the database
+    private AsyncStopFetcher stopFetcher = null;
 
 
     private MapView map = null;
@@ -119,7 +121,7 @@ public class MapFragment extends BaseFragment {
                     if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) && result.get(Manifest.permission.ACCESS_FINE_LOCATION)){
 
                         map.getOverlays().remove(mLocationOverlay);
-                        startLocationOverlay(true);
+                        startLocationOverlay(true, map);
                         if(getContext()==null || getContext().getSystemService(Context.LOCATION_SERVICE)==null)
                             return;
                         LocationManager locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
@@ -151,7 +153,7 @@ public class MapFragment extends BaseFragment {
 
         return fragment;
     }
-    public static MapFragment getInstance(Stop stop){
+    public static MapFragment getInstance(@NonNull Stop stop){
         return getInstance(stop.getLatitude(), stop.getLongitude(), stop.getStopDisplayName(), stop.ID);
     }
 
@@ -251,6 +253,10 @@ public class MapFragment extends BaseFragment {
     public void onPause() {
         super.onPause();
         saveMapState();
+        //cancel asynctask
+        Log.w(DEBUG_TAG, "On pause called");
+        if (stopFetcher!= null)
+            stopFetcher.cancel(true);
     }
 
     /**
@@ -298,7 +304,7 @@ public class MapFragment extends BaseFragment {
      */
     public void setLocationFollowing(Boolean value){
         followingLocation = value;
-        if(mLocationOverlay==null || getContext() == null)
+        if(mLocationOverlay==null || getContext() == null || map ==null)
             //nothing else to do
             return;
         if (value){
@@ -321,11 +327,11 @@ public class MapFragment extends BaseFragment {
     }
 
     /**
-     * Start the location overlay. Enable only when
+     * Build the location overlay. Enable only when
      * a) we know we have the permission
      * b) the location map is set
      */
-    private void startLocationOverlay(boolean enableLocation){
+    private void startLocationOverlay(boolean enableLocation, MapView map){
         if(getActivity()== null) throw new IllegalStateException("Cannot enable LocationOverlay now");
         // Location Overlay
         // from OpenBikeSharing (THANK GOD)
@@ -333,11 +339,14 @@ public class MapFragment extends BaseFragment {
         GpsMyLocationProvider imlp = new GpsMyLocationProvider(getActivity().getBaseContext());
         imlp.setLocationUpdateMinDistance(5);
         imlp.setLocationUpdateMinTime(2000);
-        this.mLocationOverlay = new LocationOverlay(imlp,map, locationCallbacks);
-        if (enableLocation) mLocationOverlay.enableMyLocation();
-        mLocationOverlay.setOptionsMenuEnabled(true);
 
-        map.getOverlays().add(this.mLocationOverlay);
+        final LocationOverlay overlay = new LocationOverlay(imlp,map, locationCallbacks);
+        if (enableLocation) overlay.enableMyLocation();
+        overlay.setOptionsMenuEnabled(true);
+
+        //map.getOverlays().add(this.mLocationOverlay);
+        this.mLocationOverlay = overlay;
+        map.getOverlays().add(mLocationOverlay);
     }
 
     public void startMap(Bundle incoming, Bundle savedInstanceState) {
@@ -350,6 +359,8 @@ public class MapFragment extends BaseFragment {
         }else{
             Log.d(DEBUG_TAG, "Starting map from scratch");
         }
+        //clear previous overlays
+        map.getOverlays().clear();
 
 
         //parse incoming bundle
@@ -364,18 +375,30 @@ public class MapFragment extends BaseFragment {
             ID = incoming.getString(BUNDLE_ID);
         }
 
+
+       //ask for location permission
+        if(!Permissions.locationPermissionGranted(activity)){
+            if(shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)){
+                //TODO: show dialog for permission rationale
+                Toast.makeText(activity, R.string.enable_position_message_map, Toast.LENGTH_SHORT).show();
+            }
+            positionRequestLauncher.launch(Permissions.LOCATION_PERMISSIONS);
+
+        }
+
         shownStops = new HashSet<>();
         // move the map on the marker position or on a default view point: Turin, Piazza Castello
         // and set the start zoom
         IMapController mapController = map.getController();
         GeoPoint startPoint = null;
-
+        startLocationOverlay(Permissions.locationPermissionGranted(activity),
+                map);
         // set the center point
         if (marker != null) {
             startPoint = marker;
             mapController.setZoom(POSITION_FOUND_ZOOM);
             setLocationFollowing(false);
-        } else if (savedInstanceState != null) {
+        } else if (savedInstanceState != null && savedInstanceState.containsKey(MAP_CURRENT_ZOOM_KEY)) {
             mapController.setZoom(savedInstanceState.getDouble(MAP_CURRENT_ZOOM_KEY));
             mapController.setCenter(new GeoPoint(savedInstanceState.getDouble(MAP_CENTER_LAT_KEY),
                     savedInstanceState.getDouble(MAP_CENTER_LON_KEY)));
@@ -397,13 +420,6 @@ public class MapFragment extends BaseFragment {
                     found = true;
                     setLocationFollowing(true);
                 }
-            } else if(!Permissions.locationPermissionGranted(activity)){
-                if(shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)){
-                    //TODO: show dialog for permission rationale
-                    Toast.makeText(activity, R.string.enable_position_message_map, Toast.LENGTH_SHORT).show();
-                }
-                    positionRequestLauncher.launch(Permissions.LOCATION_PERMISSIONS);
-
             }
             if(!found){
                 startPoint = new GeoPoint(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON);
@@ -411,7 +427,6 @@ public class MapFragment extends BaseFragment {
                 setLocationFollowing(false);
             }
         }
-        startLocationOverlay(Permissions.locationPermissionGranted(activity));
 
         // set the minimum zoom level
         map.setMinZoomLevel(15.0);
@@ -420,7 +435,9 @@ public class MapFragment extends BaseFragment {
             mapController.setCenter(startPoint);
         }
 
+
         //add stops overlay
+        //map.getOverlays().add(mLocationOverlay);
         map.getOverlays().add(this.stopsFolderOverlay);
 
         Log.d(DEBUG_TAG, "Requesting stops load");
@@ -445,8 +462,10 @@ public class MapFragment extends BaseFragment {
         double latTo = bb.getLatNorth();
         double lngFrom = bb.getLonWest();
         double lngTo = bb.getLonEast();
-
-        new AsyncStopFetcher(this).execute(
+        if (stopFetcher!= null && stopFetcher.getStatus()!= AsyncTask.Status.FINISHED)
+            stopFetcher.cancel(true);
+        stopFetcher = new AsyncStopFetcher(this);
+        stopFetcher.execute(
                 new AsyncStopFetcher.BoundingBoxLimit(lngFrom,lngTo,latFrom, latTo));
     }
 
@@ -455,6 +474,11 @@ public class MapFragment extends BaseFragment {
      * @param stops the list of stops that must be included
      */
     protected void showStopsMarkers(List<Stop> stops){
+        if (getContext() == null){
+            //we are not attached
+            return;
+        }
+        boolean good = true;
 
         for (Stop stop : stops) {
             if (shownStops.contains(stop.ID)){
@@ -464,12 +488,22 @@ public class MapFragment extends BaseFragment {
                 continue;
 
             shownStops.add(stop.ID);
+            if(!map.isShown()){
+                if(good)
+                Log.d(DEBUG_TAG, "Need to show stop but map is not shown, probably detached already");
+                good = false;
+                continue;
+            } else if(map.getRepository() == null){
+                Log.e(DEBUG_TAG, "Map view repository is null");
+            }
             GeoPoint marker = new GeoPoint(stop.getLatitude(), stop.getLongitude());
+
             Marker stopMarker = makeMarker(marker, stop.getStopDefaultName(), stop.ID, false);
             stopsFolderOverlay.add(stopMarker);
             if (!map.getOverlays().contains(stopsFolderOverlay)) {
                 Log.w(DEBUG_TAG, "Map doesn't have folder overlay");
             }
+            good=true;
         }
         //Log.d(DEBUG_TAG,"We have " +stopsFolderOverlay.getItems().size()+" stops in the folderOverlay");
         //force redraw of markers
@@ -479,7 +513,7 @@ public class MapFragment extends BaseFragment {
     public Marker makeMarker(GeoPoint geoPoint, String stopName, String ID, boolean isStartMarker) {
 
         // add a marker
-        Marker marker = new Marker(map);
+        final Marker marker = new Marker(map);
 
         // set custom info window as info window
         CustomInfoWindow popup = new CustomInfoWindow(map, ID, stopName, responder);
