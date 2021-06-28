@@ -1,0 +1,11 @@
+* versione ad onore del nostro Fabio Mazza "Vader Vehicles"
+* aggiunto pulsante donazione (provate e donate a Fabio Mazza! - dice Valerio)
+* migliorate performance mappa - https://gitpull.it/T427
+* introdotto menù laterale
+* migliorato menù
+* fix crash sulla mappa
+* fix schermate vicine all'attivazione GPS
+* fix mappa per seguire la posizione
+* fix connessioni database
+* fix fermate senza dettagli nei preferiti - https://gitpull.it/T1
+* fix fermate con nome a NULL -  https://gitpull.it/T840

@@ -1,0 +1,11 @@
+* set version name to "Vader Vehicles" for the glory of Fabio Mazza
+* added donation button (try it and donate to Fabio Mazza! - says Valerio)
+* improved map performance - https://gitpull.it/T427
+* added sidebar
+* improved menu bar
+* fix map crash
+* fix nearby stops on GPS activation
+* fix map follow-me
+* fix database connections
+* fix stops without details in favorites - https://gitpull.it/T1
+* fix stops with NULL name -  https://gitpull.it/T840
