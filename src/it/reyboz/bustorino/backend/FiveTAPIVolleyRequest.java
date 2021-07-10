@@ -37,7 +37,7 @@ public class FiveTAPIVolleyRequest extends Request<Palina> {
 
     private ResponseListener listener;
     final private String url,stopID;
-    final private AtomicReference<Fetcher.result> resultRef;
+    final private AtomicReference<Fetcher.Result> resultRef;
     final private FiveTAPIFetcher fetcher;
     final private FiveTAPIFetcher.QueryType type;
 
@@ -88,12 +88,12 @@ public class FiveTAPIVolleyRequest extends Request<Palina> {
                     return Response.error(new VolleyError("Invalid query type"));
             }
         } catch (JSONException e) {
-            resultRef.set(Fetcher.result.PARSER_ERROR);
+            resultRef.set(Fetcher.Result.PARSER_ERROR);
             //e.printStackTrace();
             Log.w("FivetVolleyParser","JSON Exception in parsing response of: "+url);
             return Response.error(new ParseError(response));
         }
-        if(resultRef.get()== Fetcher.result.PARSER_ERROR){
+        if(resultRef.get()== Fetcher.Result.PARSER_ERROR){
             return Response.error(new ParseError(response));
         }
         final Palina p = new Palina(stopID);

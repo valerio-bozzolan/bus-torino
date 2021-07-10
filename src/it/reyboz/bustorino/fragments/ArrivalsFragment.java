@@ -204,6 +204,10 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         super.onResume();
         LoaderManager loaderManager  = getLoaderManager();
         Log.d(DEBUG_TAG, "OnResume, justCreated "+justCreated);
+        /*if(needUpdateOnAttach){
+            updateFragmentData(null);
+            needUpdateOnAttach=false;
+        }*/
         if(stopID!=null){
             //refresh the arrivals
             if(!justCreated){
@@ -228,8 +232,10 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         super.onStart();
         if (needUpdateOnAttach){
             updateFragmentData(null);
+            needUpdateOnAttach = false;
         }
     }
+
     @Override
     public void onPause() {
         if(listener!=null)

@@ -36,7 +36,7 @@ public class DatabaseUpdate {
          * @return the version of the DB, or an error code
          */
         public static int getNewVersion(){
-            AtomicReference<Fetcher.result> gres = new AtomicReference<>();
+            AtomicReference<Fetcher.Result> gres = new AtomicReference<>();
             String networkRequest = FiveTAPIFetcher.performAPIRequest(FiveTAPIFetcher.QueryType.STOPS_VERSION,null,gres);
             if(networkRequest == null){
                 return VERSION_UNAVAILABLE;
@@ -57,15 +57,15 @@ public class DatabaseUpdate {
          * @param gres a result reference
          * @return result of the update
          */
-        public static Result performDBUpdate(Context con, AtomicReference<Fetcher.result> gres) {
+        public static Result performDBUpdate(Context con, AtomicReference<Fetcher.Result> gres) {
 
             final FiveTAPIFetcher f = new FiveTAPIFetcher();
             final ArrayList<Stop> stops = f.getAllStopsFromGTT(gres);
             //final ArrayList<ContentProviderOperation> cpOp = new ArrayList<>();
 
-            if (gres.get() != Fetcher.result.OK) {
+            if (gres.get() != Fetcher.Result.OK) {
                 Log.w(DEBUG_TAG, "Something went wrong downloading");
-                return Result.ERROR_STOPS_DOWNLOAD;
+                return DatabaseUpdate.Result.ERROR_STOPS_DOWNLOAD;
 
             }
             //    return false; //If the commit to the SharedPreferences didn't succeed, simply stop updating the database
@@ -109,7 +109,7 @@ public class DatabaseUpdate {
             if (routes == null) {
                 Log.w(DEBUG_TAG, "Something went wrong downloading the lines");
                 dbHelp.close();
-                return Result.ERROR_LINES_DOWNLOAD;
+                return DatabaseUpdate.Result.ERROR_LINES_DOWNLOAD;
 
             }
 
@@ -143,7 +143,7 @@ public class DatabaseUpdate {
             Log.d(DEBUG_TAG, "Inserting lines took: " + ((double) (endTime - startTime) / 1000) + " s");
             dbHelp.close();
 
-            return Result.DONE;
+            return DatabaseUpdate.Result.DONE;
         }
 
     public static boolean setDBUpdatingFlag(Context con, boolean value){

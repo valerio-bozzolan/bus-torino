@@ -56,7 +56,7 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
     }
 
     @Override
-    public Palina ReadArrivalTimesAll(final String stopID, final AtomicReference<result> res) {
+    public Palina ReadArrivalTimesAll(final String stopID, final AtomicReference<Result> res) {
         Palina p = new Palina(stopID);
         int routeIndex;
 
@@ -64,7 +64,7 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
         try {
             responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas = networkTools.getDOM(new URL("http://www.5t.torino.it/5t/trasporto/arrival-times-byline.jsp?action=getTransitsByLine&shortName=" + URLEncoder.encode(stopID, "utf-8")), res);
         } catch (Exception e) {
-            res.set(result.PARSER_ERROR);
+            res.set(Result.PARSER_ERROR);
         }
         if(responseInDOMFormatBecause5THaveAbsolutelyNoIdeaWhatJSONWas == null) {
             // result already set in getDOM()
@@ -76,28 +76,28 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
         // Tried in rete Edisu (it does Man In The Middle... asd)
         Element span = doc.select("span").first();
         if(span == null) {
-            res.set(result.SERVER_ERROR);
+            res.set(Result.SERVER_ERROR);
             return p;
         }
 
         String busStopID = grep("^(.+)&nbsp;", span.html());
         if (busStopID == null) {
             //Log.e("BusStop", "Empty busStopID from " + span.html());
-            res.set(result.EMPTY_RESULT_SET);
+            res.set(Result.EMPTY_RESULT_SET);
             return p;
         }
 
         // this also appears when no stops are found, but that case has already been handled above
         Element error = doc.select("p.errore").first();
         if (error != null) {
-            res.set(result.SERVER_ERROR);
+            res.set(Result.SERVER_ERROR);
             return p;
         }
 
         String busStopName = grep("^.+&nbsp;(.+)", span.html()); // The first "dot" is the single strange space character in the middle of "39{HERE→} {←HERE}PORTA NUOVA"
         if (busStopName == null) {
             //Log.e("BusStop", "Empty busStopName from " + span.html());
-            res.set(result.SERVER_ERROR);
+            res.set(Result.SERVER_ERROR);
             return p;
         }
         p.setStopName(busStopName.trim());
@@ -107,7 +107,7 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
         for (Element tr : trs) {
             Element line = tr.select("td.line a").first();
             if (!line.hasText()) {
-                res.set(result.SERVER_ERROR);
+                res.set(Result.SERVER_ERROR);
                 return p;
             }
 
@@ -121,7 +121,7 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
 //            );
 
             if (busLineName == null) {
-                res.set(result.SERVER_ERROR);
+                res.set(Result.SERVER_ERROR);
                 return p;
             }
 
@@ -164,7 +164,7 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
         }
 
         p.sortRoutes();
-        res.set(result.OK);
+        res.set(Result.OK);
         return p;
     }
 

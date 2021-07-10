@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class FiveTStopsFetcher implements StopsFinderByName {
 
     @Override
-    public List<Stop> FindByName(String name, AtomicReference<result> res) {
+    public List<Stop> FindByName(String name, AtomicReference<Result> res) {
         // API apparently limited to 20 results
         ArrayList<Stop> busStops = new ArrayList<>(20);
         String stopID;
@@ -48,7 +48,7 @@ public class FiveTStopsFetcher implements StopsFinderByName {
         //Stop busStop;
 
         if(name.length() < 3) {
-            res.set(result.QUERY_TOO_SHORT);
+            res.set(Result.QUERY_TOO_SHORT);
             return busStops;
         }
 
@@ -57,7 +57,7 @@ public class FiveTStopsFetcher implements StopsFinderByName {
         try {
             u = new URL("http://www.5t.torino.it/5t/trasporto/stop-lookup.jsp?action=search&stopShortName=" + URLEncoder.encode(name, "utf-8"));
         } catch(Exception e) {
-            res.set(Fetcher.result.PARSER_ERROR);
+            res.set(Result.PARSER_ERROR);
             return busStops;
         }
 
@@ -106,9 +106,9 @@ public class FiveTStopsFetcher implements StopsFinderByName {
         }
 
         if(busStops.size() == 0) {
-            res.set(result.EMPTY_RESULT_SET);
+            res.set(Result.EMPTY_RESULT_SET);
         } else {
-            res.set(result.OK);
+            res.set(Result.OK);
         }
 
         Collections.sort(busStops);

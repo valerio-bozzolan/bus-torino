@@ -37,7 +37,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
     final static LinkedList<String> apiDays = new LinkedList<>(Arrays.asList("dom","lun","mar","mer","gio","ven","sab"));
 
     @Override
-    public Palina ReadArrivalTimesAll(String stopID, AtomicReference<result> res) {
+    public Palina ReadArrivalTimesAll(String stopID, AtomicReference<Result> res) {
         //set the date for the request as now
 
         Palina p = new Palina(stopID);
@@ -46,24 +46,19 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         String response = performAPIRequest(QueryType.ARRIVALS,stopID,res);
 
         if(response==null) {
-            if(res.get()==result.SERVER_ERROR_404) {
-                Log.w(DEBUG_NAME,"Got 404, either the server failed, or the stop was not found, or the hack is not working anymore");
-                res.set(result.EMPTY_RESULT_SET);
+            if(res.get()== Result.SERVER_ERROR_404) {
+                Log.w(DEBUG_NAME,"Got 404, either the server failed, or the stop was not found, or the address is wrong");
+                res.set(Result.EMPTY_RESULT_SET);
             }
             return p;
         }
-        try {
-            List<Route> routes = parseArrivalsServerResponse(response, res);
-            for(Route r: routes){
+        List<Route> routes = parseArrivalsServerResponse(response, res);
+        if(res.get()==Result.OK) {
+            for (Route r : routes) {
                 p.addRoute(r);
             }
-        } catch (JSONException ex){
-            res.set(result.PARSER_ERROR);
-            Log.w(DEBUG_NAME, "Couldn't get the JSON repr of:\n"+response);
-            return null;
+            p.sortRoutes();
         }
-        res.set(result.OK);
-        p.sortRoutes();
         return p;
     }
 
@@ -72,7 +67,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         return Passaggio.Source.FiveTAPI;
     }
 
-    List<Route> parseArrivalsServerResponse(String JSONresponse, AtomicReference<result> res) throws JSONException{
+    List<Route> parseArrivalsServerResponse(String JSONresponse, AtomicReference<Result> res){
         ArrayList<Route> routes = new ArrayList<>(3);
         /*
          Slight problem:
@@ -90,16 +85,20 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         try{
             arr = new JSONArray(JSONresponse);
             String type;
-            Route.Type routetype;
+            Route.Type routetype = Route.Type.UNKNOWN;
             for(int i =0; i<arr.length();i++){
                 JSONObject lineJSON = arr.getJSONObject(i);
-                type = lineJSON.getString("lineType");
                 String lineName=FiveTNormalizer.routeDisplayToInternal(lineJSON.getString("name"));
+                if(lineJSON.has("lineType")) {
+                    type = lineJSON.getString("lineType");
 
-                //set the type of line
-                if(type.equals("EXTRA"))
-                    routetype = Route.Type.LONG_DISTANCE_BUS;
-                else routetype = Route.Type.BUS;
+                    //set the type of line
+                    if(type.equals("EXTRA"))
+                        routetype = Route.Type.LONG_DISTANCE_BUS;
+                    else routetype = Route.Type.BUS;
+                }
+
+
                 //Cut out the spaces in the line Name
                 //temporary fix
                 //lineName = lineName.replace(" ","").replace("/","B");
@@ -120,11 +119,11 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
 
         } catch (JSONException e) {
             e.printStackTrace();
-            res.set(result.PARSER_ERROR);
+            res.set(Result.PARSER_ERROR);
             return routes;
         }
         Collections.sort(routes);
-        res.set(result.OK);
+        res.set(Result.OK);
         return routes;
     }
 
@@ -143,7 +142,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                     continue;
                 }
                 String direction = branchJSON.getString("direction");
-                String stops = branchJSON.getJSONObject("branchDetail").getString("stops");
+
                 String lineName = branchJSON.getString("lineName");
                 Route.Type t = Route.Type.UNKNOWN;
                 //parsing description
@@ -190,16 +189,32 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                         festivo = Route.FestiveInfo.FERIALE;
                     }
                 if(t == Route.Type.UNKNOWN &&(lineName.trim().equals("10")|| lineName.trim().equals("15"))) t= Route.Type.TRAM;
-                if(direction.contains("-")){
-                    //Sometimes the actual filtered direction still remains the full line (including both extremes)
-                    direction = direction.split("-")[1];
+                //check for the presence of parenthesis
+                String preParenthesis, postParenthesis;
+                boolean hasParenth = false;
+                if (description.contains("(")){
+                    hasParenth =true;
+                    preParenthesis = description.split("\\(")[0];
+                    postParenthesis = description.split("\\(")[1];
+                } else {
+                    preParenthesis = description;
+                    postParenthesis = "";
                 }
-                Route r = new Route(lineName.trim(),direction.trim(),t,new ArrayList<>());
+                if(preParenthesis.contains("-")){
+                    //Sometimes the actual filtered direction still remains the full line (including both extremes)
+                    preParenthesis = preParenthesis.split("-")[1];
+                }
+                final String directionFinal = hasParenth? preParenthesis.trim() + " (" + postParenthesis : preParenthesis;
+                Route r = new Route(lineName.trim(),directionFinal.trim(),t,new ArrayList<>());
                 if(serviceDays.length>0) r.serviceDays = serviceDays;
                 r.festivo = festivo;
                 r.branchid = branchid;
                 r.description = description.trim();
-                r.setStopsList(Arrays.asList(stops.split(",")));
+                //check if we have the stop list
+                if (branchJSON.has("branchDetail")) {
+                    final String stops = branchJSON.getJSONObject("branchDetail").getString("stops");
+                    r.setStopsList(Arrays.asList(stops.split(",")));
+                }
 
                 routes.add(r);
             }
@@ -207,21 +222,21 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         return routes;
     }
 
-    public List<Route> getDirectionsForStop(String stopID, AtomicReference<result> res) {
+    public List<Route> getDirectionsForStop(String stopID, AtomicReference<Result> res) {
 
         String response = performAPIRequest(QueryType.DETAILS,stopID,res);
         List<Route> routes;
         try{
             routes = parseDirectionsFromResponse(response);
-            res.set(result.OK);
+            res.set(Result.OK);
         } catch (JSONException | IllegalArgumentException e) {
             e.printStackTrace();
-            res.set(result.PARSER_ERROR);
+            res.set(Result.PARSER_ERROR);
             routes = null;
         }
         return routes;
     }
-    public ArrayList<Stop> getAllStopsFromGTT(AtomicReference<result> res){
+    public ArrayList<Stop> getAllStopsFromGTT(AtomicReference<Result> res){
 
         String response = performAPIRequest(QueryType.STOPS_ALL,null,res);
         if(response==null) return null;
@@ -262,11 +277,11 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                 s.setAbsurdGTTPlaceName(placeName);
                 stopslist.add(s);
             }
-            res.set(result.OK);
+            res.set(Result.OK);
 
         } catch (JSONException e) {
             e.printStackTrace();
-            res.set(result.PARSER_ERROR);
+            res.set(Result.PARSER_ERROR);
             return null;
         }
 
@@ -274,7 +289,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
     }
 
     @Nullable
-    public ArrayList<Route> getAllLinesFromGTT(AtomicReference<result> res){
+    public ArrayList<Route> getAllLinesFromGTT(AtomicReference<Result> res){
 
         String resp = performAPIRequest(QueryType.LINES,null,res);
         if(resp==null) {
@@ -306,10 +321,10 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
 
             }
             //finish
-            res.set(result.OK);
+            res.set(Result.OK);
         } catch (JSONException e) {
             e.printStackTrace();
-            res.set(result.PARSER_ERROR);
+            res.set(Result.PARSER_ERROR);
             return routes;
         }
 
@@ -336,7 +351,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
      * @return a String which contains the result of the query, to be parsed
      */
     @Nullable
-    public static String performAPIRequest(QueryType t,@Nullable String stopID, AtomicReference<result> res){
+    public static String performAPIRequest(QueryType t,@Nullable String stopID, AtomicReference<Result> res){
         URL u;
         Map<String,String> param;
 
@@ -347,7 +362,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
             u = new URL(address);
         } catch (UnsupportedEncodingException |MalformedURLException e) {
             e.printStackTrace();
-            res.set(result.PARSER_ERROR);
+            res.set(Result.PARSER_ERROR);
             return null;
         }
         String response = networkTools.queryURL(u,res,param);

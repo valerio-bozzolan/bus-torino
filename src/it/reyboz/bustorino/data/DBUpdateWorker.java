@@ -63,24 +63,24 @@ public class DBUpdateWorker extends Worker{
             final Data out = new Data.Builder().putInt(ERROR_REASON_KEY, ERROR_FETCHING_VERSION)
                     .putInt(ERROR_CODE_KEY,new_DB_version).build();
             cancelNotification(notificationID);
-            return Result.failure(out);
+            return ListenableWorker.Result.failure(out);
         }
 
         //we got a good version
         if (current_DB_version >= new_DB_version && !isUpdateCompulsory) {
             //don't need to update
             cancelNotification(notificationID);
-            return Result.success(new Data.Builder().
+            return ListenableWorker.Result.success(new Data.Builder().
                     putInt(SUCCESS_REASON_KEY, SUCCESS_NO_ACTION_NEEDED).build());
         }
         //start the real update
-        AtomicReference<Fetcher.result> resultAtomicReference = new AtomicReference<>();
+        AtomicReference<Fetcher.Result> resultAtomicReference = new AtomicReference<>();
         DatabaseUpdate.setDBUpdatingFlag(con, shPr,true);
         final DatabaseUpdate.Result resultUpdate = DatabaseUpdate.performDBUpdate(con,resultAtomicReference);
         DatabaseUpdate.setDBUpdatingFlag(con, shPr,false);
 
         if (resultUpdate != DatabaseUpdate.Result.DONE){
-            Fetcher.result result = resultAtomicReference.get();
+            Fetcher.Result result = resultAtomicReference.get();
 
             final Data.Builder dataBuilder = new Data.Builder();
             switch (resultUpdate){
@@ -92,7 +92,7 @@ public class DBUpdateWorker extends Worker{
                     break;
             }
             cancelNotification(notificationID);
-            return Result.failure(dataBuilder.build());
+            return ListenableWorker.Result.failure(dataBuilder.build());
         }
         Log.d(DEBUG_TAG, "Update finished successfully!");
         //update the version in the shared preference
@@ -101,7 +101,7 @@ public class DBUpdateWorker extends Worker{
         editor.apply();
         cancelNotification(notificationID);
 
-        return Result.success(new Data.Builder().putInt(SUCCESS_REASON_KEY, SUCCESS_UPDATE_DONE).build());
+        return ListenableWorker.Result.success(new Data.Builder().putInt(SUCCESS_REASON_KEY, SUCCESS_UPDATE_DONE).build());
     }
 
     public static Constraints getWorkConstraints(){

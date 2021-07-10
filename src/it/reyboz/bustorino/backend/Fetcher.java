@@ -30,7 +30,7 @@ public interface Fetcher {
      * EMPTY_RESULT_SET: the response is valid and indicates there are no stops\routes\"passaggi"\results for your query<br>
      * QUERY_TOO_SHORT: input more characters and retry.
      */
-    enum result {
+    enum Result {
         OK, CLIENT_OFFLINE, SERVER_ERROR, SETUP_ERROR,PARSER_ERROR, EMPTY_RESULT_SET, QUERY_TOO_SHORT,SERVER_ERROR_404
     }
 }

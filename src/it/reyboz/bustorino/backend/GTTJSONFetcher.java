@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class GTTJSONFetcher implements ArrivalsFetcher  {
     private final String DEBUG_TAG = "GTTJSONFetcher-BusTO";
     @Override @NonNull
-    public Palina ReadArrivalTimesAll(String stopID, AtomicReference<result> res) {
+    public Palina ReadArrivalTimesAll(String stopID, AtomicReference<Result> res) {
         URL url;
         Palina p = new Palina(stopID);
         String routename;
@@ -48,7 +48,7 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         try {
             url = new URL("https://www.gtt.to.it/cms/index.php?option=com_gtt&task=palina.getTransitiOld&palina=" + URLEncoder.encode(stopID, "utf-8") + "&bacino=U&realtime=true&get_param=value");
         } catch (Exception e) {
-            res.set(result.PARSER_ERROR);
+            res.set(Result.PARSER_ERROR);
             return p;
         }
         HashMap<String, String> headers = new HashMap<>();
@@ -66,7 +66,7 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
         } catch(JSONException e) {
             Log.w(DEBUG_TAG, "Error parsing JSON: \n"+content);
             Log.w(DEBUG_TAG, e);
-            res.set(result.PARSER_ERROR);
+            res.set(Result.PARSER_ERROR);
 
             return p;
         }
@@ -76,13 +76,13 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
             json.getJSONObject(0).getString("Linea"); // if we can get this, then there's something useful in the array.
         } catch(JSONException e) {
             Log.w(DEBUG_TAG, "No existing lines");
-            res.set(result.EMPTY_RESULT_SET);
+            res.set(Result.EMPTY_RESULT_SET);
             return p;
         }
 
         howManyRoutes = json.length();
         if(howManyRoutes == 0) {
-            res.set(result.EMPTY_RESULT_SET);
+            res.set(Result.EMPTY_RESULT_SET);
             return p;
         }
 
@@ -115,12 +115,12 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
                 }
             }
         } catch (JSONException e) {
-            res.set(result.PARSER_ERROR);
+            res.set(Result.PARSER_ERROR);
             return p;
         }
 
         p.sortRoutes();
-        res.set(result.OK);
+        res.set(Result.OK);
         return p;
     }
 

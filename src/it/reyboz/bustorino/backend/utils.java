@@ -11,6 +11,7 @@ import android.view.View;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
 
 public abstract class utils {
     private static final double EarthRadius = 6371e3;
@@ -38,11 +39,13 @@ public abstract class utils {
     public static float convertDipToPixels(Context con, float dp){
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,con.getResources().getDisplayMetrics());
     }
+    /*
     public static int calculateNumColumnsFromSize(View containerView, int pixelsize){
         int width = containerView.getWidth();
         float ncols = ((float)width)/pixelsize;
         return (int) Math.floor(ncols);
     }
+     */
 
     /**
      * Check if there is an internet connection
@@ -97,6 +100,20 @@ public abstract class utils {
         return busStopID;
     }
 
+    public static String toTitleCase(String givenString) {
+        String[] arr = givenString.split(" ");
+        StringBuffer sb = new StringBuffer();
+        //Log.d("BusTO chars", "String parsing: "+givenString+" in array: "+ Arrays.toString(arr));
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i].length() > 1)
+            sb.append(Character.toUpperCase(arr[i].charAt(0)))
+                    .append(arr[i].substring(1)).append(" ");
+            else sb.append(arr[i]);
+        }
+        return sb.toString().trim();
+    }
+
+
     /**
      * Open an URL in the default browser.
      *
@@ -106,10 +123,12 @@ public abstract class utils {
         Intent browserIntent1 = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         context.startActivity(browserIntent1);
     }
+
     /**
      * Print the first i lines of the the trace of an exception
      * https://stackoverflow.com/questions/21706722/fetch-only-first-n-lines-of-a-stack-trace
      */
+    /*
     public static String traceCaller(Exception ex, int i) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
@@ -127,4 +146,5 @@ public abstract class utils {
         }
         return "Trace too Short.";
     }
+     */
 }

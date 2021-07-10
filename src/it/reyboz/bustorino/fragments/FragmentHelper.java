@@ -185,7 +185,8 @@ public class FragmentHelper {
         if (parameters.addToBackStack)
             ft.addToBackStack("state_"+parameters.tag);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE);
-        ft.commit();
+        if(!fm.isDestroyed())
+            ft.commit();
         //fm.executePendingTransactions();
     }
 
@@ -205,7 +206,7 @@ public class FragmentHelper {
      * Wrapper to show the errors/status that happened
      * @param res result from Fetcher
      */
-    public void showErrorMessage(Fetcher.result res){
+    public void showErrorMessage(Fetcher.Result res){
         //TODO: implement a common set of errors for all fragments
         switch (res){
             case OK:

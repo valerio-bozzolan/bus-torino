@@ -89,7 +89,7 @@ public class DatabaseUpdateService extends IntentService {
                 if(params.mustUpdate || versionDB==-1 || newVersion>versionDB){
 
                     Log.d(DEBUG_TAG,"Downloading the bus stops info");
-                    final AtomicReference<Fetcher.result> gres = new AtomicReference<>();
+                    final AtomicReference<Fetcher.Result> gres = new AtomicReference<>();
                     if(!performDBUpdate(gres))
                         restartDBUpdateifPossible(params,gres);
                     else {
@@ -117,7 +117,7 @@ public class DatabaseUpdateService extends IntentService {
         final SharedPreferences shPr = getSharedPreferences(getString(R.string.mainSharedPreferences),MODE_PRIVATE);
         return setDBUpdatingFlag(shPr,value);
     }
-    private boolean performDBUpdate(AtomicReference<Fetcher.result> gres){
+    private boolean performDBUpdate(AtomicReference<Fetcher.Result> gres){
 
         if(!setDBUpdatingFlag(true))
            return false;
@@ -214,7 +214,7 @@ public class DatabaseUpdateService extends IntentService {
         return DatabaseUpdate.performDBUpdate(getApplication(),gres) == DatabaseUpdate.Result.DONE;
     }
     private int getNewVersion(UpdateRequestParams params){
-        AtomicReference<Fetcher.result> gres = new AtomicReference<>();
+        AtomicReference<Fetcher.Result> gres = new AtomicReference<>();
         String networkRequest = FiveTAPIFetcher.performAPIRequest(FiveTAPIFetcher.QueryType.STOPS_VERSION,null,gres);
         if(networkRequest == null){
             restartDBUpdateifPossible(params,gres);
@@ -231,8 +231,8 @@ public class DatabaseUpdateService extends IntentService {
             return -4;
         }
     }
-    private void restartDBUpdateifPossible(UpdateRequestParams pars, AtomicReference<Fetcher.result> res){
-        if (pars.trial<MAX_TRIALS && res.get()!= Fetcher.result.PARSER_ERROR){
+    private void restartDBUpdateifPossible(UpdateRequestParams pars, AtomicReference<Fetcher.Result> res){
+        if (pars.trial<MAX_TRIALS && res.get()!= Fetcher.Result.PARSER_ERROR){
             Log.d(DEBUG_TAG,"Update failed, starting new trial ("+pars.trial+")");
             startDBUpdate(getApplicationContext(),++pars.trial,pars.mustUpdate);
         }

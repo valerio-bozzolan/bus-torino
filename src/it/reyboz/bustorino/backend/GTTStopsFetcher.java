@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class GTTStopsFetcher implements StopsFinderByName  {
     @Override @NonNull
-    public List<Stop> FindByName(String name, AtomicReference<result> res) {
+    public List<Stop> FindByName(String name, AtomicReference<Result> res) {
         URL url;
         // sorting an ArrayList should be faster than a LinkedList and the API is limited to 15 results
         List<Stop> s = new ArrayList<>(15);
@@ -48,14 +48,14 @@ public class GTTStopsFetcher implements StopsFinderByName  {
         JSONObject thisstop;
 
         if(name.length() < 3) {
-            res.set(result.QUERY_TOO_SHORT);
+            res.set(Result.QUERY_TOO_SHORT);
             return s;
         }
 
         try {
             url = new URL("http://www.gtt.to.it/cms/components/com_gtt/views/palinejson/view.html.php?term=" + URLEncoder.encode(name, "utf-8"));
         } catch (Exception e) {
-            res.set(result.PARSER_ERROR);
+            res.set(Result.PARSER_ERROR);
             return s;
         }
 
@@ -69,16 +69,16 @@ public class GTTStopsFetcher implements StopsFinderByName  {
         } catch(JSONException e) {
             if(content.contains("[]")) {
                 // when no results are found, server returns a PHP Warning and an empty array. In case they fix the warning, we're looking for the array.
-                res.set(result.EMPTY_RESULT_SET);
+                res.set(Result.EMPTY_RESULT_SET);
             } else {
-                res.set(result.PARSER_ERROR);
+                res.set(Result.PARSER_ERROR);
             }
             return s;
         }
 
         howManyStops = json.length();
         if(howManyStops == 0) {
-            res.set(result.EMPTY_RESULT_SET);
+            res.set(Result.EMPTY_RESULT_SET);
             return s;
         }
 
@@ -123,13 +123,13 @@ public class GTTStopsFetcher implements StopsFinderByName  {
 
             }
         } catch (JSONException e) {
-            res.set(result.PARSER_ERROR);
+            res.set(Result.PARSER_ERROR);
             return s;
         }
 
         if(s.size() < 1) {
             // shouldn't happen but prevents the next part from catching fire
-            res.set(result.EMPTY_RESULT_SET);
+            res.set(Result.EMPTY_RESULT_SET);
             return s;
         }
 
@@ -137,7 +137,7 @@ public class GTTStopsFetcher implements StopsFinderByName  {
 
         // the next loop won't work with less than 2 items
         if(s.size() < 2) {
-            res.set(result.OK);
+            res.set(Result.OK);
             return s;
         }
 
@@ -184,7 +184,7 @@ public class GTTStopsFetcher implements StopsFinderByName  {
             s2.add(s.get(i-1));
         }
 
-        res.set(result.OK);
+        res.set(Result.OK);
         return s2;
     }
 

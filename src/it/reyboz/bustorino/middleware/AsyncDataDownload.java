@@ -35,6 +35,7 @@ import it.reyboz.bustorino.data.NextGenDB.Contract.*;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.Calendar;
@@ -42,13 +43,13 @@ import java.util.Calendar;
 /**
  * This should be used to download data, but not to display it
  */
-public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
+public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
 
     private static final String TAG = "BusTO-DataDownload";
     private static final String DEBUG_TAG = TAG;
     private boolean failedAll = false;
 
-    private final AtomicReference<Fetcher.result> res;
+    private final AtomicReference<Fetcher.Result> res;
     private final RequestType t;
     private String query;
     WeakReference<FragmentHelper> helperRef;
@@ -111,7 +112,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                     else if(lastSearchedBusStop!=null)
                         stopID = lastSearchedBusStop.ID; //(it's a Palina)
                     else {
-                        publishProgress(Fetcher.result.QUERY_TOO_SHORT);
+                        publishProgress(Fetcher.Result.QUERY_TOO_SHORT);
                         return null;
                     }
                     //Skip the FiveTAPIFetcher for the Metro Stops because it shows incomprehensible arrival times
@@ -119,11 +120,15 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                         continue;
                     p= f.ReadArrivalTimesAll(stopID,res);
                     publishProgress(res.get());
+                    //if (res.get()!= Fetcher.Result.OK)
+                    Log.d(DEBUG_TAG, "Arrivals fetcher: "+f+"\n\tProgress: "+res.get());
+
 
                     if(f instanceof FiveTAPIFetcher){
-                        AtomicReference<Fetcher.result> gres = new AtomicReference<>();
+                        AtomicReference<Fetcher.Result> gres = new AtomicReference<>();
                         List<Route> branches = ((FiveTAPIFetcher) f).getDirectionsForStop(stopID,gres);
-                        if(gres.get() == Fetcher.result.OK){
+                        Log.d(DEBUG_TAG, "FiveTArrivals fetcher: "+f+"\n\tDetails req: "+gres.get());
+                        if(gres.get() == Fetcher.Result.OK){
                             p.addInfoFromRoutes(branches);
                             Thread t = new Thread(new BranchInserter(branches, context));
                             t.start();
@@ -133,7 +138,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                         //put updated values into Database
                     }
 
-                    if(lastSearchedBusStop != null && res.get()== Fetcher.result.OK) {
+                    if(lastSearchedBusStop != null && res.get()== Fetcher.Result.OK) {
                         // check that we don't have the same stop
                         if(lastSearchedBusStop.ID.equals(p.ID)) {
                             // searched and it's the same
@@ -160,7 +165,7 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                     result = null;
             }
             //find if it went well
-            if(res.get()== Fetcher.result.OK) {
+            if(res.get()== Fetcher.Result.OK) {
                 //wait for other threads to finish
                 for(Thread t: otherActivities){
                     try {
@@ -180,10 +185,10 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
     }
 
     @Override
-    protected void onProgressUpdate(Fetcher.result... values) {
+    protected void onProgressUpdate(Fetcher.Result... values) {
         FragmentHelper fh = helperRef.get();
         if (fh!=null)
-        for (Fetcher.result r : values){
+        for (Fetcher.Result r : values){
             //TODO: make Toast
             fh.showErrorMessage(r);
         }
@@ -270,7 +275,8 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
         @Override
         public void run() {
             final NextGenDB nextGenDB = new NextGenDB(context);
-            ContentValues[] values = new ContentValues[routesToInsert.size()];
+            //ContentValues[] values = new ContentValues[routesToInsert.size()];
+            ArrayList<ContentValues> branchesValues = new ArrayList<>(routesToInsert.size()*4);
             ArrayList<ContentValues> connectionsVals = new ArrayList<>(routesToInsert.size()*4);
             long starttime,endtime;
             for (Route r:routesToInsert){
@@ -310,22 +316,24 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                 if(r.type!=null) cv.put(BranchesTable.COL_TYPE, r.type.getCode());
                 cv.put(BranchesTable.COL_FESTIVO, r.festivo.getCode());
 
-                values[routesToInsert.indexOf(r)] = cv;
-                for(int i=0; i<r.getStopsList().size();i++){
-                    String stop = r.getStopsList().get(i);
-                    final ContentValues connVal = new ContentValues();
-                    connVal.put(ConnectionsTable.COLUMN_STOP_ID,stop);
-                    connVal.put(ConnectionsTable.COLUMN_ORDER,i);
-                    connVal.put(ConnectionsTable.COLUMN_BRANCH,r.branchid);
+                //values[routesToInsert.indexOf(r)] = cv;
+                branchesValues.add(cv);
+                if(r.getStopsList() != null)
+                    for(int i=0; i<r.getStopsList().size();i++){
+                        String stop = r.getStopsList().get(i);
+                        final ContentValues connVal = new ContentValues();
+                        connVal.put(ConnectionsTable.COLUMN_STOP_ID,stop);
+                        connVal.put(ConnectionsTable.COLUMN_ORDER,i);
+                        connVal.put(ConnectionsTable.COLUMN_BRANCH,r.branchid);
 
-                    //add to global connVals
-                    connectionsVals.add(connVal);
+                        //add to global connVals
+                        connectionsVals.add(connVal);
                 }
             }
             starttime = System.currentTimeMillis();
             ContentResolver cr = context.getContentResolver();
             try {
-                cr.bulkInsert(Uri.parse("content://" + AppDataProvider.AUTHORITY + "/branches/"), values);
+                cr.bulkInsert(Uri.parse("content://" + AppDataProvider.AUTHORITY + "/branches/"), branchesValues.toArray(new ContentValues[0]));
                 endtime = System.currentTimeMillis();
                 Log.d("DataDownload", "Inserted branches, took " + (endtime - starttime) + " ms");
             } catch (SQLException exc){
@@ -334,13 +342,14 @@ public class AsyncDataDownload extends AsyncTask<String,Fetcher.result,Object>{
                 return;
             }
 
-
-            starttime = System.currentTimeMillis();
-            ContentValues[] valArr = connectionsVals.toArray(new ContentValues[0]);
-            Log.d("DataDownloadInsert","inserting "+valArr.length+" connections");
-            int rows = nextGenDB.insertBatchContent(valArr,ConnectionsTable.TABLE_NAME);
-            endtime = System.currentTimeMillis();
-            Log.d("DataDownload","Inserted connections found, took "+(endtime-starttime)+" ms, inserted "+rows+" rows");
+            if (connectionsVals.size()>0) {
+                starttime = System.currentTimeMillis();
+                ContentValues[] valArr = connectionsVals.toArray(new ContentValues[0]);
+                Log.d("DataDownloadInsert", "inserting " + valArr.length + " connections");
+                int rows = nextGenDB.insertBatchContent(valArr, ConnectionsTable.TABLE_NAME);
+                endtime = System.currentTimeMillis();
+                Log.d("DataDownload", "Inserted connections found, took " + (endtime - starttime) + " ms, inserted " + rows + " rows");
+            }
             nextGenDB.close();
         }
     }

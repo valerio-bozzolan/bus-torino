@@ -33,14 +33,14 @@ import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class networkTools {
-    static String getDOM(final URL url, final AtomicReference<Fetcher.result> res) {
+    static String getDOM(final URL url, final AtomicReference<Fetcher.Result> res) {
         //Log.d("asyncwget", "Catching URL in background: " + uri[0]);
         HttpURLConnection urlConnection;
         StringBuilder result = null;
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
         } catch(IOException e) {
-            res.set(Fetcher.result.SERVER_ERROR);
+            res.set(Fetcher.Result.SERVER_ERROR);
             return null;
         }
 
@@ -63,19 +63,19 @@ public abstract class networkTools {
         }
 
         if (result == null) {
-            res.set(Fetcher.result.SERVER_ERROR);
+            res.set(Fetcher.Result.SERVER_ERROR);
             return null;
         }
 
-        res.set(Fetcher.result.PARSER_ERROR); // will be set to "OK" later, this is a safety net in case StringBuilder returns null, the website returns an HTTP 204 or something like that.
+        res.set(Fetcher.Result.PARSER_ERROR); // will be set to "OK" later, this is a safety net in case StringBuilder returns null, the website returns an HTTP 204 or something like that.
         return result.toString();
     }
     @Nullable
-    static String queryURL(URL url, AtomicReference<Fetcher.result> res){
+    static String queryURL(URL url, AtomicReference<Fetcher.Result> res){
         return queryURL(url,res,null);
     }
     @Nullable
-    static String queryURL(URL url, AtomicReference<Fetcher.result> res, Map<String,String> headers) {
+    static String queryURL(URL url, AtomicReference<Fetcher.Result> res, Map<String,String> headers) {
         HttpURLConnection urlConnection;
         InputStream in;
         String s;
@@ -84,7 +84,7 @@ public abstract class networkTools {
             urlConnection = (HttpURLConnection) url.openConnection();
         } catch(IOException e) {
             //e.printStackTrace();
-            res.set(Fetcher.result.SERVER_ERROR); // even when offline, urlConnection works fine. WHY.
+            res.set(Fetcher.Result.SERVER_ERROR); // even when offline, urlConnection works fine. WHY.
             return null;
         }
 
@@ -96,14 +96,14 @@ public abstract class networkTools {
                 urlConnection.setRequestProperty(key,headers.get(key));
             }
         }
-        res.set(Fetcher.result.SERVER_ERROR); // will be set to OK later
+        res.set(Fetcher.Result.SERVER_ERROR); // will be set to OK later
 
         try {
             in = urlConnection.getInputStream();
         } catch (Exception e) {
             try {
                 if(urlConnection.getResponseCode()==404)
-                    res.set(Fetcher.result.SERVER_ERROR_404);
+                    res.set(Fetcher.Result.SERVER_ERROR_404);
             } catch (IOException e2) {
                 e2.printStackTrace();
             }

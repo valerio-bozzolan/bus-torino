@@ -20,8 +20,6 @@ package it.reyboz.bustorino.backend;
 
 // "arrivals" è più usato di "transit" o simili, e chi sono io per mettermi a dibattere con gli inglesi?
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public interface ArrivalsFetcher extends Fetcher {
@@ -45,10 +43,10 @@ public interface ArrivalsFetcher extends Fetcher {
      * @param stopID stop ID, in normalized form.
      * @param res result code (will be set by this method)
      * @return arrival times
-     * @see it.reyboz.bustorino.backend.Fetcher.result
+     * @see Result
      * @see FiveTNormalizer
      */
-    Palina ReadArrivalTimesAll(String stopID, AtomicReference<result> res);
+    Palina ReadArrivalTimesAll(String stopID, AtomicReference<Result> res);
 
     /**
      * Get the determined source for the Fetcher

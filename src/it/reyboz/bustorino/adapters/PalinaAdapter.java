@@ -32,6 +32,7 @@ import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Passaggio;
 import it.reyboz.bustorino.backend.Route;
+import it.reyboz.bustorino.backend.utils;
 
 /**
  * This once was a ListView Adapter for BusLine[].
