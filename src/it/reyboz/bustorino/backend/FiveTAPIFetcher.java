@@ -19,6 +19,7 @@ package it.reyboz.bustorino.backend;
 
 import androidx.annotation.Nullable;
 import android.util.Log;
+import it.reyboz.bustorino.data.GTTInfoInject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -242,8 +243,8 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         if(response==null) return null;
         ArrayList<Stop> stopslist;
         try{
-            JSONObject responseJSON = new JSONObject(response);
-            JSONArray stops = responseJSON.getJSONArray("stops");
+            //JSONObject responseJSON = new JSONObject(response);
+            JSONArray stops = new JSONArray(response);//responseJSON.getJSONArray("stops");
             stopslist = new ArrayList<>(stops.length());
             for (int i=0;i<stops.length();i++){
                 JSONObject currentStop = stops.getJSONObject(i);
@@ -256,21 +257,37 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                     lines[l] = FiveTNormalizer.routeDisplayToInternal(lines[l]);
                 }
                 Route.Type t;
-                    switch (currentStop.getString("type")){
-                        case "BUS":
-                            t = Route.Type.BUS;
-                            break;
-                        case "METRO":
-                            t = Route.Type.METRO;
-                            break;
-                        case "TRENO":
-                            t = Route.Type.RAILWAY;
-                            break;
-                        default:
-                            t = Route.Type.UNKNOWN;
+                switch (currentStop.getString("type")){
+                    case "BUS":
+                        t = Route.Type.BUS;
+                        break;
+                    case "METRO":
+                        t = Route.Type.METRO;
+                        break;
+                    case "TRENO":
+                        t = Route.Type.RAILWAY;
+                        break;
+                    default:
+                        t = Route.Type.UNKNOWN;
+                }
+                String stopName = currentStop.getString("name");
+                String stopID;
+                if(stopName.toLowerCase().contains("metro"))
+                    t= Route.Type.METRO;
+                try {
+                    stopID = currentStop.getString("id");
+                } catch (JSONException exc){
+                    // we don't have the ID
+                    //check if we have it already as hardcoded
+                    stopID = GTTInfoInject.findIDWhenMissingByName(stopName);
+                    if(stopID.length()==0){
+                        // we haven't found it, skip stop
+                        Log.e(DEBUG_NAME, "Cannot find the ID for stop name: "+stopName);
+                        continue;
                     }
-                Stop s = new Stop(currentStop.getString("id"),
-                        currentStop.getString("name"),null,location,t,Arrays.asList(lines),
+                }
+                Stop s = new Stop(stopID, stopName,
+                        null,location,t,Arrays.asList(lines),
                         Double.parseDouble(currentStop.getString("lat")),
                         Double.parseDouble(currentStop.getString("lng")));
                 if(placeName!=null)

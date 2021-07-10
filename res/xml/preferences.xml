@@ -27,6 +27,12 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
     />
-    </androidx.preference.PreferenceCategory>
 
+    </androidx.preference.PreferenceCategory>
+    <!--
+    <androidx.preference.Preference
+            android:layout="@layout/pref_extra_version"
+            android:key="version"
+    />
+    -->
 </androidx.preference.PreferenceScreen>

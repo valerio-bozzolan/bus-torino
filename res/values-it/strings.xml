@@ -148,5 +148,6 @@
     <string name="donate_now">Offrici un caffè</string>
     <string name="map">Mappa</string>
     <string name="stop_search_view_title">Ricerca fermate</string>
+    <string name="app_version">Versione app</string>
 
 </resources>

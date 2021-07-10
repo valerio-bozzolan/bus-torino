@@ -17,9 +17,8 @@
  */
 package it.reyboz.bustorino;
 
+import android.util.Log;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NavUtils;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import android.text.Html;
 import android.text.Spanned;
@@ -45,6 +44,10 @@ public class ActivityAbout extends AppCompatActivity {
         setSupportActionBar(mToolbar);
         if (getSupportActionBar()!=null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        TextView versionText = findViewById(R.id.versionTextView);
+        Log.d("BusTO About", "The version text view is: "+versionText);
+        versionText.setText(getResources().getText(R.string.app_version)+": "+BuildConfig.VERSION_NAME);
     }
 
     @Override

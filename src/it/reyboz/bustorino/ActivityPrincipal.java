@@ -111,6 +111,10 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         mNavView = findViewById(R.id.nvView);
 
         setupDrawerContent(mNavView);
+        /*View header = mNavView.getHeaderView(0);
+
+        */
+        //mNavView.getMenu().findItem(R.id.versionFooter).
 
         /// LEGACY CODE
         //---------------------------- START INTENT CHECK QUEUE ------------------------------------

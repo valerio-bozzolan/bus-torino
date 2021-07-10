@@ -3,7 +3,7 @@
 
     <string name="app_name" translatable="false">BusTO</string>
     <string name="app_name_full" translatable="false">Libre BusTO</string>
-    <string name="app_name_debug" translatable="false">BusTO Debug</string>
+    <string name="app_name_debug" translatable="false">BusTO dev</string>
     <string name="app_description">You\'re using the latest in technology when it comes to respecting your privacy.
     </string>
     <string name="search">Search</string>
@@ -102,6 +102,7 @@
 
     <string name="nearby_stops_message">Nearby stops</string>
     <string name="nearby_arrivals_message">Nearby connections</string>
+    <string name="app_version">App version</string>
 
     <string name="position_searching_message">Finding the position&#8230;</string>
     <string name="no_stops_nearby">No stops nearby</string>
