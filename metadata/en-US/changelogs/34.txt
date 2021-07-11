@@ -1,0 +1,3 @@
+* GTT changes our APIs... and we update our app. In your face!
+* now the version code is shown in the information screen (thanks to Marco M. for the tip!)
+* this version was forged by Fabio Mazza!

@@ -1,0 +1,3 @@
+* GTT ci cambia le API... e noi aggiorniamo l'app. Tiè!
+* ora il codice di versione è mostrato nella schermata informazioni (grazie a Marco M. per il suggerimento!)
+* questa versione è stata forgiata da Fabio Mazza!
