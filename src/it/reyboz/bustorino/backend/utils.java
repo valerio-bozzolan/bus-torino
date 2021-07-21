@@ -121,7 +121,10 @@ public abstract class utils {
      */
     public static void openIceweasel(String url, Context context) {
         Intent browserIntent1 = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        context.startActivity(browserIntent1);
+        if (browserIntent1.resolveActivity(context.getPackageManager()) != null) {
+            //check we have an activity ready to receive intents (otherwise, there will be a crash)
+            context.startActivity(browserIntent1);
+        }
     }
 
     /**

@@ -1,6 +1,7 @@
 package it.reyboz.bustorino;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -74,7 +75,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         else Log.w(DEBUG_TAG, "NO ACTION BAR");
 
-        mToolbar.setOnMenuItemClickListener(new ToolbarItemClickListener());
+        mToolbar.setOnMenuItemClickListener(new ToolbarItemClickListener(this));
 
 
         mDrawer = findViewById(R.id.drawer_layout);
@@ -192,6 +193,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                     for (WorkInfo workInfo : workInfoList) {
                         if (workInfo.getState() == WorkInfo.State.RUNNING) {
                             showProgress = true;
+                            break;
                         }
                     }
 
@@ -537,6 +539,11 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     }
 
     class ToolbarItemClickListener implements Toolbar.OnMenuItemClickListener{
+        private final Context activityContext;
+
+        public ToolbarItemClickListener(Context activityContext) {
+            this.activityContext = activityContext;
+        }
 
         @Override
         public boolean onMenuItemClick(MenuItem item) {
@@ -545,13 +552,13 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                     startActivity(new Intent(ActivityPrincipal.this, ActivityAbout.class));
                     return true;
                 case R.id.action_hack:
-                    openIceweasel(getString(R.string.hack_url), getApplicationContext());
+                    openIceweasel(getString(R.string.hack_url), activityContext);
                     return true;
                 case R.id.action_source:
-                    openIceweasel("https://gitpull.it/source/libre-busto/", getApplicationContext());
+                    openIceweasel("https://gitpull.it/source/libre-busto/", activityContext);
                     return true;
                 case R.id.action_licence:
-                    openIceweasel("https://www.gnu.org/licenses/gpl-3.0.html", getApplicationContext());
+                    openIceweasel("https://www.gnu.org/licenses/gpl-3.0.html", activityContext);
                     return true;
                 default:
             }
