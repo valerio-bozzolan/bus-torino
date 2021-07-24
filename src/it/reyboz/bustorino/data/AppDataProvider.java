@@ -220,9 +220,9 @@ public class AppDataProvider extends ContentProvider {
                     Double latitude = Double.parseDouble(parts.get(2));
                     Double longitude = Double.parseDouble(parts.get(3));
                     //converting distance to a float to not lose precision
-                    float distance = parts.size()>=5 ? Float.parseFloat(parts.get(4))/1000 : 0.1f;
-                    if(parts.size()>=5)
-                    Log.d("LocationSearch"," given distance to search is "+parts.get(4)+" m");
+                    float distance = parts.size()>=5 ? Float.parseFloat(parts.get(4))/1000 : 0.02f;
+                    //if(parts.size()>=5)
+                    //Log.d("LocationSearch"," given distance to search is "+parts.get(4)+" m");
                     Double distasAngle = (distance/6371)*180/Math.PI; //small angles approximation, still valid for about 500 metres
 
                     String whereClause = StopsTable.COL_LAT+ "< "+(latitude+distasAngle)+" AND "

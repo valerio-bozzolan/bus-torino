@@ -271,8 +271,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         //Re-read preferences
         SharedPreferences shpr = PreferenceManager.getDefaultSharedPreferences(getContext().getApplicationContext());
         //For some reason, they are all saved as strings
-        MAX_DISTANCE = shpr.getInt(getString(R.string.pref_key_radius_recents),1000);
-        MIN_NUM_STOPS = Integer.parseInt(shpr.getString(getString(R.string.pref_key_num_recents),"12"));
+        MAX_DISTANCE = shpr.getInt(getString(R.string.pref_key_radius_recents),600);
+        MIN_NUM_STOPS = Integer.parseInt(shpr.getString(getString(R.string.pref_key_num_recents),"10"));
     }
 
 

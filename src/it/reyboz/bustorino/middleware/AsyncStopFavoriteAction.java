@@ -22,6 +22,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.Toast;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Stop;
@@ -129,6 +130,7 @@ public class AsyncStopFavoriteAction extends AsyncTask<Stop, Void, Boolean> {
             Toast.makeText(this.context, R.string.cant_add_to_favorites, Toast.LENGTH_SHORT).show();
         }
         listener.doStuffWithResult(result);
+        Log.d("BusTO FavoritesAction", "Action "+action+" completed");
     }
 
     public interface ResultListener{

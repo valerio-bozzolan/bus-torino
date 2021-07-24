@@ -171,6 +171,8 @@ public class FragmentHelper {
      * @param parameters attach parameters
      */
     protected void attachFragmentToContainer(FragmentManager fm,Fragment fragment, AttachParameters parameters){
+        if(shouldHaltAllActivities) //nothing to do
+            return;
         FragmentTransaction ft = fm.beginTransaction();
         int frameID;
         if(parameters.attachToSecondaryFrame && secondaryFrameLayout!=NO_FRAME)
@@ -185,12 +187,12 @@ public class FragmentHelper {
         if (parameters.addToBackStack)
             ft.addToBackStack("state_"+parameters.tag);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE);
-        if(!fm.isDestroyed())
+        if(!fm.isDestroyed() && !shouldHaltAllActivities)
             ft.commit();
         //fm.executePendingTransactions();
     }
 
-    public void setBlockAllActivities(boolean shouldI) {
+    public synchronized void setBlockAllActivities(boolean shouldI) {
         this.shouldHaltAllActivities = shouldI;
     }
 
@@ -198,7 +200,7 @@ public class FragmentHelper {
         if(lastTaskRef == null) return;
         AsyncDataDownload task = lastTaskRef.get();
         if(task!=null){
-            task.cancel(true);
+            task.cancel(false);
         }
     }
 

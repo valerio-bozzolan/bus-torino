@@ -3,9 +3,8 @@ package it.reyboz.bustorino.fragments;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -26,14 +25,10 @@ import androidx.lifecycle.ViewModelProvider;
 import java.util.ArrayList;
 import java.util.List;
 
-import it.reyboz.bustorino.ActivityFavorites;
-import it.reyboz.bustorino.ActivityMain;
-import it.reyboz.bustorino.ActivityMap;
-import it.reyboz.bustorino.R;
+import it.reyboz.bustorino.*;
 import it.reyboz.bustorino.adapters.StopAdapter;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.FavoritesViewModel;
-import it.reyboz.bustorino.data.UserDB;
 import it.reyboz.bustorino.middleware.AsyncStopFavoriteAction;
 
 public class FavoritesFragment extends BaseFragment {
@@ -155,33 +150,16 @@ public class FavoritesFragment extends BaseFragment {
                 showBusStopUsernameInputDialog(busStop);
                 return true;
             case R.id.action_view_on_map:
-                final String theGeoUrl = busStop.getGeoURL();
-                /*
-                if(theGeoUrl==null){
-                    //doesn't have a position
-                    Toast.makeText(getContext(),R.string.cannot_show_on_map_no_position,Toast.LENGTH_SHORT).show();
+                if (busStop.getLatitude() == null | busStop.getLongitude() == null |
+                        mListener==null
+                ) {
+                    Toast.makeText(getContext(), R.string.cannot_show_on_map_no_position, Toast.LENGTH_SHORT).show();
                     return true;
                 }
 
-                // start ActivityMap with these extras in intent
-                Intent intent = new Intent(getContext(), ActivityMap.class);
-                Bundle b = new Bundle();
-                double lat, lon;
-                if (busStop.getLatitude()!=null)
-                    lat = busStop.getLatitude();
-                else lat = 200;
-                if (busStop.getLongitude()!=null)
-                    lon = busStop.getLongitude();
-                else lon = 200;
-                b.putDouble("lat", lat);
-                b.putDouble("lon",lon);
-                b.putString("name", busStop.getStopDefaultName());
-                b.putString("ID", busStop.ID);
-                intent.putExtras(b);
+                //GeoPoint point = new GeoPoint(busStop.getLatitude(), busStop.getLongitude());
 
-                startActivity(intent);
-                TODO: start map on button press
-                 */
+                mListener.showMapCenteredOnStop(busStop);
                 return true;
             default:
                 return super.onContextItemSelected(item);
@@ -191,7 +169,8 @@ public class FavoritesFragment extends BaseFragment {
 
     void showStops(List<Stop> busStops){
         // If no data is found show a friendly message
-
+        if(BuildConfig.DEBUG)
+            Log.d("BusTO - Favorites", "We have "+busStops.size()+" favorites in the list");
         if (busStops.size() == 0) {
             favoriteListView.setVisibility(View.INVISIBLE);
            // TextView favoriteTipTextView = (TextView) findViewById(R.id.favoriteTipTextView);
@@ -213,7 +192,6 @@ public class FavoritesFragment extends BaseFragment {
          * reason. It would probably end up as "slow" as throwing away the old ListView and
          * redrwaing everything.
          */
-
         // Show results
         favoriteListView.setAdapter(new StopAdapter(getContext(), busStops));
     }

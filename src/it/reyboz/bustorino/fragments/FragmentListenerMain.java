@@ -17,13 +17,9 @@
  */
 package it.reyboz.bustorino.fragments;
 
-import it.reyboz.bustorino.backend.Stop;
-
 public interface FragmentListenerMain extends CommonFragmentListener {
 
     void toggleSpinner(boolean state);
-
-    //TODO: implement void showStopOnMap()
 
     /**
      * Tell activity that we need to enable/disable the refreshLayout

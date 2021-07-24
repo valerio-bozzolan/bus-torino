@@ -783,6 +783,13 @@ public class ActivityMain extends GeneralActivity implements FragmentListenerMai
         }
     }
 
+    @Override
+    public void showMapCenteredOnStop(Stop stop) {
+        //nothing to do
+        //TODO: delete this activity altogether
+        Log.w(DEBUG_TAG,"Asked to show the stop on the map");
+    }
+
     private void prepareGUIForBusLines() {
         swipeRefreshLayout.setEnabled(true);
         swipeRefreshLayout.setVisibility(View.VISIBLE);

@@ -1,6 +1,8 @@
 package it.reyboz.bustorino.fragments;
 
+import android.location.Location;
 import android.view.View;
+import it.reyboz.bustorino.backend.Stop;
 
 public interface CommonFragmentListener {
 
@@ -28,4 +30,11 @@ public interface CommonFragmentListener {
      * Method to call when we want to hide the keyboard
      */
     void hideKeyboard();
+
+    /**
+     * We want to open the map on the specified stop
+     * @param stop needs to have location data (latitude, longitude)
+     */
+    void showMapCenteredOnStop(Stop stop);
+
 }

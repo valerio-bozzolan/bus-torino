@@ -42,14 +42,7 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import java.util.Map;
 
 import it.reyboz.bustorino.R;
-import it.reyboz.bustorino.backend.ArrivalsFetcher;
-import it.reyboz.bustorino.backend.FiveTAPIFetcher;
-import it.reyboz.bustorino.backend.FiveTScraperFetcher;
-import it.reyboz.bustorino.backend.FiveTStopsFetcher;
-import it.reyboz.bustorino.backend.GTTJSONFetcher;
-import it.reyboz.bustorino.backend.GTTStopsFetcher;
-import it.reyboz.bustorino.backend.Palina;
-import it.reyboz.bustorino.backend.StopsFinderByName;
+import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.middleware.AppLocationManager;
 import it.reyboz.bustorino.middleware.AsyncDataDownload;
 import it.reyboz.bustorino.util.LocationCriteria;
@@ -307,6 +300,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         Fragment fragment = getChildFragmentManager().findFragmentById(R.id.resultFrame);
         if (fragment!=null)
         getChildFragmentManager().putFragment(outState, SAVED_FRAGMENT, fragment);
+        fragmentHelper.setBlockAllActivities(true);
     }
 
     public void setSuppressArrivalsReload(boolean value){
@@ -400,6 +394,8 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
             pendingStopID = null;
         }
         mListener.readyGUIfor(FragmentKind.MAIN_SCREEN_FRAGMENT);
+
+        fragmentHelper.setBlockAllActivities(false);
     }
 
     @Override
@@ -407,6 +403,8 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         //mainHandler = null;
         locationManager.removeLocationRequestFor(requester);
         super.onPause();
+        fragmentHelper.setBlockAllActivities(true);
+        fragmentHelper.stopLastRequestIfNeeded();
     }
 
     /*
@@ -592,6 +590,11 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         // Shows hints
 
 
+    }
+
+    @Override
+    public void showMapCenteredOnStop(Stop stop) {
+        if(mListener!=null) mListener.showMapCenteredOnStop(stop);
     }
 
     /**

@@ -527,6 +527,11 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         }
     }
 
+    @Override
+    public void showMapCenteredOnStop(Stop stop) {
+        createAndShowMapFragment(stop);
+    }
+
     //Map Fragment stuff
     void createAndShowMapFragment(@Nullable Stop stop){
         FragmentManager fm = getSupportFragmentManager();

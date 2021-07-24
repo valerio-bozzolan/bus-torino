@@ -29,6 +29,9 @@ public abstract class utils {
         return Math.abs(EarthRadius*c);
 
     }
+    public static Double angleRawDifferenceFromMeters(double distanceInMeters){
+         return Math.toDegrees(distanceInMeters/EarthRadius);
+    }
     /*
     public static int convertDipToPixels(Context con,float dips)
     {

@@ -1,34 +1,26 @@
 package it.reyboz.bustorino.data;
 
-import android.annotation.SuppressLint;
-import android.content.AsyncQueryHandler;
+
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContentResolverCompat;
-import androidx.core.os.CancellationSignal;
-import androidx.core.os.OperationCanceledException;
+
 import androidx.lifecycle.LiveData;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import it.reyboz.bustorino.backend.Route;
+import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.backend.Stop;
-
-import it.reyboz.bustorino.data.NextGenDB.Contract.*;
 
 public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsyncQueryHandler.AsyncQueryListener {
     private static final String TAG = "FavoritesLiveData";
@@ -47,7 +39,7 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
                 AppDataProvider.FAVORITES).build();
 
 
-    private final int FAV_TOKEN = 23, STOPS_TOKEN_BASE=90;
+    private final int FAV_TOKEN = 23, STOPS_TOKEN_BASE=220;
 
 
     @Nullable
@@ -95,14 +87,8 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
 
     @Override
     protected void onActive() {
-        Log.d(TAG, "onActive()");
+        //Log.d(TAG, "onActive()");
         loadData();
-    }
-
-    @Override
-    protected void onInactive() {
-        Log.d(TAG, "onInactive()");
-
     }
 
     /**
@@ -118,6 +104,8 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
 
     @Override
     protected void setValue(List<Stop> stops) {
+        //Log.d("BusTO-FavoritesLiveData","Setting the new values for the stops, have "+
+        //       stops.size()+" stops");
 
         ContentResolver resolver = mContext.getContentResolver();
         resolver.registerContentObserver(FAVORITES_URI, notifyChangesDescendants,mObserver);
@@ -130,14 +118,20 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
         if (token == FAV_TOKEN) {
             stopsFromFavorites = UserDB.getFavoritesFromCursor(cursor, UserDB.getFavoritesColumnNamesAsArray);
             cursor.close();
-
-            for (int i = 0; i < stopsFromFavorites.size(); i++) {
-                Stop s = stopsFromFavorites.get(i);
-                queryHandler.startQuery(STOPS_TOKEN_BASE + i, null, getStopsBuilder().appendPath(s.ID).build(),
-                        NextGenDB.QUERY_COLUMN_stops_all, null, null, null);
-            }
+            //reset counters
             stopNeededCount = stopsFromFavorites.size();
             stopsDone = new ArrayList<>();
+            if(stopsFromFavorites.size() == 0){
+                //we don't need to call the other query
+                setValue(stopsDone);
+            } else
+                for (int i = 0; i < stopsFromFavorites.size(); i++) {
+                    Stop s = stopsFromFavorites.get(i);
+                    queryHandler.startQuery(STOPS_TOKEN_BASE + i, null,
+                            getStopsBuilder().appendPath(s.ID).build(),
+                            NextGenDB.QUERY_COLUMN_stops_all, null, null, null);
+            }
+
 
 
         } else if(token >= STOPS_TOKEN_BASE){
@@ -151,9 +145,11 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
             if (result.size() < 1){
                 // stop is not in the DB
                 finalStop = stopUpdate;
-            } else{
+            } else {
                 finalStop = result.get(0);
-                assert  (finalStop.ID.equals(stopUpdate.ID));
+                if (BuildConfig.DEBUG && !(finalStop.ID.equals(stopUpdate.ID))) {
+                    throw new AssertionError("Assertion failed");
+                }
                 finalStop.setStopUserName(stopUpdate.getStopUserName());
             }
             if (stopsDone!=null)

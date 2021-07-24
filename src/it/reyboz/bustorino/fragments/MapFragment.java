@@ -23,6 +23,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.preference.PreferenceManager;
 
+import it.reyboz.bustorino.backend.utils;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -40,10 +41,7 @@ import org.osmdroid.views.overlay.infowindow.InfoWindow;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 
 import java.lang.ref.WeakReference;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Stop;
@@ -72,6 +70,7 @@ public class MapFragment extends BaseFragment {
     private static final double DEFAULT_CENTER_LAT = 45.0708;
     private static final double DEFAULT_CENTER_LON = 7.6858;
     private static final double POSITION_FOUND_ZOOM = 18.3;
+    public static final double NO_POSITION_ZOOM = 17.1;
 
     private static final String DEBUG_TAG=FRAGMENT_TAG;
 
@@ -395,9 +394,14 @@ public class MapFragment extends BaseFragment {
                 map);
         // set the center point
         if (marker != null) {
-            startPoint = marker;
+            //startPoint = marker;
             mapController.setZoom(POSITION_FOUND_ZOOM);
             setLocationFollowing(false);
+            // put the center a little bit off (animate later)
+            startPoint = new GeoPoint(marker);
+            startPoint.setLatitude(marker.getLatitude()+ utils.angleRawDifferenceFromMeters(20));
+            startPoint.setLongitude(marker.getLongitude()-utils.angleRawDifferenceFromMeters(20));
+            //don't need to do all the rest since we want to show a point
         } else if (savedInstanceState != null && savedInstanceState.containsKey(MAP_CURRENT_ZOOM_KEY)) {
             mapController.setZoom(savedInstanceState.getDouble(MAP_CURRENT_ZOOM_KEY));
             mapController.setCenter(new GeoPoint(savedInstanceState.getDouble(MAP_CENTER_LAT_KEY),
@@ -423,7 +427,7 @@ public class MapFragment extends BaseFragment {
             }
             if(!found){
                 startPoint = new GeoPoint(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON);
-                mapController.setZoom(17.0);
+                mapController.setZoom(NO_POSITION_ZOOM);
                 setLocationFollowing(false);
             }
         }
@@ -431,6 +435,7 @@ public class MapFragment extends BaseFragment {
         // set the minimum zoom level
         map.setMinZoomLevel(15.0);
         //add contingency check (shouldn't happen..., but)
+
         if (startPoint != null) {
             mapController.setCenter(startPoint);
         }
@@ -446,7 +451,8 @@ public class MapFragment extends BaseFragment {
         //requestStopsToShow();
         if (marker != null) {
             // make a marker with the info window open for the searched marker
-            makeMarker(startPoint, name , ID, true);
+            Marker stopMarker = makeMarker(marker, name , ID, true);
+            map.getController().animateTo(marker);
         }
 
     }
@@ -523,7 +529,6 @@ public class MapFragment extends BaseFragment {
         marker.setOnMarkerClickListener((thisMarker, mapView) -> {
             if (thisMarker.isInfoWindowOpen()) {
                 // on second click
-                //TODO: show the arrivals for the stop
                 Log.w(DEBUG_TAG, "Pressed on the click marker");
             } else {
                 // on first click
@@ -554,6 +559,7 @@ public class MapFragment extends BaseFragment {
         // show popup info window of the searched marker
         if (isStartMarker) {
             marker.showInfoWindow();
+            //map.getController().animateTo(marker.getPosition());
         }
 
         return marker;
