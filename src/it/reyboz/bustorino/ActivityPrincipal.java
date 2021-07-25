@@ -265,7 +265,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                         return true;
                     }
                     //selectDrawerItem(menuItem);
-                    Log.d(DEBUG_TAG, "pressed item "+menuItem.toString());
+                    Log.d(DEBUG_TAG, "pressed item "+menuItem);
 
                     return true;
 
@@ -354,6 +354,10 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             mDrawer.closeDrawer(GravityCompat.START);
         else if(shownFrag != null && shownFrag.isVisible() && shownFrag.getChildFragmentManager().getBackStackEntryCount() > 0){
             //if we have been asked to show a stop from another fragment, we should go back even in the main
+            if(shownFrag instanceof MainScreenFragment){
+                //we have to stop the arrivals reload
+                ((MainScreenFragment) shownFrag).cancelReloadArrivalsIfNeeded();
+            }
             shownFrag.getChildFragmentManager().popBackStackImmediate();
             if(showingMainFragmentFromOther && getSupportFragmentManager().getBackStackEntryCount() > 0){
                 getSupportFragmentManager().popBackStack();
@@ -406,7 +410,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     private MainScreenFragment showMainFragment(){
         FragmentManager fraMan = getSupportFragmentManager();
         Fragment fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
-        MainScreenFragment mainScreenFragment = null;
+        final MainScreenFragment mainScreenFragment;
         if (fragment==null | !(fragment instanceof MainScreenFragment)){
             mainScreenFragment = createAndShowMainFragment();
         }

@@ -96,6 +96,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
     Handler mainHandler;
     private final Runnable refreshStop = new Runnable() {
         public void run() {
+            if(getContext() == null) return;
             if (fragMan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
                 ArrivalsFragment fragment = (ArrivalsFragment) fragMan.findFragmentById(R.id.resultFrame);
                 if (fragment == null){
@@ -131,8 +132,8 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
             if(status == AppLocationManager.LOCATION_GPS_AVAILABLE && !isNearbyFragmentShown()){
                 //request Stops
                 pendingNearbyStopsRequest = false;
-
-                mainHandler.post(new NearbyStopsRequester(getContext(), cr));
+                if (getContext()!= null)
+                    mainHandler.post(new NearbyStopsRequester(getContext(), cr));
             }
         }
 
@@ -149,7 +150,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         @Override
         public void onLocationProviderAvailable() {
             //Log.w(DEBUG_TAG, "pendingNearbyStopRequest: "+pendingNearbyStopsRequest);
-            if(!isNearbyFragmentShown()){
+            if(!isNearbyFragmentShown() && getContext()!=null){
                 pendingNearbyStopsRequest = false;
                 mainHandler.post(new NearbyStopsRequester(getContext(), cr));
             }
@@ -317,6 +318,18 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
          */
     }
 
+    /**
+     * Cancel the reload of the arrival times
+     * because we are going to pop the fragment
+     */
+    public void cancelReloadArrivalsIfNeeded(){
+        if(getContext()==null) return; //we are not attached
+
+        //Fragment fr = getChildFragmentManager().findFragmentById(R.id.resultFrame);
+        fragmentHelper.stopLastRequestIfNeeded();
+        toggleSpinner(false);
+    }
+
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -326,7 +339,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         if (context instanceof CommonFragmentListener) {
             mListener = (CommonFragmentListener) context;
         } else {
-            throw new RuntimeException(context.toString()
+            throw new RuntimeException(context
                     + " must implement CommonFragmentListener");
         }
         if (setupOnAttached) {
@@ -407,6 +420,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         fragmentHelper.stopLastRequestIfNeeded();
     }
 
+
     /*
     GUI METHODS
      */
@@ -437,10 +451,10 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         } else { // searchMode == SEARCH_BY_NAME
             String query = busStopSearchByNameEditText.getText().toString();
             //new asyncWgetBusStopSuggestions(query, stopsDB, StopsFindersByNameRecursionHelper);
-            new AsyncDataDownload(fragmentHelper, stopsFinderByNames, getContext()).execute(query);
+            if(getContext()!=null)
+                new AsyncDataDownload(fragmentHelper, stopsFinderByNames, getContext()).execute(query);
         }
     }
-
 
     public void onToggleKeyboardLayout(View v) {
 

@@ -281,10 +281,7 @@ public class Route implements Comparable<Route> {
         if(this.stopsList!=null && other.stopsList!=null){
             int d = this.stopsList.size()-other.stopsList.size();
             if(d!=0) return d;
-            else {
-                //the two have the same number of stops
-
-            }
+            //if we are here, the two routes have the same number of stops
         }
         // probably useless, but... last attempt.
 
@@ -306,11 +303,22 @@ public class Route implements Comparable<Route> {
              Route r = (Route) obj;
              boolean result  = false;
              if(this.name.equals(r.name) && this.branchid == r.branchid){
+                 if(description!=null && r.description!=null)
+                     if(!description.trim().equals(r.description.trim()))
+                         return false;
+                 if(destinazione!=null && r.destinazione!=null){
+                         if(!this.destinazione.trim().equals(r.destinazione.trim()))
+                             // they are not the same
+                             return false;
+                 }
+                 //check stops list
                  if(this.stopsList!=null && r.stopsList!=null){
-                     int d = this.stopsList.size()-r.stopsList.size();
-                     if(d!=0) {
-                         result = false;
+                     int sizeDiff = this.stopsList.size()-r.stopsList.size();
+                     if(sizeDiff!=0) {
+                         return false;
+
                      } else {
+                         //check that the stops are the same
                          result = true;
                          for(int j=0; j<this.stopsList.size();j++){
                              if(!this.stopsList.get(j).equals(r.stopsList.get(j))) {
@@ -318,7 +326,11 @@ public class Route implements Comparable<Route> {
                                 break;
                              }
                         }
+                         return result;
                      }
+                 } else{
+                     //no stopsList in one or the other
+                     return true;
                  }
              }
              return result;
@@ -342,7 +354,7 @@ public class Route implements Comparable<Route> {
         if (other.getStopsList() != null && this.getStopsList() == null)
             this.setStopsList(other.getStopsList());
 
-        if(this.passaggi!=null && other.passaggi!=null && this.passaggi.size()==0 && other.passaggi.size()>0){
+        if(this.passaggi!=null && other.passaggi!=null && other.passaggi.size()>0){
             this.passaggi.addAll(other.passaggi);
         }
 

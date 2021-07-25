@@ -2,30 +2,44 @@
 <androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <androidx.preference.PreferenceCategory
-            android:title="General">
+            android:title="@string/general_settings">
         <androidx.preference.SwitchPreferenceCompat
                 android:defaultValue="false"
                 android:title="@string/settings_experimental" android:key="@string/pref_key_experimental"/>
     </androidx.preference.PreferenceCategory>
     <androidx.preference.PreferenceCategory
             android:title="@string/pref_recents_group_title">
+        <!--
     <androidx.preference.EditTextPreference
             android:defaultValue="10"
             android:selectAllOnFocus="true"
             android:singleLine="true"
-            android:title="@string/pref_num_elements" android:key="@string/pref_key_num_recents" android:inputType="numberDecimal"
-
-            android:digits="0123456789" android:ems="10"
+            android:inputType="number"
+            android:title="@string/pref_num_elements" android:key="@string/pref_key_num_recents"
+            app:useSimpleSummaryProvider="true"
+            android:digits="0123456789"
     />
+    -->
+        <androidx.preference.SeekBarPreference
+                android:title="@string/pref_num_elements" android:key="@string/pref_key_num_recents"
+                android:defaultValue="4"
+                android:max="40"
+                app:min="1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:showSeekBarValue="true"
+
+        />
     <androidx.preference.SeekBarPreference
             android:title="@string/settings_search_radius"
             android:key="@string/pref_key_radius_recents"
             android:defaultValue="500"
             android:max="1000"
-            app:min="20"
+            app:min="100"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
+            app:showSeekBarValue="true"
+
     />
 
     </androidx.preference.PreferenceCategory>

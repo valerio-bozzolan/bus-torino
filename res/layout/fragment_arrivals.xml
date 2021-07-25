@@ -86,7 +86,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="15dp"
                             android:layout_marginLeft="15dp"
-                            android:text="Source of arrivals"
+                            android:text=""
                             android:textAppearance="?android:attr/textAppearanceMedium"
                             android:textSize="19sp"
 

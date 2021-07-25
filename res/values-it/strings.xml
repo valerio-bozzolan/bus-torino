@@ -62,6 +62,7 @@
 		- <b>Fabio Mazza</b> attuale rockstar developer anziano.<br>
 		- <b>Andrea Ugo</b> attuale rockstar developer in formazione.<br>
 		- <b>Silviu Chiriac</b> designer del logo 2021.<br>
+		- <b>Marco M</b> formidabile tester e cacciatore di bug.<br>
 		- <b>Ludovico Pavesi</b> ex rockstar developer anziano asd.<br>
 		- <b>Valerio Bozzolan</b> attuale manutentore.<br>
 		- <b>Marco Gagino</b> apprezzato ex collaboratore, ideatore icona e grafica.<br>
@@ -94,18 +95,22 @@
     <string name="no_stops_nearby">Nessuna fermata nei dintorni</string>
     <string name="main_menu_pref">Preferenze</string>
     <string name="database_update_message">Aggiornamento del database&#8230;</string>
-    <string name="pref_num_elements">Numero di fermate</string>
+    <string name="pref_num_elements">Numero minimo di fermate</string>
+    <string name="num_stops_nearby_not_number">Il numero di fermate da ricercare non è valido</string>
+    <string name="invalid_number">Valore errato, inserisci un numero</string>
     <string name="title_activity_settings">Impostazioni</string>
+    <string name="settings_search_radius">Distanza massima di ricerca (m)</string>
+    <string name="settings_experimental">Funzionalità sperimentali</string>
     <string name="action_settings">Impostazioni</string>
+    <string name="general_settings">Generali</string>
     <string name="pref_recents_group_title">Fermate recenti</string>
     <string name="settings_group_general">Impostazioni generali</string>
     <string name="settings_group_database">Gestione del database</string>
     <string name="settings_reset_database">Comincia aggiornamento manuale del database</string>
 
+
     <string name="enable_position_message_map">Consenti l\'accesso alla posizione per mostrarla sulla mappa</string>
     <string name="enableGpsText">Abilitare il GPS</string>
-    <string name="settings_search_radius">Raggio di ricerca</string>
-    <string name="settings_experimental">Funzionalità sperimentali</string>
     <string name="bus_arriving_at">arriva alle</string>
     <string name="arrivals_card_at_the_stop">alla fermata</string>
     <string name="show_arrivals">Mostra arrivi</string>

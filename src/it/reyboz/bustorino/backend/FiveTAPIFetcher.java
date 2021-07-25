@@ -130,7 +130,8 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
 
 
     public List<Route> parseDirectionsFromResponse(String response) throws IllegalArgumentException,JSONException{
-        if(response == null || response.length()==0) throw new IllegalArgumentException("Response string is null or void");
+        if(response == null || response.equals("null") || response.length()==0)
+            throw new IllegalArgumentException("Response string is null or void");
         ArrayList<Route> routes = new ArrayList<>(10);
             JSONArray lines =new JSONArray(response);
             for(int i=0; i<lines.length();i++){

@@ -116,8 +116,12 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
                         return null;
                     }
                     //Skip the FiveTAPIFetcher for the Metro Stops because it shows incomprehensible arrival times
-                    if(f instanceof FiveTAPIFetcher && Integer.parseInt(stopID)>= 8200)
-                        continue;
+                    try {
+                        if (f instanceof FiveTAPIFetcher && Integer.parseInt(stopID) >= 8200)
+                            continue;
+                    } catch (NumberFormatException ex){
+                        Log.e(DEBUG_TAG, "The stop number is not a valid integer, expect failures");
+                    }
                     p= f.ReadArrivalTimesAll(stopID,res);
                     publishProgress(res.get());
                     //if (res.get()!= Fetcher.Result.OK)
@@ -149,7 +153,10 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
                             }
                         }
                     }
-
+                    p.mergeDuplicateRoutes(0);
+                    if(p.queryAllRoutes().size() == 0)
+                        //skip the rest and go to the next fetcher
+                        continue;
                     result = p;
                     //TODO: find a way to avoid overloading the user with toasts
                     break;

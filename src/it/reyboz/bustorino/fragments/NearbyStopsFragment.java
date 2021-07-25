@@ -44,6 +44,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.android.volley.*;
+import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.adapters.ArrivalsStopAdapter;
 import it.reyboz.bustorino.backend.*;
@@ -225,7 +226,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         if (context instanceof FragmentListenerMain) {
             mListener = (FragmentListenerMain) context;
         } else {
-            throw new RuntimeException(context.toString()
+            throw new RuntimeException(context
                     + " must implement OnFragmentInteractionListener");
         }
         Log.d(DEBUG_TAG, "OnAttach called");
@@ -267,12 +268,31 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
 
         mListener.enableRefreshLayout(false);
         Log.d(DEBUG_TAG,"OnResume called");
-
+        if(getContext()==null){
+            Log.e(DEBUG_TAG, "NULL CONTEXT, everything is going to crash now");
+            MIN_NUM_STOPS = 5;
+            MAX_DISTANCE = 600;
+            return;
+        }
         //Re-read preferences
         SharedPreferences shpr = PreferenceManager.getDefaultSharedPreferences(getContext().getApplicationContext());
         //For some reason, they are all saved as strings
         MAX_DISTANCE = shpr.getInt(getString(R.string.pref_key_radius_recents),600);
-        MIN_NUM_STOPS = Integer.parseInt(shpr.getString(getString(R.string.pref_key_num_recents),"10"));
+        boolean isMinStopInt = true;
+        try{
+            MIN_NUM_STOPS = shpr.getInt(getString(R.string.pref_key_num_recents), 5);
+        } catch (ClassCastException ex){
+            isMinStopInt = false;
+        }
+        if(!isMinStopInt)
+            try {
+                MIN_NUM_STOPS = Integer.parseInt(shpr.getString(getString(R.string.pref_key_num_recents), "5"));
+            } catch (NumberFormatException ex){
+                MIN_NUM_STOPS = 5;
+            }
+        if(BuildConfig.DEBUG)
+            Log.d(DEBUG_TAG, "Max distance for stops: "+MAX_DISTANCE+
+                    ", Min number of stops: "+MIN_NUM_STOPS);
     }
 
 
@@ -311,21 +331,30 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         if (0 > MAX_DISTANCE) throw new AssertionError();
         //Cursor might be null
+        Log.d(DEBUG_TAG, "Num stops found: "+data.getCount()+", Current distance: "+distance);
         if(data==null){
             Log.e(DEBUG_TAG,"Null cursor, something really wrong happened");
             return;
         }
-        if(!isDBUpdating() && (data.getCount()<MIN_NUM_STOPS || distance<=MAX_DISTANCE)){
+        if(!isDBUpdating() && (data.getCount()<MIN_NUM_STOPS && distance<=MAX_DISTANCE)){
             distance = distance*2;
             Bundle d = new Bundle();
             d.putParcelable(BUNDLE_LOCATION,lastReceivedLocation);
             getLoaderManager().restartLoader(LOADER_ID,d,this);
+            //Log.d(DEBUG_TAG, "Doubling distance now!");
             return;
         }
         Log.d("LoadFromCursor","Number of nearby stops: "+data.getCount());
         ////////
-        ArrayList<Stop> stopList = createStopListFromCursor(data);
+
         if(data.getCount()>0) {
+            ArrayList<Stop> stopList = createStopListFromCursor(data);
+            double minDistance = Double.POSITIVE_INFINITY;
+            for(Stop s: stopList){
+                minDistance = Math.min(minDistance, s.getDistanceFromLocation(lastReceivedLocation));
+            }
+
+
             //quick trial to hopefully always get the stops in the correct order
             Collections.sort(stopList,new StopSorterByDistance(lastReceivedLocation));
             switch (fragment_type){
@@ -350,7 +379,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
+    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
     }
 
     /**
@@ -427,6 +456,10 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
                 routesPairList.add(new Pair<>(p,r));
             }
         }
+        if (getContext()==null){
+            Log.e(DEBUG_TAG, "Trying to show arrivals in Recycler but we're not attached");
+            return;
+        }
         if(firstLocForArrivals){
             arrivalsStopAdapter = new ArrivalsStopAdapter(routesPairList,mListener,getContext(),lastReceivedLocation);
             gridRecyclerView.setAdapter(arrivalsStopAdapter);
@@ -465,13 +498,13 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         final static String REQUEST_TAG = "NearbyArrivals";
         private final QueryType[] types = {QueryType.ARRIVALS,QueryType.DETAILS};
         final NetworkVolleyManager volleyManager;
-        private final int MAX_ARRIVAL_STOPS =35;
         int activeRequestCount = 0,reqErrorCount = 0, reqSuccessCount=0;
 
         ArrivalsManager(List<Stop> stops){
             mStops = new HashMap<>();
             volleyManager = NetworkVolleyManager.getInstance(getContext());
 
+            int MAX_ARRIVAL_STOPS = 35;
             for(Stop s: stops.subList(0,Math.min(stops.size(), MAX_ARRIVAL_STOPS))){
                 mStops.put(s.ID,new Palina(s));
                 for(QueryType t: types) {
@@ -594,6 +627,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             switch(status){
                 case AppLocationManager.LOCATION_GPS_AVAILABLE:
                     messageTextView.setVisibility(View.GONE);
+
                     break;
                 case AppLocationManager.LOCATION_UNAVAILABLE:
                     messageTextView.setText(R.string.enableGpsText);

@@ -35,12 +35,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" android:id="@+id/versionTextView"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:gravity="center_vertical"
+            android:gravity="center_horizontal|center_vertical"
             android:layout_margin="10dp"
             android:layout_marginLeft="20dp"
             android:layout_marginStart="20dp"
 
-    />
+            android:textColor="@color/black"/>
 
 
 </LinearLayout>

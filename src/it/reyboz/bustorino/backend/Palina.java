@@ -351,4 +351,27 @@ public class Palina extends Stop {
 //            return this.passaggi;
 //        }
 //    }
+    //remove duplicates
+
+    public void mergeDuplicateRoutes(int startidx){
+       //ArrayList<Route> routesCopy = new ArrayList<>(routes);
+       //for
+        if(routes.size()<=1|| startidx >= routes.size()) //we have finished
+            return;
+        Route routeCheck = routes.get(startidx);
+        boolean found = false;
+        for(int i=startidx+1; i<routes.size(); i++){
+            final Route r = routes.get(i);
+            if(routeCheck.equals(r)){
+                //we have found a match, merge
+                routes.remove(routeCheck);
+                r.mergeRouteWithAnother(routeCheck);
+                found=true;
+                break;
+            }
+        }
+        if (found) mergeDuplicateRoutes(startidx);
+        else mergeDuplicateRoutes(startidx+1);
+    }
+    //private void mergeRoute
 }

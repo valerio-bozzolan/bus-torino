@@ -72,6 +72,7 @@
 		- <b>Fabio Mazza</b> current senior rockstar developer.<br>
         - <b>Andrea Ugo</b> current junior rockstar developer.<br>
 		- <b>Silviu Chiriac</b> designer of the 2021 logo.<br>
+		- <b>Marco M</b> rockstar tester and bug hunter.<br>
 		- <b>Ludovico Pavesi</b> previous senior rockstar developer asd.<br>
 		- <b>Valerio Bozzolan</b> maintainer and infrastructure sponsor.<br>
 		- <b>Marco Gagino</b> contributor and icon creator.<br>
@@ -91,6 +92,7 @@
 		<p>Get involved! :)</p>
     ]]>
     </string>
+
     <string name="cant_add_to_favorites">Cannot add to favorites (storage full or corrupted database?)!</string>
     <string name="action_view_on_map">View on a map</string>
     <string name="cannot_show_on_map_no_activity">Cannot find any application to show it in</string>
@@ -99,19 +101,22 @@
     <string name="list_fragment_debug" translatable="false">ListFragment - BusTO</string>
     <string name="mainSharedPreferences" translatable="false">it.reyboz.bustorino.preferences</string>
     <string name="databaseUpdatingPref" translatable="false">db_is_updating</string>
-
+    <!-- Settings -->
     <string name="nearby_stops_message">Nearby stops</string>
     <string name="nearby_arrivals_message">Nearby connections</string>
     <string name="app_version">App version</string>
+    <string name="num_stops_nearby_not_number">The number of stops to show in the recents is invalid</string>
+    <string name="invalid_number">Invalid value, put a valid number</string>
 
     <string name="position_searching_message">Finding the position&#8230;</string>
     <string name="no_stops_nearby">No stops nearby</string>
-    <string name="pref_num_elements">Number of stops</string>
+    <string name="pref_num_elements">Minimum number of stops</string>
     <string name="main_menu_pref">Preferences</string>
     <string name="title_activity_settings">Settings</string>
     <string name="action_settings">Settings</string>
+    <string name="general_settings">General</string>
     <string name="settings_experimental">Experimental features</string>
-    <string name="settings_search_radius">Search radius</string>
+    <string name="settings_search_radius">Maximum distance (meters)</string>
     <string name="pref_recents_group_title">Recent stops</string>
     <string name="settings_group_general">General settings</string>
     <string name="settings_group_database">Database management</string>
