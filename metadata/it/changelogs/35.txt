@@ -1,0 +1,1 @@
+* fix crash inserendo un numero della fermata eccessivamente elevato - https://gitpull.it/T898

@@ -1,0 +1,1 @@
+* fix crash when typing excessively large number as a stop number - https://gitpull.it/T898
