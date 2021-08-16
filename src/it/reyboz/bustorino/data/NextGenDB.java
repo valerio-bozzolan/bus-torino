@@ -123,7 +123,7 @@ public class NextGenDB extends SQLiteOpenHelper{
             db.execSQL(SQL_CREATE_BRANCH_TABLE);
             db.execSQL(SQL_CREATE_CONNECTIONS_TABLE);
 
-            DatabaseUpdateService.startDBUpdate(appContext,0,true);
+            DatabaseUpdate.requestDBUpdateWithWork(appContext, true);
         }
     }
 

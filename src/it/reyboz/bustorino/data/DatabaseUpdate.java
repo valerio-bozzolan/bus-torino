@@ -1,3 +1,20 @@
+/*
+	BusTO - Data components
+    Copyright (C) 2021 Fabio Mazza
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package it.reyboz.bustorino.data;
 
 import android.content.ContentValues;
@@ -5,6 +22,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+import androidx.core.content.ContextCompat;
+import androidx.work.*;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.FiveTAPIFetcher;
@@ -14,6 +33,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -154,5 +174,26 @@ public class DatabaseUpdate {
         final SharedPreferences.Editor editor = shPr.edit();
         editor.putBoolean(con.getString(R.string.databaseUpdatingPref),value);
         return editor.commit();
+    }
+
+    /**
+     * Request update using workmanager framework
+     * @param con the context to use
+     * @param forced if you want to force the request to go now
+     */
+    public static void requestDBUpdateWithWork(Context con, boolean forced){
+        final SharedPreferences theShPr = PreferencesHolder.getMainSharedPreferences(con);
+        final WorkManager workManager = WorkManager.getInstance(con);
+        PeriodicWorkRequest wr = new PeriodicWorkRequest.Builder(DBUpdateWorker.class, 1, TimeUnit.DAYS)
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.MINUTES)
+                .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build())
+                .build();
+        final int version = theShPr.getInt(DatabaseUpdate.DB_VERSION_KEY, -10);
+        if (version >= 0 && !forced)
+            workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
+                    ExistingPeriodicWorkPolicy.KEEP, wr);
+        else workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
+                ExistingPeriodicWorkPolicy.REPLACE, wr);
     }
 }

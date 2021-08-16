@@ -3,6 +3,6 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">5t.torino.it</domain>
         <domain includeSubdomains="true">gtt.to.it</domain>
-
+        <domain includeSubdomains="true">comune.torino.it</domain>
     </domain-config>
 </network-security-config>

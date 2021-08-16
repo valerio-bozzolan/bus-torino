@@ -1,3 +1,20 @@
+/*
+	BusTO - Arrival times for Turin public transport.
+    Copyright (C) 2021 Fabio Mazza
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package it.reyboz.bustorino;
 
 import android.Manifest;
@@ -23,6 +40,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.preference.PreferenceManager;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
@@ -165,22 +183,11 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             requestArrivalsForStopID(busStopID);
         }
         //Try (hopefully) database update
-        PeriodicWorkRequest wr = new PeriodicWorkRequest.Builder(DBUpdateWorker.class, 1, TimeUnit.DAYS)
-                .setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.MINUTES)
-                .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build())
-                .build();
-        final WorkManager workManager = WorkManager.getInstance(this);
-
-        final int version = theShPr.getInt(DatabaseUpdate.DB_VERSION_KEY, -10);
-        if (version >= 0)
-            workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
-                    ExistingPeriodicWorkPolicy.KEEP, wr);
-        else workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
-                ExistingPeriodicWorkPolicy.REPLACE, wr);
+        DatabaseUpdate.requestDBUpdateWithWork(this, false);
         /*
-        Set database update
+        Watch for database update
          */
+        final WorkManager workManager = WorkManager.getInstance(this);
         workManager.getWorkInfosForUniqueWorkLiveData(DBUpdateWorker.DEBUG_TAG)
                 .observe(this, workInfoList -> {
                     // If there are no matching work info, do nothing
@@ -300,7 +307,11 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.extra_menu_items, menu);
+        getMenuInflater().inflate(R.menu.principal_menu, menu);
+        MenuItem experimentsMenuItem = menu.findItem(R.id.action_experiments);
+        SharedPreferences shPr = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        boolean exper_On = shPr.getBoolean(getString(R.string.pref_key_experimental), false);
+        experimentsMenuItem.setVisible(exper_On);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -569,6 +580,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 case R.id.action_licence:
                     openIceweasel("https://www.gnu.org/licenses/gpl-3.0.html", activityContext);
                     return true;
+                case R.id.action_experiments:
+                    startActivity(new Intent(ActivityPrincipal.this, ActivityExperiments.class));
                 default:
             }
             return false;

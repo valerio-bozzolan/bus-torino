@@ -1,5 +1,5 @@
 /*
-	BusTO (middleware)
+	BusTO - Map components
     Copyright (C) 2021 Fabio Mazza
 
     This program is free software: you can redistribute it and/or modify

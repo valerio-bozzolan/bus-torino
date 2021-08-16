@@ -21,4 +21,9 @@
             android:orderInCategory="8"
             android:title="@string/action_licence"
             app:showAsAction="never" />
+    <item
+            android:id="@+id/action_experiments"
+            android:title="@string/experiments"
+            android:orderInCategory="10"
+    />
 </menu>

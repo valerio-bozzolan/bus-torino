@@ -328,15 +328,16 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
 
 
     @Override
-    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
+    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
         if (0 > MAX_DISTANCE) throw new AssertionError();
         //Cursor might be null
-        Log.d(DEBUG_TAG, "Num stops found: "+data.getCount()+", Current distance: "+distance);
-        if(data==null){
+        if(cursor==null){
             Log.e(DEBUG_TAG,"Null cursor, something really wrong happened");
             return;
         }
-        if(!isDBUpdating() && (data.getCount()<MIN_NUM_STOPS && distance<=MAX_DISTANCE)){
+        Log.d(DEBUG_TAG, "Num stops found: "+cursor.getCount()+", Current distance: "+distance);
+
+        if(!isDBUpdating() && (cursor.getCount()<MIN_NUM_STOPS && distance<=MAX_DISTANCE)){
             distance = distance*2;
             Bundle d = new Bundle();
             d.putParcelable(BUNDLE_LOCATION,lastReceivedLocation);
@@ -344,11 +345,11 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             //Log.d(DEBUG_TAG, "Doubling distance now!");
             return;
         }
-        Log.d("LoadFromCursor","Number of nearby stops: "+data.getCount());
+        Log.d("LoadFromCursor","Number of nearby stops: "+cursor.getCount());
         ////////
 
-        if(data.getCount()>0) {
-            ArrayList<Stop> stopList = createStopListFromCursor(data);
+        if(cursor.getCount()>0) {
+            ArrayList<Stop> stopList = createStopListFromCursor(cursor);
             double minDistance = Double.POSITIVE_INFINITY;
             for(Stop s: stopList){
                 minDistance = Math.min(minDistance, s.getDistanceFromLocation(lastReceivedLocation));

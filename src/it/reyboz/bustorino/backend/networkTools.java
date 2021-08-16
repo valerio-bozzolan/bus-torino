@@ -18,22 +18,20 @@
 
 package it.reyboz.bustorino.backend;
 
+import android.content.Context;
 import androidx.annotation.Nullable;
 import android.util.Log;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class networkTools {
-    static String getDOM(final URL url, final AtomicReference<Fetcher.Result> res) {
+    public static String getDOM(final URL url, final AtomicReference<Fetcher.Result> res) {
         //Log.d("asyncwget", "Catching URL in background: " + uri[0]);
         HttpURLConnection urlConnection;
         StringBuilder result = null;
@@ -69,6 +67,52 @@ public abstract class networkTools {
 
         res.set(Fetcher.Result.PARSER_ERROR); // will be set to "OK" later, this is a safety net in case StringBuilder returns null, the website returns an HTTP 204 or something like that.
         return result.toString();
+    }
+
+    public static Fetcher.Result saveFileInCache(File outputFile, URL url) {
+        HttpURLConnection urlConnection;
+        try {
+            urlConnection = (HttpURLConnection) url.openConnection();
+        } catch (IOException e) {
+            //e.printStackTrace();
+            return Fetcher.Result.CONNECTION_ERROR;
+        }
+        urlConnection.setConnectTimeout(4000);
+        urlConnection.setReadTimeout(50 * 1000);
+
+        Log.d("BusTO net Tools", "Download file "+url);
+        try (InputStream inputStream = urlConnection.getInputStream()) {
+            //File outputFile = new File(con.getFilesDir(), fileName);
+            //BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+            FileOutputStream outputStream = new FileOutputStream(outputFile);
+            byte buffer[] = new byte[16384];
+            boolean inProgress = true;
+            while(inProgress){
+                int numread = inputStream.read(buffer);
+                inProgress = (numread > 0);
+                if(inProgress) outputStream.write(buffer, 0, numread);
+            }
+            outputStream.close();
+            //while (bufferedInputStream.available())
+        } catch (IOException e) {
+            e.printStackTrace();
+            try {
+                final Fetcher.Result  res;
+                if(urlConnection.getResponseCode()==404)
+                    res= Fetcher.Result.SERVER_ERROR_404;
+                else if(urlConnection.getResponseCode()!=200)
+                    res= Fetcher.Result.SERVER_ERROR;
+                else res= Fetcher.Result.PARSER_ERROR;
+                urlConnection.disconnect();
+                return res;
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+                urlConnection.disconnect();
+                return Fetcher.Result.PARSER_ERROR;
+            }
+        }
+        urlConnection.disconnect();
+        return Fetcher.Result.OK;
     }
     @Nullable
     static String queryURL(URL url, AtomicReference<Fetcher.Result> res){

@@ -25,6 +25,7 @@ import java.util.HashMap;
 
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.utils;
+import it.reyboz.bustorino.data.PreferencesHolder;
 
 /**
  * Activity class that contains all the generally useful methods
@@ -58,7 +59,7 @@ public abstract class GeneralActivity extends AppCompatActivity {
     }
 
     protected SharedPreferences getMainSharedPreferences(){
-        return getSharedPreferences(getString(R.string.mainSharedPreferences),MODE_PRIVATE);
+        return PreferencesHolder.getMainSharedPreferences(this);
     }
     public void hideKeyboard() {
         View view = getCurrentFocus();

@@ -8,10 +8,12 @@ import android.net.Uri;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
+import androidx.annotation.Nullable;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.List;
 
 public abstract class utils {
     private static final double EarthRadius = 6371e3;
@@ -153,4 +155,17 @@ public abstract class utils {
         return "Trace too Short.";
     }
      */
+    public static String joinList(@Nullable List<String> dat, String separator){
+        StringBuilder sb = new StringBuilder();
+        if(dat==null || dat.size()==0)
+            return "";
+        else if(dat.size()==1)
+            return dat.get(0);
+        sb.append(dat.get(0));
+        for (int i=1; i<dat.size(); i++){
+            sb.append(separator);
+            sb.append(dat.get(i));
+        }
+        return sb.toString();
+    }
 }

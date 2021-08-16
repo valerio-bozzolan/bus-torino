@@ -157,7 +157,8 @@
     <string name="storage_permission">storage</string>
     <string name="message_crash">The application has crashed because you encountered a bug.
         \nIf you want, you can help the developers by sending the crash report via email.
-        \nNote that no sensitive data is contained in the report, just small bits of info on your phone and app configuration/state.
+        \nNote that no sensitive data is contained in the report, just small bits of info on your phone and app
+        configuration/state.
     </string>
     <string name="acra_email_message">The application crashed and the crash report is in the attachments. Please
         describe what you were doing before the crash: \n
@@ -171,4 +172,6 @@
     <string name="donate_now">Buy us a coffee</string>
     <string name="map">Map</string>
     <string name="stop_search_view_title">Search by stop</string>
+
+
 </resources>
