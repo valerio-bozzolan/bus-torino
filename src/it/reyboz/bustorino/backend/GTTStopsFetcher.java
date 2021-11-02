@@ -53,7 +53,7 @@ public class GTTStopsFetcher implements StopsFinderByName  {
         }
 
         try {
-            url = new URL("http://www.gtt.to.it/cms/components/com_gtt/views/palinejson/view.html.php?term=" + URLEncoder.encode(name, "utf-8"));
+            url = new URL("https://www.gtt.to.it/cms/index.php?option=com_gtt&view=palinejson&term=" + URLEncoder.encode(name, "utf-8"));
         } catch (Exception e) {
             res.set(Result.PARSER_ERROR);
             return s;

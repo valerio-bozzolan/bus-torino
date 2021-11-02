@@ -25,8 +25,12 @@ import android.net.Uri;
 import android.os.AsyncTask;
 
 import androidx.annotation.NonNull;
-import android.util.Log;
+import androidx.core.content.ContextCompat;
 
+import android.util.Log;
+import android.widget.Toast;
+
+import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.data.AppDataProvider;
 import it.reyboz.bustorino.data.NextGenDB;
@@ -88,6 +92,7 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
         boolean success=false;
         Object result;
         FragmentHelper fh = helperRef.get();
+        ArrayList<Fetcher.Result> results = new ArrayList<>(theFetchers.length);
         //If the FragmentHelper is null, that means the activity doesn't exist anymore
         if (fh == null){
             return null;
@@ -167,11 +172,13 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
                     Log.d(TAG,"Using the StopFinderByName: "+finder.getClass());
                     query =params[0];
                     result = resultList; //dummy result
+                    Log.d(DEBUG_TAG, "Result: "+res.get()+", "+resultList.size()+" stops");
                     break;
                 default:
                     result = null;
             }
             //find if it went well
+            results.add(res.get());
             if(res.get()== Fetcher.Result.OK) {
                 //wait for other threads to finish
                 for(Thread t: otherActivities){
@@ -184,6 +191,17 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
                 return result;
             }
 
+        }
+        boolean emptyResults = true;
+        for (Fetcher.Result re: results){
+            if (!re.equals(Fetcher.Result.EMPTY_RESULT_SET)) {
+                emptyResults = false;
+                break;
+            }
+        }
+        if(emptyResults){
+            if(t==RequestType.STOPS)
+                publishProgress(Fetcher.Result.EMPTY_RESULT_SET);
         }
         //at this point, we are sure that the result has been negative
         failedAll=true;
@@ -235,6 +253,7 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
                 ArrayList<Stop> stops = new ArrayList<>();
                 for(Object x: list){
                     if(x instanceof Stop) stops.add((Stop) x);
+                    //Log.d(DEBUG_TAG, "Parsing Stop: "+x);
                 }
                 if(list.size() != stops.size()){
                     Log.w(DEBUG_TAG, "Wrong stop list size:\n incoming: "+

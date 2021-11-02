@@ -152,6 +152,7 @@ public class FragmentHelper {
         attachFragmentToContainer(managerWeakRef.get(),listfragment,
                 new AttachParameters("search_"+query, false,addToBackStack));
         listfragment.setStopList(resultList);
+        listenerMain.readyGUIfor(FragmentKind.STOPS);
         toggleSpinner(false);
 
     }

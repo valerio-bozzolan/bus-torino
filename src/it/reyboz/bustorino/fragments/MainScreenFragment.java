@@ -450,9 +450,16 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
             requestArrivalsForStopID(busStopID);
         } else { // searchMode == SEARCH_BY_NAME
             String query = busStopSearchByNameEditText.getText().toString();
-            //new asyncWgetBusStopSuggestions(query, stopsDB, StopsFindersByNameRecursionHelper);
-            if(getContext()!=null)
-                new AsyncDataDownload(fragmentHelper, stopsFinderByNames, getContext()).execute(query);
+            query = query.trim();
+            if(getContext()!=null) {
+                if (query.length() < 1) {
+                    Toast.makeText(getContext(), R.string.insert_bus_stop_name_error, Toast.LENGTH_SHORT).show();
+                } else if(query.length()< 3){
+                    Toast.makeText(getContext(), R.string.query_too_short, Toast.LENGTH_SHORT).show();
+                }
+                else
+                    new AsyncDataDownload(fragmentHelper, stopsFinderByNames, getContext()).execute(query);
+            }
         }
     }
 
