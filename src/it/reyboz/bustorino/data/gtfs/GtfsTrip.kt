@@ -24,7 +24,7 @@ import androidx.room.*
         ForeignKey(entity = GtfsRoute::class,
             parentColumns = [GtfsRoute.COL_ROUTE_ID],
             childColumns = [GtfsTrip.COL_ROUTE_ID],
-            onDelete = GtfsDatabase.FOREIGNKEY_ONDELETE),
+            onDelete = ForeignKey.CASCADE),
         // The service_id: ID referencing calendar.service_id or calendar_dates.service_id
         /*
         ForeignKey(entity = GtfsService::class,

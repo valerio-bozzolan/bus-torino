@@ -25,6 +25,12 @@ interface StaticGtfsDao {
     @Query("SELECT * FROM "+GtfsRoute.DB_TABLE+" ORDER BY "+GtfsRoute.COL_SORT_ORDER)
     fun getAllRoutes() : LiveData<List<GtfsRoute>>
 
+    @Query("SELECT "+GtfsTrip.COL_TRIP_ID+" FROM "+GtfsTrip.DB_TABLE)
+    fun getAllTripsIDs() : List<String>
+
+    @Query("SELECT "+GtfsStop.COL_STOP_ID+" FROM "+GtfsStop.DB_TABLE)
+    fun getAllStopsIDs() : List<Int>
+
     @Query("SELECT * FROM "+GtfsStop.DB_TABLE+" WHERE "+GtfsStop.COL_STOP_CODE+" LIKE :queryID")
     fun getStopByStopID(queryID: String): LiveData<List<GtfsStop>>
 
@@ -42,7 +48,7 @@ interface StaticGtfsDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertRoutes(users: List<GtfsRoute>)
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertStops(stops: List<GtfsStop>)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertCalendarServices(services: List<GtfsService>)
@@ -66,12 +72,19 @@ interface StaticGtfsDao {
     fun deleteAllRoutes()
     @Query("DELETE FROM "+GtfsStop.DB_TABLE)
     fun deleteAllStops()
+    @Query("DELETE FROM "+GtfsTrip.DB_TABLE)
+    fun deleteAllTrips()
     @Update(onConflict = OnConflictStrategy.REPLACE)
     fun updateShapes(shapes: List<GtfsShape>) : Int
 
     @Transaction
-    fun updateStops(stops: List<GtfsStop>){
+    fun updateAllStops(stops: List<GtfsStop>){
         deleteAllStops()
         insertStops(stops)
     }
+    @Query("DELETE FROM "+GtfsStopTime.DB_TABLE)
+    fun deleteAllStopTimes()
+    @Query("DELETE FROM "+GtfsService.DB_TABLE)
+    fun deleteAllServices()
+
 }

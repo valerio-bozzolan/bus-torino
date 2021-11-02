@@ -36,6 +36,7 @@ allprojects {
         jcenter()
         maven { url 'https://maven.google.com' }
         google()
+        mavenCentral()
 
     }
 }
@@ -129,6 +130,9 @@ android {
         androidTestImplementation "androidx.room:room-testing:$room_version"
         //multidex - we need this to build the app
         implementation "androidx.multidex:multidex:$multidex_version"
+
+        implementation 'de.siegmar:fastcsv:2.0.0'
+
     }
 }
 

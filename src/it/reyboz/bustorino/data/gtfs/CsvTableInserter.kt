@@ -29,6 +29,21 @@ class CsvTableInserter(
 
     private val elementsList: MutableList< in GtfsTable> = mutableListOf()
 
+    private var stopsIDsPresent: HashSet<Int>? = null
+    private var tripsIDsPresent: HashSet<String>? = null
+
+    private var countInsert = 0
+    init {
+        if(tableName == "stop_times") {
+            stopsIDsPresent = dao.getAllStopsIDs().toHashSet()
+            tripsIDsPresent = dao.getAllTripsIDs().toHashSet()
+            Log.d(DEBUG_TAG, "num stop IDs present: "+ stopsIDsPresent!!.size)
+            Log.d(DEBUG_TAG, "num trips IDs present: "+ tripsIDsPresent!!.size)
+        } else if(tableName == "routes"){
+            dao.deleteAllRoutes()
+        }
+    }
+
     fun addElement(csvLineElements: Map<String,String>) {
 
         when(tableName){
@@ -44,14 +59,23 @@ class CsvTableInserter(
                 elementsList.add(GtfsTrip(csvLineElements))
             "shapes" ->
                 elementsList.add(GtfsShape(csvLineElements))
-            "stop_times" ->
-                elementsList.add(GtfsStopTime(csvLineElements))
+            "stop_times" -> {
+                //filter stop
+                val stopTime = GtfsStopTime(csvLineElements)
+                /*
+                val stopOk = //tripsIDsPresent?.contains(stopTime.tripID) == true
+                    (stopsIDsPresent?.contains(stopTime.stopID) == true)// &&
+                       // tripsIDsPresent?.contains(stopTime.tripID) == true)
+                if (stopOk)
+                  */
+                    elementsList.add(stopTime)
+            }
 
 
         }
         if(elementsList.size >= MAX_ELEMENTS){
             //have to insert
-            Log.d(DEBUG_TAG, "Inserting first batch of elements now, list size: "+elementsList.size)
+
             if (tableName == "routes")
                 dao.insertRoutes(elementsList.filterIsInstance<GtfsRoute>())
             else
@@ -61,10 +85,14 @@ class CsvTableInserter(
 
         }
     }
-    fun insertDataInDatabase(){
+    private fun insertDataInDatabase(){
+        //Log.d(DEBUG_TAG, "Inserting batch of elements now, list size: "+elementsList.size)
+        countInsert += elementsList.size
         when(tableName){
-            "stops" -> dao.updateStops(elementsList.filterIsInstance<GtfsStop>())
-            "routes" -> dao.clearAndInsertRoutes(elementsList.filterIsInstance<GtfsRoute>())
+            "stops" -> {
+                dao.insertStops(elementsList.filterIsInstance<GtfsStop>())
+            }
+            "routes" -> dao.insertRoutes(elementsList.filterIsInstance<GtfsRoute>())
             "calendar" -> dao.insertServices(elementsList.filterIsInstance<GtfsService>())
             "calendar_dates" -> dao.insertDates(elementsList.filterIsInstance<GtfsServiceDate>())
             "trips" -> dao.insertTrips(elementsList.filterIsInstance<GtfsTrip>())
@@ -72,11 +100,16 @@ class CsvTableInserter(
             "shapes" -> dao.insertShapes(elementsList.filterIsInstance<GtfsShape>())
 
         }
+        ///if(elementsList.size < MAX_ELEMENTS)
+    }
+    fun finishInsert(){
+        insertDataInDatabase()
+        Log.d(DEBUG_TAG, "Inserted "+countInsert+" elements from "+tableName);
     }
 
     companion object{
-        val MAX_ELEMENTS = 5000
+        const val MAX_ELEMENTS = 5000
 
-        val DEBUG_TAG="BusTO - TableInserter"
+        const val DEBUG_TAG="BusTO - TableInserter"
     }
 }

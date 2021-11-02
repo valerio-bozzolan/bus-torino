@@ -26,6 +26,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
@@ -79,6 +80,7 @@ public abstract class networkTools {
         }
         urlConnection.setConnectTimeout(4000);
         urlConnection.setReadTimeout(50 * 1000);
+        System.out.println("Last modified: "+new Date(urlConnection.getLastModified()));
 
         Log.d("BusTO net Tools", "Download file "+url);
         try (InputStream inputStream = urlConnection.getInputStream()) {
@@ -113,6 +115,37 @@ public abstract class networkTools {
         }
         urlConnection.disconnect();
         return Fetcher.Result.OK;
+    }
+
+    @Nullable
+    public static Date checkLastModificationDate(URL url, AtomicReference<Fetcher.Result> res) {
+        HttpURLConnection urlConnection;
+        try {
+            urlConnection = (HttpURLConnection) url.openConnection();
+        } catch (IOException e) {
+            //e.printStackTrace();
+            res.set(Fetcher.Result.CONNECTION_ERROR);
+            return null;
+        }
+        urlConnection.setConnectTimeout(4000);
+        urlConnection.setReadTimeout(4 * 1000);
+        System.out.println("Last modified: "+new Date(urlConnection.getLastModified()));
+
+        Log.d("BusTO net Tools", "Download file "+url);
+        final Date theDate = new Date(urlConnection.getLastModified());
+
+        try {
+            if(urlConnection.getResponseCode()==404)
+                res.set(Fetcher.Result.SERVER_ERROR_404);
+            else if(urlConnection.getResponseCode()!=200)
+                res.set(Fetcher.Result.SERVER_ERROR);
+        } catch (IOException e) {
+            e.printStackTrace();
+            res.set(Fetcher.Result.PARSER_ERROR);
+        }
+        urlConnection.disconnect();
+        //theDate.getTime()
+        return theDate;
     }
     @Nullable
     static String queryURL(URL url, AtomicReference<Fetcher.Result> res){

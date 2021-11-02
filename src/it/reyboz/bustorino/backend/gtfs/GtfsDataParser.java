@@ -3,6 +3,10 @@ package it.reyboz.bustorino.backend.gtfs;
 import android.content.Context;
 import android.util.Log;
 import androidx.annotation.NonNull;
+
+import de.siegmar.fastcsv.reader.CloseableIterator;
+import de.siegmar.fastcsv.reader.NamedCsvReader;
+import de.siegmar.fastcsv.reader.NamedCsvRow;
 import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.networkTools;
 import it.reyboz.bustorino.data.gtfs.CsvTableInserter;
@@ -15,6 +19,7 @@ import org.jsoup.select.Elements;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.ParseException;
@@ -24,6 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 abstract public class GtfsDataParser {
@@ -143,6 +149,18 @@ abstract public class GtfsDataParser {
         return finalDate;
 
     }
+    public static void readGtfsZipEntry(ZipEntry entry, ZipFile zipFile, Context  con) throws IOException{
+        String tableName = entry.getName().split("\\.")[0].trim();
+        InputStream stream = zipFile.getInputStream(entry);
+        String s = String.format(Locale.ENGLISH, "Entry: %s len %d added",
+                entry.getName(),
+                entry.getSize()
+        );
+        Log.d(DEBUG_TAG, s);
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        GtfsDataParser.readCSVWithColumns(reader, tableName, con);
+        stream.close();
+    }
 
     public static void readCSVWithColumns(BufferedReader reader, String tableName, Context con) throws IOException {
 
@@ -151,20 +169,21 @@ abstract public class GtfsDataParser {
 
         String line;
 
-        final String header = reader.readLine();
+        /*final String header = reader.readLine();
         if (header == null){
             throw new IOException();
-        }
+        }*/
 
         //elements = header.split("\n")[0].split(",");
         //System.out.println(Arrays.toString(elements));
 
-        lineElements = readCsvLine(header);
-
-
-        final HashMap<Integer,String> columnMap = new HashMap<>();
+        //lineElements = readCsvLine(header);
+        NamedCsvReader csvReader = NamedCsvReader.builder().build(reader);
+        CloseableIterator<NamedCsvRow> iterator = csvReader.iterator();
 
         final CsvTableInserter inserter = new CsvTableInserter(tableName,con);
+
+        /*final HashMap<Integer,String> columnMap = new HashMap<>();
 
         for (int i=0; i< lineElements.size(); i++){
             //columnMap.put(i, fixStringIfItHasQuotes(elements[i].trim()) );
@@ -185,10 +204,20 @@ abstract public class GtfsDataParser {
                 first=false;
             }
             inserter.addElement(rowsMap);
+        }*/
+        int c = 0;
+        while (iterator.hasNext()){
+
+            final Map<String,String> rowsMap = iterator.next().getFields();
+            if (c < 1){
+                Log.d(DEBUG_TAG, " in map:"+rowsMap);
+                c++;
+            }
+            inserter.addElement(rowsMap);
         }
 
         //commit data
-        inserter.insertDataInDatabase();
+        inserter.finishInsert();
     }
     @NonNull
     private static Map<String,String> getColumnsAsString(@NonNull String[] lineElements, Map<Integer,String> colsIndices)

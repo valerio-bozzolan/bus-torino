@@ -52,6 +52,6 @@ public abstract class GtfsDatabase : RoomDatabase() {
         }
 
         const val VERSION = 1
-        const val FOREIGNKEY_ONDELETE = ForeignKey.NO_ACTION
+        const val FOREIGNKEY_ONDELETE = ForeignKey.CASCADE
     }
 }
