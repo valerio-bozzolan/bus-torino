@@ -1,0 +1,4 @@
+* Orari di arrivo super rapidi grazie alla nuova sorgente orari di Muoversi A Torino
+* Aggiunto il supporto ai dati offline GTFS provenienti da AperTO
+* Fix bug orari d'arrivo, segnalato da Marco M. https://gitpull.it/T901
+* questa versione è stata sviluppata da Fabio Mazza!

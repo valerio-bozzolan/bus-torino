@@ -1,0 +1,4 @@
+* Add support for blazing fast arrival times thanks to Muoversi A Torino
+* Add support for offline GTFS data from AperTO
+* Arrival times bugfixes for searches reported by Marco M. https://gitpull.it/T901
+* This version was hacked by Fabio Mazza!
