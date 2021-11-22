@@ -90,7 +90,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
     private static final int SEARCH_BY_ROUTE = 2; // TODO: implement this -- https://gitpull.it/T12
     private int searchMode;
     //private ImageButton addToFavorites;
-    private final ArrivalsFetcher[] arrivalsFetchers = new ArrivalsFetcher[]{new FiveTAPIFetcher(), new GTTJSONFetcher(), new FiveTScraperFetcher()};
+    private final ArrivalsFetcher[] arrivalsFetchers = utils.getDefaultArrivalsFetchers();
     //// HIDDEN BUT IMPORTANT ELEMENTS ////
     FragmentManager fragMan;
     Handler mainHandler;
@@ -334,6 +334,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
+
         Log.d(DEBUG_TAG, "OnAttach called, setupOnAttach: "+setupOnAttached);
         mainHandler = new Handler();
         if (context instanceof CommonFragmentListener) {

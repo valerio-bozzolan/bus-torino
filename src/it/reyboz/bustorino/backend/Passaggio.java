@@ -19,7 +19,11 @@
 package it.reyboz.bustorino.backend;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import android.util.Log;
+
+import java.util.Locale;
 
 public final class Passaggio implements Comparable<Passaggio> {
 
@@ -28,6 +32,7 @@ public final class Passaggio implements Comparable<Passaggio> {
 
     private final String passaggioGTT;
     public final int hh,mm;
+    private @Nullable Integer realtimeDifference;
     public final boolean isInRealTime;
     public final Source source;
 
@@ -88,6 +93,7 @@ public final class Passaggio implements Comparable<Passaggio> {
             this.hh = hour;
             this.mm = min;
             this.isInRealTime = realtime;
+
         }
     }
 
@@ -95,6 +101,7 @@ public final class Passaggio implements Comparable<Passaggio> {
         this.hh = hour;
         this.mm = minutes;
         this.isInRealTime = realtime;
+        if (!realtime) realtimeDifference = 0;
         this.source = sorgente;
         //Build the passaggio string
         StringBuilder sb = new StringBuilder();
@@ -112,6 +119,24 @@ public final class Passaggio implements Comparable<Passaggio> {
             if(realtime) return time.concat("*");
             else return time;
         }
+    }
+    public Passaggio(int numSeconds, boolean realtime, int timeDiff, Source source){
+        int minutes = numSeconds / 60;
+        int hours = minutes / 60;
+        //this.hh = hours;
+        this.mm = minutes - hours*60;
+        this.hh = hours % 24;
+        this.realtimeDifference = timeDiff/60;
+        this.isInRealTime = realtime;
+        this.source = source;
+        this.passaggioGTT = makePassaggioGTT(this.hh, this.mm, this.isInRealTime);
+    }
+
+    private static String makePassaggioGTT(int hour, int minutes, boolean realtime){
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format(Locale.ITALIAN,"%02d", hour)).append(":").append(String.format(Locale.ITALIAN,"%02d", minutes));
+        if(realtime) sb.append("*");
+        return sb.toString();
     }
 
     @Override
@@ -133,16 +158,17 @@ public final class Passaggio implements Comparable<Passaggio> {
 
             // we should take into account if one is in real time and the other isn't, shouldn't we?
             if (other.isInRealTime) {
-                ++diff;
+                diff+=2;
             }
             if (this.isInRealTime) {
-                --diff;
+                diff -=2;
             }
-            //TODO: separate Realtime and Non-Realtime, especially for the GTTJSONFetcher
 
             return diff;
         }
     }
+
+
 //
 //    @Override
 //    public String toString() {
@@ -154,6 +180,6 @@ public final class Passaggio implements Comparable<Passaggio> {
 //        }
 //    }
     public enum Source{
-        FiveTAPI,GTTJSON,FiveTScraper, UNDETERMINED
+        FiveTAPI,GTTJSON,FiveTScraper,MatoAPI, UNDETERMINED
     }
 }

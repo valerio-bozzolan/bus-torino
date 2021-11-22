@@ -247,6 +247,11 @@ public abstract class networkTools {
 
     }
 
+    /**
+     * Parses string into int, return 0 if it fails
+     * @param str the string to parse
+     * @return the value as int, 0 if it fails
+     */
     static int failsafeParseInt(String str) {
         try {
             return Integer.parseInt(str);

@@ -14,6 +14,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+
+import it.reyboz.bustorino.backend.mato.MatoAPIFetcher;
 
 public abstract class utils {
     private static final double EarthRadius = 6371e3;
@@ -105,14 +108,19 @@ public abstract class utils {
         return busStopID;
     }
 
-    public static String toTitleCase(String givenString) {
+    public static String toTitleCase(String givenString, boolean lowercaseRest) {
         String[] arr = givenString.split(" ");
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         //Log.d("BusTO chars", "String parsing: "+givenString+" in array: "+ Arrays.toString(arr));
         for (int i = 0; i < arr.length; i++) {
-            if (arr[i].length() > 1)
-            sb.append(Character.toUpperCase(arr[i].charAt(0)))
-                    .append(arr[i].substring(1)).append(" ");
+            if (arr[i].length() > 1) {
+                sb.append(Character.toUpperCase(arr[i].charAt(0)));
+                if (lowercaseRest)
+                    sb.append(arr[i].substring(1).toLowerCase(Locale.ROOT));
+                else
+                    sb.append(arr[i].substring(1));
+                sb.append(" ");
+            }
             else sb.append(arr[i]);
         }
         return sb.toString().trim();
@@ -132,6 +140,10 @@ public abstract class utils {
         }
     }
 
+    public static ArrivalsFetcher[] getDefaultArrivalsFetchers(){
+        return  new ArrivalsFetcher[]{  new MatoAPIFetcher(),
+                new FiveTAPIFetcher(), new GTTJSONFetcher(), new FiveTScraperFetcher()};
+    }
     /**
      * Print the first i lines of the the trace of an exception
      * https://stackoverflow.com/questions/21706722/fetch-only-first-n-lines-of-a-stack-trace

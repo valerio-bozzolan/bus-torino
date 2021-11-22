@@ -131,6 +131,8 @@
     <string name="fivetapifetcher">App GTT</string>
     <string name="gttjsonfetcher">Sito GTT</string>
     <string name="fivetscraper">Sito 5T Torino</string>
+    <string name="source_mato">App Muoversi a Torino</string>
+
     <string name="arrival_source_changing">Cambiamento sorgente orari…</string>
     <string name="change_arrivals_source_message">Premi a lungo per cambiare la sorgente degli orari</string>
 
@@ -154,5 +156,13 @@
     <string name="map">Mappa</string>
     <string name="stop_search_view_title">Ricerca fermate</string>
     <string name="app_version">Versione app</string>
+    <string name="arrival_times">Orari di arrivo</string>
 
+
+    <string name="pref_directions_capitalize">Mostra direzioni in maiuscolo</string>
+    <string-array name="directions_capitalize">
+        <item>Non cambiare</item>
+        <item>Tutto in maiuscolo</item>
+        <item>Solo la prima lettera maiuscola</item>
+    </string-array>
 </resources>

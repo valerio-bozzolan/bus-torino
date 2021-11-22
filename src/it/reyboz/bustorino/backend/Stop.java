@@ -46,6 +46,9 @@ public class Stop implements Comparable<Stop> {
     private @Nullable String routesThatStopHereString = null;
     private @Nullable String absurdGTTPlaceName = null;
 
+    //
+    public @Nullable String gtfsID = null;
+
     /**
      * Hey, look, method overloading!
      */

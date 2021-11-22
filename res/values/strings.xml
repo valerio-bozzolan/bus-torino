@@ -51,6 +51,7 @@
         \n <b>Long press on Arrivals source</b> to change the source of the arrival times
     </string>
     <string name="hint_button">GOT IT!</string>
+    <string name="arrival_times">Arrival times</string>
     <string name="about_history">
         <![CDATA[
         <h1>Welcome!</h1>
@@ -144,6 +145,7 @@
     <string name="fivetapifetcher">GTT App</string>
     <string name="gttjsonfetcher">GTT Website</string>
     <string name="fivetscraper">5T Torino website</string>
+    <string name="source_mato">Muoversi a Torino app</string>
     <string name="arrival_source_changing">Changing arrival times source…</string>
     <string name="change_arrivals_source_message">Long press to change the source of arrivals</string>
 
@@ -174,4 +176,17 @@
     <string name="stop_search_view_title">Search by stop</string>
 
 
+    <!-- preferences -->
+    <string name="pref_directions_capitalize">Capitalize directions</string>
+    <string-array name="directions_capitalize">
+        <item >Do not change arrivals directions</item>
+        <item>Capitalize everything</item>
+        <item>Capitalize only first letter</item>
+    </string-array>
+    <array name="directions_capitalize_keys">
+        <item>KEEP</item>
+        <item>CAPITALIZE_ALL</item>
+        <item>CAPITALIZE_FIRST</item>
+
+    </array>
 </resources>

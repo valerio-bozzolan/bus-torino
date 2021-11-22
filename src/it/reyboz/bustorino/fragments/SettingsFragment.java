@@ -61,6 +61,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
         });
          */
 
+        //ListPreference preference = findPreference(R.string.arrival_times)
+
 
     }
 

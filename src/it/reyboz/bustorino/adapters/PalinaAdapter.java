@@ -19,6 +19,10 @@ package it.reyboz.bustorino.adapters;
 
 import android.content.Context;
 import androidx.annotation.NonNull;
+import androidx.preference.PreferenceManager;
+
+import android.content.SharedPreferences;
+import android.os.Build;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,7 +31,9 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
     import java.util.List;
+import java.util.Locale;
 
+import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Passaggio;
@@ -43,7 +49,7 @@ import it.reyboz.bustorino.backend.utils;
  * @author Valerio Bozzolan
  * @author Ludovico Pavesi
  */
-public class PalinaAdapter extends ArrayAdapter<Route> {
+public class PalinaAdapter extends ArrayAdapter<Route> implements SharedPreferences.OnSharedPreferenceChangeListener {
     private LayoutInflater li;
     private static int row_layout = R.layout.entry_bus_line_passage;
     private static final int metroBg = R.drawable.route_background_metro;
@@ -52,6 +58,10 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
     private static final int busIcon = R.drawable.bus;
     private static final int trainIcon = R.drawable.subway;
     private static final int tramIcon = R.drawable.tram;
+
+    private final String KEY_CAPITALIZE;
+    private Capitalize capit = Capitalize.DO_NOTHING;
+
     //private static final int cityIcon = R.drawable.city;
 
     // hey look, a pattern!
@@ -60,10 +70,29 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
         TextView rowRouteDestination;
         TextView rowRouteTimetable;
     }
+    private static Capitalize getCapitalize(SharedPreferences shPr, String key){
+        String capitalize = shPr.getString(key, "");
+
+        switch (capitalize.trim()){
+            case "KEEP":
+                return Capitalize.DO_NOTHING;
+            case "CAPITALIZE_ALL":
+                return Capitalize.ALL;
+
+            case "CAPITALIZE_FIRST":
+                return Capitalize.FIRST;
+        }
+        return  Capitalize.DO_NOTHING;
+    }
 
     public PalinaAdapter(Context context, Palina p) {
         super(context, row_layout, p.queryAllRoutes());
         li = LayoutInflater.from(context);
+        sort(new RouteSorterByArrivalTime());
+        KEY_CAPITALIZE = context.getString(R.string.pref_arrival_times_capit);
+        SharedPreferences defSharPref = PreferenceManager.getDefaultSharedPreferences(context);
+        defSharPref.registerOnSharedPreferenceChangeListener(this);
+        this.capit = getCapitalize(defSharPref, KEY_CAPITALIZE);
     }
 
     /**
@@ -101,10 +130,30 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
         vh.rowStopIcon.setText(route.getNameForDisplay());
         if(route.destinazione==null || route.destinazione.length() == 0) {
             vh.rowRouteDestination.setVisibility(View.GONE);
+            // move around the route timetable
+            final ViewGroup.MarginLayoutParams pars = (ViewGroup.MarginLayoutParams) vh.rowRouteTimetable.getLayoutParams();
+            if (pars!=null){
+                pars.topMargin = 16;
+                if(Build.VERSION.SDK_INT >= 17)
+                    pars.setMarginStart(20);
+                pars.leftMargin = 20;
+            }
         } else {
             // View Holder Pattern(R) renders each element from a previous one: if the other one had an invisible rowRouteDestination, we need to make it visible.
             vh.rowRouteDestination.setVisibility(View.VISIBLE);
-            vh.rowRouteDestination.setText(route.destinazione);
+            String dest = route.destinazione;
+            switch (capit){
+                case ALL:
+                    dest = route.destinazione.toUpperCase(Locale.ROOT);
+                    break;
+                case FIRST:
+                    dest = utils.toTitleCase(route.destinazione, true);
+                    break;
+                case DO_NOTHING:
+                default:
+
+            }
+            vh.rowRouteDestination.setText(dest);
         }
 
         switch (route.type) {
@@ -138,10 +187,25 @@ public class PalinaAdapter extends ArrayAdapter<Route> {
         List<Passaggio> passaggi = route.passaggi;
         if(passaggi.size() == 0) {
             vh.rowRouteTimetable.setText(R.string.no_passages);
+
         } else {
             vh.rowRouteTimetable.setText(route.getPassaggiToString());
         }
 
         return convertView;
+    }
+
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if(key.equals(KEY_CAPITALIZE)){
+            capit = getCapitalize(sharedPreferences, KEY_CAPITALIZE);
+
+            notifyDataSetChanged();
+        }
+    }
+
+    enum Capitalize{
+        DO_NOTHING, ALL, FIRST
     }
 }

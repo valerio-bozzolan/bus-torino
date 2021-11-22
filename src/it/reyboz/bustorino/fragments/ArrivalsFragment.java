@@ -56,6 +56,7 @@ import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Passaggio;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.backend.utils;
 import it.reyboz.bustorino.data.AppDataProvider;
 import it.reyboz.bustorino.data.NextGenDB;
 import it.reyboz.bustorino.data.UserDB;
@@ -69,7 +70,6 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     private String DEBUG_TAG = DEBUG_TAG_ALL;
     private final static int loaderFavId = 2;
     private final static int loaderStopId = 1;
-    private final static ArrivalsFetcher[] defaultFetchers = new ArrivalsFetcher[]{new FiveTAPIFetcher(), new GTTJSONFetcher(), new FiveTScraperFetcher()};
     static final String STOP_TITLE = "messageExtra";
 
     private @Nullable String stopID,stopName;
@@ -85,7 +85,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     protected ImageButton addToFavorites;
     protected TextView timesSourceTextView;
 
-    private List<ArrivalsFetcher> fetchers = new ArrayList<>(Arrays.asList(defaultFetchers));
+    private List<ArrivalsFetcher> fetchers = new ArrayList<>(Arrays.asList(utils.getDefaultArrivalsFetchers()));
 
     private boolean reloadOnResume = true;
 
@@ -324,14 +324,18 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             case FiveTScraper:
                 source_txt = getString(R.string.fivetscraper);
                 break;
+            case MatoAPI:
+                source_txt = getString(R.string.source_mato);
+                break;
             case UNDETERMINED:
                 //Don't show the view
-                timesSourceTextView.setVisibility(View.GONE);
-                return;
+                source_txt = "";
+                break;
             default:
                 throw new IllegalStateException("Unexpected value: " + source);
         }
         int count = 0;
+        if (source!= Passaggio.Source.UNDETERMINED)
         while (source != fetchers.get(0).getSourceForFetcher() && count < 100){
             //we need to update the fetcher that is requested
             rotateFetchers();

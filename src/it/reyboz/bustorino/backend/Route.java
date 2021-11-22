@@ -45,6 +45,7 @@ public class Route implements Comparable<Route> {
     public int[] serviceDays ={};
     //0=>feriale, 1=>festivo -2=>unknown
     public FestiveInfo festivo = FestiveInfo.UNKNOWN;
+    private @Nullable String gtfsId;
 
 
     public enum Type { // "long distance" sono gli extraurbani.
@@ -242,6 +243,12 @@ public class Route implements Comparable<Route> {
          return sb.toString();
      }
 
+     public int numPassaggi(){
+         if (passaggi==null)
+             return 0;
+         return passaggi.size();
+     }
+
 
     @Override
     public int compareTo(@NonNull Route other) {
@@ -267,6 +274,12 @@ public class Route implements Comparable<Route> {
             if (res != 0) {
                 return res;
             }
+            // compare gtfsID
+            if (this.gtfsId != null && other.gtfsId!=null){
+                res = this.gtfsId.compareTo(other.gtfsId);
+                if (res!=0) return 0;
+            }
+
         }
 
         // try comparing their destination
@@ -293,6 +306,15 @@ public class Route implements Comparable<Route> {
         return 0;
     }
 
+    @Nullable
+    public String getGtfsId() {
+        return gtfsId;
+    }
+
+    public void setGtfsId(@Nullable String gtfsId) {
+        this.gtfsId = gtfsId;
+    }
+
     public boolean isBranchIdValid(){
          return branchid!=BRANCHID_MISSING;
     }
@@ -306,11 +328,14 @@ public class Route implements Comparable<Route> {
                  if(description!=null && r.description!=null)
                      if(!description.trim().equals(r.description.trim()))
                          return false;
+
                  if(destinazione!=null && r.destinazione!=null){
                          if(!this.destinazione.trim().equals(r.destinazione.trim()))
                              // they are not the same
                              return false;
                  }
+                 if(gtfsId!=null && r.gtfsId!=null && !(gtfsId.trim().equals(r.gtfsId.trim())))
+                     return false;
                  //check stops list
                  if(this.stopsList!=null && r.stopsList!=null){
                      int sizeDiff = this.stopsList.size()-r.stopsList.size();

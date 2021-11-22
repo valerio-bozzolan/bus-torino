@@ -21,6 +21,7 @@ package it.reyboz.bustorino.backend;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -47,6 +48,15 @@ public class Palina extends Stop {
                 s.getRoutesThatStopHere(),s.getLatitude(),s.getLongitude());
     }
 
+    public Palina(@NonNull String ID, @Nullable String name, @Nullable String userName,
+                  @Nullable String location,
+                  @Nullable Double lat, @Nullable Double lon) {
+        super(ID, name, userName, location, null, null, lat, lon);
+    }
+
+    public Palina(@Nullable String name, @NonNull String ID, @Nullable String location, @Nullable Route.Type type, @Nullable List<String> routesThatStopHere) {
+        super(name, ID, location, type, routesThatStopHere);
+    }
 
     /**
      * Adds a timetable entry to a route.
@@ -372,6 +382,27 @@ public class Palina extends Stop {
         }
         if (found) mergeDuplicateRoutes(startidx);
         else mergeDuplicateRoutes(startidx+1);
+    }
+
+    public int getTotalNumberOfPassages(){
+
+        int tot = 0;
+        if(routes==null)
+            return tot;
+        for(Route r: routes){
+            tot += r.numPassaggi();
+        }
+        return tot;
+    }
+    public int getMinNumberOfPassages(){
+        if (routes == null) return 0;
+
+        int min = Integer.MAX_VALUE;
+        if( routes.size() == 0) min = 0;
+        else for (Route r : routes){
+                min = Math.min(min,r.numPassaggi());
+        }
+        return min;
     }
     //private void mergeRoute
 }

@@ -49,4 +49,13 @@
             android:key="version"
     />
     -->
+    <androidx.preference.PreferenceCategory android:title="@string/arrival_times">
+
+        <androidx.preference.ListPreference
+            android:title="@string/pref_directions_capitalize"
+            android:entries="@array/directions_capitalize"
+            android:entryValues="@array/directions_capitalize_keys"
+            android:key="@string/pref_arrival_times_capit"
+        />
+    </androidx.preference.PreferenceCategory>
 </androidx.preference.PreferenceScreen>

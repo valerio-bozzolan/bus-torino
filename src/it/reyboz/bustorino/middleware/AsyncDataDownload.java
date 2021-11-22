@@ -17,6 +17,7 @@
  */
 package it.reyboz.bustorino.middleware;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -32,6 +33,7 @@ import android.widget.Toast;
 
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.*;
+import it.reyboz.bustorino.backend.mato.MatoAPIFetcher;
 import it.reyboz.bustorino.data.AppDataProvider;
 import it.reyboz.bustorino.data.NextGenDB;
 import it.reyboz.bustorino.fragments.FragmentHelper;
@@ -59,7 +61,8 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
     WeakReference<FragmentHelper> helperRef;
     private final ArrayList<Thread> otherActivities = new ArrayList<>();
     private final Fetcher[] theFetchers;
-    private Context context;
+    @SuppressLint("StaticFieldLeak")
+    private final Context context;
     private final boolean replaceFragment;
 
 
@@ -107,6 +110,9 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
             switch (t){
                 case ARRIVALS:
                     ArrivalsFetcher f = (ArrivalsFetcher) r.getAndMoveForward();
+                    if (f instanceof MatoAPIFetcher){
+                        ((MatoAPIFetcher)f).setAppContext(context);
+                    }
                     Log.d(TAG,"Using the ArrivalsFetcher: "+f.getClass());
 
                     Stop lastSearchedBusStop = fh.getLastSuccessfullySearchedBusStop();
@@ -128,7 +134,7 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
                         Log.e(DEBUG_TAG, "The stop number is not a valid integer, expect failures");
                     }
                     p= f.ReadArrivalTimesAll(stopID,res);
-                    publishProgress(res.get());
+
                     //if (res.get()!= Fetcher.Result.OK)
                     Log.d(DEBUG_TAG, "Arrivals fetcher: "+f+"\n\tProgress: "+res.get());
 
@@ -159,10 +165,12 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
                         }
                     }
                     p.mergeDuplicateRoutes(0);
-                    if(p.queryAllRoutes().size() == 0)
-                        //skip the rest and go to the next fetcher
-                        continue;
+                    if (p.getTotalNumberOfPassages() == 0)
+                        res.set(Fetcher.Result.EMPTY_RESULT_SET);
+                    publishProgress(res.get());
+                    //p.sortRoutes();
                     result = p;
+
                     //TODO: find a way to avoid overloading the user with toasts
                     break;
                 case STOPS:

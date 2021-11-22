@@ -22,20 +22,10 @@ package it.reyboz.bustorino.backend;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Fetcher interface to describe ways to get information on arrival times
+ */
 public interface ArrivalsFetcher extends Fetcher {
-//    /**
-//     * Reads arrival times from a (hopefully) real-time source, e.g. the GTT website.
-//     * Don't call this in UI thread!
-//     *
-//     * @param stopID stop ID, in normalized form.
-//     * @param routeID route ID, in normalized form.
-//     * @param res result code (will be set by this method)
-//     * @return arrival times
-//     * @see it.reyboz.bustorino.backend.Fetcher.result
-//     * @see FiveTNormalizer
-//     */
-//    Palina ReadArrivalTimesRoute(String stopID, String routeID, AtomicReference<Fetcher.result> res);
-
     /**
      * Reads arrival times from a (hopefully) real-time source, e.g. the GTT website.
      * Don't call this in UI thread!

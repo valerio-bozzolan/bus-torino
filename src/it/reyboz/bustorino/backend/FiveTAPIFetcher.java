@@ -18,6 +18,7 @@
 package it.reyboz.bustorino.backend;
 
 import androidx.annotation.Nullable;
+
 import android.util.Log;
 import it.reyboz.bustorino.data.GTTInfoInject;
 import org.json.JSONArray;
