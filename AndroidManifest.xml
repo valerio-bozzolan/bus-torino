@@ -78,34 +78,7 @@
             <!-- API < 16: -->
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value=".ActivityMain"/>
-        </activity>
-        <activity
-                android:name=".ActivityFavorites"
-                android:label="@string/title_activity_favorites"
-                android:parentActivityName=".ActivityMain"
-                android:theme="@style/FavTheme">
-
-            <!-- API < 16: -->
-            <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value=".ActivityMain"/>
-        </activity>
-        <activity
-                android:name=".ActivityMap"
-                android:label="@string/title_activity_map"
-                android:parentActivityName=".ActivityMain"
-                android:theme="@style/MapTheme">
-
-            <!-- API < 16: -->
-            <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value=".ActivityMain"/>
-        </activity>
-        <activity
-                android:name=".ActivityMain"
-                android:label="@string/app_name"
-                android:screenOrientation="portrait">
+                    android:value=".ActivityPrincipal"/>
         </activity>
 
         <provider
@@ -115,10 +88,7 @@
                 android:exported="false">
         </provider>
 
-        <service
-                android:name=".data.DatabaseUpdateService"
-                android:exported="false">
-        </service> <!-- Don't show the additional frame on samsung phones -->
+        <!-- Don't show the additional frame on samsung phones -->
         <meta-data
                 android:name="com.samsung.android.icon_container.has_icon_container"
                 android:value="true"/>
