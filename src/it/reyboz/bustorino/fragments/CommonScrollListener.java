@@ -17,6 +17,7 @@
  */
 package it.reyboz.bustorino.fragments;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.widget.AbsListView;
@@ -35,10 +36,8 @@ public class CommonScrollListener extends RecyclerView.OnScrollListener implemen
         this.enableRefreshLayout = enableRefreshLayout;
     }
     @Override
-    public void onScrollStateChanged(AbsListView view, int scrollState) {
-        /*
-         * This seems to be a totally useless method
-         */
+    public void onScrollStateChanged(AbsListView absListView, int i) {
+
     }
 
     @Override
@@ -76,7 +75,7 @@ public class CommonScrollListener extends RecyclerView.OnScrollListener implemen
         }}
 
     @Override
-    public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+    public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
         FragmentListenerMain listener = listenerWeakReference.get();
         if(newState!=SCROLL_STATE_IDLE) listener.showFloatingActionButton(false);
         else listener.showFloatingActionButton(true);

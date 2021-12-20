@@ -89,7 +89,7 @@ public class FragmentHelper {
      */
     public void createOrUpdateStopFragment(Palina p, boolean addToBackStack){
         boolean sameFragment;
-        ArrivalsFragment arrivalsFragment;
+        ArrivalsFragment arrivalsFragment = null;
 
         if(managerWeakRef.get()==null || shouldHaltAllActivities) {
             //SOMETHING WENT VERY WRONG
@@ -102,19 +102,22 @@ public class FragmentHelper {
         if(fm.findFragmentById(primaryFrameLayout) instanceof ArrivalsFragment) {
             arrivalsFragment = (ArrivalsFragment) fm.findFragmentById(primaryFrameLayout);
             //Log.d(DEBUG_TAG, "Arrivals are for fragment with same stop?");
-            assert arrivalsFragment != null;
-            sameFragment = arrivalsFragment.isFragmentForTheSameStop(p);
+            if (arrivalsFragment == null) sameFragment = false;
+            else sameFragment = arrivalsFragment.isFragmentForTheSameStop(p);
         } else {
             sameFragment = false;
             Log.d(DEBUG_TAG, "We aren't showing an ArrivalsFragment");
 
         }
         setLastSuccessfullySearchedBusStop(p);
-
+        if (sameFragment){
+            Log.d("BusTO", "Same bus stop, accessing existing fragment");
+            arrivalsFragment = (ArrivalsFragment) fm.findFragmentById(primaryFrameLayout);
+            if (arrivalsFragment == null) sameFragment = false;
+        }
         if(!sameFragment) {
             //set the String to be displayed on the fragment
             String displayName = p.getStopDisplayName();
-            String displayStuff;
 
             if (displayName != null && displayName.length() > 0) {
                 arrivalsFragment = ArrivalsFragment.newInstance(p.ID,displayName);
@@ -123,9 +126,6 @@ public class FragmentHelper {
             }
             String probableTag = ResultListFragment.getFragmentTag(p);
             attachFragmentToContainer(fm,arrivalsFragment,new AttachParameters(probableTag, true, addToBackStack));
-        } else {
-            Log.d("BusTO", "Same bus stop, accessing existing fragment");
-            arrivalsFragment = (ArrivalsFragment) fm.findFragmentById(primaryFrameLayout);
         }
         // DO NOT CALL `setListAdapter` ever on arrivals fragment
         arrivalsFragment.updateFragmentData(p);
@@ -197,11 +197,11 @@ public class FragmentHelper {
         this.shouldHaltAllActivities = shouldI;
     }
 
-    public void stopLastRequestIfNeeded(){
+    public void stopLastRequestIfNeeded(boolean interruptIfRunning){
         if(lastTaskRef == null) return;
         AsyncDataDownload task = lastTaskRef.get();
         if(task!=null){
-            task.cancel(false);
+            task.cancel(interruptIfRunning);
         }
     }
 

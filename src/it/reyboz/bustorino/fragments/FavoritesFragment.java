@@ -38,29 +38,40 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import it.reyboz.bustorino.*;
+import it.reyboz.bustorino.adapters.AdapterListener;
 import it.reyboz.bustorino.adapters.StopAdapter;
+import it.reyboz.bustorino.adapters.StopRecyclerAdapter;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.FavoritesViewModel;
 import it.reyboz.bustorino.middleware.AsyncStopFavoriteAction;
 
 public class FavoritesFragment extends BaseFragment {
 
-    private ListView favoriteListView;
+    private RecyclerView favoriteRecyclerView;
     private EditText busStopNameText;
     private TextView favoriteTipTextView;
     private ImageView angeryBusImageView;
+    private LinearLayoutManager llManager;
 
     @Nullable
     private CommonFragmentListener mListener;
 
     public static final String FRAGMENT_TAG = "BusTOFavFragment";
 
-
+    private final AdapterListener adapterListener = new AdapterListener() {
+        @Override
+        public void onTappedStop(Stop stop) {
+            mListener.requestArrivalsForStopID(stop.ID);
+        }
+    };
 
 
     public static FavoritesFragment newInstance() {
@@ -87,12 +98,14 @@ public class FavoritesFragment extends BaseFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_favorites, container, false);
-        favoriteListView = root.findViewById(R.id.favoriteListView);
-        favoriteListView.setOnItemClickListener((parent, view, position, id) -> {
-            /**
+        favoriteRecyclerView = root.findViewById(R.id.favoritesRecyclerView);
+        //favoriteListView = root.findViewById(R.id.favoriteListView);
+        /*favoriteRecyclerView.setOn((parent, view, position, id) -> {
+            /*
              * Casting because of Javamerda
              * @url http://stackoverflow.com/questions/30549485/androids-list-view-parameterized-type-in-adapterview-onitemclicklistener
              */
+        /*
             Stop busStop = (Stop) parent.getItemAtPosition(position);
 
             if(mListener!=null){
@@ -100,9 +113,19 @@ public class FavoritesFragment extends BaseFragment {
             }
 
         });
+
+         */
+
+        llManager = new LinearLayoutManager(getContext());
+        llManager.setOrientation(LinearLayoutManager.VERTICAL);
+        favoriteRecyclerView.setLayoutManager(llManager);
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(favoriteRecyclerView.getContext(),
+                llManager.getOrientation());
+        favoriteRecyclerView.addItemDecoration(dividerItemDecoration);
+
         angeryBusImageView = root.findViewById(R.id.angeryBusImageView);
         favoriteTipTextView = root.findViewById(R.id.favoriteTipTextView);
-        registerForContextMenu(favoriteListView);
+        registerForContextMenu(favoriteRecyclerView);
 
         FavoritesViewModel model = new ViewModelProvider(this).get(FavoritesViewModel.class);
         model.getFavorites().observe(getViewLifecycleOwner(), this::showStops);
@@ -127,14 +150,18 @@ public class FavoritesFragment extends BaseFragment {
         super.onDetach();
         mListener = null;
     }
-
+    /*
+    This method is apparently NOT CALLED ANYMORE
+     */
     @Override
     public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v,
                                     ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-        if (v.getId() == R.id.favoriteListView) {
+        Log.d("Favorites Fragment", "Creating context menu on "+v);
+        if (v.getId() == R.id.favoritesRecyclerView) {
             // if we aren't attached to activity, return null
             if (getActivity()==null) return;
+
             MenuInflater inflater = getActivity().getMenuInflater();
             inflater.inflate(R.menu.menu_favourites_entry, menu);
         }
@@ -151,7 +178,11 @@ public class FavoritesFragment extends BaseFragment {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
                 .getMenuInfo();
 
-        Stop busStop = (Stop) favoriteListView.getItemAtPosition(info.position);
+        if(!(favoriteRecyclerView.getAdapter() instanceof StopRecyclerAdapter))
+            return false;
+
+        StopRecyclerAdapter adapter = (StopRecyclerAdapter) favoriteRecyclerView.getAdapter();
+        Stop busStop = (Stop) adapter.getStops().get(adapter.getPosition());
 
         switch (item.getItemId()) {
             case R.id.action_favourite_entry_delete:
@@ -189,14 +220,14 @@ public class FavoritesFragment extends BaseFragment {
         if(BuildConfig.DEBUG)
             Log.d("BusTO - Favorites", "We have "+busStops.size()+" favorites in the list");
         if (busStops.size() == 0) {
-            favoriteListView.setVisibility(View.INVISIBLE);
+            favoriteRecyclerView.setVisibility(View.INVISIBLE);
            // TextView favoriteTipTextView = (TextView) findViewById(R.id.favoriteTipTextView);
             //assert favoriteTipTextView != null;
             favoriteTipTextView.setVisibility(View.VISIBLE);
             //ImageView angeryBusImageView = (ImageView) findViewById(R.id.angeryBusImageView);
             angeryBusImageView.setVisibility(View.VISIBLE);
         } else {
-            favoriteListView.setVisibility(View.VISIBLE);
+            favoriteRecyclerView.setVisibility(View.VISIBLE);
             favoriteTipTextView.setVisibility(View.INVISIBLE);
             angeryBusImageView.setVisibility(View.INVISIBLE);
         }
@@ -210,7 +241,7 @@ public class FavoritesFragment extends BaseFragment {
          * redrwaing everything.
          */
         // Show results
-        favoriteListView.setAdapter(new StopAdapter(getContext(), busStops));
+        favoriteRecyclerView.setAdapter(new StopRecyclerAdapter(busStops,adapterListener));
     }
 
     public void showBusStopUsernameInputDialog(final Stop busStop) {

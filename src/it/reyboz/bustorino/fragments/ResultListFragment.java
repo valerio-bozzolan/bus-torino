@@ -23,6 +23,8 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -55,13 +57,11 @@ public class ResultListFragment extends Fragment{
     protected static final String MESSAGE_TEXT_VIEW = "message_text_view";
     private FragmentKind adapterKind;
 
-    private boolean adapterSet = false;
     protected FragmentListenerMain mListener;
     protected TextView messageTextView;
     protected ListView resultsListView;
 
 
-    private FloatingActionButton fabutton;
     private ListAdapter mListAdapter = null;
     boolean listShown;
     private Parcelable mListInstanceState = null;
@@ -211,7 +211,7 @@ public class ResultListFragment extends Fragment{
         switch (adapterKind) {
             case ARRIVALS:
                 resultsListView.setOnScrollListener(new CommonScrollListener(mListener, true));
-                fabutton.show();
+                mListener.showFloatingActionButton(true);
                 break;
             case STOPS:
                 resultsListView.setOnScrollListener(new CommonScrollListener(mListener, false));
@@ -222,6 +222,7 @@ public class ResultListFragment extends Fragment{
         mListener.readyGUIfor(adapterKind);
 
     }
+
 
     @Override
     public void onPause() {
@@ -234,11 +235,10 @@ public class ResultListFragment extends Fragment{
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (context instanceof FragmentListenerMain) {
             mListener = (FragmentListenerMain) context;
-            fabutton = (FloatingActionButton) getActivity().findViewById(R.id.floatingActionButton);
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement ResultFragmentListener");
@@ -249,9 +249,8 @@ public class ResultListFragment extends Fragment{
 
     @Override
     public void onDetach() {
+        mListener.showFloatingActionButton(false);
         mListener = null;
-        if (fabutton != null)
-            fabutton.show();
         super.onDetach();
     }
 

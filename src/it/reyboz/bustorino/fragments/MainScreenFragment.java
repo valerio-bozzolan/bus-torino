@@ -101,7 +101,8 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
                 ArrivalsFragment fragment = (ArrivalsFragment) fragMan.findFragmentById(R.id.resultFrame);
                 if (fragment == null){
                     //we create a new fragment, which is WRONG
-                    new AsyncDataDownload(fragmentHelper, arrivalsFetchers,getContext()).execute();
+                    Log.e("BusTO-RefreshStop", "Asking for refresh when there is no fragment");
+                    // AsyncDataDownload(fragmentHelper, arrivalsFetchers,getContext()).execute();
                 } else{
                     String stopName = fragment.getStopID();
 
@@ -167,6 +168,10 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
                 public void onActivityResult(Map<String, Boolean> result) {
                     if(result==null || result.get(Manifest.permission.ACCESS_COARSE_LOCATION) == null
                     ||result.get(Manifest.permission.ACCESS_FINE_LOCATION) ) return;
+
+                    if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) == null ||
+                            result.get(Manifest.permission.ACCESS_FINE_LOCATION) == null)
+                        return;
 
                     if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) && result.get(Manifest.permission.ACCESS_FINE_LOCATION)){
                         locationPermissionGranted = true;
@@ -326,7 +331,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         if(getContext()==null) return; //we are not attached
 
         //Fragment fr = getChildFragmentManager().findFragmentById(R.id.resultFrame);
-        fragmentHelper.stopLastRequestIfNeeded();
+        fragmentHelper.stopLastRequestIfNeeded(true);
         toggleSpinner(false);
     }
 
@@ -418,7 +423,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         locationManager.removeLocationRequestFor(requester);
         super.onPause();
         fragmentHelper.setBlockAllActivities(true);
-        fragmentHelper.stopLastRequestIfNeeded();
+        fragmentHelper.stopLastRequestIfNeeded(true);
     }
 
 
@@ -448,6 +453,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         final StopsFinderByName[] stopsFinderByNames = new StopsFinderByName[]{new GTTStopsFetcher(), new FiveTStopsFetcher()};
         if (searchMode == SEARCH_BY_ID) {
             String busStopID = busStopSearchByIDEditText.getText().toString();
+            fragmentHelper.stopLastRequestIfNeeded(true);
             requestArrivalsForStopID(busStopID);
         } else { // searchMode == SEARCH_BY_NAME
             String query = busStopSearchByNameEditText.getText().toString();
@@ -458,8 +464,10 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
                 } else if(query.length()< 3){
                     Toast.makeText(getContext(), R.string.query_too_short, Toast.LENGTH_SHORT).show();
                 }
-                else
+                else {
+                    fragmentHelper.stopLastRequestIfNeeded(true);
                     new AsyncDataDownload(fragmentHelper, stopsFinderByNames, getContext()).execute(query);
+                }
             }
         }
     }
@@ -561,13 +569,19 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
 
     void showNearbyStopsFragment(){
         swipeRefreshLayout.setVisibility(View.VISIBLE);
-        NearbyStopsFragment fragment = NearbyStopsFragment.newInstance(NearbyStopsFragment.TYPE_STOPS);
-        Fragment oldFrag = fragMan.findFragmentById(R.id.resultFrame);
-        FragmentTransaction ft = fragMan.beginTransaction();
-        if (oldFrag != null)
-            ft.remove(oldFrag);
-        ft.add(R.id.resultFrame, fragment, NearbyStopsFragment.FRAGMENT_TAG);
-        ft.commit();
+        final Fragment existingFrag = fragMan.findFragmentById(R.id.resultFrame);
+        NearbyStopsFragment fragment;
+        if (!(existingFrag instanceof NearbyStopsFragment)){
+            //there is no fragment showing
+            fragment = NearbyStopsFragment.newInstance(NearbyStopsFragment.TYPE_STOPS);
+
+            FragmentTransaction ft = fragMan.beginTransaction();
+            //if (oldFrag != null)
+            //    ft.remove(oldFrag);
+
+            ft.replace(R.id.resultFrame, fragment, NearbyStopsFragment.FRAGMENT_TAG);
+            ft.commit();
+        }
     }
 
 
