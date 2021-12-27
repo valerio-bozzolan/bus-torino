@@ -49,27 +49,25 @@ import java.util.Calendar;
 /**
  * This should be used to download data, but not to display it
  */
-public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
+public class AsyncArrivalsSearcher extends AsyncTask<String, Fetcher.Result,Palina>{
 
     private static final String TAG = "BusTO-DataDownload";
     private static final String DEBUG_TAG = TAG;
     private boolean failedAll = false;
 
     private final AtomicReference<Fetcher.Result> res;
-    private final RequestType t;
     private String query;
     WeakReference<FragmentHelper> helperRef;
     private final ArrayList<Thread> otherActivities = new ArrayList<>();
-    private final Fetcher[] theFetchers;
+    private final ArrivalsFetcher[] theFetchers;
     @SuppressLint("StaticFieldLeak")
     private final Context context;
     private final boolean replaceFragment;
 
 
-    public AsyncDataDownload(FragmentHelper fh, @NonNull Fetcher[] fetchers, Context context) {
-        RequestType type;
+    public AsyncArrivalsSearcher(FragmentHelper fh, @NonNull ArrivalsFetcher[] fetchers, Context context) {
         helperRef = new WeakReference<>(fh);
-        fh.setLastTaskRef(new WeakReference<>(this));
+        fh.setLastTaskRef(this);
         res = new AtomicReference<>();
         this.context = context.getApplicationContext();
         this.replaceFragment = true;
@@ -78,22 +76,13 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
         if (theFetchers.length < 1){
             throw new IllegalArgumentException("You have to put at least one Fetcher, idiot!");
         }
-        if (theFetchers[0] instanceof ArrivalsFetcher){
-            type = RequestType.ARRIVALS;
-        } else if (theFetchers[0] instanceof StopsFinderByName){
-            type = RequestType.STOPS;
-        } else{
-            type = null;
-        }
-        t = type;
 
     }
 
     @Override
-    protected Object doInBackground(String... params) {
-        RecursionHelper<Fetcher> r = new RecursionHelper<>(theFetchers);
-        boolean success=false;
-        Object result;
+    protected Palina doInBackground(String... params) {
+        RecursionHelper<ArrivalsFetcher> r = new RecursionHelper<>(theFetchers);
+        Palina result = null;
         FragmentHelper fh = helperRef.get();
         ArrayList<Fetcher.Result> results = new ArrayList<>(theFetchers.length);
         //If the FragmentHelper is null, that means the activity doesn't exist anymore
@@ -107,87 +96,76 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
                 return null;
             }
             //get the data from the fetcher
-            switch (t){
-                case ARRIVALS:
-                    ArrivalsFetcher f = (ArrivalsFetcher) r.getAndMoveForward();
-                    if (f instanceof MatoAPIFetcher){
-                        ((MatoAPIFetcher)f).setAppContext(context);
+            ArrivalsFetcher f =  r.getAndMoveForward();
+            AtomicReference<Fetcher.Result> resRef = new AtomicReference<>();
+            if (f instanceof MatoAPIFetcher){
+                ((MatoAPIFetcher)f).setAppContext(context);
+            }
+            Log.d(TAG,"Using the ArrivalsFetcher: "+f.getClass());
+
+            Stop lastSearchedBusStop = fh.getLastSuccessfullySearchedBusStop();
+            Palina p;
+            String stopID;
+            if(params.length>0)
+                stopID=params[0]; //(it's a Palina)
+            else if(lastSearchedBusStop!=null)
+                stopID = lastSearchedBusStop.ID; //(it's a Palina)
+            else {
+                publishProgress(Fetcher.Result.QUERY_TOO_SHORT);
+                return null;
+            }
+            //Skip the FiveTAPIFetcher for the Metro Stops because it shows incomprehensible arrival times
+            try {
+                if (f instanceof FiveTAPIFetcher && Integer.parseInt(stopID) >= 8200)
+                    continue;
+            } catch (NumberFormatException ex){
+                Log.e(DEBUG_TAG, "The stop number is not a valid integer, expect failures");
+            }
+            p= f.ReadArrivalTimesAll(stopID,resRef);
+
+
+            //if (res.get()!= Fetcher.Result.OK)
+            Log.d(DEBUG_TAG, "Arrivals fetcher: "+f+"\n\tProgress: "+resRef.get());
+
+            if(f instanceof FiveTAPIFetcher){
+                AtomicReference<Fetcher.Result> gres = new AtomicReference<>();
+                List<Route> branches = ((FiveTAPIFetcher) f).getDirectionsForStop(stopID,gres);
+                Log.d(DEBUG_TAG, "FiveTArrivals fetcher: "+f+"\n\tDetails req: "+gres.get());
+                if(gres.get() == Fetcher.Result.OK){
+                    p.addInfoFromRoutes(branches);
+                    Thread t = new Thread(new BranchInserter(branches, context));
+                    t.start();
+                    otherActivities.add(t);
+                } else{
+                    resRef.set(Fetcher.Result.NOT_FOUND);
+                }
+                //put updated values into Database
+            }
+
+            if(lastSearchedBusStop != null && resRef.get()== Fetcher.Result.OK) {
+                // check that we don't have the same stop
+                if(lastSearchedBusStop.ID.equals(p.ID)) {
+                    // searched and it's the same
+                    String sn = lastSearchedBusStop.getStopDisplayName();
+                    if(sn != null) {
+                        // "merge" Stop over Palina and we're good to go
+                        p.mergeNameFrom(lastSearchedBusStop);
                     }
-                    Log.d(TAG,"Using the ArrivalsFetcher: "+f.getClass());
-
-                    Stop lastSearchedBusStop = fh.getLastSuccessfullySearchedBusStop();
-                    Palina p;
-                    String stopID;
-                    if(params.length>0)
-                        stopID=params[0]; //(it's a Palina)
-                    else if(lastSearchedBusStop!=null)
-                        stopID = lastSearchedBusStop.ID; //(it's a Palina)
-                    else {
-                        publishProgress(Fetcher.Result.QUERY_TOO_SHORT);
-                        return null;
-                    }
-                    //Skip the FiveTAPIFetcher for the Metro Stops because it shows incomprehensible arrival times
-                    try {
-                        if (f instanceof FiveTAPIFetcher && Integer.parseInt(stopID) >= 8200)
-                            continue;
-                    } catch (NumberFormatException ex){
-                        Log.e(DEBUG_TAG, "The stop number is not a valid integer, expect failures");
-                    }
-                    p= f.ReadArrivalTimesAll(stopID,res);
-
-                    //if (res.get()!= Fetcher.Result.OK)
-                    Log.d(DEBUG_TAG, "Arrivals fetcher: "+f+"\n\tProgress: "+res.get());
-
-
-                    if(f instanceof FiveTAPIFetcher){
-                        AtomicReference<Fetcher.Result> gres = new AtomicReference<>();
-                        List<Route> branches = ((FiveTAPIFetcher) f).getDirectionsForStop(stopID,gres);
-                        Log.d(DEBUG_TAG, "FiveTArrivals fetcher: "+f+"\n\tDetails req: "+gres.get());
-                        if(gres.get() == Fetcher.Result.OK){
-                            p.addInfoFromRoutes(branches);
-                            Thread t = new Thread(new BranchInserter(branches, context));
-                            t.start();
-                            otherActivities.add(t);
-
-                        }
-                        //put updated values into Database
-                    }
-
-                    if(lastSearchedBusStop != null && res.get()== Fetcher.Result.OK) {
-                        // check that we don't have the same stop
-                        if(lastSearchedBusStop.ID.equals(p.ID)) {
-                            // searched and it's the same
-                            String sn = lastSearchedBusStop.getStopDisplayName();
-                            if(sn != null) {
-                                // "merge" Stop over Palina and we're good to go
-                                p.mergeNameFrom(lastSearchedBusStop);
-                            }
-                        }
-                    }
-                    p.mergeDuplicateRoutes(0);
-                    if (p.getTotalNumberOfPassages() == 0)
-                        res.set(Fetcher.Result.EMPTY_RESULT_SET);
-                    publishProgress(res.get());
-                    //p.sortRoutes();
-                    result = p;
-
-                    //TODO: find a way to avoid overloading the user with toasts
-                    break;
-                case STOPS:
-                    StopsFinderByName finder = (StopsFinderByName) r.getAndMoveForward();
-
-                    List<Stop> resultList= finder.FindByName(params[0], this.res); //it's a List<Stop>
-                    Log.d(TAG,"Using the StopFinderByName: "+finder.getClass());
-                    query =params[0];
-                    result = resultList; //dummy result
-                    Log.d(DEBUG_TAG, "Result: "+res.get()+", "+resultList.size()+" stops");
-                    break;
-                default:
-                    result = null;
+                }
+            }
+            p.mergeDuplicateRoutes(0);
+            if (resRef.get() == Fetcher.Result.OK && p.getTotalNumberOfPassages() == 0 ) {
+                resRef.set(Fetcher.Result.EMPTY_RESULT_SET);
+                Log.d(DEBUG_TAG, "Setting empty results");
+            }
+            publishProgress(resRef.get());
+            //TODO: find a way to avoid overloading the user with toasts
+            if (result == null){
+                result = p;
             }
             //find if it went well
-            results.add(res.get());
-            if(res.get()== Fetcher.Result.OK) {
+            results.add(resRef.get());
+            if(resRef.get()== Fetcher.Result.OK) {
                 //wait for other threads to finish
                 for(Thread t: otherActivities){
                     try {
@@ -196,7 +174,7 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
                         //do nothing
                     }
                 }
-                return result;
+                return p;
             }
 
         }
@@ -207,14 +185,10 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
                 break;
             }
         }
-        if(emptyResults){
-            if(t==RequestType.STOPS)
-                publishProgress(Fetcher.Result.EMPTY_RESULT_SET);
-        }
         //at this point, we are sure that the result has been negative
         failedAll=true;
 
-        return null;
+        return result;
     }
 
     @Override
@@ -223,7 +197,7 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
         if (fh!=null)
         for (Fetcher.Result r : values){
             //TODO: make Toast
-            fh.showErrorMessage(r);
+            fh.showErrorMessage(r, SearchRequestType.ARRIVALS);
         }
         else {
             Log.w(TAG,"We had to show some progress but activity was destroyed");
@@ -231,10 +205,10 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
     }
 
     @Override
-    protected void onPostExecute(Object o) {
+    protected void onPostExecute(Palina p) {
         FragmentHelper fh = helperRef.get();
 
-        if(failedAll || o == null || fh == null){
+        if(failedAll || p == null || fh == null){
             //everything went bad
             if(fh!=null) fh.toggleSpinner(false);
             cancel(true);
@@ -244,37 +218,8 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
 
         if(isCancelled()) return;
 
-        switch (t){
-            case ARRIVALS:
-                Palina palina = (Palina) o;
-                fh.createOrUpdateStopFragment(palina, replaceFragment);
-                break;
-            case STOPS:
-                //this should never be a problem
-                if(!(o instanceof List<?>)){
-                    throw new IllegalStateException();
-                }
-                List<?> list = (List<?>) o;
-                if (list.size() ==0) return;
-                Object firstItem = list.get(0);
-                if(!(firstItem instanceof Stop)) return;
-                ArrayList<Stop> stops = new ArrayList<>();
-                for(Object x: list){
-                    if(x instanceof Stop) stops.add((Stop) x);
-                    //Log.d(DEBUG_TAG, "Parsing Stop: "+x);
-                }
-                if(list.size() != stops.size()){
-                    Log.w(DEBUG_TAG, "Wrong stop list size:\n incoming: "+
-                            list.size()+" out: "+stops.size());
-                }
-                //List<Stop> stopList = (List<Stop>) list;
-                if(query!=null && !isCancelled()) {
-                    fh.createStopListFragment(stops,query, replaceFragment);
-                } else Log.e(TAG,"QUERY NULL, COULD NOT CREATE FRAGMENT");
-                break;
-            case DBUPDATE:
-                break;
-        }
+
+        fh.createOrUpdateStopFragment( p, replaceFragment);
     }
 
     @Override
@@ -289,10 +234,6 @@ public class AsyncDataDownload extends AsyncTask<String, Fetcher.Result,Object>{
         if (fh!=null) fh.toggleSpinner(true);
     }
 
-
-    public enum RequestType {
-        ARRIVALS,STOPS,DBUPDATE
-    }
 
     public static class BranchInserter implements Runnable{
         private final List<Route> routesToInsert;

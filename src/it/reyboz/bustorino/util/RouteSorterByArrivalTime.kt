@@ -1,4 +1,4 @@
-package it.reyboz.bustorino.adapters
+package it.reyboz.bustorino.util
 
 import it.reyboz.bustorino.backend.Route
 
@@ -7,9 +7,9 @@ class RouteSorterByArrivalTime : Comparator<Route> {
     override fun compare(route1: Route?, route2: Route?): Int {
         if (route1 == null){
             if(route2 == null) return 0
-            else return 2;
+            else return 2
         } else if (route2 == null){
-            return -2;
+            return -2
         }
         val passaggi1 = route1.passaggi
         val passaggi2 = route2.passaggi

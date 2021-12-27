@@ -44,7 +44,8 @@ import java.util.Map;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.middleware.AppLocationManager;
-import it.reyboz.bustorino.middleware.AsyncDataDownload;
+import it.reyboz.bustorino.middleware.AsyncArrivalsSearcher;
+import it.reyboz.bustorino.middleware.AsyncStopsSearcher;
 import it.reyboz.bustorino.util.LocationCriteria;
 import it.reyboz.bustorino.util.Permissions;
 
@@ -106,10 +107,10 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
                 } else{
                     String stopName = fragment.getStopID();
 
-                    new AsyncDataDownload(fragmentHelper, fragment.getCurrentFetchersAsArray(), getContext()).execute(stopName);
+                    new AsyncArrivalsSearcher(fragmentHelper, fragment.getCurrentFetchersAsArray(), getContext()).execute(stopName);
                 }
             } else //we create a new fragment, which is WRONG
-                new AsyncDataDownload(fragmentHelper, arrivalsFetchers, getContext()).execute();
+                new AsyncArrivalsSearcher(fragmentHelper, arrivalsFetchers, getContext()).execute();
         }
     };
 
@@ -466,7 +467,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
                 }
                 else {
                     fragmentHelper.stopLastRequestIfNeeded(true);
-                    new AsyncDataDownload(fragmentHelper, stopsFinderByNames, getContext()).execute(query);
+                    new AsyncStopsSearcher(fragmentHelper, stopsFinderByNames).execute(query);
                 }
             }
         }
@@ -660,13 +661,13 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
             if (fragment != null && fragment.getStopID() != null && fragment.getStopID().equals(ID)){
                 // Run with previous fetchers
                 //fragment.getCurrentFetchers().toArray()
-                new AsyncDataDownload(fragmentHelper,fragment.getCurrentFetchersAsArray(), getContext()).execute(ID);
+                new AsyncArrivalsSearcher(fragmentHelper,fragment.getCurrentFetchersAsArray(), getContext()).execute(ID);
             } else{
-                new AsyncDataDownload(fragmentHelper, arrivalsFetchers, getContext()).execute(ID);
+                new AsyncArrivalsSearcher(fragmentHelper, arrivalsFetchers, getContext()).execute(ID);
             }
         }
         else {
-            new AsyncDataDownload(fragmentHelper,arrivalsFetchers, getContext()).execute(ID);
+            new AsyncArrivalsSearcher(fragmentHelper,arrivalsFetchers, getContext()).execute(ID);
             Log.d(DEBUG_TAG, "Started search for arrivals of stop " + ID);
         }
     }

@@ -27,12 +27,18 @@ import androidx.work.*;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.FiveTAPIFetcher;
+import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.backend.mato.MatoAPIFetcher;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -41,13 +47,15 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class DatabaseUpdate {
 
-        public static final String DEBUG_TAG = "BusTO-DBUpdate";
-        public static final int VERSION_UNAVAILABLE = -2;
-        public static final int JSON_PARSING_ERROR = -4;
+    public static final String DEBUG_TAG = "BusTO-DBUpdate";
+    public static final int VERSION_UNAVAILABLE = -2;
+    public static final int JSON_PARSING_ERROR = -4;
 
-        public static final String DB_VERSION_KEY = "NextGenDB.GTTVersion";
+    public static final String DB_VERSION_KEY = "NextGenDB.GTTVersion";
+    public static final String DB_LAST_UPDATE_KEY = "NextGenDB.LastDBUpdate";
 
-        enum Result {
+
+    enum Result {
             DONE, ERROR_STOPS_DOWNLOAD, ERROR_LINES_DOWNLOAD
         }
 
@@ -80,6 +88,7 @@ public class DatabaseUpdate {
         public static Result performDBUpdate(Context con, AtomicReference<Fetcher.Result> gres) {
 
             final FiveTAPIFetcher f = new FiveTAPIFetcher();
+            /*
             final ArrayList<Stop> stops = f.getAllStopsFromGTT(gres);
             //final ArrayList<ContentProviderOperation> cpOp = new ArrayList<>();
 
@@ -88,9 +97,18 @@ public class DatabaseUpdate {
                 return DatabaseUpdate.Result.ERROR_STOPS_DOWNLOAD;
 
             }
-            //    return false; //If the commit to the SharedPreferences didn't succeed, simply stop updating the database
+
+             */
             final NextGenDB dbHelp = new NextGenDB(con.getApplicationContext());
             final SQLiteDatabase db = dbHelp.getWritableDatabase();
+
+            final List<Palina> palinasMatoAPI = MatoAPIFetcher.Companion.getAllStopsGTT(con, gres);
+            if (gres.get() != Fetcher.Result.OK) {
+                Log.w(DEBUG_TAG, "Something went wrong downloading");
+                return DatabaseUpdate.Result.ERROR_STOPS_DOWNLOAD;
+
+            }
+            //TODO: Get the type of stop from the lines
             //Empty the needed tables
             db.beginTransaction();
             //db.execSQL("DELETE FROM "+StopsTable.TABLE_NAME);
@@ -99,20 +117,20 @@ public class DatabaseUpdate {
             //put new data
             long startTime = System.currentTimeMillis();
 
-            Log.d(DEBUG_TAG, "Inserting " + stops.size() + " stops");
-            for (final Stop s : stops) {
+            Log.d(DEBUG_TAG, "Inserting " + palinasMatoAPI.size() + " stops");
+            for (final Palina p : palinasMatoAPI) {
                 final ContentValues cv = new ContentValues();
 
-                cv.put(NextGenDB.Contract.StopsTable.COL_ID, s.ID);
-                cv.put(NextGenDB.Contract.StopsTable.COL_NAME, s.getStopDefaultName());
-                if (s.location != null)
-                    cv.put(NextGenDB.Contract.StopsTable.COL_LOCATION, s.location);
-                cv.put(NextGenDB.Contract.StopsTable.COL_LAT, s.getLatitude());
-                cv.put(NextGenDB.Contract.StopsTable.COL_LONG, s.getLongitude());
-                if (s.getAbsurdGTTPlaceName() != null) cv.put(NextGenDB.Contract.StopsTable.COL_PLACE, s.getAbsurdGTTPlaceName());
-                cv.put(NextGenDB.Contract.StopsTable.COL_LINES_STOPPING, s.routesThatStopHereToString());
-                if (s.type != null) cv.put(NextGenDB.Contract.StopsTable.COL_TYPE, s.type.getCode());
-
+                cv.put(NextGenDB.Contract.StopsTable.COL_ID, p.ID);
+                cv.put(NextGenDB.Contract.StopsTable.COL_NAME, p.getStopDefaultName());
+                if (p.location != null)
+                    cv.put(NextGenDB.Contract.StopsTable.COL_LOCATION, p.location);
+                cv.put(NextGenDB.Contract.StopsTable.COL_LAT, p.getLatitude());
+                cv.put(NextGenDB.Contract.StopsTable.COL_LONG, p.getLongitude());
+                if (p.getAbsurdGTTPlaceName() != null) cv.put(NextGenDB.Contract.StopsTable.COL_PLACE, p.getAbsurdGTTPlaceName());
+                cv.put(NextGenDB.Contract.StopsTable.COL_LINES_STOPPING, p.routesThatStopHereToString());
+                if (p.type != null) cv.put(NextGenDB.Contract.StopsTable.COL_TYPE, p.type.getCode());
+                if (p.gtfsID != null) cv.put(NextGenDB.Contract.StopsTable.COL_GTFS_ID, p.gtfsID);
                 //Log.d(DEBUG_TAG,cv.toString());
                 //cpOp.add(ContentProviderOperation.newInsert(uritobeused).withValues(cv).build());
                 //valuesArr[i] = cv;
@@ -184,16 +202,23 @@ public class DatabaseUpdate {
     public static void requestDBUpdateWithWork(Context con, boolean forced){
         final SharedPreferences theShPr = PreferencesHolder.getMainSharedPreferences(con);
         final WorkManager workManager = WorkManager.getInstance(con);
-        PeriodicWorkRequest wr = new PeriodicWorkRequest.Builder(DBUpdateWorker.class, 1, TimeUnit.DAYS)
+        PeriodicWorkRequest wr = new PeriodicWorkRequest.Builder(DBUpdateWorker.class, 7, TimeUnit.DAYS)
                 .setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.MINUTES)
                 .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
                         .build())
                 .build();
         final int version = theShPr.getInt(DatabaseUpdate.DB_VERSION_KEY, -10);
-        if (version >= 0 && !forced)
+        final long lastDBUpdateTime = theShPr.getLong(DatabaseUpdate.DB_LAST_UPDATE_KEY, -10);
+        if ((version >= 0 || lastDBUpdateTime >=0) && !forced)
             workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
                     ExistingPeriodicWorkPolicy.KEEP, wr);
         else workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
                 ExistingPeriodicWorkPolicy.REPLACE, wr);
     }
+    /*
+    public static boolean isDBUpdating(){
+        return false;
+        TODO
+    }
+     */
 }

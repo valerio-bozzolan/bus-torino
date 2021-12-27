@@ -271,8 +271,8 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         }
         return v;
     }
-    public Fetcher[] getCurrentFetchersAsArray(){
-        Fetcher[] arr = new Fetcher[fetchers.size()];
+    public ArrivalsFetcher[] getCurrentFetchersAsArray(){
+        ArrivalsFetcher[] arr = new ArrivalsFetcher[fetchers.size()];
         fetchers.toArray(arr);
         return arr;
     }

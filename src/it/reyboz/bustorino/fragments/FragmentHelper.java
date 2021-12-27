@@ -23,6 +23,8 @@ import android.content.Context;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+
+import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -50,7 +52,8 @@ public class FragmentHelper {
     private final Context context;
     public static final int NO_FRAME = -3;
     private static final String DEBUG_TAG = "BusTO FragmHelper";
-    private WeakReference<AsyncDataDownload> lastTaskRef;
+    private WeakReference<AsyncTask> lastTaskRef;
+    private SearchRequestType lastTaskType;
     private boolean shouldHaltAllActivities=false;
 
 
@@ -79,8 +82,8 @@ public class FragmentHelper {
         this.lastSuccessfullySearchedBusStop = stop;
     }
 
-    public void setLastTaskRef(WeakReference<AsyncDataDownload> lastTaskRef) {
-        this.lastTaskRef = lastTaskRef;
+    public void setLastTaskRef(AsyncTask task) {
+        this.lastTaskRef = new WeakReference<>(task);
     }
 
     /**
@@ -199,7 +202,7 @@ public class FragmentHelper {
 
     public void stopLastRequestIfNeeded(boolean interruptIfRunning){
         if(lastTaskRef == null) return;
-        AsyncDataDownload task = lastTaskRef.get();
+        AsyncTask task = lastTaskRef.get();
         if(task!=null){
             task.cancel(interruptIfRunning);
         }
@@ -209,8 +212,9 @@ public class FragmentHelper {
      * Wrapper to show the errors/status that happened
      * @param res result from Fetcher
      */
-    public void showErrorMessage(Fetcher.Result res){
+    public void showErrorMessage(Fetcher.Result res, SearchRequestType type){
         //TODO: implement a common set of errors for all fragments
+        Log.d(DEBUG_TAG, "Showing result for "+res);
         switch (res){
             case OK:
                 break;
@@ -231,6 +235,13 @@ public class FragmentHelper {
                 showShortToast(R.string.query_too_short);
                 break;
             case EMPTY_RESULT_SET:
+                if (type == SearchRequestType.STOPS)
+                    showShortToast(R.string.no_bus_stop_have_this_name);
+                else if(type == SearchRequestType.ARRIVALS){
+                    showShortToast(R.string.no_arrivals_stop);
+                }
+                break;
+            case NOT_FOUND:
                 showShortToast(R.string.no_bus_stop_have_this_name);
                 break;
         }

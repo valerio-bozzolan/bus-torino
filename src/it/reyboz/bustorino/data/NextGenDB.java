@@ -36,7 +36,7 @@ import static it.reyboz.bustorino.data.NextGenDB.Contract.*;
 
 public class NextGenDB extends SQLiteOpenHelper{
     public static final String DATABASE_NAME = "bustodatabase.db";
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 3;
     public static final String DEBUG_TAG = "NextGenDB-BusTO";
     //NO Singleton instance
     //private static volatile NextGenDB instance = null;
@@ -67,6 +67,7 @@ public class NextGenDB extends SQLiteOpenHelper{
     private static final String SQL_CREATE_STOPS_TABLE="CREATE TABLE "+Contract.StopsTable.TABLE_NAME+" ("+
             Contract.StopsTable.COL_ID+" TEXT PRIMARY KEY, "+ Contract.StopsTable.COL_TYPE+" INTEGER, "+Contract.StopsTable.COL_LAT+" REAL NOT NULL, "+
             Contract.StopsTable.COL_LONG+" REAL NOT NULL, "+ Contract.StopsTable.COL_NAME+" TEXT NOT NULL, "+
+            StopsTable.COL_GTFS_ID+" TEXT, "+
             Contract.StopsTable.COL_LOCATION+" TEXT, "+Contract.StopsTable.COL_PLACE+" TEXT, "+
             Contract.StopsTable.COL_LINES_STOPPING +" TEXT )";
 
@@ -77,7 +78,7 @@ public class NextGenDB extends SQLiteOpenHelper{
             Contract.StopsTable.COL_LINES_STOPPING +" TEXT )";
 
     public static final String[] QUERY_COLUMN_stops_all = {
-            StopsTable.COL_ID, StopsTable.COL_NAME, StopsTable.COL_LOCATION,
+            StopsTable.COL_ID, StopsTable.COL_NAME, StopsTable.COL_GTFS_ID, StopsTable.COL_LOCATION,
             StopsTable.COL_TYPE, StopsTable.COL_LAT, StopsTable.COL_LONG, StopsTable.COL_LINES_STOPPING};
 
     public static final String QUERY_WHERE_LAT_AND_LNG_IN_RANGE = StopsTable.COL_LAT + " >= ? AND " +
@@ -124,6 +125,14 @@ public class NextGenDB extends SQLiteOpenHelper{
             db.execSQL(SQL_CREATE_CONNECTIONS_TABLE);
 
             DatabaseUpdate.requestDBUpdateWithWork(appContext, true);
+        }
+        if(oldVersion < 3 && newVersion == 3){
+            Log.d("BusTO-Database", "Running upgrades for version 3");
+            //add the new column
+            db.execSQL("ALTER TABLE "+StopsTable.TABLE_NAME+
+                    " ADD COLUMN "+StopsTable.COL_GTFS_ID+" TEXT ");
+
+            //  DatabaseUpdate.requestDBUpdateWithWork(appContext, true);
         }
     }
 
@@ -209,7 +218,9 @@ public class NextGenDB extends SQLiteOpenHelper{
         while(result.moveToNext()) {
 
             final String stopID = result.getString(colID).trim();
-            final Route.Type type = Route.getTypeFromSymbol(result.getString(colType));
+            final Route.Type type;
+            if(result.getString(colType) == null) type = Route.Type.BUS;
+            else type = Route.getTypeFromSymbol(result.getString(colType));
             String lines = result.getString(colLines).trim();
 
             String locationSometimesEmpty = result.getString(colLocation);
@@ -250,6 +261,10 @@ public class NextGenDB extends SQLiteOpenHelper{
         db.setTransactionSuccessful();
         db.endTransaction();
         return success;
+    }
+
+    int updateLinesStoppingInStop(List<Stop> stops){
+        return 0;
     }
 
     public static List<String> splitLinesString(String linesStr){
@@ -330,11 +345,13 @@ public class NextGenDB extends SQLiteOpenHelper{
             public static final String COL_ID = "stopid"; //integer
             public static final String COL_TYPE = "stop_type";
             public static final String COL_NAME = "stop_name";
+            public static final String COL_GTFS_ID = "gtfs_id";
             public static final String COL_LAT = "stop_latitude";
             public static final String COL_LONG = "stop_longitude";
             public static final String COL_LOCATION = "stop_location";
             public static final String COL_PLACE = "stop_placeName";
             public static final String COL_LINES_STOPPING = "stop_lines";
+
 
             @Override
             public String getTableName() {
@@ -342,7 +359,7 @@ public class NextGenDB extends SQLiteOpenHelper{
             }
             @Override
             public String[] getFields() {
-                return new String[]{COL_ID,COL_TYPE,COL_NAME,COL_LAT,COL_LONG,COL_LOCATION,COL_PLACE,COL_LINES_STOPPING};
+                return new String[]{COL_ID,COL_TYPE,COL_NAME,COL_GTFS_ID,COL_LAT,COL_LONG,COL_LOCATION,COL_PLACE,COL_LINES_STOPPING};
             }
         }
     }

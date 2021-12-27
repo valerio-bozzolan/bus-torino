@@ -76,7 +76,7 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
             json.getJSONObject(0).getString("Linea"); // if we can get this, then there's something useful in the array.
         } catch(JSONException e) {
             Log.w(DEBUG_TAG, "No existing lines");
-            res.set(Result.EMPTY_RESULT_SET);
+            res.set(Result.NOT_FOUND);
             return p;
         }
 

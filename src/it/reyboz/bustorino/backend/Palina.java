@@ -26,7 +26,10 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+
+import it.reyboz.bustorino.util.LinesNameSorter;
 
 /**
  * Timetable for multiple routes.<br>
@@ -91,83 +94,42 @@ public class Palina extends Stop {
      * @return array index for this route
      */
     public int addRoute(String routeID, String destinazione, Route.Type type) {
-        this.routes.add(new Route(routeID, destinazione, type, new ArrayList<>(6)));
-        routesModified = true;
-        return this.routes.size() - 1; // last inserted element and pray that direct access to ArrayList elements really is direct
+        return addRoute(new Route(routeID, destinazione, type, new ArrayList<>(6)));
     }
     public int addRoute(Route r){
         this.routes.add(r);
         routesModified = true;
-        return this.routes.size()-1;
+        buildRoutesString();
+        return this.routes.size()-1; // last inserted element and pray that direct access to ArrayList elements really is direct
     }
+
     public void setRoutes(List<Route> routeList){
         routes = new ArrayList<>(routeList);
     }
 
+    @Nullable
+    @Override
+    protected String buildRoutesString() {
+        // no routes => no string
+        if(routes == null || routes.size() == 0) {
+            return "";
+        }
+        final StringBuilder sb = new StringBuilder();
+        final LinesNameSorter nameSorter = new LinesNameSorter();
+        Collections.sort(routes, (o1, o2) -> nameSorter.compare(o1.getName().trim(), o2.getName().trim()));
+        int i, lenMinusOne = routes.size() - 1;
 
-//    /**
-//     * Clears a route timetable (or creates an empty route) and returns its index
-//     *
-//     * @param routeID name
-//     * @param destinazione end of line\terminus
-//     * @return array index for this route
-//     */
-//    public int updateRoute(String routeID, String destinazione) {
-//        int s = this.routes.size();
-//        RouteInternal r;
-//
-//        for(int i = 0; i < s; i++) {
-//            r = routes.get(i);
-//            if(r.name.compareTo(routeID) == 0 && r.destinazione.compareTo(destinazione) == 0) {
-//                // capire se è possibile che ci siano stessa linea e stessa destinazione su 2 righe diverse del sito e qui una sovrascrive l'altra (probabilmente no)
-//                r.updateFlag();
-//                r.deletePassaggio();
-//                return i;
-//            }
-//        }
-//
-//        return this.addRoute(routeID, destinazione);
-//    }
-//
-//    /**
-//     * Deletes routes marked as "not updated" (= disappeared from the GTT website\API\whatever).
-//     * Sets all remaining routes to "not updated" because that's how this contraption works.
-//     */
-//    public void finishUpdatingRoutes() {
-//        RouteInternal r;
-//
-//        for(Iterator<RouteInternal> itr = this.routes.iterator(); itr.hasNext(); ) {
-//            r = itr.next();
-//            if(r.unupdateFlag()) {
-//                itr.remove();
-//            }
-//        }
-//    }
+        for (i = 0; i < lenMinusOne; i++) {
+            sb.append(routes.get(i).getName().trim()).append(", ");
+        }
+        // last one:
+        sb.append(routes.get(i).getName());
 
-//    /**
-//     * Gets the current timetable for a route. Returns null if the route doesn't exist.
-//     * This is slower than queryRouteByIndex.
-//     *
-//     * @return timetable (passaggi)
-//     */
-//    public List<Passaggio> queryRoute(String routeID) {
-//        for(Route r : this.routes) {
-//            if(routeID.equals(r.name)) {
-//                return r.getPassaggi();
-//            }
-//        }
-//
-//        return null;
-//    }
-//
-//    /**
-//     * Gets the current timetable for this route, from its index in the array.
-//     *
-//     * @return timetable (passaggi)
-//     */
-//    public List<Passaggio> queryRouteByIndex(int index) {
-//        return this.routes.get(index).getPassaggi();
-//    }
+        setRoutesThatStopHereString(sb.toString());
+        return routesThatStopHereToString();
+    }
+
+
     protected void checkPassaggi(){
         Passaggio.Source mSource = null;
         for (Route r: routes){
@@ -222,6 +184,7 @@ public class Palina extends Stop {
     public int addInfoFromRoutes(List<Route> additionalRoutes){
         if(routes == null || routes.size()==0) {
             this.routes = new ArrayList<>(additionalRoutes);
+            buildRoutesString();
             return routes.size();
         }
         int count=0;
@@ -280,6 +243,7 @@ public class Palina extends Stop {
             //MERGE INFO
             if(r.mergeRouteWithAnother(selected)) count++;
         }
+        if (count> 0) buildRoutesString();
         return count;
     }
 

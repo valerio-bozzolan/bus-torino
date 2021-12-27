@@ -30,15 +30,15 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-    import java.util.List;
+import java.util.List;
 import java.util.Locale;
 
-import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Passaggio;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.utils;
+import it.reyboz.bustorino.util.RouteSorterByArrivalTime;
 
 /**
  * This once was a ListView Adapter for BusLine[].
@@ -60,7 +60,7 @@ public class PalinaAdapter extends ArrayAdapter<Route> implements SharedPreferen
     private static final int tramIcon = R.drawable.tram;
 
     private final String KEY_CAPITALIZE;
-    private Capitalize capit = Capitalize.DO_NOTHING;
+    private Capitalize capit;
 
     //private static final int cityIcon = R.drawable.city;
 
@@ -89,6 +89,25 @@ public class PalinaAdapter extends ArrayAdapter<Route> implements SharedPreferen
         super(context, row_layout, p.queryAllRoutes());
         li = LayoutInflater.from(context);
         sort(new RouteSorterByArrivalTime());
+        /*
+        sort(new Comparator<Route>() {
+
+            @Override
+            public int compare(Route route, Route t1) {
+                LinesNameSorter sorter = new LinesNameSorter();
+                if(route.getNameForDisplay()!= null){
+                    if(t1.getNameForDisplay()!=null){
+                        return sorter.compare(route.getNameForDisplay(), t1.getNameForDisplay());
+                    }
+                    else return -1;
+                } else if(t1.getNameForDisplay()!=null){
+                    return +1;
+                }
+                else  return 0;
+            }
+        });
+
+         */
         KEY_CAPITALIZE = context.getString(R.string.pref_arrival_times_capit);
         SharedPreferences defSharPref = PreferenceManager.getDefaultSharedPreferences(context);
         defSharPref.registerOnSharedPreferenceChangeListener(this);

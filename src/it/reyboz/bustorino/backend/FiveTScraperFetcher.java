@@ -83,7 +83,7 @@ public class FiveTScraperFetcher implements ArrivalsFetcher {
         String busStopID = grep("^(.+)&nbsp;", span.html());
         if (busStopID == null) {
             //Log.e("BusStop", "Empty busStopID from " + span.html());
-            res.set(Result.EMPTY_RESULT_SET);
+            res.set(Result.NOT_FOUND);
             return p;
         }
 

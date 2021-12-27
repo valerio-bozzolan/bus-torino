@@ -16,6 +16,7 @@
     <string name="route_towards_unknown">%s (unknown destination)</string>
     <string name="network_error">Verify your Internet connection!</string>
     <string name="no_bus_stop_have_this_name">Seems that no bus stop have this name</string>
+    <string name="no_arrivals_stop">No arrivals found for this stop</string>
     <string name="parsing_error">Error parsing the 5T/GTT website (damn site!)</string>
     <string name="query_too_short">Name too short, type more characters and retry
     </string> <!-- TODO: carry out experiments to determine the best wording for this message and publish a paper with the findings -->

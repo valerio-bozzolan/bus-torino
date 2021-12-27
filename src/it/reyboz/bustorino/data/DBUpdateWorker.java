@@ -53,6 +53,8 @@ public class DBUpdateWorker extends Worker{
 
     public static final String DEBUG_TAG = "Busto-UpdateWorker";
 
+    private static final long UPDATE_MIN_DELAY= 3*7*24*3600; //3 weeks
+
 
     public DBUpdateWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -72,9 +74,14 @@ public class DBUpdateWorker extends Worker{
 
         final boolean isUpdateCompulsory = getInputData().getBoolean(FORCED_UPDATE,false);
 
+        final long lastDBUpdateTime = shPr.getLong(DatabaseUpdate.DB_LAST_UPDATE_KEY, 0);
+        long currentTime = System.currentTimeMillis()/1000;
+
         final int notificationID = showNotification();
         Log.d(DEBUG_TAG, "Have previous version: "+current_DB_version +" and new version "+new_DB_version);
         Log.d(DEBUG_TAG, "Update compulsory: "+isUpdateCompulsory);
+        /*
+        SKIP CHECK (Reason: The Old API might fail at any moment)
         if (new_DB_version < 0){
             //there has been an error
             final Data out = new Data.Builder().putInt(ERROR_REASON_KEY, ERROR_FETCHING_VERSION)
@@ -82,9 +89,11 @@ public class DBUpdateWorker extends Worker{
             cancelNotification(notificationID);
             return ListenableWorker.Result.failure(out);
         }
+         */
 
         //we got a good version
-        if (current_DB_version >= new_DB_version && !isUpdateCompulsory) {
+        if (!(current_DB_version < new_DB_version || currentTime > lastDBUpdateTime + UPDATE_MIN_DELAY )
+                && !isUpdateCompulsory) {
             //don't need to update
             cancelNotification(notificationID);
             return ListenableWorker.Result.success(new Data.Builder().
@@ -115,6 +124,8 @@ public class DBUpdateWorker extends Worker{
         //update the version in the shared preference
         final SharedPreferences.Editor editor = shPr.edit();
         editor.putInt(DatabaseUpdate.DB_VERSION_KEY, new_DB_version);
+        currentTime = System.currentTimeMillis()/1000;
+        editor.putLong(DatabaseUpdate.DB_LAST_UPDATE_KEY, currentTime);
         editor.apply();
         cancelNotification(notificationID);
 

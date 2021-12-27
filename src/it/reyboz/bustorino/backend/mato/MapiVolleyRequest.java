@@ -24,10 +24,6 @@ public abstract class MapiVolleyRequest<T> extends Request<T> {
     }
 
 
-    @Nullable
-    @Override
-    abstract protected Map<String, String> getParams() throws AuthFailureError;
-
     @Override
     protected void deliverResponse(T response) {
         listener.onResponse(response);
@@ -37,4 +33,5 @@ public abstract class MapiVolleyRequest<T> extends Request<T> {
     public Map<String, String> getHeaders() throws AuthFailureError {
         return MatoAPIFetcher.Companion.getREQ_PARAMETERS();
     }
+
 }

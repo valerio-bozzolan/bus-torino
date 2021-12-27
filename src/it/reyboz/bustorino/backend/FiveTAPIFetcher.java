@@ -50,7 +50,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
         if(response==null) {
             if(res.get()== Result.SERVER_ERROR_404) {
                 Log.w(DEBUG_NAME,"Got 404, either the server failed, or the stop was not found, or the address is wrong");
-                res.set(Result.EMPTY_RESULT_SET);
+                //res.set(Result.S);
             }
             return p;
         }
@@ -384,9 +384,8 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
             res.set(Result.PARSER_ERROR);
             return null;
         }
-        String response = networkTools.queryURL(u,res,param);
 
-        return response;
+        return networkTools.queryURL(u,res,param);
     }
 
     /**
