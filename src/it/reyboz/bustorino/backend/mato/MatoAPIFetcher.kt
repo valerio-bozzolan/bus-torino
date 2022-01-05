@@ -20,16 +20,14 @@ package it.reyboz.bustorino.backend.mato
 import android.content.Context
 import android.util.Log
 import com.android.volley.toolbox.RequestFuture
+import it.reyboz.bustorino.BuildConfig
 import it.reyboz.bustorino.backend.*
 import org.json.JSONObject
 import java.util.*
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.TimeoutException
-
 import java.util.concurrent.ExecutionException
-
-
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
 
 
 open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
@@ -37,22 +35,24 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
         set(value) {
             field = value!!.applicationContext
         }
-    constructor(): this(3)
+    constructor(): this(2)
 
 
     override fun ReadArrivalTimesAll(stopID: String?, res: AtomicReference<Fetcher.Result>?): Palina {
         stopID!!
-        val future = RequestFuture.newFuture<Palina>()
+
         val now = Calendar.getInstance().time
-        var numMinutes = 30
+        var numMinutes = 0
         var palina = Palina(stopID)
         var numPassaggi = 0
         var trials = 0
+        val numDepartures = 4
         while (numPassaggi < minNumPassaggi && trials < 4) {
 
-
-            numMinutes += 15
-            val request = MapiArrivalRequest(stopID, now, numMinutes * 60, 10, res, future, future)
+            //numDepartures+=2
+            numMinutes += 20
+            val future = RequestFuture.newFuture<Palina>()
+            val request = MapiArrivalRequest(stopID, now, numMinutes * 60, numDepartures, res, future, future)
             if (appContext == null || res == null) {
                 Log.e("BusTO:MatoAPIFetcher", "ERROR: Given null context or null result ref")
                 return Palina(stopID)
@@ -64,8 +64,14 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
             try {
                 val palinaResult =  future.get(5, TimeUnit.SECONDS)
                 if (palinaResult!=null) {
+                    if (BuildConfig.DEBUG)
+                    for (r in palinaResult.queryAllRoutes()){
+                        Log.d(DEBUG_TAG, "route " + r.gtfsId + " has " + r.passaggi.size + " passaggi: "+ r.passaggiToString)
+                    }
                     palina = palinaResult
-                    numPassaggi = palina.totalNumberOfPassages
+                    numPassaggi = palina.minNumberOfPassages
+                } else{
+                    Log.d(DEBUG_TAG, "Result palina is null")
                 }
             } catch (e: InterruptedException) {
                 e.printStackTrace()
@@ -176,7 +182,7 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
             for (i in 0 until routesStoppingJSON.length()){
                 val routeBaseInfo = routesStoppingJSON.getJSONObject(i)
                 val r = Route(routeBaseInfo.getString("shortName"), Route.Type.UNKNOWN,"")
-                r.gtfsId = routeBaseInfo.getString("gtfsId").trim()
+                r.setGtfsId(routeBaseInfo.getString("gtfsId").trim())
                 baseRoutes.add(r)
 
             }
@@ -192,11 +198,12 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
                     val patternJSON = routesStopTimes.getJSONObject(i)
                     val mRoute = parseRouteStoptimesJSON(patternJSON)
 
+                    //Log.d("BusTO-MapiFetcher")
                     //val directionId = patternJSON.getJSONObject("pattern").getInt("directionId")
                     //TODO: use directionId
                     palina.addRoute(mRoute)
                     for (r in baseRoutes) {
-                        if (palina.gtfsID != null && r.gtfsId.equals(palina.gtfsID)) {
+                        if (mRoute.gtfsId != null && r.gtfsId.equals(mRoute.gtfsId)) {
                             baseRoutes.remove(r)
                             break
                         }
@@ -239,7 +246,7 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
                 routeType,
                 passages,
             )
-            route.gtfsId = gtfsId
+            route.setGtfsId(gtfsId)
             return route
         }
 

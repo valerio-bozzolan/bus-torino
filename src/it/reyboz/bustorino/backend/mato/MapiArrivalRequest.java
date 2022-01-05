@@ -47,6 +47,8 @@ public class MapiArrivalRequest extends MapiVolleyRequest<Palina> {
     private final int timeRange, numberOfDepartures;
     private final AtomicReference<Fetcher.Result> reqRes;
 
+    private final String DEBUG_TAG = "BusTO-MAPIArrivalReq";
+
     public MapiArrivalRequest(String stopName, Date startingTime, int timeRange,
                               int numberOfDepartures,
                               AtomicReference<Fetcher.Result> res,
@@ -87,7 +89,7 @@ public class MapiArrivalRequest extends MapiVolleyRequest<Palina> {
             throw new AuthFailureError("Error with JSON enconding",e);
         }
         String requestBody = data.toString();
-        Log.d("MapiArrivalBusTO", "Request variables: "+ variables);
+        Log.d(DEBUG_TAG, "Request variables: "+ variables);
         return requestBody.getBytes();
     }
 
@@ -121,18 +123,23 @@ public class MapiArrivalRequest extends MapiVolleyRequest<Palina> {
 
             }
             if (!stopFound){
-                Log.w("MapiArrival-Busto", "No stop found: "+p);
+                Log.w(DEBUG_TAG, "No stop found: "+p);
                 reqRes.set(Fetcher.Result.NOT_FOUND);
                 return Response.error(new VolleyError("Stop not found"));
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.e("BusTO:MapiRequest", "Error parsing JSON: "+stringResponse);
+            Log.e(DEBUG_TAG, "Error parsing JSON: "+stringResponse);
             reqRes.set(Fetcher.Result.PARSER_ERROR);
             return Response.error(new VolleyError("Error parsing the response in JSON",
                     e));
         }
         reqRes.set(Fetcher.Result.OK);
+        /*
+        for (Route r: p.queryAllRoutes()){
+            Log.d(DEBUG_TAG, "route "+r.getGtfsId()+" has "+r.passaggi.size()+" passaggi");
+        }
+         */
         return Response.success(p, HttpHeaderParser.parseCacheHeaders(response));
     }
 

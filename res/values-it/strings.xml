@@ -133,6 +133,7 @@
     <string name="gttjsonfetcher">Sito GTT</string>
     <string name="fivetscraper">Sito 5T Torino</string>
     <string name="source_mato">App Muoversi a Torino</string>
+    <string name="undetermined_source">Sconosciuta</string>
 
     <string name="arrival_source_changing">Cambiamento sorgente orari…</string>
     <string name="change_arrivals_source_message">Premi a lungo per cambiare la sorgente degli orari</string>

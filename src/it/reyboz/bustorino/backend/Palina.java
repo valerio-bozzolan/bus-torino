@@ -358,15 +358,23 @@ public class Palina extends Stop {
         }
         return tot;
     }
+
+    /**
+     * Compute the minimum number of passages per route
+     * Ignoring empty routes
+     * @return the minimum, or 0 if there are no passages/routes
+     */
     public int getMinNumberOfPassages(){
         if (routes == null) return 0;
 
         int min = Integer.MAX_VALUE;
         if( routes.size() == 0) min = 0;
         else for (Route r : routes){
+            if(r.numPassaggi()>0)
                 min = Math.min(min,r.numPassaggi());
         }
-        return min;
+        if (min == Integer.MAX_VALUE) return 0;
+        else return min;
     }
     //private void mergeRoute
 }

@@ -51,7 +51,7 @@ public class Route implements Comparable<Route> {
     public enum Type { // "long distance" sono gli extraurbani.
         BUS(1), LONG_DISTANCE_BUS(2), METRO(3), RAILWAY(4), TRAM(5), UNKNOWN(-2);
         //TODO: decide to give some special parameter to each field
-        private int code;
+        private final int code;
         Type(int code){
             this.code = code;
         }
@@ -81,7 +81,7 @@ public class Route implements Comparable<Route> {
     public enum FestiveInfo{
         FESTIVO(1),FERIALE(0),UNKNOWN(-2);
 
-        private int code;
+        private final int code;
         FestiveInfo(int code){
             this.code = code;
         }
@@ -312,7 +312,9 @@ public class Route implements Comparable<Route> {
     }
 
     public void setGtfsId(@Nullable String gtfsId) {
-        this.gtfsId = gtfsId;
+         if (gtfsId==null) this.gtfsId = null;
+         else
+            this.gtfsId = gtfsId.trim();
     }
 
     public boolean isBranchIdValid(){

@@ -22,7 +22,7 @@
     -->
         <androidx.preference.SeekBarPreference
                 android:title="@string/pref_num_elements" android:key="@string/pref_key_num_recents"
-                android:defaultValue="4"
+                android:defaultValue="6"
                 android:max="40"
                 app:min="1"
                 android:layout_width="match_parent"

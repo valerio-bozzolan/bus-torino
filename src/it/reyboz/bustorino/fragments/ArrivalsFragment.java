@@ -141,10 +141,10 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_arrivals, container, false);
-        messageTextView = (TextView) root.findViewById(R.id.messageTextView);
-        addToFavorites = (ImageButton) root.findViewById(R.id.addToFavorites);
-        resultsListView = (ListView) root.findViewById(R.id.resultsListView);
-        timesSourceTextView = (TextView) root.findViewById(R.id.timesSourceTextView);
+        messageTextView = root.findViewById(R.id.messageTextView);
+        addToFavorites = root.findViewById(R.id.addToFavorites);
+        resultsListView = root.findViewById(R.id.resultsListView);
+        timesSourceTextView = root.findViewById(R.id.timesSourceTextView);
         timesSourceTextView.setOnLongClickListener(view -> {
             if(!fetchersChangeRequestPending){
                 rotateFetchers();
@@ -265,11 +265,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
      * @return the list of the fetchers
      */
     public ArrayList<Fetcher> getCurrentFetchers(){
-        ArrayList<Fetcher> v = new ArrayList<Fetcher>();
-        for (ArrivalsFetcher fetcher: fetchers){
-            v.add(fetcher);
-        }
-        return v;
+        return new ArrayList<>(this.fetchers);
     }
     public ArrivalsFetcher[] getCurrentFetchersAsArray(){
         ArrivalsFetcher[] arr = new ArrivalsFetcher[fetchers.size()];
@@ -329,7 +325,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
                 break;
             case UNDETERMINED:
                 //Don't show the view
-                source_txt = "";
+                source_txt = getString(R.string.undetermined_source);
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + source);
@@ -344,8 +340,12 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         if (count>10)
             Log.w(DEBUG_TAG, "Tried to update the source fetcher but it didn't work");
         final String base_message = getString(R.string.times_source_fmt, source_txt);
-        timesSourceTextView.setVisibility(View.VISIBLE);
         timesSourceTextView.setText(base_message);
+        if (p.getTotalNumberOfPassages() > 0) {
+            timesSourceTextView.setVisibility(View.VISIBLE);
+        } else {
+            timesSourceTextView.setVisibility(View.INVISIBLE);
+        }
         fetchersChangeRequestPending = false;
     }
 

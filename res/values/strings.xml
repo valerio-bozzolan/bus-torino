@@ -147,6 +147,7 @@
     <string name="gttjsonfetcher">GTT Website</string>
     <string name="fivetscraper">5T Torino website</string>
     <string name="source_mato">Muoversi a Torino app</string>
+    <string name="undetermined_source">Undetermined</string>
     <string name="arrival_source_changing">Changing arrival times source…</string>
     <string name="change_arrivals_source_message">Long press to change the source of arrivals</string>
 

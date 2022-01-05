@@ -26,12 +26,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
 import android.util.Log;
-import android.widget.Toast;
 
-import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.backend.mato.MatoAPIFetcher;
 import it.reyboz.bustorino.data.AppDataProvider;
@@ -41,7 +38,6 @@ import it.reyboz.bustorino.data.NextGenDB.Contract.*;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.Calendar;
@@ -55,7 +51,7 @@ public class AsyncArrivalsSearcher extends AsyncTask<String, Fetcher.Result,Pali
     private static final String DEBUG_TAG = TAG;
     private boolean failedAll = false;
 
-    private final AtomicReference<Fetcher.Result> res;
+    private final AtomicReference<Fetcher.Result> finalResultRef;
     private String query;
     WeakReference<FragmentHelper> helperRef;
     private final ArrayList<Thread> otherActivities = new ArrayList<>();
@@ -68,7 +64,7 @@ public class AsyncArrivalsSearcher extends AsyncTask<String, Fetcher.Result,Pali
     public AsyncArrivalsSearcher(FragmentHelper fh, @NonNull ArrivalsFetcher[] fetchers, Context context) {
         helperRef = new WeakReference<>(fh);
         fh.setLastTaskRef(this);
-        res = new AtomicReference<>();
+        finalResultRef = new AtomicReference<>();
         this.context = context.getApplicationContext();
         this.replaceFragment = true;
 
@@ -82,7 +78,7 @@ public class AsyncArrivalsSearcher extends AsyncTask<String, Fetcher.Result,Pali
     @Override
     protected Palina doInBackground(String... params) {
         RecursionHelper<ArrivalsFetcher> r = new RecursionHelper<>(theFetchers);
-        Palina result = null;
+        Palina resultPalina = null;
         FragmentHelper fh = helperRef.get();
         ArrayList<Fetcher.Result> results = new ArrayList<>(theFetchers.length);
         //If the FragmentHelper is null, that means the activity doesn't exist anymore
@@ -160,8 +156,8 @@ public class AsyncArrivalsSearcher extends AsyncTask<String, Fetcher.Result,Pali
             }
             publishProgress(resRef.get());
             //TODO: find a way to avoid overloading the user with toasts
-            if (result == null){
-                result = p;
+            if (resultPalina == null && f instanceof MatoAPIFetcher && p.queryAllRoutes().size() > 0){
+                resultPalina = p;
             }
             //find if it went well
             results.add(resRef.get());
@@ -177,7 +173,9 @@ public class AsyncArrivalsSearcher extends AsyncTask<String, Fetcher.Result,Pali
                 return p;
             }
 
+            finalResultRef.set(resRef.get());
         }
+        /*
         boolean emptyResults = true;
         for (Fetcher.Result re: results){
             if (!re.equals(Fetcher.Result.EMPTY_RESULT_SET)) {
@@ -185,10 +183,13 @@ public class AsyncArrivalsSearcher extends AsyncTask<String, Fetcher.Result,Pali
                 break;
             }
         }
+
+         */
         //at this point, we are sure that the result has been negative
         failedAll=true;
 
-        return result;
+
+        return resultPalina;
     }
 
     @Override
@@ -208,7 +209,7 @@ public class AsyncArrivalsSearcher extends AsyncTask<String, Fetcher.Result,Pali
     protected void onPostExecute(Palina p) {
         FragmentHelper fh = helperRef.get();
 
-        if(failedAll || p == null || fh == null){
+        if(p == null || fh == null){
             //everything went bad
             if(fh!=null) fh.toggleSpinner(false);
             cancel(true);
