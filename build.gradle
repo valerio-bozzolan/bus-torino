@@ -104,6 +104,7 @@ android {
 
         implementation "com.google.android.material:material:1.4.0"
         implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
+        implementation "androidx.coordinatorlayout:coordinatorlayout:1.1.0"
 
 
         implementation 'org.jsoup:jsoup:1.13.1'

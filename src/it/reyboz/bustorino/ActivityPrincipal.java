@@ -58,11 +58,7 @@ import java.util.concurrent.TimeUnit;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.DBUpdateWorker;
 import it.reyboz.bustorino.data.DatabaseUpdate;
-import it.reyboz.bustorino.fragments.FavoritesFragment;
-import it.reyboz.bustorino.fragments.FragmentKind;
-import it.reyboz.bustorino.fragments.FragmentListenerMain;
-import it.reyboz.bustorino.fragments.MainScreenFragment;
-import it.reyboz.bustorino.fragments.MapFragment;
+import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.GeneralActivity;
 
 import static it.reyboz.bustorino.backend.utils.getBusStopIDFromUri;
@@ -154,7 +150,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             if (b != null) {
                 busStopID = b.getString("bus-stop-ID");
 
-                /**
+                /*
                  * I'm not very sure if you are coming from an Intent.
                  * Some launchers work in strange ways.
                  */
@@ -381,10 +377,19 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             super.onBackPressed();
     }
 
+    /**
+     * Create and show the SnackBar with the message
+     */
     private void createDefaultSnackbar() {
-        if (snackbar == null) {
-            snackbar = Snackbar.make(findViewById(R.id.searchButton), R.string.database_update_message, Snackbar.LENGTH_INDEFINITE);
+
+        View baseView = null;
+        final Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainActContentFrame);
+        if (frag instanceof ScreenBaseFragment){
+            baseView = ((ScreenBaseFragment) frag).getBaseViewForSnackBar();
         }
+        if (baseView == null) baseView = findViewById(R.id.mainActContentFrame);
+        if (baseView == null) Log.e(DEBUG_TAG, "baseView null for default snackbar, probably exploding now");
+        snackbar = Snackbar.make(baseView, R.string.database_update_message, Snackbar.LENGTH_INDEFINITE);
         snackbar.show();
     }
 

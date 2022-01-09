@@ -115,7 +115,7 @@ public class AsyncStopsSearcher extends AsyncTask<String, Fetcher.Result, List<S
     protected void onPostExecute(List<Stop> stops) {
         final FragmentHelper fh = helperWR.get();
 
-        if (stops==null || fh==null || theQuery==null) {
+        if (stops==null || stops.size() == 0 || fh==null || theQuery==null) {
             if (fh!=null) fh.toggleSpinner(false);
             cancel(true);
             return;

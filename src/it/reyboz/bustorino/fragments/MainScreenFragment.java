@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -58,7 +59,7 @@ import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSION_GIVEN;
  * Use the {@link MainScreenFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MainScreenFragment extends BaseFragment implements  FragmentListenerMain{
+public class MainScreenFragment extends ScreenBaseFragment implements  FragmentListenerMain{
 
 
     private static final String OPTION_SHOW_LEGEND = "show_legend";
@@ -191,6 +192,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
     private CommonFragmentListener mListener;
 
     private String pendingStopID = null;
+    private CoordinatorLayout coordLayout;
 
     public MainScreenFragment() {
         // Required empty public constructor
@@ -219,7 +221,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_main_screen, container, false);
-        addToFavorites = (ImageButton) root.findViewById(R.id.addToFavorites);
+        addToFavorites = root.findViewById(R.id.addToFavorites);
         busStopSearchByIDEditText = root.findViewById(R.id.busStopSearchByIDEditText);
         busStopSearchByNameEditText = root.findViewById(R.id.busStopSearchByNameEditText);
         progressBar = root.findViewById(R.id.progressBar);
@@ -251,6 +253,8 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
                 .setOnRefreshListener(() -> mainHandler.post(refreshStop));
         swipeRefreshLayout.setColorSchemeResources(R.color.blue_500, R.color.orange_500);
 
+        coordLayout = root.findViewById(R.id.coord_layout);
+
         floatingActionButton.setOnClickListener((this::onToggleKeyboardLayout));
         hideHintButton.setOnClickListener(this::onHideHint);
 
@@ -274,7 +278,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         cr.setCostAllowed(true);
         cr.setPowerRequirement(Criteria.NO_REQUIREMENT);
 
-       locationManager = AppLocationManager.getInstance(getContext());
+        locationManager = AppLocationManager.getInstance(getContext());
 
         Log.d(DEBUG_TAG, "OnCreateView, savedInstanceState null: "+(savedInstanceState==null));
 
@@ -323,6 +327,7 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
 
          */
     }
+
 
     /**
      * Cancel the reload of the arrival times
@@ -541,6 +546,13 @@ public class MainScreenFragment extends BaseFragment implements  FragmentListene
         howDoesItWorkTextView.setVisibility(View.GONE);
         hideHintButton.setVisibility(View.GONE);
         //actionHelpMenuItem.setVisible(true);
+    }
+
+    @Nullable
+    @org.jetbrains.annotations.Nullable
+    @Override
+    public View getBaseViewForSnackBar() {
+        return coordLayout;
     }
 
     @Override

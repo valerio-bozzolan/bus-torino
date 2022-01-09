@@ -124,10 +124,10 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
 
             requestQueue.add(request)
 
-            var palinaList:List<Palina> = mutableListOf<Palina>()
+            var palinaList:List<Palina> = mutableListOf()
 
             try {
-                palinaList = future.get(30, TimeUnit.SECONDS)
+                palinaList = future.get(60, TimeUnit.SECONDS)
 
                 res?.set(Fetcher.Result.OK)
             }catch (e: InterruptedException) {

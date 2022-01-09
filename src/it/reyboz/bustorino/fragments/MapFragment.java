@@ -69,7 +69,7 @@ import it.reyboz.bustorino.map.LocationOverlay;
 import it.reyboz.bustorino.middleware.GeneralActivity;
 import it.reyboz.bustorino.util.Permissions;
 
-public class MapFragment extends BaseFragment {
+public class MapFragment extends ScreenBaseFragment {
 
     private static final String TAG = "Busto-MapActivity";
     private static final String MAP_CURRENT_ZOOM_KEY = "map-current-zoom";
@@ -131,27 +131,24 @@ public class MapFragment extends BaseFragment {
     };
 
     private final ActivityResultLauncher<String[]> positionRequestLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
-                @Override
-                @SuppressLint("MissingPermission")
-                public void onActivityResult(Map<String, Boolean> result) {
-                    if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) && result.get(Manifest.permission.ACCESS_FINE_LOCATION)){
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) && result.get(Manifest.permission.ACCESS_FINE_LOCATION)){
 
-                        map.getOverlays().remove(mLocationOverlay);
-                        startLocationOverlay(true, map);
-                        if(getContext()==null || getContext().getSystemService(Context.LOCATION_SERVICE)==null)
-                            return;
-                        LocationManager locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
-                        Location userLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                        if (userLocation != null) {
-                            map.getController().setZoom(POSITION_FOUND_ZOOM);
-                            GeoPoint startPoint = new GeoPoint(userLocation);
-                            setLocationFollowing(true);
-                            map.getController().setCenter(startPoint);
-                        }
+                    map.getOverlays().remove(mLocationOverlay);
+                    startLocationOverlay(true, map);
+                    if(getContext()==null || getContext().getSystemService(Context.LOCATION_SERVICE)==null)
+                        return;
+                    LocationManager locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+                    @SuppressLint("MissingPermission")
+                    Location userLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    if (userLocation != null) {
+                        map.getController().setZoom(POSITION_FOUND_ZOOM);
+                        GeoPoint startPoint = new GeoPoint(userLocation);
+                        setLocationFollowing(true);
+                        map.getController().setCenter(startPoint);
                     }
-                    else Log.w(DEBUG_TAG,"No location permission");
                 }
+                else Log.w(DEBUG_TAG,"No location permission");
             });
 
     public MapFragment() {
@@ -581,6 +578,13 @@ public class MapFragment extends BaseFragment {
         }
 
         return marker;
+    }
+
+    @Nullable
+    @org.jetbrains.annotations.Nullable
+    @Override
+    public View getBaseViewForSnackBar() {
+        return null;
     }
 
     /**

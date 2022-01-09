@@ -31,7 +31,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,21 +44,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import it.reyboz.bustorino.*;
 import it.reyboz.bustorino.adapters.AdapterListener;
-import it.reyboz.bustorino.adapters.StopAdapter;
 import it.reyboz.bustorino.adapters.StopRecyclerAdapter;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.FavoritesViewModel;
 import it.reyboz.bustorino.middleware.AsyncStopFavoriteAction;
 
-public class FavoritesFragment extends BaseFragment {
+public class FavoritesFragment extends ScreenBaseFragment {
 
     private RecyclerView favoriteRecyclerView;
     private EditText busStopNameText;
     private TextView favoriteTipTextView;
     private ImageView angeryBusImageView;
-    private LinearLayoutManager llManager;
 
     @Nullable
     private CommonFragmentListener mListener;
@@ -116,7 +114,7 @@ public class FavoritesFragment extends BaseFragment {
 
          */
 
-        llManager = new LinearLayoutManager(getContext());
+        LinearLayoutManager llManager = new LinearLayoutManager(getContext());
         llManager.setOrientation(LinearLayoutManager.VERTICAL);
         favoriteRecyclerView.setLayoutManager(llManager);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(favoriteRecyclerView.getContext(),
@@ -139,7 +137,7 @@ public class FavoritesFragment extends BaseFragment {
         if (context instanceof CommonFragmentListener) {
             mListener = (CommonFragmentListener) context;
         } else {
-            throw new RuntimeException(context.toString()
+            throw new RuntimeException(context
                     + " must implement CommonFragmentListener");
         }
 
@@ -182,7 +180,7 @@ public class FavoritesFragment extends BaseFragment {
             return false;
 
         StopRecyclerAdapter adapter = (StopRecyclerAdapter) favoriteRecyclerView.getAdapter();
-        Stop busStop = (Stop) adapter.getStops().get(adapter.getPosition());
+        Stop busStop = adapter.getStops().get(adapter.getPosition());
 
         switch (item.getItemId()) {
             case R.id.action_favourite_entry_delete:
@@ -214,6 +212,11 @@ public class FavoritesFragment extends BaseFragment {
         }
     }
 
+    @Nullable
+    @Override
+    public View getBaseViewForSnackBar() {
+        return null;
+    }
 
     void showStops(List<Stop> busStops){
         // If no data is found show a friendly message
@@ -256,43 +259,32 @@ public class FavoritesFragment extends BaseFragment {
 
         builder.setTitle(getString(R.string.dialog_rename_bus_stop_username_title));
         builder.setView(renameDialogLayout);
-        builder.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String busStopUsername = busStopNameText.getText().toString();
-                String oldUserName = busStop.getStopUserName();
+        builder.setPositiveButton(getString(android.R.string.ok), (dialog, which) -> {
+            String busStopUsername = busStopNameText.getText().toString();
+            String oldUserName = busStop.getStopUserName();
 
-                // changed to none
-                if(busStopUsername.length() == 0) {
-                    // unless it was already empty, set new
-                    if(oldUserName != null) {
-                        busStop.setStopUserName(null);
+            // changed to none
+            if(busStopUsername.length() == 0) {
+                // unless it was already empty, set new
+                if(oldUserName != null) {
+                    busStop.setStopUserName(null);
 
-                    }
-                } else { // changed to something
-                    // something different?
-                    if(!busStopUsername.equals(oldUserName)) {
-                        busStop.setStopUserName(busStopUsername);
-
-                    }
                 }
-                launchUpdate(busStop);
-            }
-        });
-        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        builder.setNeutralButton(R.string.dialog_rename_bus_stop_username_reset_button, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // delete user name from database
-                busStop.setStopUserName(null);
-                launchUpdate(busStop);
+            } else { // changed to something
+                // something different?
+                if(!busStopUsername.equals(oldUserName)) {
+                    busStop.setStopUserName(busStopUsername);
 
+                }
             }
+            launchUpdate(busStop);
+        });
+        builder.setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel());
+        builder.setNeutralButton(R.string.dialog_rename_bus_stop_username_reset_button, (dialog, which) -> {
+            // delete user name from database
+            busStop.setStopUserName(null);
+            launchUpdate(busStop);
+
         });
         builder.show();
     }
@@ -300,11 +292,8 @@ public class FavoritesFragment extends BaseFragment {
     private void launchUpdate(Stop busStop){
         if (getContext()!=null)
             new AsyncStopFavoriteAction(getContext().getApplicationContext(), AsyncStopFavoriteAction.Action.UPDATE,
-                    new AsyncStopFavoriteAction.ResultListener() {
-                        @Override
-                        public void doStuffWithResult(Boolean result) {
-                            //Toast.makeText(getApplicationContext(), R.string.tip_add_favorite, Toast.LENGTH_SHORT).show();
-                        }
+                    result -> {
+                        //Toast.makeText(getApplicationContext(), R.string.tip_add_favorite, Toast.LENGTH_SHORT).show();
                     }).execute(busStop);
     }
 }
