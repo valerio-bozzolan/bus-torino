@@ -1,0 +1,5 @@
+* stops show all the details, such as lines and description
+* when a stop has no arrivals, it is now shown anyway
+* fix of some crashes due to fragments
+* fixes for the positioning of some GUI elements
+* this version has been developed by Fabio Mazza!

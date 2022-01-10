@@ -1,0 +1,5 @@
+* le fermate mostrano tutti i dettagli, come le linee e la descrizione
+* quando una fermata non ha arrivi, ora viene mostrata lo stesso
+* fix di alcuni crash dovuti ai fragment
+* fix di posizionamento di alcuni elementi dell'interfaccia grafica
+* questa versione è stata sviluppata da Fabio Mazza!
