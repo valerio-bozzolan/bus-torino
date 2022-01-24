@@ -11,6 +11,23 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="com.google.zxing.client.android.SCAN" />
+        </intent>
+        <intent>
+            <action android:name="com.google.zxing.client.android.ENCODE" />
+        </intent>
+    </queries>
+
     <application
             android:name=".BustoApp"
             android:allowBackup="true"

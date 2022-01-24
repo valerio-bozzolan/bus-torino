@@ -467,7 +467,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             if(getContext()!=null) {
                 if (query.length() < 1) {
                     Toast.makeText(getContext(), R.string.insert_bus_stop_name_error, Toast.LENGTH_SHORT).show();
-                } else if(query.length()< 3){
+                } else if(query.length()< 2){
                     Toast.makeText(getContext(), R.string.query_too_short, Toast.LENGTH_SHORT).show();
                 }
                 else {

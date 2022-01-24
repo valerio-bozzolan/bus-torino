@@ -47,7 +47,7 @@ public class FiveTStopsFetcher implements StopsFinderByName {
         String stopLocation;
         //Stop busStop;
 
-        if(name.length() < 3) {
+        if(name.length() < 2) { //some stops are shorter than 3 chars.. "PO" is an example
             res.set(Result.QUERY_TOO_SHORT);
             return busStops;
         }

@@ -47,7 +47,7 @@ public class GTTStopsFetcher implements StopsFinderByName  {
         int howManyStops, i;
         JSONObject thisstop;
 
-        if(name.length() < 3) {
+        if(name.length() < 2) {
             res.set(Result.QUERY_TOO_SHORT);
             return s;
         }

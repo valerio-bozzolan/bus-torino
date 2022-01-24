@@ -137,6 +137,8 @@ public abstract class utils {
         if (browserIntent1.resolveActivity(context.getPackageManager()) != null) {
             //check we have an activity ready to receive intents (otherwise, there will be a crash)
             context.startActivity(browserIntent1);
+        } else{
+            Log.e("BusTO","openIceweasel can't find a browser");
         }
     }
 
