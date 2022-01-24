@@ -1,0 +1,3 @@
+* Fabio Mazza has fixed a bug with menus opening external URLs
+* Fabio Mazza fixed a problem with the QR Code reader
+* Thanks Fabio Mazza!

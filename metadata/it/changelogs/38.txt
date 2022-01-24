@@ -1,0 +1,3 @@
+* Fabio Mazza ha corretto un bug con i menù che aprivano URL esterni
+* Fabio Mazza ha corretto un problema con il lettore dei QR Code
+* Grazie Fabio Mazza!
