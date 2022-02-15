@@ -10,16 +10,16 @@ buildscript {
         //multidex
         multidex_version = "2.0.1"
         //libraries versions
-        fragment_version = "1.3.6"
-        activity_version = "1.3.1"
-        appcompat_version = "1.3.1"
-        preference_version = "1.1.1"
-        work_version = "2.5.0"
+        fragment_version = "1.4.1"
+        activity_version = "1.4.0"
+        appcompat_version = "1.4.1"
+        preference_version = "1.2.0"
+        work_version = "2.7.1"
 
         acra_version = "5.7.0"
-        lifecycle_version = "2.3.1"
+        lifecycle_version = "2.4.1"
         arch_version = "2.1.0"
-        room_version = "2.3.0"
+        room_version = "2.4.1"
         //kotlin
         kotlin_version = '1.6.0'
         coroutines_version = "1.5.0"
@@ -27,7 +27,7 @@ buildscript {
     }
     dependencies {
 
-        classpath 'com.android.tools.build:gradle:4.1.3'
+        classpath 'com.android.tools.build:gradle:4.2.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -46,13 +46,13 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     buildToolsVersion '30.0.3'
 
     defaultConfig {
         applicationId "it.reyboz.bustorino"
         minSdkVersion 16
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode 38
         versionName "1.16.2"
         vectorDrawables.useSupportLibrary = true
@@ -95,16 +95,16 @@ android {
         //new libraries
         implementation "androidx.fragment:fragment:$fragment_version"
         implementation "androidx.activity:activity:$activity_version"
-        implementation "androidx.annotation:annotation:1.2.0"
+        implementation "androidx.annotation:annotation:1.3.0"
         implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
         implementation "androidx.appcompat:appcompat:$appcompat_version"
         implementation "androidx.appcompat:appcompat-resources:$appcompat_version"
         implementation "androidx.preference:preference:$preference_version"
         implementation "androidx.work:work-runtime:$work_version"
 
-        implementation "com.google.android.material:material:1.4.0"
-        implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
-        implementation "androidx.coordinatorlayout:coordinatorlayout:1.1.0"
+        implementation "com.google.android.material:material:1.5.0"
+        implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
+        implementation "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
 
 
         implementation 'org.jsoup:jsoup:1.13.1'
@@ -119,7 +119,7 @@ android {
         implementation 'com.google.protobuf:protobuf-java:3.14.0'
 
         // ViewModel
-        implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version"
+        implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
         // LiveData
         implementation "androidx.lifecycle:lifecycle-livedata:$lifecycle_version"
         // Lifecycles only (without ViewModel or LiveData)

@@ -53,7 +53,6 @@ public class FragmentHelper {
     public static final int NO_FRAME = -3;
     private static final String DEBUG_TAG = "BusTO FragmHelper";
     private WeakReference<AsyncTask> lastTaskRef;
-    private SearchRequestType lastTaskType;
     private boolean shouldHaltAllActivities=false;
 
 
@@ -214,6 +213,10 @@ public class FragmentHelper {
      */
     public void showErrorMessage(Fetcher.Result res, SearchRequestType type){
         //TODO: implement a common set of errors for all fragments
+        if (res==null){
+            Log.e(DEBUG_TAG, "Asked to show result with null result");
+            return;
+        }
         Log.d(DEBUG_TAG, "Showing result for "+res);
         switch (res){
             case OK:

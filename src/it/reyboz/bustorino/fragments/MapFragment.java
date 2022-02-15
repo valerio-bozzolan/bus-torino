@@ -495,7 +495,7 @@ public class MapFragment extends ScreenBaseFragment {
      * @param stops the list of stops that must be included
      */
     protected void showStopsMarkers(List<Stop> stops){
-        if (getContext() == null){
+        if (getContext() == null || stops == null){
             //we are not attached
             return;
         }
@@ -611,10 +611,10 @@ public class MapFragment extends ScreenBaseFragment {
             //Log.d(DEBUG_TAG, "Async Stop Fetcher started working");
 
             NextGenDB dbHelper = new NextGenDB(fragmentWeakReference.get().getContext());
-            Stop[] stops = dbHelper.queryAllInsideMapView(limit.latitFrom, limit.latitTo,
+            ArrayList<Stop> stops = dbHelper.queryAllInsideMapView(limit.latitFrom, limit.latitTo,
                     limit.longFrom, limit.latitTo);
             dbHelper.close();
-            return Arrays.asList(stops);
+            return stops;
         }
 
         @Override
@@ -625,7 +625,8 @@ public class MapFragment extends ScreenBaseFragment {
                 Log.w(DEBUG_TAG, "AsyncLoad fragmentWeakreference null");
                 return;
             }
-            Log.d(DEBUG_TAG, "AsyncLoad number of stops: "+stops.size());
+            if (stops!=null)
+                Log.d(DEBUG_TAG, "AsyncLoad number of stops: "+stops.size());
             fragmentWeakReference.get().showStopsMarkers(stops);
         }
 

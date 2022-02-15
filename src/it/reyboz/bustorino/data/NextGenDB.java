@@ -162,12 +162,9 @@ public class NextGenDB extends SQLiteOpenHelper{
      *  double lngFrom = bb.getLonWestE6() / 1E6;
      *  double lngTo = bb.getLonEastE6() / 1E6;
      */
-    public synchronized Stop[] queryAllInsideMapView(double minLat, double maxLat, double minLng, double maxLng) {
-        Stop[] stops = new Stop[0];
+    public synchronized ArrayList<Stop> queryAllInsideMapView(double minLat, double maxLat, double minLng, double maxLng) {
+        ArrayList<Stop> stops = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-
-        //Cursor result=null;
-        int count;
 
         // coordinates must be strings in the where condition
         String minLatRaw = String.valueOf(minLat);
@@ -202,17 +199,17 @@ public class NextGenDB extends SQLiteOpenHelper{
      * @param result cursor from query
      * @return an Array of the stops found in the query
      */
-    public static Stop[] getStopsFromCursorAllFields(Cursor result){
-        int colID = result.getColumnIndex(StopsTable.COL_ID);
-        int colName = result.getColumnIndex(StopsTable.COL_NAME);
-        int colLocation = result.getColumnIndex(StopsTable.COL_LOCATION);
-        int colType = result.getColumnIndex(StopsTable.COL_TYPE);
-        int colLat = result.getColumnIndex(StopsTable.COL_LAT);
-        int colLon = result.getColumnIndex(StopsTable.COL_LONG);
-        int colLines = result.getColumnIndex(StopsTable.COL_LINES_STOPPING);
+    public static ArrayList<Stop> getStopsFromCursorAllFields(Cursor result){
+        final int colID = result.getColumnIndex(StopsTable.COL_ID);
+        final int colName = result.getColumnIndex(StopsTable.COL_NAME);
+        final int colLocation = result.getColumnIndex(StopsTable.COL_LOCATION);
+        final int colType = result.getColumnIndex(StopsTable.COL_TYPE);
+        final int colLat = result.getColumnIndex(StopsTable.COL_LAT);
+        final int colLon = result.getColumnIndex(StopsTable.COL_LONG);
+        final int colLines = result.getColumnIndex(StopsTable.COL_LINES_STOPPING);
 
         int count = result.getCount();
-        Stop[] stops = new Stop[count];
+        ArrayList<Stop> stops = new ArrayList<>(count);
 
         int i = 0;
         while(result.moveToNext()) {
@@ -228,9 +225,10 @@ public class NextGenDB extends SQLiteOpenHelper{
                 locationSometimesEmpty = null;
             }
 
-            stops[i++] = new Stop(stopID, result.getString(colName), null,
+            stops.add(new Stop(stopID, result.getString(colName), null,
                     locationSometimesEmpty, type, splitLinesString(lines),
-                    result.getDouble(colLat), result.getDouble(colLon));
+                    result.getDouble(colLat), result.getDouble(colLon))
+            );
         }
         return stops;
     }

@@ -190,7 +190,9 @@ public class UserDB extends SQLiteOpenHelper {
             Cursor c = db.query(TABLE_NAME, usernameColumnNameAsArray, "ID = ?", new String[] {stopID}, null, null, null);
 
             if(c.moveToNext()) {
-                username = c.getString(c.getColumnIndex("username"));
+                int userNameIndex = c.getColumnIndex("username");
+                if (userNameIndex>=0)
+                    username = c.getString(userNameIndex);
             }
             c.close();
         } catch(SQLiteException ignored) {}
@@ -250,6 +252,10 @@ public class UserDB extends SQLiteOpenHelper {
             throw new IllegalArgumentException();
         }
         ArrayList<Stop> l = new ArrayList<>();
+        if (cursor==null){
+            Log.e("UserDB-BusTO", "Null cursor given in getFavoritesFromCursor");
+            return l;
+        }
         final int colID = cursor.getColumnIndex("ID");
         final int colUser = cursor.getColumnIndex("username");
         while(cursor.moveToNext()) {

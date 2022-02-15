@@ -40,7 +40,7 @@ import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.backend.Stop;
 
 public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsyncQueryHandler.AsyncQueryListener {
-    private static final String TAG = "FavoritesLiveData";
+    private static final String TAG = "BusTO-FavoritesLiveData";
     private final boolean notifyChangesDescendants;
 
 
@@ -132,6 +132,11 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
 
     @Override
     public void onQueryComplete(int token, Object cookie, Cursor cursor) {
+        if (cursor == null){
+            //Nothing to do
+            Log.e(TAG, "Null cursor for token "+token);
+            return;
+        }
         if (token == FAV_TOKEN) {
             stopsFromFavorites = UserDB.getFavoritesFromCursor(cursor, UserDB.getFavoritesColumnNamesAsArray);
             cursor.close();
@@ -157,7 +162,7 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
             Stop stopUpdate = stopsFromFavorites.get(index);
             Stop finalStop;
 
-            List<Stop> result = Arrays.asList(NextGenDB.getStopsFromCursorAllFields(cursor));
+            List<Stop> result = NextGenDB.getStopsFromCursorAllFields(cursor);
             cursor.close();
             if (result.size() < 1){
                 // stop is not in the DB
