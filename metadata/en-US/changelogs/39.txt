@@ -1,0 +1,3 @@
+* fix crash submitted by Angela C. - https://gitpull.it/T1054
+* fix crash submitted by Peace E.  - https://gitpull.it/T1061
+* glory to Fabio Mazza for these fixes!
