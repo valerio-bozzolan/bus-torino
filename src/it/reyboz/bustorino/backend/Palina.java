@@ -48,13 +48,13 @@ public class Palina extends Stop {
 
     public Palina(Stop s){
         super(s.ID,s.getStopDefaultName(),s.getStopUserName(),s.location,s.type,
-                s.getRoutesThatStopHere(),s.getLatitude(),s.getLongitude());
+                s.getRoutesThatStopHere(),s.getLatitude(),s.getLongitude(), null);
     }
 
     public Palina(@NonNull String ID, @Nullable String name, @Nullable String userName,
                   @Nullable String location,
-                  @Nullable Double lat, @Nullable Double lon) {
-        super(ID, name, userName, location, null, null, lat, lon);
+                  @Nullable Double lat, @Nullable Double lon, @Nullable String gtfsID) {
+        super(ID, name, userName, location, null, null, lat, lon, gtfsID);
     }
 
     public Palina(@Nullable String name, @NonNull String ID, @Nullable String location, @Nullable Route.Type type, @Nullable List<String> routesThatStopHere) {

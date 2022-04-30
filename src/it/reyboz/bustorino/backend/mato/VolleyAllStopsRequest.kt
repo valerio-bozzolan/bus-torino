@@ -31,7 +31,7 @@ class VolleyAllStopsRequest(
     listener: Response.Listener<List<Palina>>,
     errorListener: Response.ErrorListener,
 ) : MapiVolleyRequest<List<Palina>>(
-    MatoAPIFetcher.QueryType.ALL_STOPS,listener, errorListener) {
+    MatoQueries.QueryType.ALL_STOPS,listener, errorListener) {
     private val FEEDS = JSONArray()
     init {
 
@@ -73,7 +73,7 @@ class VolleyAllStopsRequest(
         return Response.success(palinas, HttpHeaderParser.parseCacheHeaders(response))
     }
     companion object{
-        val FEEDS_STR = arrayOf("gtt")
+        //val FEEDS_STR = arrayOf("gtt")
 
     }
 }

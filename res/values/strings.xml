@@ -22,7 +22,10 @@
     </string> <!-- TODO: carry out experiments to determine the best wording for this message and publish a paper with the findings -->
     <string name="passages">Arrivals at: %1$s</string>
     <string name="results">Choose the bus stop…</string>
-    <string name="lines">Lines: %1$s</string>
+    <string name="line">Line</string>
+    <string name="lines">Lines</string>
+    <string name="lines_fill">Lines: %1$s</string>
+    <string name="line_fill">Line: %1$s</string>
     <string name="no_passages">No timetable found</string>
     <string name="no_qrcode">No QR code</string>
     <string name="internal_error">Unexpected internal error, cannot extract data from GTT/5T website</string>
@@ -126,7 +129,10 @@
 
     <string name="enable_position_message_map">Allow access to position to show it on the map</string>
     <string name="enableGpsText">Please enable GPS</string>
-    <string name="database_update_message">Database update in progress&#8230;</string>
+    <string name="database_update_msg_inapp">Database update in progress&#8230;</string>
+    <string name="database_update_msg_notif">Updating the database</string>
+    <string name="database_update_req">Force database update</string>
+    <string name="database_update_req_descr">Touch to update the app database now</string>
     <string name="bus_arriving_at">is arriving at</string>
     <string name="arrivals_card_at_the_stop">at the stop</string>
     <string name="two_strings_format" translatable="false">%1$s - %2$s</string>
@@ -156,6 +162,9 @@
     -->
     <string name="default_notification_channel" translatable="false">Default</string>
     <string name="default_notification_channel_description">Default channel for notifications</string>
+    <string name="database_notification_channel">Database</string>
+    <string name="database_notification_channel_desc">Notifications on the update of the database</string>
+
     <string name="too_many_permission_asks">Asked for %1$s permission too many times</string>
     <string name="permission_storage_maps_msg">Cannot use the map with the storage permission!</string>
     <string name="storage_permission">storage</string>
@@ -176,6 +185,7 @@
     <string name="donate_now">Buy us a coffee</string>
     <string name="map">Map</string>
     <string name="stop_search_view_title">Search by stop</string>
+    <string name="requesting_db_update">Launching database update</string>
 
 
     <!-- preferences -->
@@ -191,4 +201,7 @@
         <item>CAPITALIZE_FIRST</item>
 
     </array>
+    
+    <!-- lines -->
+    <string name="long_press_for_options">Long press for options</string>
 </resources>

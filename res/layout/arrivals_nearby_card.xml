@@ -27,16 +27,23 @@
                   android:layout_margin="10dp"
                   android:textStyle="normal" android:layout_marginRight="20dp" android:layout_marginEnd="20dp"
                   android:layout_marginBottom="20dp"/>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                  android:id="@+id/lineDirectionTextView"
-                  android:text="piazza statuto" android:textSize="20sp"
-                  android:textAppearance="?android:attr/textAppearanceLarge"
-                  android:layout_toLeftOf="@id/arrivalsDistanceTextView"
-                  android:layout_toRightOf="@id/lineNameTextView"
-                  android:textStyle="normal" android:layout_marginRight="6dp" android:layout_marginEnd="6dp"
-                  android:layout_alignBaseline="@id/lineNameTextView"
-                  android:layout_marginLeft="10dp" android:layout_marginTop="10dp"
-                  android:layout_marginStart="10dp"/>
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/lineDirectionTextView"
+                android:text="piazza statuto"
+                android:textSize="20sp"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_toLeftOf="@id/arrivalsDistanceTextView"
+                android:layout_toRightOf="@id/lineNameTextView"
+                android:textStyle="normal"
+                android:layout_marginRight="6dp"
+                android:layout_marginEnd="6dp"
+                android:layout_alignBaseline="@id/lineNameTextView"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginStart="10dp" />
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                   android:layout_alignBaseline="@id/arrivalsTimeTextView"
                   android:textAppearance="?android:attr/textAppearanceMedium"

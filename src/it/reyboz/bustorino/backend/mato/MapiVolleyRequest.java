@@ -12,9 +12,9 @@ public abstract class MapiVolleyRequest<T> extends Request<T> {
     private static final String API_URL="https://mapi.5t.torino.it/routing/v1/routers/mat/index/graphql";
 
     protected final Response.Listener<T> listener;
-    private final MatoAPIFetcher.QueryType type;
+    protected final MatoQueries.QueryType type;
     public MapiVolleyRequest(
-            MatoAPIFetcher.QueryType type,
+            MatoQueries.QueryType type,
             Response.Listener<T> listener,
             @Nullable Response.ErrorListener errorListener) {
         super(Method.POST, API_URL, errorListener);

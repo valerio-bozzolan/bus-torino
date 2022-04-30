@@ -35,7 +35,7 @@ import it.reyboz.bustorino.backend.Stop;
  */
 public class StopAdapter extends ArrayAdapter<Stop> {
     private LayoutInflater li;
-    private static int row_layout = R.layout.entry_bus_stop;
+    private static final int row_layout = R.layout.entry_bus_stop;
     private static final int busIcon = R.drawable.bus;
     private static final int trainIcon = R.drawable.subway;
     private static final int tramIcon = R.drawable.tram;

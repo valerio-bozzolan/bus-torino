@@ -19,7 +19,6 @@ package it.reyboz.bustorino.fragments;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -44,9 +43,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import it.reyboz.bustorino.*;
-import it.reyboz.bustorino.adapters.AdapterListener;
+import it.reyboz.bustorino.adapters.StopAdapterListener;
 import it.reyboz.bustorino.adapters.StopRecyclerAdapter;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.FavoritesViewModel;
@@ -64,10 +62,16 @@ public class FavoritesFragment extends ScreenBaseFragment {
 
     public static final String FRAGMENT_TAG = "BusTOFavFragment";
 
-    private final AdapterListener adapterListener = new AdapterListener() {
+    private final StopAdapterListener adapterListener = new StopAdapterListener() {
         @Override
         public void onTappedStop(Stop stop) {
             mListener.requestArrivalsForStopID(stop.ID);
+        }
+
+        @Override
+        public boolean onLongPressOnStop(Stop stop) {
+            Log.d("BusTO-FavoritesFrag", "LongPressOnStop");
+            return true;
         }
     };
 
@@ -123,6 +127,7 @@ public class FavoritesFragment extends ScreenBaseFragment {
 
         angeryBusImageView = root.findViewById(R.id.angeryBusImageView);
         favoriteTipTextView = root.findViewById(R.id.favoriteTipTextView);
+        //register for the context menu
         registerForContextMenu(favoriteRecyclerView);
 
         FavoritesViewModel model = new ViewModelProvider(this).get(FavoritesViewModel.class);
@@ -150,12 +155,13 @@ public class FavoritesFragment extends ScreenBaseFragment {
     }
     /*
     This method is apparently NOT CALLED ANYMORE
+    Called on Android 6
      */
     @Override
     public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v,
                                     ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-        Log.d("Favorites Fragment", "Creating context menu on "+v);
+        Log.d("Favorites Fragment", "Creating context menu ");
         if (v.getId() == R.id.favoritesRecyclerView) {
             // if we aren't attached to activity, return null
             if (getActivity()==null) return;
@@ -244,7 +250,7 @@ public class FavoritesFragment extends ScreenBaseFragment {
          * redrwaing everything.
          */
         // Show results
-        favoriteRecyclerView.setAdapter(new StopRecyclerAdapter(busStops,adapterListener));
+        favoriteRecyclerView.setAdapter(new StopRecyclerAdapter(busStops,adapterListener, StopRecyclerAdapter.Use.FAVORITES));
     }
 
     public void showBusStopUsernameInputDialog(final Stop busStop) {

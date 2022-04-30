@@ -35,13 +35,17 @@ import it.reyboz.bustorino.backend.Stop;
 
 public class StopRecyclerAdapter extends RecyclerView.Adapter<StopRecyclerAdapter.ViewHolder> {
     private List<Stop> stops;
-    private static final int row_layout = R.layout.entry_bus_stop;
+    private static final int ITEM_LAYOUT_FAVORITES = R.layout.entry_bus_stop;
+    private static final int ITEM_LAYOUT_LINES = R.layout.bus_stop_line_elmt;
     private static final int busIcon = R.drawable.bus;
     private static final int trainIcon = R.drawable.subway;
     private static final int tramIcon = R.drawable.tram;
     private static final int cityIcon = R.drawable.city;
 
-    private AdapterListener listener;
+    private NameCapitalize capitalizeLocation = NameCapitalize.DO_NOTHING;
+    private final Use usedFor;
+
+    private final StopAdapterListener listener;
     private int position;
 
 
@@ -52,14 +56,29 @@ public class StopRecyclerAdapter extends RecyclerView.Adapter<StopRecyclerAdapte
         //TextView busLineVehicleIcon;
         TextView busStopLinesTextView;
         TextView busStopLocaLityTextView;
+
+        View topStub, bottomStub;
         Stop mStop;
 
-        public ViewHolder(@NonNull View itemView, AdapterListener listener) {
+        int menuResID=R.menu.menu_favourites_entry;
+
+        public ViewHolder(@NonNull View itemView, StopAdapterListener listener, Use usedFor) {
             super(itemView);
-            busStopIDTextView = (TextView) itemView.findViewById(R.id.busStopID);
-            busStopNameTextView = (TextView) itemView.findViewById(R.id.busStopName);
-            busStopLinesTextView = (TextView) itemView.findViewById(R.id.routesThatStopHere);
-            busStopLocaLityTextView = (TextView) itemView.findViewById(R.id.busStopLocality);
+            busStopIDTextView = itemView.findViewById(R.id.busStopID);
+            busStopNameTextView = itemView.findViewById(R.id.busStopName);
+            busStopLinesTextView = itemView.findViewById(R.id.routesThatStopHere);
+            busStopLocaLityTextView = itemView.findViewById(R.id.busStopLocality);
+            switch (usedFor){
+                case LINES:
+                    topStub = itemView.findViewById(R.id.topStub);
+                    bottomStub = itemView.findViewById(R.id.bottomStub);
+                    menuResID = R.menu.menu_line_item;
+                    break;
+                case FAVORITES:
+                default:
+                    topStub = null;
+                    bottomStub = null;
+            }
 
             mStop = new Stop("");
 
@@ -71,13 +90,29 @@ public class StopRecyclerAdapter extends RecyclerView.Adapter<StopRecyclerAdapte
         @Override
         public void onCreateContextMenu(ContextMenu contextMenu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
             MenuInflater inflater = new MenuInflater(view.getContext());
-            inflater.inflate(R.menu.menu_favourites_entry, contextMenu);
+            inflater.inflate(menuResID, contextMenu);
         }
     }
 
-    public StopRecyclerAdapter(List<Stop> stops,AdapterListener listener) {
+    public StopRecyclerAdapter(List<Stop> stops, StopAdapterListener listener, Use usedFor) {
         this.stops = stops;
         this.listener = listener;
+        this.usedFor = usedFor;
+    }
+    public StopRecyclerAdapter(List<Stop> stops, StopAdapterListener listener, Use usedFor, NameCapitalize locationCapit) {
+        this.stops = stops;
+        this.listener = listener;
+        this.usedFor = usedFor;
+        this.capitalizeLocation = locationCapit;
+    }
+
+    public NameCapitalize getCapitalizeLocation() {
+        return capitalizeLocation;
+    }
+
+    public void setCapitalizeLocation(NameCapitalize capitalizeLocation) {
+        this.capitalizeLocation = capitalizeLocation;
+        notifyDataSetChanged();
     }
 
     public void setStops(List<Stop> stops){
@@ -100,10 +135,20 @@ public class StopRecyclerAdapter extends RecyclerView.Adapter<StopRecyclerAdapte
     @NonNull
     @Override
     public StopRecyclerAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(row_layout, parent, false);
+        final int layoutID;
+        switch (usedFor){
+            case LINES:
+                layoutID = ITEM_LAYOUT_LINES;
+                break;
+            case FAVORITES:
+            default:
+                layoutID = ITEM_LAYOUT_FAVORITES;
 
-        return  new StopRecyclerAdapter.ViewHolder(view, listener);
+        }
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(layoutID, parent, false);
+
+        return  new StopRecyclerAdapter.ViewHolder(view, listener, this.usedFor);
     }
 
     @Override
@@ -114,11 +159,11 @@ public class StopRecyclerAdapter extends RecyclerView.Adapter<StopRecyclerAdapte
 
     @Override
     public void onBindViewHolder(@NonNull StopRecyclerAdapter.ViewHolder vh, int position) {
-        Log.d("StopRecyclerAdapter", "Called for position "+position);
+        //Log.d("StopRecyclerAdapter", "Called for position "+position);
         Stop stop = stops.get(position);
         vh.busStopIDTextView.setText(stop.ID);
         vh.mStop = stop;
-        Log.d("StopRecyclerAdapter", "Stop: "+stop.ID);
+        //Log.d("StopRecyclerAdapter", "Stop: "+stop.ID);
 
         // NOTE: intentionally ignoring stop username in search results: if it's in the favorites, why are you searching for it?
         vh.busStopNameTextView.setText(stop.getStopDisplayName());
@@ -154,21 +199,34 @@ public class StopRecyclerAdapter extends RecyclerView.Adapter<StopRecyclerAdapte
         if (stop.location == null) {
             vh.busStopLocaLityTextView.setVisibility(View.GONE);
         } else {
-            vh.busStopLocaLityTextView.setText(stop.location);
+            vh.busStopLocaLityTextView.setText(NameCapitalize.capitalizePass(stop.location, capitalizeLocation));
             vh.busStopLocaLityTextView.setVisibility(View.VISIBLE); // might be GONE due to View Holder Pattern
         }
         //trick to set the position
-        vh.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                setPosition(vh.getAdapterPosition());
-                return false;
-            }
+        vh.itemView.setOnLongClickListener(view -> {
+            setPosition(vh.getAdapterPosition());
+            return false;
         });
+        if(this.usedFor == Use.LINES){
+
+            //vh.menuResID;
+            vh.bottomStub.setVisibility(View.VISIBLE);
+            vh.topStub.setVisibility(View.VISIBLE);
+            if(position == 0) {
+                vh.topStub.setVisibility(View.GONE);
+            }
+            else if (position == stops.size()-1) {
+                vh.bottomStub.setVisibility(View.GONE);
+            }
+        }
     }
 
     @Override
     public int getItemCount() {
         return stops.size();
+    }
+
+    public enum  Use{
+        FAVORITES, LINES
     }
 }

@@ -291,7 +291,8 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
                 Stop s = new Stop(stopID, stopName,
                         null,location,t,Arrays.asList(lines),
                         Double.parseDouble(currentStop.getString("lat")),
-                        Double.parseDouble(currentStop.getString("lng")));
+                        Double.parseDouble(currentStop.getString("lng")),
+                        null);
                 if(placeName!=null)
                 s.setAbsurdGTTPlaceName(placeName);
                 stopslist.add(s);

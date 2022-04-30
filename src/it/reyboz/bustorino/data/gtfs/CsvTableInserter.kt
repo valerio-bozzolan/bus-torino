@@ -19,13 +19,12 @@ package it.reyboz.bustorino.data.gtfs
 
 import android.content.Context
 import android.util.Log
-import java.util.ArrayList
 
 class CsvTableInserter(
     val tableName: String, context: Context
 ) {
     private val database: GtfsDatabase = GtfsDatabase.getGtfsDatabase(context)
-    private val dao: StaticGtfsDao = database.gtfsDao()
+    private val databaseDao: GtfsDBDao = database.gtfsDao()
 
     private val elementsList: MutableList< in GtfsTable> = mutableListOf()
 
@@ -35,12 +34,12 @@ class CsvTableInserter(
     private var countInsert = 0
     init {
         if(tableName == "stop_times") {
-            stopsIDsPresent = dao.getAllStopsIDs().toHashSet()
-            tripsIDsPresent = dao.getAllTripsIDs().toHashSet()
+            stopsIDsPresent = databaseDao.getAllStopsIDs().toHashSet()
+            tripsIDsPresent = databaseDao.getAllTripsIDs().toHashSet()
             Log.d(DEBUG_TAG, "num stop IDs present: "+ stopsIDsPresent!!.size)
             Log.d(DEBUG_TAG, "num trips IDs present: "+ tripsIDsPresent!!.size)
         } else if(tableName == "routes"){
-            dao.deleteAllRoutes()
+            databaseDao.deleteAllRoutes()
         }
     }
 
@@ -77,7 +76,7 @@ class CsvTableInserter(
             //have to insert
 
             if (tableName == "routes")
-                dao.insertRoutes(elementsList.filterIsInstance<GtfsRoute>())
+                databaseDao.insertRoutes(elementsList.filterIsInstance<GtfsRoute>())
             else
                 insertDataInDatabase()
 
@@ -90,21 +89,21 @@ class CsvTableInserter(
         countInsert += elementsList.size
         when(tableName){
             "stops" -> {
-                dao.insertStops(elementsList.filterIsInstance<GtfsStop>())
+                databaseDao.insertStops(elementsList.filterIsInstance<GtfsStop>())
             }
-            "routes" -> dao.insertRoutes(elementsList.filterIsInstance<GtfsRoute>())
-            "calendar" -> dao.insertServices(elementsList.filterIsInstance<GtfsService>())
-            "calendar_dates" -> dao.insertDates(elementsList.filterIsInstance<GtfsServiceDate>())
-            "trips" -> dao.insertTrips(elementsList.filterIsInstance<GtfsTrip>())
-            "stop_times"-> dao.insertStopTimes(elementsList.filterIsInstance<GtfsStopTime>())
-            "shapes" -> dao.insertShapes(elementsList.filterIsInstance<GtfsShape>())
+            "routes" -> databaseDao.insertRoutes(elementsList.filterIsInstance<GtfsRoute>())
+            "calendar" -> databaseDao.insertServices(elementsList.filterIsInstance<GtfsService>())
+            "calendar_dates" -> databaseDao.insertDates(elementsList.filterIsInstance<GtfsServiceDate>())
+            "trips" -> databaseDao.insertTrips(elementsList.filterIsInstance<GtfsTrip>())
+            "stop_times"-> databaseDao.insertStopTimes(elementsList.filterIsInstance<GtfsStopTime>())
+            "shapes" -> databaseDao.insertShapes(elementsList.filterIsInstance<GtfsShape>())
 
         }
         ///if(elementsList.size < MAX_ELEMENTS)
     }
     fun finishInsert(){
         insertDataInDatabase()
-        Log.d(DEBUG_TAG, "Inserted "+countInsert+" elements from "+tableName);
+        Log.d(DEBUG_TAG, "Inserted $countInsert elements from $tableName")
     }
 
     companion object{

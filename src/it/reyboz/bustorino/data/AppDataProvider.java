@@ -153,7 +153,7 @@ public class AppDataProvider extends ContentProvider {
                         Log.d("InsBranchWithProvider","line: "+c.getString(c.getColumnIndex(LinesTable.COLUMN_NAME))+"\n"
                         +c.getString(c.getColumnIndex(LinesTable.COLUMN_DESCRIPTION)));
                     }*/
-                    lineid = c.getInt(c.getColumnIndex(NextGenDB.Contract.LinesTable._ID));
+                    lineid = c.getInt(c.getColumnIndexOrThrow(NextGenDB.Contract.LinesTable._ID));
                     c.close();
                 }
                 values.remove(NextGenDB.Contract.LinesTable.COLUMN_NAME);
@@ -191,7 +191,7 @@ public class AppDataProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         con = getContext();
-        appDBHelper = new NextGenDB(getContext());
+        appDBHelper = NextGenDB.getInstance(getContext());
         userDBHelper = new UserDB(getContext());
         if(con!=null) {
             preferences = new DBStatusManager(con,null);

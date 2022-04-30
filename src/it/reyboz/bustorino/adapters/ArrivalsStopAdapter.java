@@ -18,10 +18,12 @@
 package it.reyboz.bustorino.adapters;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -37,15 +39,18 @@ import it.reyboz.bustorino.util.StopSorterByDistance;
 
 import java.util.*;
 
-public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapter.ViewHolder> {
+public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapter.ViewHolder> implements SharedPreferences.OnSharedPreferenceChangeListener {
     private final static int layoutRes = R.layout.arrivals_nearby_card;
     //private List<Stop> stops;
     private @Nullable Location userPosition;
     private FragmentListenerMain listener;
-    private List< Pair<Stop, Route> > routesPairList = new ArrayList<>();
+    private List< Pair<Stop, Route> > routesPairList;
     private final Context context;
     //Maximum number of stops to keep
     private final int MAX_STOPS = 20; //TODO: make it programmable
+    private String KEY_CAPITALIZE;
+    private NameCapitalize capit;
+
 
     public ArrivalsStopAdapter(@Nullable List< Pair<Stop, Route> > routesPairList, FragmentListenerMain fragmentListener, Context con, @Nullable Location pos) {
         listener  = fragmentListener;
@@ -55,10 +60,16 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
         resetListAndPosition();
         // if(paline!=null)
         //resetRoutesPairList(paline);
+        KEY_CAPITALIZE = context.getString(R.string.pref_arrival_times_capit);
+        SharedPreferences defSharPref = PreferenceManager.getDefaultSharedPreferences(context);
+        defSharPref.registerOnSharedPreferenceChangeListener(this);
+        String capitalizeKey = defSharPref.getString(KEY_CAPITALIZE, "");
+        this.capit = NameCapitalize.getCapitalize(capitalizeKey);
     }
 
 
 
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false);
@@ -85,7 +96,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
             //final String routeName = String.format(context.getResources().getString(R.string.two_strings_format),r.getNameForDisplay(),r.destinazione);
             if (r!=null) {
                 holder.lineNameTextView.setText(r.getNameForDisplay());
-                holder.lineDirectionTextView.setText(r.destinazione);
+                holder.lineDirectionTextView.setText(NameCapitalize.capitalizePass(r.destinazione, capit));
                 holder.arrivalsTextView.setText(r.getPassaggiToString(0,2,true));
             } else {
                 holder.lineNameTextView.setVisibility(View.INVISIBLE);
@@ -115,6 +126,17 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
     @Override
     public int getItemCount() {
         return routesPairList.size();
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if(key.equals(KEY_CAPITALIZE)){
+            String k = sharedPreferences.getString(KEY_CAPITALIZE, "");
+            capit = NameCapitalize.getCapitalize(k);
+
+            notifyDataSetChanged();
+
+        }
     }
 
     class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener  {

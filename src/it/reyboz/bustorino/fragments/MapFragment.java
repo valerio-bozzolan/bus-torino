@@ -610,7 +610,7 @@ public class MapFragment extends ScreenBaseFragment {
             final BoundingBoxLimit limit = limits[0];
             //Log.d(DEBUG_TAG, "Async Stop Fetcher started working");
 
-            NextGenDB dbHelper = new NextGenDB(fragmentWeakReference.get().getContext());
+            NextGenDB dbHelper = NextGenDB.getInstance(fragmentWeakReference.get().getContext());
             ArrayList<Stop> stops = dbHelper.queryAllInsideMapView(limit.latitFrom, limit.latitTo,
                     limit.longFrom, limit.latitTo);
             dbHelper.close();

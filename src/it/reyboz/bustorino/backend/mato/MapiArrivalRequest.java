@@ -31,10 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import it.reyboz.bustorino.backend.Fetcher;
@@ -54,7 +51,7 @@ public class MapiArrivalRequest extends MapiVolleyRequest<Palina> {
                               AtomicReference<Fetcher.Result> res,
                               Response.Listener<Palina> listener,
                               @Nullable Response.ErrorListener errorListener) {
-        super(MatoAPIFetcher.QueryType.ARRIVALS, listener, errorListener);
+        super(MatoQueries.QueryType.ARRIVALS, listener, errorListener);
         this.stopName = stopName;
         this.startingTime = startingTime;
         this.timeRange = timeRange;

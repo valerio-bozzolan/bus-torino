@@ -17,6 +17,9 @@
  */
 package it.reyboz.bustorino.fragments;
 
+/**
+ * This interface is for the subfragments
+ */
 public interface FragmentListenerMain extends CommonFragmentListener {
 
     void toggleSpinner(boolean state);

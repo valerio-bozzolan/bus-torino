@@ -86,5 +86,81 @@ class MatoQueries  {
           }
         }
         """
+
+        const val ALL_FEEDS="""
+        query AllFeeds{
+            feeds{
+                feedId
+                agencies{
+                  gtfsId
+                  name
+                  url
+                  fareUrl
+                  phone
+                }
+           }
+        }
+        """
+
+        const val ROUTES_BY_FEED="""
+        query AllRoutes(${'$'}feeds: [String]){
+          routes(feeds: ${'$'}feeds) {
+            agency{
+              gtfsId
+            }
+            gtfsId
+            shortName
+            longName
+            type
+            desc
+            color
+            textColor
+          }
+        }
+        """
+
+        const val ROUTES_WITH_PATTERNS="""
+            query RoutesWithPatterns(${'$'}routes: [String]) {
+              routes(ids: ${'$'}routes) {
+                gtfsId
+                shortName
+                longName
+                type
+                
+                patterns{
+                  name
+                  code
+                  semanticHash
+                  directionId
+                  headsign
+                  stops{
+                    gtfsId
+                    lat
+                    lon
+                  }
+                  patternGeometry{
+                    length
+                    points
+                  }
+                  
+                }
+              }
+            }
+        """
+
+        fun getNameAndRequest(type: QueryType): Pair<String, String>{
+            return  when (type){
+                QueryType.FEEDS -> Pair("AllFeeds", ALL_FEEDS)
+                QueryType.ALL_STOPS -> Pair("AllStops", ALL_STOPS_BY_FEEDS)
+                QueryType.ARRIVALS -> Pair("AllStopsDirect", QUERY_ARRIVALS)
+                QueryType.ROUTES -> Pair("AllRoutes", ROUTES_BY_FEED)
+                QueryType.PATTERNS_FOR_ROUTES -> Pair("RoutesWithPatterns", ROUTES_WITH_PATTERNS)
+            }
+        }
     }
+
+    enum class QueryType {
+        ARRIVALS, ALL_STOPS, FEEDS, ROUTES, PATTERNS_FOR_ROUTES
+    }
+
 }

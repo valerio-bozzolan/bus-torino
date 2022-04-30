@@ -21,8 +21,8 @@ import androidx.lifecycle.LiveData
 import androidx.room.*
 
 @Dao
-interface StaticGtfsDao {
-    @Query("SELECT * FROM "+GtfsRoute.DB_TABLE+" ORDER BY "+GtfsRoute.COL_SORT_ORDER)
+interface GtfsDBDao {
+    @Query("SELECT * FROM "+GtfsRoute.DB_TABLE)
     fun getAllRoutes() : LiveData<List<GtfsRoute>>
 
     @Query("SELECT "+GtfsTrip.COL_TRIP_ID+" FROM "+GtfsTrip.DB_TABLE)
@@ -40,14 +40,32 @@ interface StaticGtfsDao {
     )
     fun getShapeByID(shapeID: String) : LiveData<List<GtfsShape>>
 
+
+    @Query("SELECT * FROM ${GtfsRoute.DB_TABLE} WHERE ${GtfsRoute.COL_AGENCY_ID} LIKE :agencyID")
+    fun getRoutesByAgency(agencyID:String) : LiveData<List<GtfsRoute>>
+
+    @Query("SELECT * FROM ${MatoPattern.TABLE_NAME} WHERE ${MatoPattern.COL_ROUTE_ID} LIKE :routeID")
+    fun getPatternsByRouteID(routeID: String): LiveData<List<MatoPattern>>
+
+    @Query("SELECT * FROM ${PatternStop.TABLE_NAME} WHERE ${PatternStop.COL_PATTERN_ID} LIKE :patternGtfsID")
+    fun getStopsByPatternID(patternGtfsID: String): LiveData<List<PatternStop>>
+
+    @Transaction
+    @Query("SELECT * FROM ${MatoPattern.TABLE_NAME} WHERE ${MatoPattern.COL_ROUTE_ID} LIKE :routeID")
+    fun getPatternsWithStopsByRouteID(routeID: String): LiveData<List<MatoPatternWithStops>>
+
+    fun getRoutesForFeed(feed:String): LiveData<List<GtfsRoute>>{
+        val agencyID = "${feed}:%"
+        return getRoutesByAgency(agencyID)
+    }
     @Transaction
     fun clearAndInsertRoutes(routes: List<GtfsRoute>){
         deleteAllRoutes()
         insertRoutes(routes)
     }
-
+    @Transaction
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertRoutes(users: List<GtfsRoute>)
+    fun insertRoutes(routes: List<GtfsRoute>)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertStops(stops: List<GtfsStop>)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -87,4 +105,24 @@ interface StaticGtfsDao {
     @Query("DELETE FROM "+GtfsService.DB_TABLE)
     fun deleteAllServices()
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertFeeds(feeds: List<GtfsFeed>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertAgencies(agencies: List<GtfsAgency>)
+
+    @Transaction
+    fun insertAgenciesWithFeeds(feeds: List<GtfsFeed>, agencies: List<GtfsAgency>){
+        insertFeeds(feeds)
+        insertAgencies(agencies)
+    }
+    //patterns
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertPatterns(patterns: List<MatoPattern>)
+
+    @Query("SELECT * FROM "+MatoPattern.TABLE_NAME+
+            " WHERE ${MatoPattern.COL_ROUTE_ID} LIKE :routeGtfsId")
+    fun getPatternsForRouteID(routeGtfsId: String) : List<MatoPattern>
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertPatternStops(patternStops: List<PatternStop>)
 }

@@ -19,6 +19,8 @@ package it.reyboz.bustorino.adapters;
 
 import it.reyboz.bustorino.backend.Stop;
 
-public interface AdapterListener {
+public interface StopAdapterListener {
     void onTappedStop(Stop stop);
+
+    boolean onLongPressOnStop(Stop stop);
 }

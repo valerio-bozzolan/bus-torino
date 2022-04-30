@@ -41,11 +41,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.PreferenceManager;
-import androidx.work.BackoffPolicy;
-import androidx.work.Constraints;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.NetworkType;
-import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
@@ -53,7 +48,6 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.DBUpdateWorker;
@@ -179,7 +173,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             requestArrivalsForStopID(busStopID);
         }
         //Try (hopefully) database update
-        DatabaseUpdate.requestDBUpdateWithWork(this, false);
+        DatabaseUpdate.requestDBUpdateWithWork(this, false, false);
         /*
         Watch for database update
          */
@@ -239,8 +233,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                         //get Fragment
                         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
                         FavoritesFragment fragment = FavoritesFragment.newInstance();
-                        ft.replace(R.id.mainActContentFrame,fragment, TAG_FAVORITES);
-                        ft.addToBackStack(null);
+                        ft.replace(R.id.mainActContentFrame,fragment, TAG_FAVORITES)
+                            .addToBackStack("main");
                         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                         ft.commit();
                         return true;
@@ -265,6 +259,22 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                                 String text = getString(R.string.too_many_permission_asks,  storage_perm);
                                 Toast.makeText(getApplicationContext(),text, Toast.LENGTH_LONG).show();
                         }
+                        return true;
+                    } else if (menuItem.getItemId() == R.id.nav_lines_item) {
+                        closeDrawerIfOpen();
+                        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                        Fragment f = getSupportFragmentManager().findFragmentByTag(LinesFragment.FRAGMENT_TAG);
+                        if(f!=null){
+                            ft.replace(R.id.mainActContentFrame, f, LinesFragment.FRAGMENT_TAG);
+                        }else{
+                            //use new method
+                            ft.replace(R.id.mainActContentFrame,LinesFragment.class,null,LinesFragment.FRAGMENT_TAG);
+                        }
+
+                                ft.setReorderingAllowed(true)
+                                .addToBackStack("lines")
+                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                                .commit();
                         return true;
                     }
                     //selectDrawerItem(menuItem);
@@ -389,7 +399,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         }
         if (baseView == null) baseView = findViewById(R.id.mainActContentFrame);
         if (baseView == null) Log.e(DEBUG_TAG, "baseView null for default snackbar, probably exploding now");
-        snackbar = Snackbar.make(baseView, R.string.database_update_message, Snackbar.LENGTH_INDEFINITE);
+        snackbar = Snackbar.make(baseView, R.string.database_update_msg_inapp, Snackbar.LENGTH_INDEFINITE);
         snackbar.show();
     }
 
@@ -499,6 +509,10 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             case NEARBY_ARRIVALS:
                 titleResId=R.string.app_name_full;
                 mNavView.setCheckedItem(R.id.nav_arrivals);
+                break;
+            case LINES:
+                titleResId=R.string.lines;
+                mNavView.setCheckedItem(R.id.nav_lines_item);
                 break;
             default:
                 titleResId = 0;

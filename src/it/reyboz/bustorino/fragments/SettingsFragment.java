@@ -25,10 +25,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.*;
+import androidx.room.Database;
 import it.reyboz.bustorino.R;
+import it.reyboz.bustorino.data.DatabaseUpdate;
 
 import java.lang.ref.WeakReference;
 
@@ -63,6 +66,25 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
 
         //ListPreference preference = findPreference(R.string.arrival_times)
 
+        Preference dbUpdateNow = findPreference("pref_db_update_now");
+        if (dbUpdateNow!=null)
+        dbUpdateNow.setOnPreferenceClickListener(
+                new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(@NonNull Preference preference) {
+                        //trigger update
+                        if(getContext()!=null) {
+                            DatabaseUpdate.requestDBUpdateWithWork(getContext().getApplicationContext(), true, true);
+                            Toast.makeText(getContext(),R.string.requesting_db_update,Toast.LENGTH_SHORT).show();
+                            return true;
+                        }
+                        return false;
+                    }
+                }
+        );
+        else {
+            Log.e("BusTO-Preferences", "Cannot find db update preference");
+        }
 
     }
 

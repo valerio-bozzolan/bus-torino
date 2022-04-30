@@ -47,13 +47,13 @@ public class DBUpdateWorker extends Worker{
     public static final int SUCCESS_NO_ACTION_NEEDED = 9;
     public static final int SUCCESS_UPDATE_DONE = 1;
 
-    private final int notifi_ID=62341;
+    private final static int NOTIFIC_ID =32198;
 
     public static final String FORCED_UPDATE = "FORCED-UPDATE";
 
     public static final String DEBUG_TAG = "Busto-UpdateWorker";
 
-    private static final long UPDATE_MIN_DELAY= 3*7*24*3600; //3 weeks
+    private static final long UPDATE_MIN_DELAY= 9*24*3600; //9 days
 
 
     public DBUpdateWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
@@ -66,7 +66,14 @@ public class DBUpdateWorker extends Worker{
     public Result doWork() {
         //register Notification channel
         final Context con = getApplicationContext();
-        Notifications.createDefaultNotificationChannel(con);
+        //Notifications.createDefaultNotificationChannel(con);
+        //Use the new notification channels
+        Notifications.createNotificationChannel(con,con.getString(R.string.database_notification_channel),
+                con.getString(R.string.database_notification_channel_desc), NotificationManagerCompat.IMPORTANCE_LOW,
+                Notifications.DB_UPDATE_CHANNELS_ID
+            );
+        final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+        final int notification_ID = 32198;
         final SharedPreferences shPr = con.getSharedPreferences(con.getString(R.string.mainSharedPreferences),MODE_PRIVATE);
         final int current_DB_version = shPr.getInt(DatabaseUpdate.DB_VERSION_KEY,-10);
 
@@ -77,7 +84,17 @@ public class DBUpdateWorker extends Worker{
         final long lastDBUpdateTime = shPr.getLong(DatabaseUpdate.DB_LAST_UPDATE_KEY, 0);
         long currentTime = System.currentTimeMillis()/1000;
 
-        final int notificationID = showNotification();
+        //showNotification(notificationManager, notification_ID);
+        final NotificationCompat.Builder builder = new NotificationCompat.Builder(con,
+                Notifications.DB_UPDATE_CHANNELS_ID)
+                .setContentTitle(con.getString(R.string.database_update_msg_notif))
+                .setProgress(0,0,true)
+                .setPriority(NotificationCompat.PRIORITY_LOW);
+        builder.setSmallIcon(R.drawable.ic_bus_orange);
+
+
+        notificationManager.notify(notification_ID,builder.build());
+
         Log.d(DEBUG_TAG, "Have previous version: "+current_DB_version +" and new version "+new_DB_version);
         Log.d(DEBUG_TAG, "Update compulsory: "+isUpdateCompulsory);
         /*
@@ -95,7 +112,7 @@ public class DBUpdateWorker extends Worker{
         if (!(current_DB_version < new_DB_version || currentTime > lastDBUpdateTime + UPDATE_MIN_DELAY )
                 && !isUpdateCompulsory) {
             //don't need to update
-            cancelNotification(notificationID);
+            cancelNotification(notification_ID);
             return ListenableWorker.Result.success(new Data.Builder().
                     putInt(SUCCESS_REASON_KEY, SUCCESS_NO_ACTION_NEEDED).build());
         }
@@ -106,8 +123,7 @@ public class DBUpdateWorker extends Worker{
         DatabaseUpdate.setDBUpdatingFlag(con, shPr,false);
 
         if (resultUpdate != DatabaseUpdate.Result.DONE){
-            Fetcher.Result result = resultAtomicReference.get();
-
+            //Fetcher.Result result = resultAtomicReference.get();
             final Data.Builder dataBuilder = new Data.Builder();
             switch (resultUpdate){
                 case ERROR_STOPS_DOWNLOAD:
@@ -117,7 +133,7 @@ public class DBUpdateWorker extends Worker{
                     dataBuilder.put(ERROR_REASON_KEY, ERROR_DOWNLOADING_LINES);
                     break;
             }
-            cancelNotification(notificationID);
+            cancelNotification(notification_ID);
             return ListenableWorker.Result.failure(dataBuilder.build());
         }
         Log.d(DEBUG_TAG, "Update finished successfully!");
@@ -127,7 +143,7 @@ public class DBUpdateWorker extends Worker{
         currentTime = System.currentTimeMillis()/1000;
         editor.putLong(DatabaseUpdate.DB_LAST_UPDATE_KEY, currentTime);
         editor.apply();
-        cancelNotification(notificationID);
+        cancelNotification(notification_ID);
 
         return ListenableWorker.Result.success(new Data.Builder().putInt(SUCCESS_REASON_KEY, SUCCESS_UPDATE_DONE).build());
     }
@@ -144,19 +160,21 @@ public class DBUpdateWorker extends Worker{
                 .build();
     }
 
-
-    private int showNotification(){
-        final NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), Notifications.DEFAULT_CHANNEL_ID)
+    /*
+    private int showNotification(@NonNull final NotificationManagerCompat notificManager, final int notification_ID,
+                                 final String channel_ID){
+        final NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channel_ID)
                 .setContentTitle("Libre BusTO - Updating Database")
                 .setProgress(0,0,true)
                 .setPriority(NotificationCompat.PRIORITY_LOW);
         builder.setSmallIcon(R.drawable.ic_bus_orange);
-        final NotificationManagerCompat notifcManager = NotificationManagerCompat.from(getApplicationContext());
-        final  int notification_ID = 32198;
-        notifcManager.notify(notification_ID,builder.build());
+
+
+        notificManager.notify(notification_ID,builder.build());
 
         return notification_ID;
     }
+     */
 
     private void cancelNotification(int notificationID){
         final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());

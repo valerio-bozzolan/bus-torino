@@ -80,7 +80,9 @@ public class Stop implements Comparable<Stop> {
     /**
      * Constructor that sets EVERYTHING.
      */
-    public Stop(@NonNull String ID, @Nullable String name, @Nullable String userName, @Nullable String location, @Nullable Route.Type type, @Nullable List<String> routesThatStopHere, @Nullable Double lat, @Nullable Double lon) {
+    public Stop(@NonNull String ID, @Nullable String name, @Nullable String userName,
+                @Nullable String location, @Nullable Route.Type type, @Nullable List<String> routesThatStopHere,
+                @Nullable Double lat, @Nullable Double lon, @Nullable String gtfsID) {
         this.ID = ID;
         this.name = name;
         this.username = userName;
@@ -89,6 +91,7 @@ public class Stop implements Comparable<Stop> {
         this.routesThatStopHere = routesThatStopHere;
         this.lat = lat;
         this.lon = lon;
+        this.gtfsID = gtfsID;
     }
 
 

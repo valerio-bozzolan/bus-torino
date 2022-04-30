@@ -85,14 +85,23 @@ public class NextGenDB extends SQLiteOpenHelper{
             StopsTable.COL_LAT + " <= ? AND "+ StopsTable.COL_LONG +
             " >= ? AND "+ StopsTable.COL_LONG + " <= ?";
 
+    public static final String QUERY_FROM_GTFS_ID_IN_TO_COMPLETE= StopsTable.COL_GTFS_ID +" IN ";
+
     public static String QUERY_WHERE_ID = StopsTable.COL_ID+" = ?";
 
 
     private final Context appContext;
+    private static NextGenDB INSTANCE;
 
-    public NextGenDB(Context context) {
+    private NextGenDB(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         appContext = context.getApplicationContext();
+    }
+    public static NextGenDB getInstance(Context context) {
+        if (INSTANCE == null){
+            INSTANCE = new NextGenDB(context);
+        }
+        return INSTANCE;
     }
 
 
@@ -124,7 +133,7 @@ public class NextGenDB extends SQLiteOpenHelper{
             db.execSQL(SQL_CREATE_BRANCH_TABLE);
             db.execSQL(SQL_CREATE_CONNECTIONS_TABLE);
 
-            DatabaseUpdate.requestDBUpdateWithWork(appContext, true);
+            DatabaseUpdate.requestDBUpdateWithWork(appContext, true, true);
         }
         if(oldVersion < 3 && newVersion == 3){
             Log.d("BusTO-Database", "Running upgrades for version 3");
@@ -195,6 +204,53 @@ public class NextGenDB extends SQLiteOpenHelper{
     }
 
     /**
+     * Query stops in the database having these IDs
+     * REMEMBER TO CLOSE THE DB CONNECTION AFTERWARDS
+     * @param bustoDB readable database instance
+     * @param gtfsIDs gtfs IDs to query
+     * @return list of stops
+     */
+    public static synchronized ArrayList<Stop> queryAllStopsWithGtfsIDs(SQLiteDatabase bustoDB, List<String> gtfsIDs){
+        final ArrayList<Stop> stops = new ArrayList<>();
+
+        if(bustoDB == null){
+            Log.e(DEBUG_TAG, "Asked query for IDs but database is null");
+            return stops;
+        } else if (gtfsIDs == null || gtfsIDs.isEmpty()) {
+            return stops;
+        }
+
+        final StringBuilder builder = new StringBuilder(QUERY_FROM_GTFS_ID_IN_TO_COMPLETE);
+        boolean first = true;
+        builder.append(" ( ");
+        for(int i=0; i< gtfsIDs.size(); i++){
+            if(first){
+                first = false;
+            } else{
+                builder.append(", ");
+            }
+            builder.append("?");//.append("\"").append(id).append("\"");
+        }
+        builder.append(") ");
+        final String whereClause = builder.toString();
+
+        final String[] idsQuery = gtfsIDs.toArray(new String[0]);
+
+        try {
+            final Cursor result = bustoDB.query(StopsTable.TABLE_NAME,QUERY_COLUMN_stops_all, whereClause,
+                    idsQuery,
+                    null, null, null);
+            stops.addAll(getStopsFromCursorAllFields(result));
+            result.close();
+        } catch(SQLiteException e) {
+            Log.e(DEBUG_TAG, "SQLiteException occurred");
+            e.printStackTrace();
+
+        }
+        return stops;
+    }
+
+    /**
      * Get the list of stop in the query, with all the possible fields {NextGenDB.QUERY_COLUMN_stops_all}
      * @param result cursor from query
      * @return an Array of the stops found in the query
@@ -205,6 +261,7 @@ public class NextGenDB extends SQLiteOpenHelper{
         final int colLocation = result.getColumnIndex(StopsTable.COL_LOCATION);
         final int colType = result.getColumnIndex(StopsTable.COL_TYPE);
         final int colLat = result.getColumnIndex(StopsTable.COL_LAT);
+        final int colGtfsID = result.getColumnIndex(StopsTable.COL_GTFS_ID);
         final int colLon = result.getColumnIndex(StopsTable.COL_LONG);
         final int colLines = result.getColumnIndex(StopsTable.COL_LINES_STOPPING);
 
@@ -215,9 +272,15 @@ public class NextGenDB extends SQLiteOpenHelper{
         while(result.moveToNext()) {
 
             final String stopID = result.getString(colID).trim();
-            final Route.Type type;
-            if(result.getString(colType) == null) type = Route.Type.BUS;
-            else type = Route.getTypeFromSymbol(result.getString(colType));
+            Route.Type type;
+            //if(result.getString(colType) == null) type = Route.Type.BUS;
+            //else type = Route.getTypeFromSymbol(result.getString(colType));
+            //if(result.getInt(colType) == null) type = Route.Type.BUS;
+            try{
+                type =  Route.Type.fromCode(result.getInt(colType));
+            } catch (Exception e){
+                type = Route.Type.BUS;
+            }
             String lines = result.getString(colLines).trim();
 
             String locationSometimesEmpty = result.getString(colLocation);
@@ -227,11 +290,39 @@ public class NextGenDB extends SQLiteOpenHelper{
 
             stops.add(new Stop(stopID, result.getString(colName), null,
                     locationSometimesEmpty, type, splitLinesString(lines),
-                    result.getDouble(colLat), result.getDouble(colLon))
+                    result.getDouble(colLat), result.getDouble(colLon),
+                    result.getString(colGtfsID))
             );
         }
         return stops;
     }
+    /*
+    static ArrayList<Stop> createStopListFromCursor(Cursor data){
+        ArrayList<Stop> stopList = new ArrayList<>();
+        final int col_id = data.getColumnIndex(StopsTable.COL_ID);
+        final int latInd = data.getColumnIndex(StopsTable.COL_LAT);
+        final int lonInd = data.getColumnIndex(StopsTable.COL_LONG);
+        final int nameindex = data.getColumnIndex(StopsTable.COL_NAME);
+        final int typeIndex = data.getColumnIndex(StopsTable.COL_TYPE);
+        final int linesIndex = data.getColumnIndex(StopsTable.COL_LINES_STOPPING);
+
+        data.moveToFirst();
+        for(int i=0; i<data.getCount();i++){
+            String[] routes = data.getString(linesIndex).split(",");
+
+            stopList.add(new Stop(data.getString(col_id),data.getString(nameindex),null,null,
+                            Route.Type.fromCode(data.getInt(typeIndex)),
+                            Arrays.asList(routes), //the routes should be compact, not normalized yet
+                            data.getDouble(latInd),data.getDouble(lonInd)
+                    )
+            );
+            //Log.d("NearbyStopsFragment","Got stop with id "+data.getString(col_id)+
+            //" and name "+data.getString(nameindex));
+            data.moveToNext();
+        }
+        return stopList;
+    }
+     */
 
     /**
      * Insert batch content, already prepared as

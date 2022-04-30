@@ -28,6 +28,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
@@ -36,6 +37,8 @@ import androidx.preference.PreferenceManager;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.WorkInfo;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -49,6 +52,9 @@ import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.adapters.ArrivalsStopAdapter;
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.backend.FiveTAPIFetcher.QueryType;
+import it.reyboz.bustorino.backend.mato.MapiArrivalRequest;
+import it.reyboz.bustorino.data.DatabaseUpdate;
+import it.reyboz.bustorino.data.NextGenDB;
 import it.reyboz.bustorino.middleware.AppLocationManager;
 import it.reyboz.bustorino.data.AppDataProvider;
 import it.reyboz.bustorino.data.NextGenDB.Contract.*;
@@ -62,8 +68,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
 
     private FragmentListenerMain mListener;
     private FragmentLocationListener fragmentLocationListener;
-    private final String[] PROJECTION = {StopsTable.COL_ID,StopsTable.COL_LAT,StopsTable.COL_LONG,
-            StopsTable.COL_NAME,StopsTable.COL_TYPE,StopsTable.COL_LINES_STOPPING};
+
     private final static String DEBUG_TAG = "NearbyStopsFragment";
     private final static String FRAGMENT_TYPE_KEY = "FragmentType";
     public final static int TYPE_STOPS = 19, TYPE_ARRIVALS = 20;
@@ -78,7 +83,6 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
 
     private SquareStopAdapter dataAdapter;
     private AutoFitGridLayoutManager gridLayoutManager;
-    boolean canStartDBQuery = true;
     private Location lastReceivedLocation = null;
     private ProgressBar circlingProgressBar,flatProgressBar;
     private int distance;
@@ -99,6 +103,10 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     //These are useful for the case of nearby arrivals
     private ArrivalsManager arrivalsManager = null;
     private ArrivalsStopAdapter arrivalsStopAdapter = null;
+
+    private boolean dbUpdateRunning = false;
+
+    private ArrayList<Stop> currentNearbyStops = new ArrayList<>();
 
     public NearbyStopsFragment() {
         // Required empty public constructor
@@ -129,10 +137,10 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         }
         locManager = AppLocationManager.getInstance(getContext());
         fragmentLocationListener = new FragmentLocationListener(this);
-        globalSharedPref = getContext().getSharedPreferences(getString(R.string.mainSharedPreferences),Context.MODE_PRIVATE);
-
-
-        globalSharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener);
+        if (getContext()!=null) {
+            globalSharedPref = getContext().getSharedPreferences(getString(R.string.mainSharedPreferences), Context.MODE_PRIVATE);
+            globalSharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener);
+        }
 
 
     }
@@ -153,51 +161,28 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         titleTextView = root.findViewById(R.id.titleTextView);
         switchButton = root.findViewById(R.id.switchButton);
 
-        preferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        scrollListener = new CommonScrollListener(mListener,false);
+        switchButton.setOnClickListener(v -> switchFragmentType());
+        Log.d(DEBUG_TAG, "onCreateView");
+
+        DatabaseUpdate.watchUpdateWorkStatus(getContext(), this, new Observer<List<WorkInfo>>() {
             @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                Log.d(DEBUG_TAG,"Key "+key+" was changed");
-                if(key.equals(getString(R.string.databaseUpdatingPref))){
-                    if(!sharedPreferences.getBoolean(getString(R.string.databaseUpdatingPref),true)){
-                        canStartDBQuery = true;
-                        Log.d(DEBUG_TAG,"The database has finished updating, can start update now");
-                    }
+            public void onChanged(List<WorkInfo> workInfos) {
+                if(workInfos.isEmpty()) return;
+
+                WorkInfo wi = workInfos.get(0);
+                if (wi.getState() == WorkInfo.State.RUNNING && locManager.isRequesterRegistered(fragmentLocationListener)) {
+                    locManager.removeLocationRequestFor(fragmentLocationListener);
+                    dbUpdateRunning = true;
+                } else if(!locManager.isRequesterRegistered(fragmentLocationListener)){
+                    locManager.addLocationRequestFor(fragmentLocationListener);
+                    dbUpdateRunning = false;
                 }
             }
-        };
-        scrollListener = new CommonScrollListener(mListener,false);
-        switchButton.setOnClickListener(v -> {
-           switchFragmentType();
         });
-        Log.d(DEBUG_TAG, "onCreateView");
         return root;
     }
 
-    protected ArrayList<Stop> createStopListFromCursor(Cursor data){
-        ArrayList<Stop> stopList = new ArrayList<>();
-        final int col_id = data.getColumnIndex(StopsTable.COL_ID);
-        final int latInd = data.getColumnIndex(StopsTable.COL_LAT);
-        final int lonInd = data.getColumnIndex(StopsTable.COL_LONG);
-        final int nameindex = data.getColumnIndex(StopsTable.COL_NAME);
-        final int typeIndex = data.getColumnIndex(StopsTable.COL_TYPE);
-        final int linesIndex = data.getColumnIndex(StopsTable.COL_LINES_STOPPING);
-
-        data.moveToFirst();
-        for(int i=0; i<data.getCount();i++){
-            String[] routes = data.getString(linesIndex).split(",");
-
-            stopList.add(new Stop(data.getString(col_id),data.getString(nameindex),null,null,
-                            Route.Type.fromCode(data.getInt(typeIndex)),
-                            Arrays.asList(routes), //the routes should be compact, not normalized yet
-                            data.getDouble(latInd),data.getDouble(lonInd)
-                    )
-            );
-            //Log.d("NearbyStopsFragment","Got stop with id "+data.getString(col_id)+
-            //" and name "+data.getString(nameindex));
-            data.moveToNext();
-        }
-        return stopList;
-    }
 
     /**
      * Use this method to set the fragment type
@@ -220,7 +205,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
 
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         /// TODO: RISOLVERE PROBLEMA: il context qui e' l'Activity non il Fragment
         if (context instanceof FragmentListenerMain) {
@@ -235,7 +220,6 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     @Override
     public void onPause() {
         super.onPause();
-        canStartDBQuery = false;
 
         gridRecyclerView.setAdapter(null);
         locManager.removeLocationRequestFor(fragmentLocationListener);
@@ -245,9 +229,9 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     @Override
     public void onResume() {
         super.onResume();
-        canStartDBQuery = !globalSharedPref.getBoolean(getString(R.string.databaseUpdatingPref),false);
         try{
-            if(canStartDBQuery) locManager.addLocationRequestFor(fragmentLocationListener);
+            if(!dbUpdateRunning && !locManager.isRequesterRegistered(fragmentLocationListener))
+                    locManager.addLocationRequestFor(fragmentLocationListener);
         } catch (SecurityException ex){
             //ignored
             //try another location provider
@@ -314,14 +298,15 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         //BUILD URI
-        lastReceivedLocation = args.getParcelable(BUNDLE_LOCATION);
+        if (args!=null)
+            lastReceivedLocation = args.getParcelable(BUNDLE_LOCATION);
         Uri.Builder builder =  new Uri.Builder();
         builder.scheme("content").authority(AppDataProvider.AUTHORITY)
                 .appendPath("stops").appendPath("location")
                 .appendPath(String.valueOf(lastReceivedLocation.getLatitude()))
                 .appendPath(String.valueOf(lastReceivedLocation.getLongitude()))
                 .appendPath(String.valueOf(distance)); //distance
-        CursorLoader cl = new CursorLoader(getContext(),builder.build(),PROJECTION,null,null,null);
+        CursorLoader cl = new CursorLoader(getContext(),builder.build(),NextGenDB.QUERY_COLUMN_stops_all,null,null,null);
         cl.setUpdateThrottle(2000);
         return cl;
     }
@@ -331,50 +316,58 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
         if (0 > MAX_DISTANCE) throw new AssertionError();
         //Cursor might be null
-        if(cursor==null){
-            Log.e(DEBUG_TAG,"Null cursor, something really wrong happened");
+        if (cursor == null) {
+            Log.e(DEBUG_TAG, "Null cursor, something really wrong happened");
             return;
         }
-        Log.d(DEBUG_TAG, "Num stops found: "+cursor.getCount()+", Current distance: "+distance);
+        Log.d(DEBUG_TAG, "Num stops found: " + cursor.getCount() + ", Current distance: " + distance);
 
-        if(!isDBUpdating() && (cursor.getCount()<MIN_NUM_STOPS && distance<=MAX_DISTANCE)){
-            distance = distance*2;
+        if (!dbUpdateRunning && (cursor.getCount() < MIN_NUM_STOPS && distance <= MAX_DISTANCE)) {
+            distance = distance * 2;
             Bundle d = new Bundle();
-            d.putParcelable(BUNDLE_LOCATION,lastReceivedLocation);
-            getLoaderManager().restartLoader(LOADER_ID,d,this);
+            d.putParcelable(BUNDLE_LOCATION, lastReceivedLocation);
+            getLoaderManager().restartLoader(LOADER_ID, d, this);
             //Log.d(DEBUG_TAG, "Doubling distance now!");
             return;
         }
-        Log.d("LoadFromCursor","Number of nearby stops: "+cursor.getCount());
+        Log.d("LoadFromCursor", "Number of nearby stops: " + cursor.getCount());
         ////////
+        if(cursor.getCount()>0)
+            currentNearbyStops = NextGenDB.getStopsFromCursorAllFields(cursor);
 
-        if(cursor.getCount()>0) {
-            ArrayList<Stop> stopList = createStopListFromCursor(cursor);
-            double minDistance = Double.POSITIVE_INFINITY;
-            for(Stop s: stopList){
-                minDistance = Math.min(minDistance, s.getDistanceFromLocation(lastReceivedLocation));
-            }
+        showCurrentStops();
+    }
 
-
-            //quick trial to hopefully always get the stops in the correct order
-            Collections.sort(stopList,new StopSorterByDistance(lastReceivedLocation));
-            switch (fragment_type){
-                case TYPE_STOPS:
-                    showStopsInRecycler(stopList);
-                    break;
-                case TYPE_ARRIVALS:
-                    arrivalsManager = new ArrivalsManager(stopList);
-                    flatProgressBar.setVisibility(View.VISIBLE);
-                    flatProgressBar.setProgress(0);
-                    flatProgressBar.setIndeterminate(false);
-                    //for the moment, be satisfied with only one location
-                    //AppLocationManager.getInstance(getContext()).removeLocationRequestFor(fragmentLocationListener);
-                    break;
-                default:
-            }
-
-        } else {
+    /**
+     * Display the stops, or run new set of requests for arrivals
+     */
+    private void showCurrentStops(){
+        if (currentNearbyStops.isEmpty()) {
             setNoStopsLayout();
+            return;
+        }
+
+        double minDistance = Double.POSITIVE_INFINITY;
+        for(Stop s: currentNearbyStops){
+            minDistance = Math.min(minDistance, s.getDistanceFromLocation(lastReceivedLocation));
+        }
+
+
+        //quick trial to hopefully always get the stops in the correct order
+        Collections.sort(currentNearbyStops,new StopSorterByDistance(lastReceivedLocation));
+        switch (fragment_type){
+            case TYPE_STOPS:
+                showStopsInRecycler(currentNearbyStops);
+                break;
+            case TYPE_ARRIVALS:
+                arrivalsManager = new ArrivalsManager(currentNearbyStops);
+                flatProgressBar.setVisibility(View.VISIBLE);
+                flatProgressBar.setProgress(0);
+                flatProgressBar.setIndeterminate(false);
+                //for the moment, be satisfied with only one location
+                //AppLocationManager.getInstance(getContext()).removeLocationRequestFor(fragmentLocationListener);
+                break;
+            default:
         }
 
     }
@@ -411,15 +404,12 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
                 gridRecyclerView.setAdapter(arrivalsStopAdapter);
         }
         fragmentLocationListener.lastUpdateTime = -1;
-        locManager.removeLocationRequestFor(fragmentLocationListener);
-        locManager.addLocationRequestFor(fragmentLocationListener);
+        //locManager.removeLocationRequestFor(fragmentLocationListener);
+        //locManager.addLocationRequestFor(fragmentLocationListener);
+        showCurrentStops();
     }
 
     //useful methods
-    protected boolean isDBUpdating(){
-        return globalSharedPref.getBoolean(getString(R.string.databaseUpdatingPref),false);
-    }
-
 
     /////// GUI METHODS ////////
     private void showStopsInRecycler(List<Stop> stops){
@@ -454,7 +444,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             if(p.queryAllRoutes().size() == 0) continue;
             for(Route r: p.queryAllRoutes()){
                 //if there are no routes, should not do anything
-                routesPairList.add(new Pair<>(p,r));
+                if (r.passaggi != null && !r.passaggi.isEmpty())
+                    routesPairList.add(new Pair<>(p,r));
             }
         }
         if (getContext()==null){
@@ -493,31 +484,30 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         messageTextView.setVisibility(View.GONE);
     }
 
-    class ArrivalsManager implements FiveTAPIVolleyRequest.ResponseListener, Response.ErrorListener{
-        final HashMap<String,Palina> mStops;
-        final Map<String,List<Route>> routesToAdd = new HashMap<>();
+    class ArrivalsManager implements Response.Listener<Palina>, Response.ErrorListener{
+        final HashMap<String,Palina> palinasDone = new HashMap<>();
+        //final Map<String,List<Route>> routesToAdd = new HashMap<>();
         final static String REQUEST_TAG = "NearbyArrivals";
-        private final QueryType[] types = {QueryType.ARRIVALS,QueryType.DETAILS};
         final NetworkVolleyManager volleyManager;
         int activeRequestCount = 0,reqErrorCount = 0, reqSuccessCount=0;
 
         ArrivalsManager(List<Stop> stops){
-            mStops = new HashMap<>();
             volleyManager = NetworkVolleyManager.getInstance(getContext());
 
             int MAX_ARRIVAL_STOPS = 35;
+            Date currentDate = new Date();
+            int timeRange = 3600;
+            int departures = 10;
+            int numreq = 0;
             for(Stop s: stops.subList(0,Math.min(stops.size(), MAX_ARRIVAL_STOPS))){
-                mStops.put(s.ID,new Palina(s));
-                for(QueryType t: types) {
-                    final FiveTAPIVolleyRequest req = FiveTAPIVolleyRequest.getNewRequest(t, s.ID, this, this);
-                    if (req != null) {
-                        req.setTag(REQUEST_TAG);
-                        volleyManager.addToRequestQueue(req);
-                        activeRequestCount++;
-                    }
-                }
+
+                final MapiArrivalRequest req = new MapiArrivalRequest(s.ID, currentDate, timeRange, departures, this, this);
+                req.setTag(REQUEST_TAG);
+                volleyManager.addToRequestQueue(req);
+                activeRequestCount++;
+                numreq++;
             }
-            flatProgressBar.setMax(activeRequestCount);
+            flatProgressBar.setMax(numreq);
         }
 
 
@@ -546,40 +536,19 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         }
 
         @Override
-        public void onResponse(Palina result, QueryType type) {
+        public void onResponse(Palina result) {
             //counter for requests
             activeRequestCount--;
             reqSuccessCount++;
-
-
-            final Palina palinaInMap = mStops.get(result.ID);
+            //final Palina palinaInMap = palinasDone.get(result.ID);
             //palina cannot be null here
             //sorry for the brutal crash when it happens
-            if(palinaInMap == null) throw new IllegalStateException("Cannot get the palina from the map");
-            //necessary to split the Arrivals and Details cases
-            switch (type){
-                case ARRIVALS:
-                    palinaInMap.addInfoFromRoutes(result.queryAllRoutes());
-                    final List<Route> possibleRoutes = routesToAdd.get(result.ID);
-                    if(possibleRoutes!=null) {
-                        palinaInMap.addInfoFromRoutes(possibleRoutes);
-                        routesToAdd.remove(result.ID);
-                    }
-                break;
-                case DETAILS:
-                    if(palinaInMap.queryAllRoutes().size()>0){
-                        //merge the branches
-                        palinaInMap.addInfoFromRoutes(result.queryAllRoutes());
-                    } else {
-                        routesToAdd.put(result.ID,result.queryAllRoutes());
-                    }
-                    break;
-                default:
-                    throw new IllegalArgumentException("Wrong QueryType in onResponse");
-            }
-
+            //if(palinaInMap == null) throw new IllegalStateException("Cannot get the palina from the map");
+            //add the palina to the successful one
+            //TODO: Avoid redoing everything every time a new Result arrives
+            palinasDone.put(result.ID, result);
             final ArrayList<Palina> outList = new ArrayList<>();
-            for(Palina p: mStops.values()){
+            for(Palina p: palinasDone.values()){
                 final List<Route> routes = p.queryAllRoutes();
                 if(routes!=null && routes.size()>0) outList.add(p);
             }
@@ -613,14 +582,14 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         public void onLocationChanged(Location location) {
             //set adapter
             float accuracy = location.getAccuracy();
-            if(accuracy<60 && canStartDBQuery) {
+            if(accuracy<60 && !dbUpdateRunning) {
                 distance = 20;
                 final Bundle msgBundle = new Bundle();
                 msgBundle.putParcelable(BUNDLE_LOCATION,location);
                 getLoaderManager().restartLoader(LOADER_ID,msgBundle,callbacks);
             }
             lastUpdateTime = System.currentTimeMillis();
-            Log.d("BusTO:NearPositListen","can start loader "+ canStartDBQuery);
+            Log.d("BusTO:NearPositListen","can start loader "+ !dbUpdateRunning);
         }
 
         @Override

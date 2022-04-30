@@ -58,4 +58,12 @@
             android:key="@string/pref_arrival_times_capit"
         />
     </androidx.preference.PreferenceCategory>
+
+    <androidx.preference.PreferenceCategory android:title="Database">
+            <androidx.preference.Preference
+                android:title="@string/database_update_req"
+                android:summary="@string/database_update_req_descr"
+                android:key="pref_db_update_now"
+            />
+    </androidx.preference.PreferenceCategory>
 </androidx.preference.PreferenceScreen>

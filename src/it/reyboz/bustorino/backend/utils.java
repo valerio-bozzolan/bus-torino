@@ -15,11 +15,15 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import it.reyboz.bustorino.backend.mato.MatoAPIFetcher;
 
 public abstract class utils {
     private static final double EarthRadius = 6371e3;
+
+
     public static Double measuredistanceBetween(double lat1,double long1,double lat2,double long2){
         final double phi1 = Math.toRadians(lat1);
         final double phi2 = Math.toRadians(lat2);
@@ -107,21 +111,58 @@ public abstract class utils {
         }
         return busStopID;
     }
+    final static Pattern ROMAN_PATTERN =  Pattern.compile(
+            "^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$");
+    private static boolean isRomanNumber(String str){
+        if(str.isEmpty()) return false;
+        final Matcher matcher = ROMAN_PATTERN.matcher(str);
+        return matcher.find();
+    }
 
     public static String toTitleCase(String givenString, boolean lowercaseRest) {
-        String[] arr = givenString.split(" ");
+        String[] arr = givenString.trim().split(" ");
         StringBuilder sb = new StringBuilder();
         //Log.d("BusTO chars", "String parsing: "+givenString+" in array: "+ Arrays.toString(arr));
-        for (int i = 0; i < arr.length; i++) {
-            if (arr[i].length() > 1) {
-                sb.append(Character.toUpperCase(arr[i].charAt(0)));
+        for (String s : arr) {
+            if (s.length() > 0) {
+                String[] allsubs = s.split("\\.");
+
+                boolean addPoint = s.contains(".");
+                /*if (s.contains(".lli")|| s.contains(".LLI")) //Fratelli
+                {
+                DOESN'T ALWAYS WORK
+                    addPoint = false;
+                    allsubs = new String[]{s};
+                }*/
+                boolean first = true;
+                for (String subs : allsubs) {
+                    if(first) first=false;
+                    else {
+                        if (addPoint) sb.append(".");
+                        sb.append(" ");
+                    }
+                    if(isRomanNumber(subs)){
+                        //add and skip the rest
+                        sb.append(subs);
+                        continue;
+                    }
+                    sb.append(Character.toUpperCase(subs.charAt(0)));
+                    if (lowercaseRest)
+                        sb.append(subs.substring(1).toLowerCase(Locale.ROOT));
+                    else
+                        sb.append(subs.substring(1));
+
+                }
+                sb.append(" ");
+                /*sb.append(Character.toUpperCase(arr[i].charAt(0)));
                 if (lowercaseRest)
                     sb.append(arr[i].substring(1).toLowerCase(Locale.ROOT));
                 else
                     sb.append(arr[i].substring(1));
                 sb.append(" ");
-            }
-            else sb.append(arr[i]);
+
+                 */
+            } else sb.append(s);
         }
         return sb.toString().trim();
     }

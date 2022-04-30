@@ -250,7 +250,7 @@ public class AsyncArrivalsSearcher extends AsyncTask<String, Fetcher.Result,Pali
 
         @Override
         public void run() {
-            final NextGenDB nextGenDB = new NextGenDB(context);
+            final NextGenDB nextGenDB = NextGenDB.getInstance(context);
             //ContentValues[] values = new ContentValues[routesToInsert.size()];
             ArrayList<ContentValues> branchesValues = new ArrayList<>(routesToInsert.size()*4);
             ArrayList<ContentValues> connectionsVals = new ArrayList<>(routesToInsert.size()*4);

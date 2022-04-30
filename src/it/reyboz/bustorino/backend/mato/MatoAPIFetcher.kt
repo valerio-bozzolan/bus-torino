@@ -19,15 +19,23 @@ package it.reyboz.bustorino.backend.mato
 
 import android.content.Context
 import android.util.Log
+import com.android.volley.DefaultRetryPolicy
 import com.android.volley.toolbox.RequestFuture
 import it.reyboz.bustorino.BuildConfig
 import it.reyboz.bustorino.backend.*
+import it.reyboz.bustorino.data.gtfs.GtfsAgency
+import it.reyboz.bustorino.data.gtfs.GtfsFeed
+import it.reyboz.bustorino.data.gtfs.GtfsRoute
+import it.reyboz.bustorino.data.gtfs.MatoPattern
+import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.collections.ArrayList
 
 
 open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
@@ -58,7 +66,7 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
                 return Palina(stopID)
             }
             val requestQueue = NetworkVolleyManager.getInstance(appContext).requestQueue
-            request.setTag(getVolleyReqTag(QueryType.ARRIVALS))
+            request.setTag(getVolleyReqTag(MatoQueries.QueryType.ARRIVALS))
             requestQueue.add(request)
 
             try {
@@ -105,10 +113,15 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
             "DNT" to "1",
             "Host" to "mapi.5t.torino.it")
 
-        fun getVolleyReqTag(type: QueryType): String{
+        private val longRetryPolicy = DefaultRetryPolicy(10000,5,DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
+
+        fun getVolleyReqTag(type: MatoQueries.QueryType): String{
             return when (type){
-                QueryType.ALL_STOPS -> VOLLEY_TAG +"_AllStops"
-                QueryType.ARRIVALS -> VOLLEY_TAG+"_Arrivals"
+                MatoQueries.QueryType.ALL_STOPS -> VOLLEY_TAG +"_AllStops"
+                MatoQueries.QueryType.ARRIVALS -> VOLLEY_TAG+"_Arrivals"
+                MatoQueries.QueryType.FEEDS -> VOLLEY_TAG +"_Feeds"
+                MatoQueries.QueryType.ROUTES -> VOLLEY_TAG +"_AllRoutes"
+                MatoQueries.QueryType.PATTERNS_FOR_ROUTES -> VOLLEY_TAG + "_PatternsForRoute"
             }
         }
 
@@ -120,14 +133,15 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
             val future = RequestFuture.newFuture<List<Palina>>()
 
             val request = VolleyAllStopsRequest(future, future)
-            request.tag = getVolleyReqTag(QueryType.ALL_STOPS)
+            request.tag = getVolleyReqTag(MatoQueries.QueryType.ALL_STOPS)
+            request.retryPolicy = longRetryPolicy
 
             requestQueue.add(request)
 
             var palinaList:List<Palina> = mutableListOf()
 
             try {
-                palinaList = future.get(60, TimeUnit.SECONDS)
+                palinaList = future.get(120, TimeUnit.SECONDS)
 
                 res?.set(Fetcher.Result.OK)
             }catch (e: InterruptedException) {
@@ -172,10 +186,9 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
             val palina = Palina(
                 jsonStop.getString("code"),
                 jsonStop.getString("name"),
-                null, null, latitude, longitude
+                null, null, latitude, longitude,
+                jsonStop.getString("gtfsId")
             )
-            palina.gtfsID = jsonStop.getString("gtfsId")
-
             val routesStoppingJSON = jsonStop.getJSONArray("routes")
             val baseRoutes = mutableListOf<Route>()
             // get all the possible routes
@@ -259,10 +272,159 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
             return  data
         }
 
-    }
 
-    enum class QueryType {
-        ARRIVALS, ALL_STOPS
+        fun getFeedsAndAgencies(context: Context, res: AtomicReference<Fetcher.Result>?):
+                Pair<List<GtfsFeed>, ArrayList<GtfsAgency>> {
+            val requestQueue = NetworkVolleyManager.getInstance(context).requestQueue
+            val future = RequestFuture.newFuture<JSONObject>()
+
+            val request = MatoVolleyJSONRequest(MatoQueries.QueryType.FEEDS, JSONObject(), future, future)
+            request.setRetryPolicy(longRetryPolicy)
+            request.tag = getVolleyReqTag(MatoQueries.QueryType.FEEDS)
+
+            requestQueue.add(request)
+
+            val feeds = ArrayList<GtfsFeed>()
+            val agencies = ArrayList<GtfsAgency>()
+            var outObj = ""
+            try {
+                val resObj = future.get(120,TimeUnit.SECONDS)
+                outObj = resObj.toString(1)
+                val feedsJSON = resObj.getJSONArray("feeds")
+                for (i in 0 until feedsJSON.length()){
+                    val resTup = ResponseParsing.parseFeedJSON(feedsJSON.getJSONObject(i))
+                    feeds.add(resTup.first)
+
+                    agencies.addAll(resTup.second)
+                }
+
+
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+                res?.set(Fetcher.Result.PARSER_ERROR)
+            } catch (e: ExecutionException) {
+                e.printStackTrace()
+                res?.set(Fetcher.Result.SERVER_ERROR)
+            } catch (e: TimeoutException) {
+                res?.set(Fetcher.Result.CONNECTION_ERROR)
+                e.printStackTrace()
+            } catch (e: JSONException){
+                e.printStackTrace()
+                res?.set(Fetcher.Result.PARSER_ERROR)
+                Log.e(DEBUG_TAG, "Downloading feeds: $outObj")
+            }
+            return Pair(feeds,agencies)
+
+        }
+        fun getRoutes(context: Context, res: AtomicReference<Fetcher.Result>?):
+                ArrayList<GtfsRoute>{
+            val requestQueue = NetworkVolleyManager.getInstance(context).requestQueue
+            val future = RequestFuture.newFuture<JSONObject>()
+
+            val params = JSONObject()
+            params.put("feeds","gtt")
+
+            val request = MatoVolleyJSONRequest(MatoQueries.QueryType.ROUTES, params, future, future)
+            request.tag = getVolleyReqTag(MatoQueries.QueryType.ROUTES)
+            request.retryPolicy = longRetryPolicy
+
+            requestQueue.add(request)
+
+            val routes = ArrayList<GtfsRoute>()
+            var outObj = ""
+            try {
+                val resObj = future.get(120,TimeUnit.SECONDS)
+                outObj = resObj.toString(1)
+                val routesJSON = resObj.getJSONArray("routes")
+                for (i in 0 until routesJSON.length()){
+                    val route = ResponseParsing.parseRouteJSON(routesJSON.getJSONObject(i))
+                    routes.add(route)
+                }
+
+
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+                res?.set(Fetcher.Result.PARSER_ERROR)
+            } catch (e: ExecutionException) {
+                e.printStackTrace()
+                res?.set(Fetcher.Result.SERVER_ERROR)
+            } catch (e: TimeoutException) {
+                res?.set(Fetcher.Result.CONNECTION_ERROR)
+                e.printStackTrace()
+            } catch (e: JSONException){
+                e.printStackTrace()
+                res?.set(Fetcher.Result.PARSER_ERROR)
+                Log.e(DEBUG_TAG, "Downloading feeds: $outObj")
+            }
+            return routes
+
+        }
+        fun getPatternsWithStops(context: Context, routesGTFSIds: ArrayList<String>, res: AtomicReference<Fetcher.Result>?): ArrayList<MatoPattern>{
+            val requestQueue = NetworkVolleyManager.getInstance(context).requestQueue
+
+            val future = RequestFuture.newFuture<JSONObject>()
+
+            val params = JSONObject()
+            for (r in routesGTFSIds){
+                if(r.isEmpty()) routesGTFSIds.remove(r)
+            }
+            val routes = JSONArray(routesGTFSIds)
+
+            params.put("routes",routes)
+
+            val request = MatoVolleyJSONRequest(MatoQueries.QueryType.PATTERNS_FOR_ROUTES, params, future, future)
+            request.retryPolicy = longRetryPolicy
+            request.tag = getVolleyReqTag(MatoQueries.QueryType.PATTERNS_FOR_ROUTES)
+
+            requestQueue.add(request)
+
+            val patterns = ArrayList<MatoPattern>()
+            //var outObj = ""
+            try {
+                val resObj = future.get(60,TimeUnit.SECONDS)
+                //outObj = resObj.toString(1)
+                val routesJSON = resObj.getJSONArray("routes")
+                for (i in 0 until routesJSON.length()){
+                    val patternList = ResponseParsing.parseRoutePatternsStopsJSON(routesJSON.getJSONObject(i))
+                    patterns.addAll(patternList)
+                }
+
+
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+                res?.set(Fetcher.Result.PARSER_ERROR)
+            } catch (e: ExecutionException) {
+                e.printStackTrace()
+                res?.set(Fetcher.Result.SERVER_ERROR)
+            } catch (e: TimeoutException) {
+                res?.set(Fetcher.Result.CONNECTION_ERROR)
+                e.printStackTrace()
+            } catch (e: JSONException){
+                e.printStackTrace()
+                res?.set(Fetcher.Result.PARSER_ERROR)
+                //Log.e(DEBUG_TAG, "Downloading feeds: $outObj")
+            }
+            /*
+            var numRequests = 0
+            for(routeName in routesGTFSIds){
+                if (!routeName.isEmpty()) numRequests++
+            }
+            val countDownForRequests = CountDownLatch(numRequests)
+            val lockSave = ReentrantLock()
+            //val countDownFor
+            for (routeName in routesGTFSIds){
+                val pars = JSONObject()
+                pars.put("")
+
+            }
+            val goodResponseListener = Response.Listener<JSONObject> {  }
+            val errorResponseListener = Response.ErrorListener {  }
+             */
+
+            return patterns
+        }
+
+
     }
 
 }

@@ -23,26 +23,25 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName=GtfsRoute.DB_TABLE)
 data class GtfsRoute(
-    @PrimaryKey @ColumnInfo(name = COL_ROUTE_ID)
-    val ID: String,
-    @ColumnInfo(name = "agency_id")
+        @PrimaryKey @ColumnInfo(name = COL_ROUTE_ID)
+    val gtfsId: String,
+        @ColumnInfo(name = COL_AGENCY_ID)
     val agencyID: String,
-    @ColumnInfo(name = "route_short_name")
+        @ColumnInfo(name = "route_short_name")
     val shortName: String,
-    @ColumnInfo(name = "route_long_name")
+        @ColumnInfo(name = "route_long_name")
     val longName: String,
-    @ColumnInfo(name = "route_desc")
+        @ColumnInfo(name = "route_desc")
     val description: String,
-    @ColumnInfo(name ="route_type")
-    val type: String,
+        @ColumnInfo(name = COL_MODE)
+    val mode: GtfsMode,
     //@ColumnInfo(name ="route_url")
     //val url: String,
-    @ColumnInfo(name ="route_color")
+        @ColumnInfo(name = COL_COLOR)
     val color: String,
-    @ColumnInfo(name ="route_text_color")
+        @ColumnInfo(name = COL_TEXT_COLOR)
     val textColor: String,
-    @ColumnInfo(name = COL_SORT_ORDER)
-    val sortOrder: Int
+
 ): GtfsTable {
 
     constructor(valuesByColumn: Map<String,String>) : this(
@@ -51,18 +50,21 @@ data class GtfsRoute(
         valuesByColumn["route_short_name"]!!,
         valuesByColumn["route_long_name"]!!,
         valuesByColumn["route_desc"]!!,
-        valuesByColumn["route_type"]!!,
-        valuesByColumn["route_color"]!!,
-        valuesByColumn["route_text_color"]!!,
-        valuesByColumn[COL_SORT_ORDER]?.toInt()!!
+        valuesByColumn["route_type"]?.toInt()?.let { GtfsMode.getByValue(it) }!!,
+        valuesByColumn[COL_COLOR]!!,
+        valuesByColumn[COL_TEXT_COLOR]!!,
     )
     companion object {
         const val DB_TABLE: String="routes_table"
         const val COL_SORT_ORDER: String="route_sort_order"
+        const val COL_AGENCY_ID = "agency_id"
         const val COL_ROUTE_ID = "route_id"
+        const val COL_MODE ="route_mode"
+        const val COL_COLOR="route_color"
+        const val COL_TEXT_COLOR="route_text_color"
 
         val COLUMNS = arrayOf(COL_ROUTE_ID,
-            "agency_id",
+            COL_AGENCY_ID,
             "route_short_name",
             "route_long_name",
             "route_desc",
@@ -71,6 +73,8 @@ data class GtfsRoute(
             "route_text_color",
             COL_SORT_ORDER
         )
+
+        //const val CREATE_SQL = ""
     }
 
     override fun getColumns(): Array<String> {

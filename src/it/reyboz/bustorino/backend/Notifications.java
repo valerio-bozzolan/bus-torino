@@ -8,6 +8,7 @@ import it.reyboz.bustorino.R;
 
 public class Notifications {
     public static final String DEFAULT_CHANNEL_ID ="Default";
+    public static final String DB_UPDATE_CHANNELS_ID ="Database Update";
 
     public static void createDefaultNotificationChannel(Context context) {
         // Create the NotificationChannel, but only on API 26+ because
