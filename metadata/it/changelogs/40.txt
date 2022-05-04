@@ -1,0 +1,6 @@
+* nuova incredibile schermata per mostrare le linee dei bus (inclusi extraurbani)
+* sostituzione fonte orari per gli arrivi nelle vicinanze
+* migliorato il processo di aggiornamento del database 
+* ora si può aggiornare i dati dell'app quando si vuole dalle impostazioni
+* miglioramenti alla grafica
+* questa versione è stata sviluppata dal nostro Fabio Mazza

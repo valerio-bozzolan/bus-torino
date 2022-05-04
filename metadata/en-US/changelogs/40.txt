@@ -1,0 +1,6 @@
+* download and display bus lines in an amazing new UI (including suburban buses)
+* use the new API from MaTO for nearby stops 
+* fix update of the database so it doesn't run every time
+* allow update of the database on request from settings
+* misc graphical updates
+* this version was developed by our Fabio Mazza
