@@ -18,9 +18,16 @@
 package it.reyboz.bustorino.util;
 
 
+import android.util.Log;
+import androidx.annotation.NonNull;
+
 import java.util.Comparator;
 
 public class LinesNameSorter implements Comparator<String> {
+    final static private int cc = 100;
+    final static private int ERROR_PARSING = -10;
+    final static private int FIRST_1_LETTER = 120;
+    final static private int FIRST_2_LETTERS=220;
     @Override
     public int compare(String name1, String name2) {
         name1 = name1.trim();
@@ -49,7 +56,7 @@ public class LinesNameSorter implements Comparator<String> {
                 }
                 return name1.compareTo(name2);
             }
-        }**/
+        }*
         //One of them is not
         int num1 = -1;
         if(isInteger(name1)) num1 = Integer.parseInt(name1);
@@ -58,14 +65,21 @@ public class LinesNameSorter implements Comparator<String> {
 
         if(num1 >= 0 && num2 >=0){
             //we're very happy
-            return (num1-num2)*10;
+            return (num1-num2)*cc;
         } else if (num1>=0) {
             //name2 is not fully integer
+            if(name2.contains(" ")){
+                final String[] allStr = name2.split(" ");
+                if(isInteger(allStr[0])) {
+                    return (num1-Integer.parseInt(allStr[0]))*cc - incrementFromLastChar(allStr[1].trim().charAt(0));
+                }
+                //sennò si fa come sotto
+            }
             final String name2sub = name2.substring(0, name2.length()-1).trim();
             char lastchar = name2.charAt(name2.length()-1);
             if(isInteger(name2sub)){
                 num2 = Integer.parseInt(name2sub);
-                int diff = (num1-num2)*10;
+                int diff = (num1-num2)*cc;
                 return diff - incrementFromLastChar(lastchar);
             } else{
                 //failed
@@ -77,7 +91,7 @@ public class LinesNameSorter implements Comparator<String> {
             char lastchar = name1.charAt(name1.length()-1);
             if (isInteger(name1sub)){
                 num1 = Integer.parseInt(name1sub);
-                int diff = (num1-num2)*10;
+                int diff = (num1-num2)*cc;
                 return diff + incrementFromLastChar(lastchar);
             } else {
                 return name1.compareTo(name2);
@@ -85,9 +99,72 @@ public class LinesNameSorter implements Comparator<String> {
         }
         //last case
         return name1.compareTo(name2);
+        **/
+        //DO ALL CASES
+        final CompareHolder c1 = getValueOfComplexName(name1);
+        final CompareHolder c2 = getValueOfComplexName(name2);
+        if (c1.value != ERROR_PARSING && c2.value != ERROR_PARSING){
+
+                return (c1.value-c2.value)*100+c1.extra.compareTo(c2.extra);
+            } else {
+            if(c2.value== ERROR_PARSING && c1.value==ERROR_PARSING){
+                return c1.extra.compareTo(c2.extra);
+            }
+            else if(c1.value == ERROR_PARSING){
+                return 1;
+            }
+            else {
+                return -1;
+            }
+                //Log.e("BusTo-Parsing","Error with the string");
+                //throw new IllegalArgumentException("Error with the string name parsing");
+            }
 
     }
 
+    private static CompareHolder getValueOfComplexName(String name){
+        String namec = name.trim();
+
+        if (isInteger(namec)) return new CompareHolder(Integer.parseInt(namec),"");
+
+        //check for the first part
+        if(namec.contains(" ")){
+            final String[] allStr = namec.split(" ");
+            if(isInteger(allStr[0])) {
+                int g = Integer.parseInt(allStr[0]);
+                return new CompareHolder(g, allStr[1]);
+            }
+            else return new CompareHolder(-7, namec);
+        }else {
+            final String name1sub = namec.substring(0, namec.length()-1).trim();
+            String lastPart = namec.substring(namec.length()-1);
+            int g;
+            if (isInteger(name1sub)) {
+                return new CompareHolder(Integer.parseInt(name1sub), lastPart);
+            } else if(name1sub.equals("M1")){
+                return new CompareHolder(-1, lastPart);
+            } else {
+                //check NightBuster (X+name)
+                if(isInteger(namec.substring(1))){
+                    g = Integer.parseInt((namec.substring(1)));
+                    return new CompareHolder(FIRST_1_LETTER, namec);
+                } else if (isInteger(namec.substring(2))) {
+                    return new CompareHolder(FIRST_2_LETTERS, namec);
+                }
+                return new CompareHolder(ERROR_PARSING, namec);
+            }
+        }
+    }
+
+    private static class CompareHolder {
+        int value;
+        String extra;
+
+        public CompareHolder(int value,@NonNull String extra) {
+            this.value = value;
+            this.extra = extra;
+        }
+    }
     public static boolean isInteger(String strNum) {
         if (strNum == null) {
             return false;
@@ -109,7 +186,7 @@ public class LinesNameSorter implements Comparator<String> {
             case 'N':
                 return 3;
             default:
-                return 6;
+                return 1;
         }
     }
 }

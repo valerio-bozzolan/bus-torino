@@ -17,7 +17,6 @@
  */
 package it.reyboz.bustorino.adapters;
 
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -36,7 +35,7 @@ import it.reyboz.bustorino.backend.Stop;
 public class StopRecyclerAdapter extends RecyclerView.Adapter<StopRecyclerAdapter.ViewHolder> {
     private List<Stop> stops;
     private static final int ITEM_LAYOUT_FAVORITES = R.layout.entry_bus_stop;
-    private static final int ITEM_LAYOUT_LINES = R.layout.bus_stop_line_elmt;
+    private static final int ITEM_LAYOUT_LINES = R.layout.stop_line_element;
     private static final int busIcon = R.drawable.bus;
     private static final int trainIcon = R.drawable.subway;
     private static final int tramIcon = R.drawable.tram;
@@ -213,7 +212,7 @@ public class StopRecyclerAdapter extends RecyclerView.Adapter<StopRecyclerAdapte
             vh.bottomStub.setVisibility(View.VISIBLE);
             vh.topStub.setVisibility(View.VISIBLE);
             if(position == 0) {
-                vh.topStub.setVisibility(View.GONE);
+                vh.topStub.setVisibility(View.INVISIBLE);
             }
             else if (position == stops.size()-1) {
                 vh.bottomStub.setVisibility(View.GONE);

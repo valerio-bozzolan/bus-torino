@@ -85,7 +85,14 @@
                 android:layout_marginBottom="8dp"
                 android:layout_marginTop="0dp"
                 android:layout_margin="4dp"
-                app:layout_constraintHorizontal_bias="0.0" />
+                app:layout_constraintHorizontal_bias="0.0"
+                app:fastScrollEnabled="true"
+                app:fastScrollHorizontalThumbDrawable="@drawable/thumb_drawable"
+                app:fastScrollHorizontalTrackDrawable="@drawable/line_drawable"
+                app:fastScrollVerticalThumbDrawable="@drawable/thumb_drawable"
+                app:fastScrollVerticalTrackDrawable="@drawable/line_drawable"
+
+        />
         <!--
         <TextView
                 android:text="TextView"

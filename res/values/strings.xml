@@ -201,7 +201,10 @@
         <item>CAPITALIZE_FIRST</item>
 
     </array>
+    <string name="pref_lines_click_msg">Show arrivals touching on stop</string>
+    <string name="pref_experimental_msg">Enable experiments</string>
     
     <!-- lines -->
-    <string name="long_press_for_options">Long press for options</string>
+    <string name="long_press_stop_4_options">Long press the stop for options</string>
+
 </resources>

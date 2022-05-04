@@ -46,6 +46,11 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
         routeIDToSearch.value = routeID
     }
 
+    fun getRouteIDQueried(): String?{
+        return routeIDToSearch.value
+    }
+    var shouldShowMessage = true;
+
     fun requestStopsForGTFSIDs(gtfsIDs: List<String>){
         oldRepo.requestStopsWithGtfsIDs(gtfsIDs) {
             if (it.isSuccess) {

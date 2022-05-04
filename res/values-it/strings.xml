@@ -182,7 +182,11 @@
         <item>Tutto in maiuscolo</item>
         <item>Solo la prima lettera maiuscola</item>
     </string-array>
+    <string name="pref_lines_click_msg">Mostra arrivi quando tocchi una fermata</string>
+    <string name="pref_experimental_msg">Abilita esperimenti</string>
+
+
 
     <!-- lines -->
-    <string name="long_press_for_options">Tocca a lungo per le opzioni</string>
+    <string name="long_press_stop_4_options">Tocca a lungo la fermata per le opzioni</string>
 </resources>

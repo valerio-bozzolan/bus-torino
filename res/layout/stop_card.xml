@@ -8,8 +8,8 @@
         android:focusable="true"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		card_view:cardCornerRadius="1dp"
-		android:layout_margin="8dp" android:padding="4dp">
+		card_view:cardCornerRadius="5dp"
+		android:layout_margin="5dp" android:padding="4dp">
 
 	<LinearLayout
 			android:orientation="horizontal"

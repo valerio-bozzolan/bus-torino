@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <androidx.preference.PreferenceCategory
-            android:title="@string/general_settings">
-        <androidx.preference.SwitchPreferenceCompat
-                android:defaultValue="false"
-                android:title="@string/settings_experimental" android:key="@string/pref_key_experimental"/>
-    </androidx.preference.PreferenceCategory>
+
     <androidx.preference.PreferenceCategory
             android:title="@string/pref_recents_group_title">
         <!--
@@ -59,11 +54,26 @@
         />
     </androidx.preference.PreferenceCategory>
 
+    <!--TODO: If we want lines preferences (eg showing arrivals on click)
+    <androidx.preference.PreferenceCategory android:title="@string/lines">
+        <androidx.preference.CheckBoxPreference
+                android:title=""
+            />
+    </androidx.preference.PreferenceCategory>
+    -->
+
     <androidx.preference.PreferenceCategory android:title="Database">
             <androidx.preference.Preference
                 android:title="@string/database_update_req"
                 android:summary="@string/database_update_req_descr"
                 android:key="pref_db_update_now"
             />
+    </androidx.preference.PreferenceCategory>
+
+    <androidx.preference.PreferenceCategory
+            android:title="@string/settings_experimental">
+        <androidx.preference.SwitchPreferenceCompat
+                android:defaultValue="false"
+                android:title="@string/pref_experimental_msg" android:key="@string/pref_key_experimental"/>
     </androidx.preference.PreferenceCategory>
 </androidx.preference.PreferenceScreen>

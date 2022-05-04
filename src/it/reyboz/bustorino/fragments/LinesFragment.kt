@@ -36,6 +36,7 @@ import it.reyboz.bustorino.data.gtfs.GtfsRoute
 import it.reyboz.bustorino.data.gtfs.MatoPatternWithStops
 import it.reyboz.bustorino.data.gtfs.PatternStop
 import it.reyboz.bustorino.util.LinesNameSorter
+import it.reyboz.bustorino.util.PatternWithStopsSorter
 
 class LinesFragment : ScreenBaseFragment() {
 
@@ -45,6 +46,8 @@ class LinesFragment : ScreenBaseFragment() {
         }
         const val DEBUG_TAG="BusTO-LinesFragment"
         const val FRAGMENT_TAG="LinesFragment"
+
+        val patternStopsComparator = PatternWithStopsSorter()
     }
 
 
@@ -68,16 +71,29 @@ class LinesFragment : ScreenBaseFragment() {
     private val linesComparator = Comparator<GtfsRoute> { a,b ->
         return@Comparator linesNameSorter.compare(a.shortName, b.shortName)
     }
+    private var firstClick = true;
 
     private val adapterListener = object : StopAdapterListener {
         override fun onTappedStop(stop: Stop?) {
             //var r = ""
             //stop?.let { r= it.stopDisplayName.toString() }
-            Toast.makeText(context,R.string.long_press_for_options,Toast.LENGTH_SHORT).show()
+            if(viewModel.shouldShowMessage) {
+                Toast.makeText(context, R.string.long_press_stop_4_options, Toast.LENGTH_SHORT).show()
+                viewModel.shouldShowMessage=false
+            }
+            stop?.let {
+                mListener?.requestArrivalsForStopID(it.ID)
+            }
+            if(stop == null){
+                Log.e(DEBUG_TAG,"Passed wrong stop")
+            }
+            if(mListener == null){
+                Log.e(DEBUG_TAG, "Listener is null")
+            }
         }
 
         override fun onLongPressOnStop(stop: Stop?): Boolean {
-            Log.d("BusTO-LinesFrag", "LongPressOnStop")
+            Log.d(DEBUG_TAG, "LongPressOnStop")
             return true
         }
     }
@@ -93,16 +109,6 @@ class LinesFragment : ScreenBaseFragment() {
         routeDescriptionTextView = rootView.findViewById(R.id.routeDescriptionTextView)
         stopsRecyclerView = rootView.findViewById(R.id.patternStopsRecyclerView)
 
-        /*
-            Stop busStop = (Stop) parent.getItemAtPosition(position);
-
-            if(mListener!=null){
-                mListener.requestArrivalsForStopID(busStop.ID);
-            }
-
-        });
-
-         */
         val llManager = LinearLayoutManager(context)
         llManager.orientation = LinearLayoutManager.VERTICAL
 
@@ -122,8 +128,13 @@ class LinesFragment : ScreenBaseFragment() {
                     val selRoute = currentRoutes.get(pos)
 
                     routeDescriptionTextView.text = selRoute.longName
-
+                    val oldRoute = viewModel.getRouteIDQueried()
+                    val resetSpinner = (oldRoute != null) && (oldRoute.trim() != selRoute.gtfsId.trim())
+                    Log.d(DEBUG_TAG, "Selected route: ${selRoute.gtfsId}, reset spinner: $resetSpinner")
+                    //launch query for this gtfsID
                     viewModel.setRouteIDQuery(selRoute.gtfsId)
+                    //reset spinner position
+                    if(resetSpinner) patternsSpinner.setSelection(0)
 
                 }
 
@@ -135,7 +146,7 @@ class LinesFragment : ScreenBaseFragment() {
             patternsSpinner.onItemSelectedListener = object : OnItemSelectedListener{
                 override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
                     val patternWithStops = currentPatterns.get(position)
-
+                    //
                     setPatternAndReqStops(patternWithStops)
 
                 }
@@ -173,7 +184,8 @@ class LinesFragment : ScreenBaseFragment() {
         viewModel.patternsWithStopsByRouteLiveData.observe(this){
             patterns ->
             run {
-                currentPatterns = patterns.sortedBy { p->"${p.pattern.directionId} - ${p.pattern.headsign}" }
+                currentPatterns = patterns.sortedBy { p-> p.pattern.code }
+                        //patterns. //sortedBy {-1*it.stopsIndices.size}// "${p.pattern.directionId} - ${p.pattern.headsign}" }
                 patternsAdapter?.let {
                     it.clear()
                     it.addAll(currentPatterns.map { p->"${p.pattern.directionId} - ${p.pattern.headsign}" })
@@ -181,7 +193,8 @@ class LinesFragment : ScreenBaseFragment() {
                 }
 
                 val  pos = patternsSpinner.selectedItemPosition
-                if(pos!= INVALID_POSITION){
+                //might be possible that the selectedItem is different (larger than list size)
+                if(pos!= INVALID_POSITION && pos >= 0 && (pos < currentPatterns.size)){
                     setPatternAndReqStops(currentPatterns[pos])
                 }
 
@@ -264,7 +277,6 @@ class LinesFragment : ScreenBaseFragment() {
 
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
-        val info = item.getMenuInfo();
 
         if (stopsRecyclerView.getAdapter() !is StopRecyclerAdapter) return false
         val adapter =stopsRecyclerView.adapter as StopRecyclerAdapter

@@ -4,7 +4,12 @@
     <color name="orange_500">#ff9800</color>
     <color name="orange_700">#F57C00</color>
     <color name="blue_500">#2196F3</color>
+    <color name="blue_620">#2a65e8</color>
     <color name="blue_700">#2060dd</color> <!-- #1976D2 -->
+
+    <color name="blue_mid_2">#2378e8</color>
+    <color name="blue_c_or_700">#0079f5</color>
+
     <color name="teal_500">#009688</color>
     <color name="teal_300">#4DB6AC</color>
     <color name="teal_200">#80cbc4</color>
@@ -16,5 +21,6 @@
     <color name="blue_extraurbano">#2060DD</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    <color name="line_pattern_color">@color/blue_mid_2</color><!-- 2e8df0-->
 
 </resources>
