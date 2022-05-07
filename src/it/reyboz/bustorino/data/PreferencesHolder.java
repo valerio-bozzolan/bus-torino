@@ -28,7 +28,18 @@ import static android.content.Context.MODE_PRIVATE;
  */
 public abstract class PreferencesHolder {
 
+    public static final String PREF_GTFS_DB_VERSION = "gtfs_db_version";
+
     public static SharedPreferences getMainSharedPreferences(Context context){
         return context.getSharedPreferences(context.getString(R.string.mainSharedPreferences), MODE_PRIVATE);
+    }
+
+    public static int getGtfsDBVersion(SharedPreferences pref){
+        return pref.getInt(PREF_GTFS_DB_VERSION,-1);
+    }
+    public static void setGtfsDBVersion(SharedPreferences pref,int version){
+        SharedPreferences.Editor ed = pref.edit();
+        ed.putInt(PREF_GTFS_DB_VERSION,version);
+        ed.apply();
     }
 }

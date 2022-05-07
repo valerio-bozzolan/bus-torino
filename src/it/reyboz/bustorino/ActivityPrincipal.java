@@ -52,6 +52,8 @@ import java.util.Arrays;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.DBUpdateWorker;
 import it.reyboz.bustorino.data.DatabaseUpdate;
+import it.reyboz.bustorino.data.PreferencesHolder;
+import it.reyboz.bustorino.data.gtfs.GtfsDatabase;
 import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.GeneralActivity;
 
@@ -75,6 +77,20 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_principal);
         final SharedPreferences theShPr = getMainSharedPreferences();
+
+        //database check
+        GtfsDatabase gtfsDB = GtfsDatabase.Companion.getGtfsDatabase(this);
+
+        final int db_version = gtfsDB.getOpenHelper().getReadableDatabase().getVersion();
+        boolean dataUpdateRequested = false;
+        final int old_version = PreferencesHolder.getGtfsDBVersion(theShPr);
+        Log.d(DEBUG_TAG, "GTFS Database: old version is "+old_version+ ", new version is "+db_version);
+        if (old_version < db_version){
+            //request db update
+            dataUpdateRequested = true;
+            DatabaseUpdate.requestDBUpdateWithWork(this, true, true);
+            PreferencesHolder.setGtfsDBVersion(theShPr, db_version);
+        }
 
 
         Toolbar mToolbar = findViewById(R.id.default_toolbar);
@@ -173,7 +189,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             requestArrivalsForStopID(busStopID);
         }
         //Try (hopefully) database update
-        DatabaseUpdate.requestDBUpdateWithWork(this, false, false);
+        if(!dataUpdateRequested)
+            DatabaseUpdate.requestDBUpdateWithWork(this, false, false);
         /*
         Watch for database update
          */

@@ -16,7 +16,7 @@ import static android.content.Context.MODE_PRIVATE;
 
 public abstract class ScreenBaseFragment extends Fragment {
 
-    protected String PREF_FILE= BuildConfig.APPLICATION_ID+".fragment_prefs";
+    protected final String PREF_FILE= BuildConfig.APPLICATION_ID+".fragment_prefs";
 
     protected void setOption(String optionName, boolean value) {
         Context mContext = getContext();

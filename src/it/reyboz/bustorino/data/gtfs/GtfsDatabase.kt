@@ -43,15 +43,18 @@ abstract class GtfsDatabase : RoomDatabase() {
 
     abstract fun gtfsDao() : GtfsDBDao
 
+
     companion object{
         @Volatile
         private var INSTANCE: GtfsDatabase? =null
+
+        const val DB_NAME="gtfs_database"
 
         fun getGtfsDatabase(context: Context): GtfsDatabase{
             return INSTANCE ?: synchronized(this){
                 val instance = Room.databaseBuilder(context.applicationContext,
                     GtfsDatabase::class.java,
-                    "gtfs_database")
+                    DB_NAME)
                         .addMigrations(MIGRATION_1_2)
                         .build()
                 INSTANCE = instance
@@ -76,7 +79,6 @@ abstract class GtfsDatabase : RoomDatabase() {
             //create patterns and stops
             it.execSQL("CREATE TABLE IF NOT EXISTS `mato_patterns` (`pattern_name` TEXT NOT NULL, `pattern_code` TEXT NOT NULL, `pattern_hash` TEXT NOT NULL, `pattern_direction_id` INTEGER NOT NULL, `pattern_route_id` TEXT NOT NULL, `pattern_headsign` TEXT, `pattern_polyline` TEXT NOT NULL, `pattern_polylength` INTEGER NOT NULL, PRIMARY KEY(`pattern_code`), FOREIGN KEY(`pattern_route_id`) REFERENCES `routes_table`(`route_id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
             it.execSQL("CREATE TABLE IF NOT EXISTS `patterns_stops` (`pattern_gtfs_id` TEXT NOT NULL, `stop_gtfs_id` TEXT NOT NULL, `stop_order` INTEGER NOT NULL, PRIMARY KEY(`pattern_gtfs_id`, `stop_gtfs_id`, `stop_order`), FOREIGN KEY(`pattern_gtfs_id`) REFERENCES `mato_patterns`(`pattern_code`) ON UPDATE NO ACTION ON DELETE CASCADE )")
-
 
         }
 
