@@ -35,4 +35,8 @@ public class Result<T> {
         this.result = null;
         this.exception = error;
     }
+
+    public interface Callback<T>{
+        void onComplete(Result<T> result);
+    }
 }

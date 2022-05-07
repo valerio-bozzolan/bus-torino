@@ -30,6 +30,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.location.LocationManagerCompat;
+import androidx.core.location.LocationRequestCompat;
 
 import it.reyboz.bustorino.util.LocationCriteria;
 import it.reyboz.bustorino.util.Permissions;
@@ -54,15 +56,13 @@ public class AppLocationManager implements LocationListener {
     private int oldGPSLocStatus = LOCATION_UNAVAILABLE;
     private int minimum_time_milli = -1;
 
-    private boolean isLocationPermissionGiven = false;
-
     private final ArrayList<WeakReference<LocationRequester>> requestersRef = new ArrayList<>();
 
 
     private AppLocationManager(Context context) {
         this.appContext = context.getApplicationContext();
         locMan  = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        isLocationPermissionGiven = checkLocationPermission(context);
+        boolean isLocationPermissionGiven = checkLocationPermission(context);
     }
 
     public static AppLocationManager getInstance(Context con) {
@@ -80,7 +80,12 @@ public class AppLocationManager implements LocationListener {
         final int timeinterval = (minimum_time_milli>0 && minimum_time_milli<Integer.MAX_VALUE)? minimum_time_milli : 2000;
 
         locMan.removeUpdates(this);
-        locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, timeinterval, 5, this);
+        if(locMan.getAllProviders().contains("gps"))
+            locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, timeinterval, 5, this);
+            /*LocationManagerCompat.requestLocationUpdates(locMan, LocationManager.GPS_PROVIDER,
+                    new LocationRequestCompat.Builder(timeinterval).setMinUpdateDistanceMeters(5.F).build(),this, );
+                    TODO: find a way to do this
+             */
 
     }
     private void cleanAndUpdateRequesters(){

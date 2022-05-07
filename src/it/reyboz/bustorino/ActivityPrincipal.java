@@ -86,9 +86,11 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         final int old_version = PreferencesHolder.getGtfsDBVersion(theShPr);
         Log.d(DEBUG_TAG, "GTFS Database: old version is "+old_version+ ", new version is "+db_version);
         if (old_version < db_version){
-            //request db update
-            dataUpdateRequested = true;
-            DatabaseUpdate.requestDBUpdateWithWork(this, true, true);
+            //decide update conditions in the future
+            if(old_version < 2 && db_version >= 2) {
+                dataUpdateRequested = true;
+                DatabaseUpdate.requestDBUpdateWithWork(this, true, true);
+            }
             PreferencesHolder.setGtfsDBVersion(theShPr, db_version);
         }
 
