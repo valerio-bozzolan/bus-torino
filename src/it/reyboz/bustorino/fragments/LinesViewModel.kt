@@ -19,6 +19,8 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
     //val patternsByRouteLiveData: LiveData<List<MatoPattern>>
 
     private val routeIDToSearch = MutableLiveData<String>()
+    private var lastShownPatternStops = ArrayList<String>()
+
 
     val stopsForPatternLiveData = MutableLiveData<List<Stop>>()
     val executor = Executors.newFixedThreadPool(2)
@@ -38,9 +40,6 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
         gtfsRepo.getPatternsWithStopsForRouteID(it)
 
     }
-    val routesName: LiveData<List<String>> = Transformations.map(routesGTTLiveData) {
-        it.map { route -> route.longName }
-    }
 
     fun setRouteIDQuery(routeID: String){
         routeIDToSearch.value = routeID
@@ -49,9 +48,13 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
     fun getRouteIDQueried(): String?{
         return routeIDToSearch.value
     }
-    var shouldShowMessage = true;
+    var shouldShowMessage = true
 
-    fun requestStopsForGTFSIDs(gtfsIDs: List<String>){
+    private fun requestStopsForGTFSIDs(gtfsIDs: List<String>){
+        if (gtfsIDs.equals(lastShownPatternStops)){
+            //nothing to do
+            return
+        }
         oldRepo.requestStopsWithGtfsIDs(gtfsIDs) {
             if (it.isSuccess) {
                 stopsForPatternLiveData.postValue(it.result)
@@ -60,6 +63,9 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
                 it.exception?.printStackTrace()
             }
         }
+        lastShownPatternStops.clear()
+        for(id in gtfsIDs)
+            lastShownPatternStops.add(id)
     }
 
     fun requestStopsForPatternWithStops(patternStops: MatoPatternWithStops){

@@ -42,6 +42,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
             "androidx.preference.PreferenceFragment.DIALOG";
     //private static final
     Handler mHandler;
+    public final static String PREF_KEY_STARTUP_SCREEN="startup_screen_to_show";
+    private boolean setSummaryStartupPref = false;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -64,7 +66,15 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
         });
          */
 
-        //ListPreference preference = findPreference(R.string.arrival_times)
+        ListPreference startupScreenPref = findPreference(PREF_KEY_STARTUP_SCREEN);
+        if(startupScreenPref !=null){
+            if (startupScreenPref.getValue()==null){
+                startupScreenPref.setSummary(getString(R.string.nav_arrivals_text));
+                setSummaryStartupPref = true;
+            }
+        }
+
+        //Log.d("BusTO-PrefFrag","startup screen pref is "+startupScreenPref.getValue());
 
         Preference dbUpdateNow = findPreference("pref_db_update_now");
         if (dbUpdateNow!=null)
@@ -94,6 +104,10 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
         Log.d(TAG,"Preference key "+key+" changed");
         //sometimes this happens
         if(getContext()==null) return;
+        if(key.equals(PREF_KEY_STARTUP_SCREEN) && setSummaryStartupPref && pref !=null){
+            ListPreference listPref = (ListPreference) pref;
+            pref.setSummary(listPref.getEntry());
+        }
         /*
         THIS CODE STAYS COMMENTED FOR FUTURE REFERENCES
         if (key.equals(getString(R.string.pref_key_num_recents))){
@@ -128,7 +142,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
 
     private void convertStringPrefToIntIfNeeded(String preferenceKey, Context con){
         if (con == null) return;
-        SharedPreferences defaultSharedPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+        SharedPreferences defaultSharedPref = PreferenceManager.getDefaultSharedPreferences(con);
         try{
 
             Integer val = defaultSharedPref.getInt(preferenceKey, 0);

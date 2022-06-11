@@ -83,16 +83,18 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
     }
 
     private void loadData(boolean forceQuery) {
-        Log.d(TAG, "loadData()");
+        Log.d(TAG, "loadData() force: "+forceQuery);
 
         if (!forceQuery){
             if (getValue()!= null){
                 //Data already loaded
+                Log.d(TAG, "Data already loaded");
                 return;
             }
         }
         if (isQueryRunning){
             //we are waiting for data, we will get an update soon
+            Log.d(TAG, "Query is running, abort");
             return;
         }
 
@@ -105,7 +107,7 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
     @Override
     protected void onActive() {
         //Log.d(TAG, "onActive()");
-        loadData();
+        loadData(true);
     }
 
     /**
@@ -146,6 +148,7 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
             if(stopsFromFavorites.size() == 0){
                 //we don't need to call the other query
                 setValue(stopsDone);
+                isQueryRunning = false;
             } else
                 for (int i = 0; i < stopsFromFavorites.size(); i++) {
                     Stop s = stopsFromFavorites.get(i);

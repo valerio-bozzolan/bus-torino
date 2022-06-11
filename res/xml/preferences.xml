@@ -2,6 +2,16 @@
 <androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <androidx.preference.PreferenceCategory android:title="@string/general_settings">
+        <androidx.preference.ListPreference
+            android:key="startup_screen_to_show"
+            android:entries="@array/first_screen_shown"
+            android:entryValues="@array/first_screen_values"
+            android:title="@string/pref_shown_startup"
+            android:summary="%s"
+            />
+    </androidx.preference.PreferenceCategory>
+
     <androidx.preference.PreferenceCategory
             android:title="@string/pref_recents_group_title">
         <!--

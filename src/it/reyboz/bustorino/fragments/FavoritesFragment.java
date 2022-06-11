@@ -175,6 +175,7 @@ public class FavoritesFragment extends ScreenBaseFragment {
     public void onResume() {
         super.onResume();
         if (mListener!=null) mListener.readyGUIfor(FragmentKind.FAVORITES);
+
     }
 
     @Override

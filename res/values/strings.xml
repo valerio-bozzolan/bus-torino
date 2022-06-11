@@ -201,10 +201,19 @@
         <item>CAPITALIZE_FIRST</item>
 
     </array>
+    <string name="pref_shown_startup">Section to show on startup</string>
+    <string name="pref_shown_startup_def_desc">Touch to change it</string>
     <string name="pref_lines_click_msg">Show arrivals touching on stop</string>
     <string name="pref_experimental_msg">Enable experiments</string>
     
     <!-- lines -->
     <string name="long_press_stop_4_options">Long press the stop for options</string>
+
+    <array name="first_screen_shown">
+        <item>@string/nav_arrivals_text</item>
+        <item>@string/nav_favorites_text</item>
+        <item>@string/nav_map_text</item>
+        <item>@string/lines</item>
+    </array>
 
 </resources>

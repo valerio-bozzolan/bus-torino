@@ -19,6 +19,7 @@ package it.reyboz.bustorino.fragments
 
 import android.content.Context
 import android.os.Bundle
+import android.os.Parcelable
 import android.util.Log
 import android.view.*
 import android.widget.*
@@ -42,7 +43,7 @@ class LinesFragment : ScreenBaseFragment() {
 
     companion object {
         fun newInstance(){
-            val fragment = LinesFragment()
+            LinesFragment()
         }
         const val DEBUG_TAG="BusTO-LinesFragment"
         const val FRAGMENT_TAG="LinesFragment"
@@ -71,7 +72,9 @@ class LinesFragment : ScreenBaseFragment() {
     private val linesComparator = Comparator<GtfsRoute> { a,b ->
         return@Comparator linesNameSorter.compare(a.shortName, b.shortName)
     }
-    private var firstClick = true;
+    private var firstClick = true
+    private var recyclerViewState:Parcelable? = null
+    private var patternsSpinnerState:Parcelable? = null
 
     private val adapterListener = object : StopAdapterListener {
         override fun onTappedStop(stop: Stop?) {
@@ -98,6 +101,10 @@ class LinesFragment : ScreenBaseFragment() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        Log.d(DEBUG_TAG, "saveInstanceState bundle: $outState")
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -115,14 +122,51 @@ class LinesFragment : ScreenBaseFragment() {
         stopsRecyclerView.layoutManager = llManager
         //allow the context menu to be opened
         registerForContextMenu(stopsRecyclerView)
+        Log.d(DEBUG_TAG, "Called onCreateView for LinesFragment")
+        Log.d(DEBUG_TAG, "OnCreateView, selected line spinner pos: ${linesSpinner.selectedItemPosition}")
+        Log.d(DEBUG_TAG, "OnCreateView, selected patterns spinner pos: ${patternsSpinner.selectedItemPosition}")
+
+        //set requests
+        viewModel.routesGTTLiveData.observe(viewLifecycleOwner) {
+            setRoutes(it)
+        }
+
+        viewModel.patternsWithStopsByRouteLiveData.observe(viewLifecycleOwner){
+                patterns ->
+            run {
+                currentPatterns = patterns.sortedBy { p-> p.pattern.code }
+                //patterns. //sortedBy {-1*it.stopsIndices.size}// "${p.pattern.directionId} - ${p.pattern.headsign}" }
+                patternsAdapter?.let {
+                    it.clear()
+                    it.addAll(currentPatterns.map { p->"${p.pattern.directionId} - ${p.pattern.headsign}" })
+                    it.notifyDataSetChanged()
+                }
+
+                val  pos = patternsSpinner.selectedItemPosition
+                //might be possible that the selectedItem is different (larger than list size)
+                if(pos!= INVALID_POSITION && pos >= 0 && (pos < currentPatterns.size)){
+                    val p = currentPatterns[pos]
+                    Log.d(DEBUG_TAG, "Setting patterns with pos $pos and p gtfsID ${p.pattern.code}")
+                    setPatternAndReqStops(currentPatterns[pos])
+                }
+
+            }
+        }
+
+        viewModel.stopsForPatternLiveData.observe(viewLifecycleOwner){stops->
+            Log.d("BusTO-LinesFragment", "Setting stops from DB")
+            setCurrentStops(stops)
+        }
 
         if(context!=null) {
-            patternsAdapter = ArrayAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, ArrayList<String>())
+            patternsAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, ArrayList<String>())
             patternsSpinner.adapter = patternsAdapter
-            linesAdapter = ArrayAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, ArrayList<String>())
+            linesAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, ArrayList<String>())
             linesSpinner.adapter = linesAdapter
 
-
+            if (linesSpinner.onItemSelectedListener != null){
+                Log.d(DEBUG_TAG, "linesSpinner listener != null")
+            }
             linesSpinner.onItemSelectedListener = object: OnItemSelectedListener{
                 override fun onItemSelected(p0: AdapterView<*>?, p1: View?, pos: Int, p3: Long) {
                     val selRoute = currentRoutes.get(pos)
@@ -130,7 +174,7 @@ class LinesFragment : ScreenBaseFragment() {
                     routeDescriptionTextView.text = selRoute.longName
                     val oldRoute = viewModel.getRouteIDQueried()
                     val resetSpinner = (oldRoute != null) && (oldRoute.trim() != selRoute.gtfsId.trim())
-                    Log.d(DEBUG_TAG, "Selected route: ${selRoute.gtfsId}, reset spinner: $resetSpinner")
+                    Log.d(DEBUG_TAG, "Selected route: ${selRoute.gtfsId}, reset spinner: $resetSpinner, oldRoute: $oldRoute")
                     //launch query for this gtfsID
                     viewModel.setRouteIDQuery(selRoute.gtfsId)
                     //reset spinner position
@@ -170,41 +214,16 @@ class LinesFragment : ScreenBaseFragment() {
     override fun onResume() {
         super.onResume()
         mListener?.readyGUIfor(FragmentKind.LINES)
+
+        Log.d(DEBUG_TAG, "Resuming lines fragment")
+        //Log.d(DEBUG_TAG, "OnResume, selected line spinner pos: ${linesSpinner.selectedItemPosition}")
+        //Log.d(DEBUG_TAG, "OnResume, selected patterns spinner pos: ${patternsSpinner.selectedItemPosition}")
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         viewModel = ViewModelProvider(this).get(LinesViewModel::class.java)
-
-        //val lines = viewModel.();
-        viewModel.routesGTTLiveData.observe(this) {
-            setRoutes(it)
-        }
-
-        viewModel.patternsWithStopsByRouteLiveData.observe(this){
-            patterns ->
-            run {
-                currentPatterns = patterns.sortedBy { p-> p.pattern.code }
-                        //patterns. //sortedBy {-1*it.stopsIndices.size}// "${p.pattern.directionId} - ${p.pattern.headsign}" }
-                patternsAdapter?.let {
-                    it.clear()
-                    it.addAll(currentPatterns.map { p->"${p.pattern.directionId} - ${p.pattern.headsign}" })
-                    it.notifyDataSetChanged()
-                }
-
-                val  pos = patternsSpinner.selectedItemPosition
-                //might be possible that the selectedItem is different (larger than list size)
-                if(pos!= INVALID_POSITION && pos >= 0 && (pos < currentPatterns.size)){
-                    setPatternAndReqStops(currentPatterns[pos])
-                }
-
-            }
-        }
-
-        viewModel.stopsForPatternLiveData.observe(this){stops->
-            Log.d("BusTO-LinesFragment", "Setting stops from DB")
-            setCurrentStops(stops)
-        }
+        Log.d(DEBUG_TAG, "Fragment onCreate")
 
     }
 
@@ -213,11 +232,42 @@ class LinesFragment : ScreenBaseFragment() {
     }
 
     private fun setRoutes(routes: List<GtfsRoute>){
+        Log.d(DEBUG_TAG, "Resetting routes")
         currentRoutes = routes.sortedWith<GtfsRoute>(linesComparator)
 
+        if (linesAdapter!=null){
+
+            var selGtfsRoute = viewModel.getRouteIDQueried()
+            var selPatternIndex = 0
+            if(selGtfsRoute == null){
+                selGtfsRoute =""
+            }
+            val adapter = linesAdapter!!
+
+            if (adapter.isEmpty) {
+                Log.d(DEBUG_TAG, "Lines adapter is empty")
+            }
+            else{
+                adapter.clear()
+
+            }
+            adapter.addAll(currentRoutes.map { r -> r.shortName })
+            adapter.notifyDataSetChanged()
+            for(j in 0 until currentRoutes.size){
+                val route = currentRoutes[j]
+                if (route.gtfsId == selGtfsRoute) {
+                    selPatternIndex = j
+                    Log.d(DEBUG_TAG, "Route $selGtfsRoute has index $j")
+                }
+            }
+            linesSpinner.setSelection(selPatternIndex)
+            //
+        }
+        /*
         linesAdapter?.clear()
         linesAdapter?.addAll(currentRoutes.map { r -> r.shortName })
         linesAdapter?.notifyDataSetChanged()
+         */
     }
 
     private fun setCurrentStops(stops: List<Stop>){
@@ -227,7 +277,7 @@ class LinesFragment : ScreenBaseFragment() {
         val numStops = stopsSorted.size
         Log.d(DEBUG_TAG, "RecyclerView adapter is: ${stopsRecyclerView.adapter}")
 
-        var setNewAdapter = true;
+        var setNewAdapter = true
         if(stopsRecyclerView.adapter is StopRecyclerAdapter){
             val adapter = stopsRecyclerView.adapter as StopRecyclerAdapter
             if(adapter.stops.size == stopsSorted.size && (adapter.stops.get(0).gtfsID == stopsSorted.get(0).gtfsID)
@@ -268,9 +318,8 @@ class LinesFragment : ScreenBaseFragment() {
         if (v.id == R.id.patternStopsRecyclerView) {
             // if we aren't attached to activity, return null
             if (activity == null) return
-            val inflater = activity!!.menuInflater
+            val inflater = requireActivity().menuInflater
             inflater.inflate(R.menu.menu_line_item, menu)
-
 
         }
     }
@@ -292,10 +341,52 @@ class LinesFragment : ScreenBaseFragment() {
             mListener!!.showMapCenteredOnStop(stop)
             return true
         } else if (acId == R.id.action_show_arrivals){
-            mListener?.requestArrivalsForStopID(stop.ID);
+            mListener?.requestArrivalsForStopID(stop.ID)
             return true
         }
         return false
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d(DEBUG_TAG, "Fragment stopped")
+
+        recyclerViewState = stopsRecyclerView.layoutManager?.onSaveInstanceState()
+        patternsSpinnerState = patternsSpinner.onSaveInstanceState()
+    }
+
+
+    override fun onStart() {
+        super.onStart()
+
+        Log.d(DEBUG_TAG, "OnStart, selected line spinner pos: ${linesSpinner.selectedItemPosition}")
+        Log.d(DEBUG_TAG, "OnStart, selected patterns spinner pos: ${patternsSpinner.selectedItemPosition}")
+
+        if (recyclerViewState!=null){
+            stopsRecyclerView.layoutManager?.onRestoreInstanceState(recyclerViewState)
+        }
+        if(patternsSpinnerState!=null){
+            patternsSpinner.onRestoreInstanceState(patternsSpinnerState)
+        }
+    }
+    /*
+    override fun onDestroyView() {
+        super.onDestroyView()
+        Log.d(DEBUG_TAG, "Fragment view destroyed")
+
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(DEBUG_TAG, "Fragment destroyed")
+    }
+    */
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        Log.d(DEBUG_TAG, "OnViewStateRes, bundled saveinstancestate: $savedInstanceState")
+        Log.d(DEBUG_TAG, "OnViewStateRes, selected line spinner pos: ${linesSpinner.selectedItemPosition}")
+        Log.d(DEBUG_TAG, "OnViewStateRes, selected patterns spinner pos: ${patternsSpinner.selectedItemPosition}")
     }
 
 }

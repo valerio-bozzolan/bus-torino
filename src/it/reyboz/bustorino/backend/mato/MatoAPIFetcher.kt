@@ -55,7 +55,7 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
         var numPassaggi = 0
         var trials = 0
         val numDepartures = 4
-        while (numPassaggi < minNumPassaggi && trials < 4) {
+        while (numPassaggi < minNumPassaggi && trials < 2) {
 
             //numDepartures+=2
             numMinutes += 20

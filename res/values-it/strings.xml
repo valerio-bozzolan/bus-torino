@@ -184,6 +184,8 @@
     </string-array>
     <string name="pref_lines_click_msg">Mostra arrivi quando tocchi una fermata</string>
     <string name="pref_experimental_msg">Abilita esperimenti</string>
+    <string name="pref_shown_startup">Schermata da mostrare all\'avvio</string>
+    <string name="pref_shown_startup_def_desc">Tocca per cambiare</string>
 
 
 

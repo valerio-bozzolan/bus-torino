@@ -23,6 +23,8 @@ import it.reyboz.bustorino.R;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import androidx.preference.PreferenceManager;
+
 /**
  * Static class for commonly used SharedPreference operations
  */
@@ -32,6 +34,10 @@ public abstract class PreferencesHolder {
 
     public static SharedPreferences getMainSharedPreferences(Context context){
         return context.getSharedPreferences(context.getString(R.string.mainSharedPreferences), MODE_PRIVATE);
+    }
+
+    public static SharedPreferences getAppPreferences(Context con){
+        return PreferenceManager.getDefaultSharedPreferences(con);
     }
 
     public static int getGtfsDBVersion(SharedPreferences pref){

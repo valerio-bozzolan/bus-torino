@@ -3,4 +3,11 @@
            tools:ignore="MissingTranslation">
     <string name="pref_layout">layout_pref</string>
     <string name="pref_update_db_now">pref_update_db_now</string>
+    
+    <array name="first_screen_values">
+        <item>arrivals</item>
+        <item>favorites</item>
+        <item>map</item>
+        <item>lines</item>
+    </array>
 </resources>

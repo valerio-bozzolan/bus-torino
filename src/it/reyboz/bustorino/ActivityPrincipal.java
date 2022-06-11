@@ -77,6 +77,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_principal);
         final SharedPreferences theShPr = getMainSharedPreferences();
+        boolean showingArrivalsForStop = false;
 
         //database check
         GtfsDatabase gtfsDB = GtfsDatabase.Companion.getGtfsDatabase(this);
@@ -189,10 +190,12 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             //setBusStopSearchByIDEditText(busStopID);
 
             requestArrivalsForStopID(busStopID);
+            showingArrivalsForStop = true;
         }
         //Try (hopefully) database update
         if(!dataUpdateRequested)
             DatabaseUpdate.requestDBUpdateWithWork(this, false, false);
+
         /*
         Watch for database update
          */
@@ -224,7 +227,23 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
                 });
         // show the main fragment
-        showMainFragment();
+        Fragment f = getSupportFragmentManager().findFragmentById(R.id.mainActContentFrame);
+        Log.d(DEBUG_TAG, "OnCreate the fragment is "+f);
+        String vl = PreferenceManager.getDefaultSharedPreferences(this).getString(SettingsFragment.PREF_KEY_STARTUP_SCREEN, "");
+        //if (vl.length() == 0 || vl.equals("arrivals")) {
+        //    showMainFragment();
+        Log.d(DEBUG_TAG, "The default screen to open is: "+vl);
+        if(showingArrivalsForStop){
+            showMainFragment(false);
+        } else if (vl.equals("map")){
+            requestMapFragment(false);
+        } else if(vl.equals("favorites")){
+            checkAndShowFavoritesFragment(getSupportFragmentManager(), false);
+        } else if(vl.equals("lines")){
+            showLinesFragment(getSupportFragmentManager(), false, null);
+        } else{
+            showMainFragment(false);
+        }
 
 
     }
@@ -250,50 +269,19 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                     } else if(menuItem.getItemId() == R.id.nav_favorites_item){
                         closeDrawerIfOpen();
                         //get Fragment
-                        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                        FavoritesFragment fragment = FavoritesFragment.newInstance();
-                        ft.replace(R.id.mainActContentFrame,fragment, TAG_FAVORITES)
-                            .addToBackStack("main");
-                        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                        ft.commit();
+                        checkAndShowFavoritesFragment(getSupportFragmentManager(), true);
                         return true;
                     } else if(menuItem.getItemId() == R.id.nav_arrivals){
                         closeDrawerIfOpen();
-                        showMainFragment();
+                        showMainFragment(true);
                         return true;
                     } else if(menuItem.getItemId() == R.id.nav_map_item){
                         closeDrawerIfOpen();
-                        final String permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-                        int result = askForPermissionIfNeeded(permission, STORAGE_PERMISSION_REQ);
-                        switch (result) {
-                            case PERMISSION_OK:
-                                createAndShowMapFragment(null);
-                                break;
-                            case PERMISSION_ASKING:
-                                permissionDoneRunnables.put(permission,
-                                        () -> createAndShowMapFragment(null));
-                                break;
-                            case PERMISSION_NEG_CANNOT_ASK:
-                                String storage_perm = getString(R.string.storage_permission);
-                                String text = getString(R.string.too_many_permission_asks,  storage_perm);
-                                Toast.makeText(getApplicationContext(),text, Toast.LENGTH_LONG).show();
-                        }
+                        requestMapFragment(true);
                         return true;
                     } else if (menuItem.getItemId() == R.id.nav_lines_item) {
                         closeDrawerIfOpen();
-                        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                        Fragment f = getSupportFragmentManager().findFragmentByTag(LinesFragment.FRAGMENT_TAG);
-                        if(f!=null){
-                            ft.replace(R.id.mainActContentFrame, f, LinesFragment.FRAGMENT_TAG);
-                        }else{
-                            //use new method
-                            ft.replace(R.id.mainActContentFrame,LinesFragment.class,null,LinesFragment.FRAGMENT_TAG);
-                        }
-
-                                ft.setReorderingAllowed(true)
-                                .addToBackStack("lines")
-                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                                .commit();
+                        showLinesFragment(getSupportFragmentManager(), true,null);
                         return true;
                     }
                     //selectDrawerItem(menuItem);
@@ -394,13 +382,15 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 //we have to stop the arrivals reload
                 ((MainScreenFragment) shownFrag).cancelReloadArrivalsIfNeeded();
             }
-            shownFrag.getChildFragmentManager().popBackStackImmediate();
+            shownFrag.getChildFragmentManager().popBackStack();
             if(showingMainFragmentFromOther && getSupportFragmentManager().getBackStackEntryCount() > 0){
                 getSupportFragmentManager().popBackStack();
+                Log.d(DEBUG_TAG, "Popping main back stack also");
             }
         }
         else if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
             getSupportFragmentManager().popBackStack();
+            Log.d(DEBUG_TAG, "Popping main frame backstack for fragments");
         }
         else
             super.onBackPressed();
@@ -422,48 +412,90 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         snackbar.show();
     }
 
-    private MainScreenFragment createAndShowMainFragment(){
-        FragmentManager fraMan = getSupportFragmentManager();
-
-        MainScreenFragment fragment = MainScreenFragment.newInstance();
-
-        FragmentTransaction transaction = fraMan.beginTransaction();
-        transaction.replace(R.id.mainActContentFrame, fragment, MainScreenFragment.FRAGMENT_TAG);
-        transaction.commit();
-        return fragment;
-    }
-
     /**
      * Show the fragment by adding it to the backstack
      * @param fraMan the fragmentManager
      * @param fragment the fragment
      */
-    private static void showMainFragment(FragmentManager fraMan, MainScreenFragment fragment){
-        fraMan.beginTransaction().replace(R.id.mainActContentFrame, fragment)
-                .setReorderingAllowed(true)
-                .addToBackStack(null)
+    private static void showMainFragment(FragmentManager fraMan, MainScreenFragment fragment, boolean addToBackStack){
+        FragmentTransaction ft  = fraMan.beginTransaction()
+                .replace(R.id.mainActContentFrame, fragment, MainScreenFragment.FRAGMENT_TAG)
+                .setReorderingAllowed(false)
                 /*.setCustomAnimations(
                         R.anim.slide_in,  // enter
                         R.anim.fade_out,  // exit
                         R.anim.fade_in,   // popEnter
                         R.anim.slide_out  // popExit
                 )*/
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        if (addToBackStack)  ft.addToBackStack(null);
+        ft.commit();
+    }
+
+    private void requestMapFragment(final boolean allowReturn){
+        final String permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+        int result = askForPermissionIfNeeded(permission, STORAGE_PERMISSION_REQ);
+        switch (result) {
+            case PERMISSION_OK:
+                createAndShowMapFragment(null, allowReturn);
+                break;
+            case PERMISSION_ASKING:
+                permissionDoneRunnables.put(permission,
+                        () -> createAndShowMapFragment(null, allowReturn));
+                break;
+            case PERMISSION_NEG_CANNOT_ASK:
+                String storage_perm = getString(R.string.storage_permission);
+                String text = getString(R.string.too_many_permission_asks,  storage_perm);
+                Toast.makeText(getApplicationContext(),text, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static void checkAndShowFavoritesFragment(FragmentManager fragmentManager,  boolean addToBackStack){
+        FragmentTransaction ft = fragmentManager.beginTransaction();
+        Fragment fragment = fragmentManager.findFragmentByTag(TAG_FAVORITES);
+        if(fragment!=null){
+            ft.replace(R.id.mainActContentFrame, fragment, TAG_FAVORITES);
+        }else{
+            //use new method
+            ft.replace(R.id.mainActContentFrame,FavoritesFragment.class,null,TAG_FAVORITES);
+        }
+        if (addToBackStack)
+            ft.addToBackStack("favorites_main");
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                .setReorderingAllowed(false);
+        ft.commit();
+    }
+
+    private static void showLinesFragment(@NonNull FragmentManager fragmentManager,  boolean addToBackStack, @Nullable Bundle fragArgs){
+        FragmentTransaction ft = fragmentManager.beginTransaction();
+        Fragment f = fragmentManager.findFragmentByTag(LinesFragment.FRAGMENT_TAG);
+        if(f!=null){
+            ft.replace(R.id.mainActContentFrame, f, LinesFragment.FRAGMENT_TAG);
+        }else{
+            //use new method
+            ft.replace(R.id.mainActContentFrame,LinesFragment.class,fragArgs,LinesFragment.FRAGMENT_TAG);
+        }
+        if (addToBackStack)
+            ft.addToBackStack("lines");
+        ft.setReorderingAllowed(true)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                 .commit();
     }
 
-    private MainScreenFragment showMainFragment(){
+    private MainScreenFragment showMainFragment(boolean addToBackStack){
         FragmentManager fraMan = getSupportFragmentManager();
         Fragment fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
         final MainScreenFragment mainScreenFragment;
         if (fragment==null | !(fragment instanceof MainScreenFragment)){
-            mainScreenFragment = createAndShowMainFragment();
+            mainScreenFragment = MainScreenFragment.newInstance();
+            //mainScreenFragment = createAndShowMainFragment();
+            showMainFragment(fraMan, mainScreenFragment, addToBackStack);
         }
         else if(!fragment.isVisible()){
 
 
             mainScreenFragment = (MainScreenFragment) fragment;
-            showMainFragment(fraMan, mainScreenFragment);
+            showMainFragment(fraMan, mainScreenFragment, addToBackStack);
             Log.d(DEBUG_TAG, "Found the main fragment");
         } else{
             mainScreenFragment = (MainScreenFragment) fragment;
@@ -549,15 +581,19 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         if (showingMainFragmentFromOther){
             FragmentManager fraMan = getSupportFragmentManager();
             Fragment fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
+            Log.d(DEBUG_TAG, "Requested main fragment, not visible. Search by TAG: "+fragment);
             if(fragment!=null){
                 //the fragment is there but not shown
                 probableFragment = (MainScreenFragment) fragment;
                 // set the flag
                 probableFragment.setSuppressArrivalsReload(true);
-                showMainFragment(fraMan, probableFragment);
+                showMainFragment(fraMan, probableFragment, true);
             } else {
+                //createAndShowMainFragment
                 // we have no fragment
-                probableFragment = createAndShowMainFragment();
+                probableFragment = MainScreenFragment.newInstance();
+                showMainFragment(fraMan, probableFragment,true);
+                //probableFragment = createAndShowMainFragment();
             }
         }
         probableFragment.requestArrivalsForStopID(ID);
@@ -582,16 +618,16 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     @Override
     public void showMapCenteredOnStop(Stop stop) {
-        createAndShowMapFragment(stop);
+        createAndShowMapFragment(stop, true);
     }
 
     //Map Fragment stuff
-    void createAndShowMapFragment(@Nullable Stop stop){
+    void createAndShowMapFragment(@Nullable Stop stop, boolean addToBackStack){
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
         MapFragment fragment = stop == null? MapFragment.getInstance(): MapFragment.getInstance(stop);
         ft.replace(R.id.mainActContentFrame, fragment, MapFragment.FRAGMENT_TAG);
-        ft.addToBackStack(null);
+        if (addToBackStack) ft.addToBackStack(null);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();
     }
