@@ -1,4 +1,4 @@
-For this version we thank Niccolò Marcucci and Solomon Mimmo for their fantastic feedback!
+For this version we thank Niccolò Marcucci and Solom Mimmo for their fantastic feedback!
 
 * new setting: you can now choose whether to launch the app from favorites/map/lines or arrivals (default)
 * fix in the lines screen: now going back to lines does not reset the screen and everything remains as it was before you left it

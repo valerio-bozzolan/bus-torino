@@ -1,4 +1,4 @@
-Per questa versione ringraziamo Niccolò Marcucci e Solomon Mimmo per il loro fantastico feedback!
+Per questa versione ringraziamo Niccolò Marcucci e Solom Mimmo per il loro fantastico feedback!
 
 * nuova impostazione: è ora possibile scegliere se lanciare l'app da preferiti/mappa/linee o arrivi (default)
 * fix nella schermata linee: ora tornando alle linee la schermata rimane esattamente come l'avete lasciata
