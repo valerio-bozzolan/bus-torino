@@ -1,0 +1,10 @@
+Per questa versione ringraziamo Niccolò Marcucci e Solomon Mimmo per il loro fantastico feedback!
+
+* nuova impostazione: è ora possibile scegliere se lanciare l'app da preferiti/mappa/linee o arrivi (default)
+* fix nella schermata linee: ora tornando alle linee la schermata rimane esattamente come l'avete lasciata
+* stiamo migrando alcune voci di menù dall'hamburger menù a quello laterale
+
+* https://gitpull.it/T1086 
+* https://gitpull.it/T1091
+
+Questa versione è stata plasmata dal nostro sviluppatore volontario Fabio Mazza.

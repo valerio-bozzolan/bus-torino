@@ -1,0 +1,10 @@
+For this version we thank Niccolò Marcucci and Solomon Mimmo for their fantastic feedback!
+
+* new setting: you can now choose whether to launch the app from favorites/map/lines or arrivals (default)
+* fix in the lines screen: now going back to lines does not reset the screen and everything remains as it was before you left it
+* we are migrating some menu items from the hamburger menu to the side menu
+
+* https://gitpull.it/T1086
+* https://gitpull.it/T1091
+
+This version was entirely developed by our volunteer rockstar developer Fabio Mazza.
