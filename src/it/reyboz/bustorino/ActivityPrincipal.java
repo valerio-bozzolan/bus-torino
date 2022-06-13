@@ -283,6 +283,10 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                         closeDrawerIfOpen();
                         showLinesFragment(getSupportFragmentManager(), true,null);
                         return true;
+                    } else if(menuItem.getItemId() ==  R.id.drawer_action_info) {
+                        closeDrawerIfOpen();
+                        startActivity(new Intent(ActivityPrincipal.this, ActivityAbout.class));
+                        return true;
                     }
                     //selectDrawerItem(menuItem);
                     Log.d(DEBUG_TAG, "pressed item "+menuItem);

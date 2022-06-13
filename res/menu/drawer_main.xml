@@ -25,4 +25,9 @@
         android:icon="@drawable/ic_baseline_settings_24"
         />
 
+    <item android:id="@+id/drawer_action_info"
+        android:title="@string/action_about"
+        android:icon="@drawable/ic_outline_info_24"
+        />
+
 </menu>
