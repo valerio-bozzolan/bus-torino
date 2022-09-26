@@ -5,6 +5,10 @@
     <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string>
     <string name="search">Cerca</string>
     <string name="qrcode">QR Code</string>
+    <string name="yes">Si</string>
+    <string name="no">No</string>
+    <string name="title_barcode_scanner_install">Installare Barcode Scanner?</string>
+    <string name="message_install_barcode_scanner">Questa azione richiede un\'altra app per scansionare i codici QR. Vuoi installare Barcode Scanner?</string>
     <string name="insert_bus_stop_number">Numero fermata</string>
     <string name="insert_bus_stop_name">Nome fermata</string>
     <string name="insert_bus_stop_number_error">Inserisci il numero della fermata</string>
@@ -21,7 +25,7 @@
     <string name="lines_fill">Linee: %1$s</string>
     <string name="results">Scegli la fermata…</string>
     <string name="no_passages">Nessun passaggio</string>
-    <string name="no_qrcode">Nessun QR code</string>
+    <string name="no_qrcode">Nessun QR code trovato, prova ad usare un\'altra app</string>
     <string name="action_favorites">Preferiti</string>
     <string name="action_help">Aiuto</string>
     <string name="action_about">Informazioni</string>

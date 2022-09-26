@@ -167,6 +167,7 @@ class LinesFragment : ScreenBaseFragment() {
             if (linesSpinner.onItemSelectedListener != null){
                 Log.d(DEBUG_TAG, "linesSpinner listener != null")
             }
+            //listener
             linesSpinner.onItemSelectedListener = object: OnItemSelectedListener{
                 override fun onItemSelected(p0: AdapterView<*>?, p1: View?, pos: Int, p3: Long) {
                     val selRoute = currentRoutes.get(pos)

@@ -8,6 +8,11 @@
     </string>
     <string name="search">Search</string>
     <string name="qrcode">Scan QR Code</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="title_barcode_scanner_install">Install Barcode Scanner?</string>
+    <string name="message_install_barcode_scanner">This application requires an app to scan the QR codes. Would you like to install Barcode Scanner now?</string>
+
     <string name="insert_bus_stop_number">Bus stop number</string>
     <string name="insert_bus_stop_name">Bus stop name</string>
     <string name="insert_bus_stop_number_error">Insert bus stop number</string>
@@ -27,7 +32,7 @@
     <string name="lines_fill">Lines: %1$s</string>
     <string name="line_fill">Line: %1$s</string>
     <string name="no_passages">No timetable found</string>
-    <string name="no_qrcode">No QR code</string>
+    <string name="no_qrcode">No QR code found, try using another app to scan</string>
     <string name="internal_error">Unexpected internal error, cannot extract data from GTT/5T website</string>
     <string name="action_help">Help</string>
     <string name="action_about">About</string>

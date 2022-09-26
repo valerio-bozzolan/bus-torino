@@ -4,7 +4,7 @@ import org.osmdroid.util.GeoPoint;
 
 import java.util.ArrayList;
 
-public final class PolylineParser {
+public abstract class PolylineParser {
     /**
      * Decode a Google polyline
      * Thanks to https://stackoverflow.com/questions/9341020/how-to-decode-googles-polyline-algorithm

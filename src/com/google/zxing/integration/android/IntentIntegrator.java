@@ -347,6 +347,7 @@ public class IntentIntegrator {
         PackageManager pm = activity.getPackageManager();
         List<ResolveInfo> availableApps = pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
         if (availableApps != null) {
+            Log.d("IntentIntegrator","Available app to scan QR Code: "+availableApps);
             for (String targetApp : targetApplications) {
                 if (contains(availableApps, targetApp)) {
                     return targetApp;

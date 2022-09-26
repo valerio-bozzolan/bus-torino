@@ -33,7 +33,6 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -190,8 +189,8 @@ public class MapFragment extends ScreenBaseFragment {
         // add ability to zoom with 2 fingers
         map.setMultiTouchControls(true);
 
-        btCenterMap = root.findViewById(R.id.ic_center_map);
-        btFollowMe = root.findViewById(R.id.ic_follow_me);
+        btCenterMap = root.findViewById(R.id.icon_center_map);
+        btFollowMe = root.findViewById(R.id.icon_follow);
 
         //setup FolderOverlay
         stopsFolderOverlay = new FolderOverlay();

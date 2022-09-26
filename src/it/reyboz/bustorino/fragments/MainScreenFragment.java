@@ -3,9 +3,11 @@ package it.reyboz.bustorino.fragments;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -38,7 +40,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.zxing.integration.android.IntentIntegrator;
 
 import java.util.Map;
 
@@ -47,9 +48,13 @@ import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.middleware.AppLocationManager;
 import it.reyboz.bustorino.middleware.AsyncArrivalsSearcher;
 import it.reyboz.bustorino.middleware.AsyncStopsSearcher;
+import it.reyboz.bustorino.middleware.BarcodeScanContract;
+import it.reyboz.bustorino.middleware.BarcodeScanOptions;
+import it.reyboz.bustorino.middleware.BarcodeScanUtils;
 import it.reyboz.bustorino.util.LocationCriteria;
 import it.reyboz.bustorino.util.Permissions;
 
+import static it.reyboz.bustorino.backend.utils.getBusStopIDFromUri;
 import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSIONS;
 import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSION_GIVEN;
 
@@ -67,6 +72,8 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
 
     private static final String DEBUG_TAG = "BusTO - MainFragment";
 
+    public static final String PENDING_STOP_SEARCH="PendingStopSearch";
+
     public final static String FRAGMENT_TAG = "MainScreenFragment";
 
     /// UI ELEMENTS //
@@ -81,8 +88,9 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     private MenuItem actionHelpMenuItem;
     private FloatingActionButton floatingActionButton;
 
-    private boolean setupOnAttached = true;
+    private boolean setupOnResume = true;
     private boolean suppressArrivalsReload = false;
+    private boolean instanceStateSaved = false;
     //private Snackbar snackbar;
     /*
      * Search mode
@@ -114,6 +122,34 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                 new AsyncArrivalsSearcher(fragmentHelper, arrivalsFetchers, getContext()).execute();
         }
     };
+    //
+    private final ActivityResultLauncher<BarcodeScanOptions> barcodeLauncher = registerForActivityResult(new BarcodeScanContract(),
+            result -> {
+                if(result!=null && result.getContents()!=null) {
+                    //Toast.makeText(MyActivity.this, "Cancelled", Toast.LENGTH_LONG).show();
+                    Uri uri;
+                    try {
+                        uri = Uri.parse(result.getContents()); // this apparently prevents NullPointerException. Somehow.
+                    } catch (NullPointerException e) {
+                        if (getContext()!=null)
+                        Toast.makeText(getContext().getApplicationContext(),
+                                R.string.no_qrcode, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    String busStopID = getBusStopIDFromUri(uri);
+                    busStopSearchByIDEditText.setText(busStopID);
+                    requestArrivalsForStopID(busStopID);
+
+                } else {
+                    //Toast.makeText(MyActivity.this, "Scanned: " + result.getContents(), Toast.LENGTH_LONG).show();
+                    if (getContext()!=null)
+                    Toast.makeText(getContext().getApplicationContext(),
+                            R.string.no_qrcode, Toast.LENGTH_SHORT).show();
+
+
+
+                }
+            });
 
     /// LOCATION STUFF ///
     boolean pendingNearbyStopsRequest = false;
@@ -213,6 +249,9 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             //do nothing
+            Log.d(DEBUG_TAG, "ARGS ARE NOT NULL: "+getArguments());
+            if (getArguments().getString(PENDING_STOP_SEARCH)!=null)
+                pendingStopID = getArguments().getString(PENDING_STOP_SEARCH);
         }
     }
 
@@ -291,18 +330,20 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Log.d(DEBUG_TAG, "onViewCreated, SwipeRefreshLayout visible: "+(swipeRefreshLayout.getVisibility()==View.VISIBLE));
-        Log.d(DEBUG_TAG, "Setup on attached: "+setupOnAttached);
+        Log.d(DEBUG_TAG, "Setup on attached: "+ setupOnResume);
         //Restore instance state
         if (savedInstanceState!=null){
             Fragment fragment = getChildFragmentManager().getFragment(savedInstanceState, SAVED_FRAGMENT);
             if (fragment!=null){
                 getChildFragmentManager().beginTransaction().add(R.id.resultFrame, fragment).commit();
-                setupOnAttached = false;
+                setupOnResume = false;
             }
         }
         if (getChildFragmentManager().findFragmentById(R.id.resultFrame)!= null){
             swipeRefreshLayout.setVisibility(View.VISIBLE);
         }
+        instanceStateSaved = false;
+
     }
 
     @Override
@@ -312,6 +353,8 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         if (fragment!=null)
         getChildFragmentManager().putFragment(outState, SAVED_FRAGMENT, fragment);
         fragmentHelper.setBlockAllActivities(true);
+
+        instanceStateSaved = true;
     }
 
     public void setSuppressArrivalsReload(boolean value){
@@ -346,7 +389,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
 
-        Log.d(DEBUG_TAG, "OnAttach called, setupOnAttach: "+setupOnAttached);
+        Log.d(DEBUG_TAG, "OnAttach called, setupOnAttach: "+ setupOnResume);
         mainHandler = new Handler();
         if (context instanceof CommonFragmentListener) {
             mListener = (CommonFragmentListener) context;
@@ -354,17 +397,6 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             throw new RuntimeException(context
                     + " must implement CommonFragmentListener");
         }
-        if (setupOnAttached) {
-            if (pendingStopID==null)
-            //We want the nearby bus stops!
-            mainHandler.post(new NearbyStopsRequester(context, cr));
-            else{
-                ///TODO: if there is a stop displayed, we need to hold the update
-            }
-
-            setupOnAttached = false;
-        }
-
 
     }
     @Override
@@ -414,13 +446,26 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             }
             suppressArrivalsReload = false;
         }
+        if (setupOnResume) {
+            if (pendingStopID==null)
+                //We want the nearby bus stops!
+                mainHandler.post(new NearbyStopsRequester(getContext(), cr));
+            else{
+                ///TODO: if there is a stop displayed, we need to hold the update
+            }
+
+            setupOnResume = false;
+        }
         if(pendingStopID!=null){
+
+            Log.d(DEBUG_TAG, "Re-requesting arrivals for pending stop "+pendingStopID);
             requestArrivalsForStopID(pendingStopID);
             pendingStopID = null;
         }
         mListener.readyGUIfor(FragmentKind.MAIN_SCREEN_FRAGMENT);
 
         fragmentHelper.setBlockAllActivities(false);
+
     }
 
     @Override
@@ -442,8 +487,14 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
      * @param v View QRButton clicked
      */
     public void onQRButtonClick(View v) {
-        IntentIntegrator integrator = new IntentIntegrator(getActivity());
-        integrator.initiateScan();
+
+        BarcodeScanOptions scanOptions = new BarcodeScanOptions();
+        Intent intent = scanOptions.createScanIntent();
+        if(!BarcodeScanUtils.checkTargetPackageExists(getContext(), intent)){
+            BarcodeScanUtils.showDownloadDialog(null, this);
+        }else {
+            barcodeLauncher.launch(scanOptions);
+        }
     }
     public void onHideHint(View v) {
 
@@ -589,11 +640,11 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             fragment = NearbyStopsFragment.newInstance(NearbyStopsFragment.TYPE_STOPS);
 
             FragmentTransaction ft = fragMan.beginTransaction();
-            //if (oldFrag != null)
-            //    ft.remove(oldFrag);
 
             ft.replace(R.id.resultFrame, fragment, NearbyStopsFragment.FRAGMENT_TAG);
+            if (getActivity()!=null && !getActivity().isFinishing() &&!instanceStateSaved)
             ft.commit();
+            else Log.e(DEBUG_TAG, "Not showing nearby fragment because we saved instanceState");
         }
     }
 
@@ -655,7 +706,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         if (!isResumed()){
             //defer request
             pendingStopID = ID;
-            Log.d(DEBUG_TAG, "Deferring update for stop "+ID);
+            Log.d(DEBUG_TAG, "Deferring update for stop "+ID+ " saved: "+pendingStopID);
             return;
         }
         final boolean delayedRequest = !(pendingStopID==null);

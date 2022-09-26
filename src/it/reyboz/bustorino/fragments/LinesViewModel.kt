@@ -23,7 +23,7 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
 
 
     val stopsForPatternLiveData = MutableLiveData<List<Stop>>()
-    val executor = Executors.newFixedThreadPool(2)
+    private val executor = Executors.newFixedThreadPool(2)
 
     init {
         val gtfsDao = GtfsDatabase.getGtfsDatabase(application).gtfsDao()
@@ -50,6 +50,9 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
     }
     var shouldShowMessage = true
 
+    /**
+     * Find the
+     */
     private fun requestStopsForGTFSIDs(gtfsIDs: List<String>){
         if (gtfsIDs.equals(lastShownPatternStops)){
             //nothing to do

@@ -70,6 +70,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     private Snackbar snackbar;
 
     private boolean showingMainFragmentFromOther = false;
+    private boolean onCreateComplete = false;
 
 
     @Override
@@ -77,7 +78,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_principal);
         final SharedPreferences theShPr = getMainSharedPreferences();
-        boolean showingArrivalsForStop = false;
+        boolean showingArrivalsFromIntent = false;
 
         //database check
         GtfsDatabase gtfsDB = GtfsDatabase.Companion.getGtfsDatabase(this);
@@ -153,7 +154,9 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         String busStopID = null;
         Uri data = getIntent().getData();
         if (data != null) {
+
             busStopID = getBusStopIDFromUri(data);
+            Log.d(DEBUG_TAG, "Opening Intent: busStopID: "+busStopID);
             tryedFromIntent = true;
         }
 
@@ -188,9 +191,9 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         } else {
             // If you are here an intent has worked successfully
             //setBusStopSearchByIDEditText(busStopID);
-
-            requestArrivalsForStopID(busStopID);
-            showingArrivalsForStop = true;
+            //Log.d(DEBUG_TAG, "Requesting arrivals for stop "+busStopID+" from intent");
+            requestArrivalsForStopID(busStopID); //this shows the fragment, too
+            showingArrivalsFromIntent = true;
         }
         //Try (hopefully) database update
         if(!dataUpdateRequested)
@@ -233,18 +236,19 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         //if (vl.length() == 0 || vl.equals("arrivals")) {
         //    showMainFragment();
         Log.d(DEBUG_TAG, "The default screen to open is: "+vl);
-        if(showingArrivalsForStop){
-            showMainFragment(false);
-        } else if (vl.equals("map")){
+        if (showingArrivalsFromIntent){
+            //do nothing but exclude a case
+        }
+        else if (vl.equals("map")){
             requestMapFragment(false);
         } else if(vl.equals("favorites")){
             checkAndShowFavoritesFragment(getSupportFragmentManager(), false);
         } else if(vl.equals("lines")){
             showLinesFragment(getSupportFragmentManager(), false, null);
-        } else{
+        } else {
             showMainFragment(false);
         }
-
+        onCreateComplete = true;
 
     }
     private ActionBarDrawerToggle setupDrawerToggle(Toolbar toolbar) {
@@ -435,6 +439,25 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         if (addToBackStack)  ft.addToBackStack(null);
         ft.commit();
     }
+    /**
+     * Show the fragment by adding it to the backstack
+     * @param fraMan the fragmentManager
+     * @param arguments args for the fragment
+     */
+    private static void createShowMainFragment(FragmentManager fraMan, Bundle arguments, boolean addToBackStack){
+        FragmentTransaction ft  = fraMan.beginTransaction()
+                .replace(R.id.mainActContentFrame, MainScreenFragment.class, arguments, MainScreenFragment.FRAGMENT_TAG)
+                .setReorderingAllowed(false)
+                /*.setCustomAnimations(
+                        R.anim.slide_in,  // enter
+                        R.anim.fade_out,  // exit
+                        R.anim.fade_in,   // popEnter
+                        R.anim.slide_out  // popExit
+                )*/
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        if (addToBackStack)  ft.addToBackStack(null);
+        ft.commit();
+    }
 
     private void requestMapFragment(final boolean allowReturn){
         final String permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -592,15 +615,19 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 // set the flag
                 probableFragment.setSuppressArrivalsReload(true);
                 showMainFragment(fraMan, probableFragment, true);
+                probableFragment.requestArrivalsForStopID(ID);
             } else {
                 //createAndShowMainFragment
                 // we have no fragment
-                probableFragment = MainScreenFragment.newInstance();
-                showMainFragment(fraMan, probableFragment,true);
+                final Bundle args = new Bundle();
+                args.putString(MainScreenFragment.PENDING_STOP_SEARCH, ID);
+                //if onCreate is complete, then we are not asking for the first showing fragment
+                boolean addtobackstack = onCreateComplete;
+                createShowMainFragment(fraMan, args ,addtobackstack);
                 //probableFragment = createAndShowMainFragment();
             }
         }
-        probableFragment.requestArrivalsForStopID(ID);
+
         mNavView.setCheckedItem(R.id.nav_arrivals);
     }
 
