@@ -39,7 +39,8 @@
             app:layout_constraintStart_toStartOf="@id/busStopID"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginLeft="26dp"
-            android:layout_marginStart="26dp"/>
+            android:layout_marginStart="26dp"
+            />
 
     <TextView
             android:id="@+id/busStopName"
@@ -54,7 +55,7 @@
             app:layout_constraintTop_toTopOf="@id/busStopID"
             android:layout_marginStart="10dp"
             android:layout_marginLeft="10dp"
-            android:layout_marginTop="0dp"
+            android:layout_marginTop="3dp"
             android:layout_marginEnd="10dp"
 
             android:layout_marginRight="10dp"

@@ -25,6 +25,10 @@
 
     </style>
 
+    <style name="Widget.MyApp.Button" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">?attr/colorSecondary</item>
+    </style>
+
     <style name="AppTheme.NoActionBar" parent="AppTheme">
 
         <item name="windowActionBar">false</item>

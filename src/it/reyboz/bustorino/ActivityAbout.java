@@ -17,6 +17,8 @@
  */
 package it.reyboz.bustorino;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,7 +27,12 @@ import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import it.reyboz.bustorino.middleware.BarcodeScanUtils;
 
 public class ActivityAbout extends AppCompatActivity {
 
@@ -35,7 +42,7 @@ public class ActivityAbout extends AppCompatActivity {
         setContentView(R.layout.activity_about);
         Spanned htmlText = Html.fromHtml(getResources().getString(
                 R.string.about_history));
-        TextView aboutTextView = (TextView) findViewById(R.id.aboutTextView);
+        TextView aboutTextView = findViewById(R.id.aboutTextView);
         assert aboutTextView != null;
         aboutTextView.setText(htmlText);
         aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
@@ -48,6 +55,20 @@ public class ActivityAbout extends AppCompatActivity {
         TextView versionText = findViewById(R.id.versionTextView);
         Log.d("BusTO About", "The version text view is: "+versionText);
         versionText.setText(getResources().getText(R.string.app_version)+": "+BuildConfig.VERSION_NAME);
+
+        Button openTelegramButton = findViewById(R.id.openTelegramButton);
+        openTelegramButton.setOnClickListener(view -> {
+
+            Intent trueIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?domain=busto_fdroid"));
+            if(BarcodeScanUtils.checkTargetPackageExists(this, trueIntent))
+                startActivity(trueIntent);
+            else{
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/busto_fdroid"));
+                startActivity(intent);
+               // Toast.makeText(this, "Install Telegram and retry", Toast.LENGTH_SHORT).show();
+            }
+
+        });
     }
 
     @Override

@@ -1,8 +1,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
-              android:layout_width="match_parent"
+                android:layout_width="match_parent"
               android:layout_height="match_parent"
-              tools:context="it.reyboz.bustorino.ActivityAbout" android:orientation="vertical">
+              tools:context="it.reyboz.bustorino.ActivityAbout" android:orientation="vertical"
+        android:gravity="center">
     <!-- The ActionBar displayed at the top -->
 
     <include
@@ -30,6 +31,16 @@
             android:layout_marginTop="2dp"
             android:id="@+id/theDivider"
             android:background="@android:color/darker_gray"/>
+
+    <Button
+            android:text="@string/open_telegram"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="10dp"
+            android:id="@+id/openTelegramButton"
+            android:drawableLeft = "@drawable/telegram_logo_50"
+            android:drawableStart="@drawable/telegram_logo_50" />
+
     <TextView
             android:text="@string/app_version"
             android:layout_width="match_parent"

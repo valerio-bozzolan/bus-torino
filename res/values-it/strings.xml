@@ -129,6 +129,10 @@
     <string name="show_stops">Mostra fermate</string>
     <string name="nearby_arrivals_message">Arrivi qui vicino</string>
     <string name="removed_from_favorites">Fermata rimossa dai preferiti</string>
+    <!--
+    Mixed button strings
+    !-->
+    <string name="open_telegram">Entra nel canale Telegram</string>
 
     <!--
     Map view buttons strings

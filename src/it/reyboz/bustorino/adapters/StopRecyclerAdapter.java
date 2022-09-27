@@ -28,6 +28,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
+import java.util.Locale;
 
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Stop;
@@ -195,7 +196,7 @@ public class StopRecyclerAdapter extends RecyclerView.Adapter<StopRecyclerAdapte
             }
         }
 
-        if (stop.location == null) {
+        if (stop.location == null || stop.location.toLowerCase(Locale.ROOT).equals("null")) {
             vh.busStopLocaLityTextView.setVisibility(View.GONE);
         } else {
             vh.busStopLocaLityTextView.setText(NameCapitalize.capitalizePass(stop.location, capitalizeLocation));
