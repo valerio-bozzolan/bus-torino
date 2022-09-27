@@ -1,0 +1,9 @@
+* lettura dei nuovi QR code - https://gitpull.it/T1078
+* pulsante Telegram nel menù informazioni - https://gitpull.it/T1082
+* risolto un bug causato della GTT (fermate con nome "null") - https://gitpull.it/T1109
+
+Grazie al nostro miglior utente Marco M. per la segnalazione sulle fermate "null".
+
+Questa versione è stata completamente forgiata da Fabio Mazza. Aiutaci nell'obiettivo di donargli 3€ a settimana:
+
+https://liberapay.com/Libre_BusTO/

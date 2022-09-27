@@ -1,0 +1,9 @@
+* reading the new QR codes - https://gitpull.it/T1078
+* Telegram button in the information menu - https://gitpull.it/T1082
+* fixed a bug caused by GTT (stops with "null" name) - https://gitpull.it/T1109
+
+Thanks to our best user Marco M. for the report on the "null" stops.
+
+This version was completely forged by Fabio Mazza. Help us in our goal of donating 3€ per week to him:
+
+https://liberapay.com/Libre_BusTO/
