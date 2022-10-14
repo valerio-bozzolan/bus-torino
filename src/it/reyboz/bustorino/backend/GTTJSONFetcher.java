@@ -95,8 +95,9 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
                 } catch (JSONException ignored) { // if "Bacino" gets removed...
                     bacino = "U";
                 }
-
-                pos = p.addRoute(routename, thisroute.getString("Direzione"), FiveTNormalizer.decodeType(routename, bacino));
+                final Route r = new Route(routename, thisroute.getString("Direzione"),
+                        "",
+                        FiveTNormalizer.decodeType(routename, bacino));
 
                 passaggi = thisroute.getJSONArray("PassaggiRT");
                 howManyPassaggi = passaggi.length();
@@ -105,17 +106,20 @@ public class GTTJSONFetcher implements ArrivalsFetcher  {
                     if (mPassaggio.contains("__")){
                         mPassaggio = mPassaggio.replace("_", "");
                     }
-                    p.addPassaggio(mPassaggio.concat("*"), Passaggio.Source.GTTJSON, pos);
+                    r.addPassaggio(mPassaggio.concat("*"), Passaggio.Source.GTTJSON);
                 }
+
 
                 passaggi = thisroute.getJSONArray("PassaggiPR"); // now the non-real-time ones
                 howManyPassaggi = passaggi.length();
                 for(j = 0; j < howManyPassaggi; j++) {
-                    p.addPassaggio(passaggi.getString(j), Passaggio.Source.GTTJSON, pos);
+                    r.addPassaggio(passaggi.getString(j), Passaggio.Source.GTTJSON);
                 }
+                p.addRoute(r);
             }
         } catch (JSONException e) {
             res.set(Result.PARSER_ERROR);
+            e.printStackTrace();
             return p;
         }
 

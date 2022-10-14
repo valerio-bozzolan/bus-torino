@@ -18,6 +18,8 @@
 
 package it.reyboz.bustorino.backend;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -136,6 +138,15 @@ public class Route implements Comparable<Route> {
     public Route(String name,Type t,String description){
         this(name,null,new ArrayList<>(),t,description);
     }
+    /**
+     * Constructor used by the FiveTAPIFetcher
+     * @param name stop Name
+     * @param t optional type
+     * @param description line rough description
+     */
+    public Route(String name,String destinazione, String description, Type t){
+        this(name,destinazione,new ArrayList<>(),t,description);
+    }
 
     /**
      * Exactly what it says on the tin.
@@ -247,6 +258,23 @@ public class Route implements Comparable<Route> {
          if (passaggi==null)
              return 0;
          return passaggi.size();
+     }
+     public Passaggio.Source getPassaggiSource(){
+         Passaggio.Source mSource = null;
+
+         for(Passaggio pass: passaggi){
+             if (mSource == null) {
+                 mSource = pass.source;
+             } else if (mSource != pass.source){
+                 Log.w("BusTO-CheckPassaggi",
+                         "Cannot determine the source for route "+this.name+", have got "+mSource +" so far, the next one is "+pass.source );
+                 mSource = Passaggio.Source.UNDETERMINED;
+
+                 break;
+             }
+         }
+         if (mSource == null) mSource = Passaggio.Source.UNDETERMINED;
+         return mSource;
      }
 
 

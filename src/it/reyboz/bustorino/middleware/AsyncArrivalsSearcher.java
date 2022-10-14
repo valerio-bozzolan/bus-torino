@@ -82,6 +82,13 @@ public class AsyncArrivalsSearcher extends AsyncTask<String, Fetcher.Result,Pali
         FragmentHelper fh = helperRef.get();
         ArrayList<Fetcher.Result> results = new ArrayList<>(theFetchers.length);
         //If the FragmentHelper is null, that means the activity doesn't exist anymore
+        StringBuilder sb = new StringBuilder();
+        for (ArrivalsFetcher f: theFetchers){
+            sb.append("");
+            sb.append(f.getClass().getSimpleName());
+            sb.append("; ");
+        }
+        Log.d(DEBUG_TAG, "Using fetchers: "+sb.toString());
         if (fh == null){
             return null;
         }

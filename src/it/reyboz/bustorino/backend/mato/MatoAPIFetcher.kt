@@ -72,10 +72,10 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
             try {
                 val palinaResult =  future.get(5, TimeUnit.SECONDS)
                 if (palinaResult!=null) {
-                    if (BuildConfig.DEBUG)
+                    /*if (BuildConfig.DEBUG)
                     for (r in palinaResult.queryAllRoutes()){
                         Log.d(DEBUG_TAG, "route " + r.gtfsId + " has " + r.passaggi.size + " passaggi: "+ r.passaggiToString)
-                    }
+                    }*/
                     palina = palinaResult
                     numPassaggi = palina.minNumberOfPassages
                 } else{

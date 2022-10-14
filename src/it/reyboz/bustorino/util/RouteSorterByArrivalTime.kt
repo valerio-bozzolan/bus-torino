@@ -20,8 +20,8 @@ class RouteSorterByArrivalTime : Comparator<Route> {
         } else if (passaggi2 == null || passaggi2.size == 0){
             return -2
         }
-        passaggi1.sort()
-        passaggi2.sort()
+        //passaggi1.sort()
+        //passaggi2.sort()
 
         return passaggi1[0].compareTo(passaggi2[0])
     }

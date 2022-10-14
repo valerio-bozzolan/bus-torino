@@ -34,6 +34,7 @@ import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.data.DatabaseUpdate;
 
 import java.lang.ref.WeakReference;
+import java.util.HashSet;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = SettingsFragment.class.getName();
@@ -43,6 +44,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     //private static final
     Handler mHandler;
     public final static String PREF_KEY_STARTUP_SCREEN="startup_screen_to_show";
+    public final static String KEY_ARRIVALS_FETCHERS_USE = "arrivals_fetchers_use_setting";
+
     private boolean setSummaryStartupPref = false;
 
     @Override
@@ -102,6 +105,10 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         Preference pref = findPreference(key);
         Log.d(TAG,"Preference key "+key+" changed");
+        if (key.equals(SettingsFragment.KEY_ARRIVALS_FETCHERS_USE)){
+            Log.d(TAG, "New value is: "+sharedPreferences.getStringSet(key, new HashSet<>()));
+        }
+
         //sometimes this happens
         if(getContext()==null) return;
         if(key.equals(PREF_KEY_STARTUP_SCREEN) && setSummaryStartupPref && pref !=null){

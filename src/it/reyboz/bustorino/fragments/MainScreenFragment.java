@@ -41,6 +41,7 @@ import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.List;
 import java.util.Map;
 
 import it.reyboz.bustorino.R;
@@ -100,13 +101,16 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     private static final int SEARCH_BY_ROUTE = 2; // TODO: implement this -- https://gitpull.it/T12
     private int searchMode;
     //private ImageButton addToFavorites;
-    private final ArrivalsFetcher[] arrivalsFetchers = utils.getDefaultArrivalsFetchers();
     //// HIDDEN BUT IMPORTANT ELEMENTS ////
     FragmentManager fragMan;
     Handler mainHandler;
     private final Runnable refreshStop = new Runnable() {
         public void run() {
             if(getContext() == null) return;
+            List<ArrivalsFetcher> fetcherList = utils.getDefaultArrivalsFetchers(getContext());
+            ArrivalsFetcher[] arrivalsFetchers = new ArrivalsFetcher[fetcherList.size()];
+            arrivalsFetchers = fetcherList.toArray(arrivalsFetchers);
+
             if (fragMan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
                 ArrivalsFragment fragment = (ArrivalsFragment) fragMan.findFragmentById(R.id.resultFrame);
                 if (fragment == null){
@@ -715,6 +719,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             Log.e(DEBUG_TAG, "Asked for arrivals with null context");
             return;
         }
+        ArrivalsFetcher[] fetchers = utils.getDefaultArrivalsFetchers(getContext()).toArray(new ArrivalsFetcher[0]);
         if (ID == null || ID.length() <= 0) {
             // we're still in UI thread, no need to mess with Progress
             showToastMessage(R.string.insert_bus_stop_number_error, true);
@@ -726,11 +731,11 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                 //fragment.getCurrentFetchers().toArray()
                 new AsyncArrivalsSearcher(fragmentHelper,fragment.getCurrentFetchersAsArray(), getContext()).execute(ID);
             } else{
-                new AsyncArrivalsSearcher(fragmentHelper, arrivalsFetchers, getContext()).execute(ID);
+                new AsyncArrivalsSearcher(fragmentHelper, fetchers, getContext()).execute(ID);
             }
         }
         else {
-            new AsyncArrivalsSearcher(fragmentHelper,arrivalsFetchers, getContext()).execute(ID);
+            new AsyncArrivalsSearcher(fragmentHelper,fetchers, getContext()).execute(ID);
             Log.d(DEBUG_TAG, "Started search for arrivals of stop " + ID);
         }
     }

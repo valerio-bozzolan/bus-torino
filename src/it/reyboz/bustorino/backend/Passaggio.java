@@ -144,17 +144,7 @@ public final class Passaggio implements Comparable<Passaggio> {
         if(this.hh ==  UNKNOWN_TIME || other.hh == UNKNOWN_TIME)
             return 0;
         else {
-            int diff = this.hh - other.hh;
-            // an attempt to correctly sort arrival times around midnight (e.g. 23.59 should come before 00.01)
-            if (diff > 12) { // untested
-                diff -= 24;
-            } else if (diff < -12) {
-                diff += 24;
-            }
-
-            diff *= 60;
-
-            diff += this.mm - other.mm;
+            int diff = getMinutesDiff(other);
 
             // we should take into account if one is in real time and the other isn't, shouldn't we?
             if (other.isInRealTime) {
@@ -166,6 +156,20 @@ public final class Passaggio implements Comparable<Passaggio> {
 
             return diff;
         }
+    }
+    public int getMinutesDiff(Passaggio other){
+        int diff = this.hh - other.hh;
+        // an attempt to correctly sort arrival times around midnight (e.g. 23.59 should come before 00.01)
+        if (diff > 12) { // untested
+            diff -= 24;
+        } else if (diff < -12) {
+            diff += 24;
+        }
+
+        diff *= 60;
+
+        diff += this.mm - other.mm;
+        return diff;
     }
 
 

@@ -18,6 +18,7 @@
 package it.reyboz.bustorino.fragments;
 
 
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -34,12 +35,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ListAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -48,10 +47,7 @@ import it.reyboz.bustorino.adapters.PalinaAdapter;
 import it.reyboz.bustorino.backend.ArrivalsFetcher;
 import it.reyboz.bustorino.backend.DBStatusManager;
 import it.reyboz.bustorino.backend.Fetcher;
-import it.reyboz.bustorino.backend.FiveTAPIFetcher;
 import it.reyboz.bustorino.backend.FiveTNormalizer;
-import it.reyboz.bustorino.backend.FiveTScraperFetcher;
-import it.reyboz.bustorino.backend.GTTJSONFetcher;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Passaggio;
 import it.reyboz.bustorino.backend.Route;
@@ -71,6 +67,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     private final static int loaderFavId = 2;
     private final static int loaderStopId = 1;
     static final String STOP_TITLE = "messageExtra";
+    private final static String SOURCES_TEXT="sources_textview_message";
 
     private @Nullable String stopID,stopName;
     private DBStatusManager prefs;
@@ -85,7 +82,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     protected ImageButton addToFavorites;
     protected TextView timesSourceTextView;
 
-    private List<ArrivalsFetcher> fetchers = new ArrayList<>(Arrays.asList(utils.getDefaultArrivalsFetchers()));
+    private List<ArrivalsFetcher> fetchers = null; //new ArrayList<>(Arrays.asList(utils.getDefaultArrivalsFetchers()));
 
     private boolean reloadOnResume = true;
 
@@ -196,6 +193,14 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             messageTextView.setText(probablemessage);
             messageTextView.setVisibility(View.VISIBLE);
         }
+
+        /*String sourcesTextViewData = getArguments().getString(SOURCES_TEXT);
+        if (sourcesTextViewData!=null){
+            timesSourceTextView.setText(sourcesTextViewData);
+        }*/
+        //need to do this when we recreate the fragment but we haven't updated the arrival times
+        if (lastUpdatedPalina!=null)
+            showArrivalsSources(lastUpdatedPalina);
         return root;
     }
 
@@ -211,6 +216,9 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         if(stopID!=null){
             //refresh the arrivals
             if(!justCreated){
+                fetchers = utils.getDefaultArrivalsFetchers(getContext());
+                adjustFetchersToSource();
+
                 if (reloadOnResume)
                     mListener.requestArrivalsForStopID(stopID);
             }
@@ -224,6 +232,8 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             }
             updateMessage();
         }
+
+
     }
 
 
@@ -245,6 +255,14 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         Log.d(DEBUG_TAG, "onPause, have running loaders: "+loaderManager.hasRunningLoaders());
         loaderManager.destroyLoader(loaderFavId);
 
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+
+        //get fetchers
+        fetchers = utils.getDefaultArrivalsFetchers(context);
     }
 
     @Nullable
@@ -274,7 +292,10 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     }
 
     private void rotateFetchers(){
+        Log.d(DEBUG_TAG, "Rotating fetchers, before: "+fetchers);
         Collections.rotate(fetchers, -1);
+        Log.d(DEBUG_TAG, "Rotating fetchers, afterwards: "+fetchers);
+
     }
 
 
@@ -330,14 +351,9 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             default:
                 throw new IllegalStateException("Unexpected value: " + source);
         }
-        int count = 0;
-        if (source!= Passaggio.Source.UNDETERMINED)
-        while (source != fetchers.get(0).getSourceForFetcher() && count < 100){
-            //we need to update the fetcher that is requested
-            rotateFetchers();
-            count++;
-        }
-        if (count>10)
+        //
+        final boolean updatedFetchers = adjustFetchersToSource(source);
+        if(!updatedFetchers)
             Log.w(DEBUG_TAG, "Tried to update the source fetcher but it didn't work");
         final String base_message = getString(R.string.times_source_fmt, source_txt);
         timesSourceTextView.setText(base_message);
@@ -347,6 +363,23 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             timesSourceTextView.setVisibility(View.INVISIBLE);
         }
         fetchersChangeRequestPending = false;
+    }
+
+    protected boolean adjustFetchersToSource(Passaggio.Source source){
+        if (source == null) return false;
+        int count = 0;
+        if (source!= Passaggio.Source.UNDETERMINED)
+            while (source != fetchers.get(0).getSourceForFetcher() && count < 200){
+                //we need to update the fetcher that is requested
+                rotateFetchers();
+                count++;
+            }
+        return count < 200;
+    }
+    protected boolean adjustFetchersToSource(){
+        if (lastUpdatedPalina == null) return false;
+        final Passaggio.Source source = lastUpdatedPalina.getPassaggiSourceIfAny();
+        return adjustFetchersToSource(source);
     }
 
     @Override
@@ -431,9 +464,13 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             case loaderStopId:
                 if(data.getCount()>0){
                     data.moveToFirst();
-                    stopName = data.getString(data.getColumnIndex(
+                    int index = data.getColumnIndex(
                             NextGenDB.Contract.StopsTable.COL_NAME
-                    ));
+                    );
+                    if (index == -1){
+                        Log.e(DEBUG_TAG, "Index is -1, column not present. App may explode now...");
+                    }
+                    stopName = data.getString(index);
                     updateMessage();
                 } else {
                     Log.w("ArrivalsFragment"+getTag(),"Stop is not inside the database... CLOISTER BELL");
@@ -513,4 +550,9 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
 
     }
 
+    @Override
+    public void onDestroyView() {
+        getArguments().putString(SOURCES_TEXT, timesSourceTextView.getText().toString());
+        super.onDestroyView();
+    }
 }

@@ -164,6 +164,15 @@
     <string name="undetermined_source">Undetermined</string>
     <string name="arrival_source_changing">Changing arrival times source…</string>
     <string name="change_arrivals_source_message">Long press to change the source of arrivals</string>
+    <string-array name="arrival_times_source_list">
+        <item>@string/source_mato</item>
+        <item>@string/fivetapifetcher</item>
+        <item>@string/gttjsonfetcher</item>
+        <item>@string/fivetscraper</item>
+    </string-array>
+    <string name="arrival_times_choice_title">Sources of arrival times</string>
+    <string name="arrival_times_choice_explanation">Select which sources of arrival times to use</string>
+
 
     <!--
     Notifications

@@ -186,7 +186,10 @@ public class ResultListFragment extends Fragment{
     }
 
     public boolean isFragmentForTheSameStop(Palina p) {
-        return adapterKind.equals(FragmentKind.ARRIVALS) && getTag().equals(getFragmentTag(p));
+        if (!adapterKind.equals(FragmentKind.ARRIVALS)) return false;
+        if (getTag() != null)
+         return getTag().equals(getFragmentTag(p));
+        else return false;
     }
 
     public static String getFragmentTag(Palina p) {

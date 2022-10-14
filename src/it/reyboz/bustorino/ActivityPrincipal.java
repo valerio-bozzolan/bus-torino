@@ -48,8 +48,11 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.backend.utils;
 import it.reyboz.bustorino.data.DBUpdateWorker;
 import it.reyboz.bustorino.data.DatabaseUpdate;
 import it.reyboz.bustorino.data.PreferencesHolder;
@@ -250,6 +253,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         }
         onCreateComplete = true;
 
+        //last but not least, set the good default values
+        manageDefaultValuesForSettings();
     }
     private ActionBarDrawerToggle setupDrawerToggle(Toolbar toolbar) {
         // NOTE: Make sure you pass in a valid toolbar reference.  ActionBarDrawToggle() does not require it
@@ -626,6 +631,9 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 createShowMainFragment(fraMan, args ,addtobackstack);
                 //probableFragment = createAndShowMainFragment();
             }
+        } else {
+            //the MainScreeFragment is shown, nothing to do
+            probableFragment.requestArrivalsForStopID(ID);
         }
 
         mNavView.setCheckedItem(R.id.nav_arrivals);
@@ -691,5 +699,32 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             }
             return false;
         }
+    }
+
+    /**
+     * Adjust setting to match the default ones
+     */
+    private void manageDefaultValuesForSettings(){
+        SharedPreferences mainSharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = mainSharedPref.edit();
+        //Main fragment to show
+        String screen = mainSharedPref.getString(SettingsFragment.PREF_KEY_STARTUP_SCREEN, "");
+        boolean edit = false;
+        if (screen.isEmpty()){
+            editor.putString(SettingsFragment.PREF_KEY_STARTUP_SCREEN, "arrivals");
+            edit=true;
+        }
+        //Fetchers
+        final Set<String> setSelected = mainSharedPref.getStringSet(SettingsFragment.KEY_ARRIVALS_FETCHERS_USE, new HashSet<>());
+        if (setSelected.isEmpty()){
+            String[] defaultVals = getResources().getStringArray(R.array.arrivals_sources_values_default);
+            editor.putStringSet(SettingsFragment.KEY_ARRIVALS_FETCHERS_USE, utils.convertArrayToSet(defaultVals));
+            edit=true;
+        }
+        if (edit){
+            editor.commit();
+        }
+
+
     }
 }

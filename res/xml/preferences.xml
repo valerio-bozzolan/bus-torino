@@ -56,6 +56,15 @@
     -->
     <androidx.preference.PreferenceCategory android:title="@string/arrival_times">
 
+        <androidx.preference.MultiSelectListPreference
+            android:key="arrivals_fetchers_use_setting"
+            android:title="@string/arrival_times_choice_title"
+            android:summary="@string/arrival_times_choice_explanation"
+            android:entries="@array/arrival_times_source_list"
+            android:entryValues="@array/arrivals_sources_values"
+            android:defaultValue="@array/arrivals_sources_values_default"
+            />
+
         <androidx.preference.ListPreference
             android:title="@string/pref_directions_capitalize"
             android:entries="@array/directions_capitalize"

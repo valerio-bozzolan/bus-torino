@@ -30,6 +30,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -38,6 +40,7 @@ import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Passaggio;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.utils;
+import it.reyboz.bustorino.util.PassaggiSorter;
 import it.reyboz.bustorino.util.RouteSorterByArrivalTime;
 
 /**
@@ -88,6 +91,14 @@ public class PalinaAdapter extends ArrayAdapter<Route> implements SharedPreferen
     public PalinaAdapter(Context context, Palina p) {
         super(context, row_layout, p.queryAllRoutes());
         li = LayoutInflater.from(context);
+        Comparator<Passaggio> sorter = null;
+        if (p.getPassaggiSourceIfAny()== Passaggio.Source.GTTJSON){
+            sorter = new PassaggiSorter();
+        }
+        for(Route r: p.queryAllRoutes()){
+            if (sorter==null) Collections.sort(r.passaggi);
+            else Collections.sort(r.passaggi, sorter);
+        }
         sort(new RouteSorterByArrivalTime());
         /*
         sort(new Comparator<Route>() {

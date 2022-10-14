@@ -10,4 +10,17 @@
         <item>map</item>
         <item>lines</item>
     </array>
+
+    <array name="arrivals_sources_values">
+        <item>matofetcher</item>
+        <item>fivetapifetcher</item>
+        <item>gttjsonfetcher</item>
+        <item>fivetscraper</item>
+    </array>
+
+    <array name="arrivals_sources_values_default">
+        <item>matofetcher</item>
+        <item>gttjsonfetcher</item>
+        <item>fivetscraper</item>
+    </array>
 </resources>
