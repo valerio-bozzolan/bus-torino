@@ -1,0 +1,6 @@
+* corretta la ricerca delle fermate vicine
+* abilitata la scelta dei fetcher per gli orari di arrivo. Impostato i valori predefiniti all'avvio (se sono vuoti)
+
+Questa versione è stata completamente forgiata da Fabio Mazza. Aiutaci nell'obiettivo di donargli 3€ a settimana:
+
+https://liberapay.com/Libre_BusTO/

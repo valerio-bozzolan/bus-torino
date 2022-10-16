@@ -1,0 +1,6 @@
+* fix searching of nearby stops
+* enable choice of fetchers for arrival times. Set default values on startup (if they are empty)
+
+This version was completely forged by Fabio Mazza. Help us in our goal of donating 3€ per week to him:
+
+https://liberapay.com/Libre_BusTO/
