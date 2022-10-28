@@ -10,6 +10,7 @@ import it.reyboz.bustorino.data.OldDataRepository
 import it.reyboz.bustorino.data.gtfs.GtfsDatabase
 import it.reyboz.bustorino.data.gtfs.GtfsRoute
 import it.reyboz.bustorino.data.gtfs.MatoPatternWithStops
+import it.reyboz.bustorino.data.gtfs.PatternStop
 import java.util.concurrent.Executors
 
 class LinesViewModel(application: Application) : AndroidViewModel(application) {
@@ -20,6 +21,9 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
 
     private val routeIDToSearch = MutableLiveData<String>()
     private var lastShownPatternStops = ArrayList<String>()
+
+    val currentPatternStops = MutableLiveData<List<PatternStop>>()
+    val selectedPatternLiveData = MutableLiveData<MatoPatternWithStops>()
 
 
     val stopsForPatternLiveData = MutableLiveData<List<Stop>>()

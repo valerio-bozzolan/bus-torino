@@ -34,6 +34,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -57,7 +58,6 @@ import it.reyboz.bustorino.util.Permissions;
 
 import static it.reyboz.bustorino.backend.utils.getBusStopIDFromUri;
 import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSIONS;
-import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSION_GIVEN;
 
 
 /**
@@ -88,8 +88,9 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     private Button hideHintButton;
     private MenuItem actionHelpMenuItem;
     private FloatingActionButton floatingActionButton;
+    private FrameLayout resultFrameLayout;
 
-    private boolean setupOnResume = true;
+    private boolean setupOnStart = true;
     private boolean suppressArrivalsReload = false;
     private boolean instanceStateSaved = false;
     //private Snackbar snackbar;
@@ -159,6 +160,38 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     boolean pendingNearbyStopsRequest = false;
     boolean locationPermissionGranted, locationPermissionAsked = false;
     AppLocationManager locationManager;
+    private final ActivityResultLauncher<String[]> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
+                @Override
+                public void onActivityResult(Map<String, Boolean> result) {
+                    if(result==null || result.get(Manifest.permission.ACCESS_COARSE_LOCATION) == null
+                            ||result.get(Manifest.permission.ACCESS_FINE_LOCATION) == null) return;
+
+                    if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) == null ||
+                            result.get(Manifest.permission.ACCESS_FINE_LOCATION) == null)
+                        return;
+                    boolean resCoarse = result.get(Manifest.permission.ACCESS_COARSE_LOCATION);
+                    boolean resFine = result.get(Manifest.permission.ACCESS_FINE_LOCATION);
+                    Log.d(DEBUG_TAG, "Permissions for location are: "+result);
+                    if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) && result.get(Manifest.permission.ACCESS_FINE_LOCATION)){
+                        locationPermissionGranted = true;
+                        Log.w(DEBUG_TAG, "Starting position");
+                        if (mListener!= null && getContext()!=null){
+                            if (locationManager==null)
+                                locationManager = AppLocationManager.getInstance(getContext());
+                            locationManager.addLocationRequestFor(requester);
+                        }
+                        // show nearby fragment
+                        //showNearbyStopsFragment();
+                        Log.d(DEBUG_TAG, "We have location permission");
+                        if(pendingNearbyStopsRequest){
+                            showNearbyFragmentIfNeeded(cr);
+                            pendingNearbyStopsRequest = false;
+                        }
+                    }
+                    if(pendingNearbyStopsRequest) pendingNearbyStopsRequest=false;
+                }
+            });
 
 
     private final LocationCriteria cr = new LocationCriteria(2000, 10000);
@@ -172,11 +205,12 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         @Override
         public void onLocationStatusChanged(int status) {
 
-            if(status == AppLocationManager.LOCATION_GPS_AVAILABLE && !isNearbyFragmentShown()){
+            if(status == AppLocationManager.LOCATION_GPS_AVAILABLE && !isNearbyFragmentShown() && checkLocationPermission()){
                 //request Stops
-                pendingNearbyStopsRequest = false;
-                if (getContext()!= null)
-                    mainHandler.post(new NearbyStopsRequester(getContext(), cr));
+                //pendingNearbyStopsRequest = false;
+                if (getContext()!= null && !isNearbyFragmentShown())
+                    //mainHandler.post(new NearbyStopsRequester(getContext(), cr));
+                    showNearbyFragmentIfNeeded(cr);
             }
         }
 
@@ -194,8 +228,13 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         public void onLocationProviderAvailable() {
             //Log.w(DEBUG_TAG, "pendingNearbyStopRequest: "+pendingNearbyStopsRequest);
             if(!isNearbyFragmentShown() && getContext()!=null){
-                pendingNearbyStopsRequest = false;
-                mainHandler.post(new NearbyStopsRequester(getContext(), cr));
+                // we should have the location permission
+                if(!checkLocationPermission())
+                    Log.e(DEBUG_TAG, "Asking to show nearbystopfragment when " +
+                            "we have no location permission");
+                pendingNearbyStopsRequest = true;
+                //mainHandler.post(new NearbyStopsRequester(getContext(), cr));
+                showNearbyFragmentIfNeeded(cr);
             }
         }
 
@@ -204,28 +243,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
 
         }
     };
-    private final ActivityResultLauncher<String[]> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
-                @Override
-                public void onActivityResult(Map<String, Boolean> result) {
-                    if(result==null || result.get(Manifest.permission.ACCESS_COARSE_LOCATION) == null
-                    ||result.get(Manifest.permission.ACCESS_FINE_LOCATION) ) return;
 
-                    if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) == null ||
-                            result.get(Manifest.permission.ACCESS_FINE_LOCATION) == null)
-                        return;
-
-                    if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) && result.get(Manifest.permission.ACCESS_FINE_LOCATION)){
-                        locationPermissionGranted = true;
-                        Log.w(DEBUG_TAG, "Starting position");
-                        if (mListener!= null && getContext()!=null){
-                            if (locationManager==null)
-                                locationManager = AppLocationManager.getInstance(getContext());
-                            locationManager.addLocationRequestFor(requester);
-                        }
-                    }
-                }
-            });
 
 
     //// ACTIVITY ATTACHED (LISTENER ///
@@ -240,12 +258,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
 
 
     public static MainScreenFragment newInstance() {
-        MainScreenFragment fragment = new MainScreenFragment();
-        Bundle args = new Bundle();
-        //args.putString(ARG_PARAM1, param1);
-        //args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+        return new MainScreenFragment();
     }
 
     @Override
@@ -272,6 +285,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         hideHintButton = root.findViewById(R.id.hideHintButton);
         swipeRefreshLayout = root.findViewById(R.id.listRefreshLayout);
         floatingActionButton = root.findViewById(R.id.floatingActionButton);
+        resultFrameLayout = root.findViewById(R.id.resultFrame);
         busStopSearchByIDEditText.setSelectAllOnFocus(true);
         busStopSearchByIDEditText
                 .setOnEditorActionListener((v, actionId, event) -> {
@@ -315,6 +329,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         setSearchModeBusStopID();
 
 
+
         cr.setAccuracy(Criteria.ACCURACY_FINE);
         cr.setAltitudeRequired(false);
         cr.setBearingRequired(false);
@@ -334,15 +349,17 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Log.d(DEBUG_TAG, "onViewCreated, SwipeRefreshLayout visible: "+(swipeRefreshLayout.getVisibility()==View.VISIBLE));
-        Log.d(DEBUG_TAG, "Setup on attached: "+ setupOnResume);
+        Log.d(DEBUG_TAG, "Saved instance state is: "+savedInstanceState);
         //Restore instance state
-        if (savedInstanceState!=null){
+        /*if (savedInstanceState!=null){
             Fragment fragment = getChildFragmentManager().getFragment(savedInstanceState, SAVED_FRAGMENT);
             if (fragment!=null){
                 getChildFragmentManager().beginTransaction().add(R.id.resultFrame, fragment).commit();
-                setupOnResume = false;
+                setupOnStart = false;
             }
         }
+
+         */
         if (getChildFragmentManager().findFragmentById(R.id.resultFrame)!= null){
             swipeRefreshLayout.setVisibility(View.VISIBLE);
         }
@@ -353,10 +370,11 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
+        Log.d(DEBUG_TAG, "Saving instance state");
         Fragment fragment = getChildFragmentManager().findFragmentById(R.id.resultFrame);
         if (fragment!=null)
         getChildFragmentManager().putFragment(outState, SAVED_FRAGMENT, fragment);
-        fragmentHelper.setBlockAllActivities(true);
+        if (fragmentHelper!=null) fragmentHelper.setBlockAllActivities(true);
 
         instanceStateSaved = true;
     }
@@ -393,7 +411,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
 
-        Log.d(DEBUG_TAG, "OnAttach called, setupOnAttach: "+ setupOnResume);
+        Log.d(DEBUG_TAG, "OnAttach called, setupOnAttach: "+ setupOnStart);
         mainHandler = new Handler();
         if (context instanceof CommonFragmentListener) {
             mListener = (CommonFragmentListener) context;
@@ -410,12 +428,36 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     //    setupOnAttached = true;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(DEBUG_TAG, "onStart called, setupOnStart: "+setupOnStart);
+        if (setupOnStart) {
+            if (pendingStopID==null){
+                //We want the nearby bus stops!
+                //mainHandler.post(new NearbyStopsRequester(getContext(), cr));
+                Log.d(DEBUG_TAG, "Showing nearby stops");
+                if(!checkLocationPermission()){
+                    requestLocationPermission();
+                    pendingNearbyStopsRequest = true;
+                }
+                else {
+                    showNearbyFragmentIfNeeded(cr);
+                }
+            }
+            else{
+                ///TODO: if there is a stop displayed, we need to hold the update
+            }
+
+            setupOnStart = false;
+        }
+    }
 
     @Override
     public void onResume() {
 
         final Context con = getContext();
-        Log.w(DEBUG_TAG, "OnResume called");
+        Log.w(DEBUG_TAG, "OnResume called, setupOnStart: "+ setupOnStart);
         if (con != null) {
             if(locationManager==null)
                 locationManager = AppLocationManager.getInstance(con);
@@ -424,14 +466,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                 Log.d(DEBUG_TAG, "Location permission OK");
                 if(!locationManager.isRequesterRegistered(requester))
                     locationManager.addLocationRequestFor(requester);
-            } else if(shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)){
-                //we have already asked for the location, and we should show an explanation in order
-                // to ask again (TODO)
-                //do nothing
-            } else{
-                //request permission
-                requestPermissionLauncher.launch(Permissions.LOCATION_PERMISSIONS);
-            }
+            } //don't request permission
         }
         else {
             Log.w(DEBUG_TAG, "Context is null at onResume");
@@ -450,16 +485,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             }
             suppressArrivalsReload = false;
         }
-        if (setupOnResume) {
-            if (pendingStopID==null)
-                //We want the nearby bus stops!
-                mainHandler.post(new NearbyStopsRequester(getContext(), cr));
-            else{
-                ///TODO: if there is a stop displayed, we need to hold the update
-            }
 
-            setupOnResume = false;
-        }
         if(pendingStopID!=null){
 
             Log.d(DEBUG_TAG, "Re-requesting arrivals for pending stop "+pendingStopID);
@@ -480,6 +506,8 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         fragmentHelper.setBlockAllActivities(true);
         fragmentHelper.stopLastRequestIfNeeded(true);
     }
+
+
 
 
     /*
@@ -635,13 +663,14 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         //actionHelpMenuItem.setVisible(false);
     }
 
-    void showNearbyStopsFragment(){
+    private void actuallyShowNearbyStopsFragment(){
         swipeRefreshLayout.setVisibility(View.VISIBLE);
         final Fragment existingFrag = fragMan.findFragmentById(R.id.resultFrame);
-        NearbyStopsFragment fragment;
+        // fragment;
         if (!(existingFrag instanceof NearbyStopsFragment)){
+            Log.d(DEBUG_TAG, "actually showing Nearby Stops Fragment");
             //there is no fragment showing
-            fragment = NearbyStopsFragment.newInstance(NearbyStopsFragment.TYPE_STOPS);
+            final NearbyStopsFragment fragment = NearbyStopsFragment.newInstance(NearbyStopsFragment.TYPE_STOPS);
 
             FragmentTransaction ft = fragMan.beginTransaction();
 
@@ -667,12 +696,15 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     @Override
     public void readyGUIfor(FragmentKind fragmentType) {
 
-        hideKeyboard();
 
         //if we are getting results, already, stop waiting for nearbyStops
-        if (pendingNearbyStopsRequest && (fragmentType == FragmentKind.ARRIVALS || fragmentType == FragmentKind.STOPS)) {
-            locationManager.removeLocationRequestFor(requester);
-            pendingNearbyStopsRequest = false;
+        if (fragmentType == FragmentKind.ARRIVALS || fragmentType == FragmentKind.STOPS) {
+            hideKeyboard();
+
+            if (pendingNearbyStopsRequest) {
+                locationManager.removeLocationRequestFor(requester);
+                pendingNearbyStopsRequest = false;
+            }
         }
 
         if (fragmentType == null) Log.e("ActivityMain", "Problem with fragmentType");
@@ -739,6 +771,46 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             Log.d(DEBUG_TAG, "Started search for arrivals of stop " + ID);
         }
     }
+
+    private boolean checkLocationPermission(){
+        final Context context = getContext();
+        if(context==null) return false;
+
+        final boolean isOldVersion = Build.VERSION.SDK_INT < Build.VERSION_CODES.M;
+        final boolean noPermission = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED;
+
+        return isOldVersion || !noPermission;
+
+    }
+    private void requestLocationPermission(){
+        requestPermissionLauncher.launch(LOCATION_PERMISSIONS);
+    }
+
+    private void showNearbyFragmentIfNeeded(Criteria cr){
+        if(isNearbyFragmentShown()) {
+            //nothing to do
+            Log.w(DEBUG_TAG, "launched nearby fragment request but we already are showing");
+            return;
+        }
+        if(getContext()==null){
+            Log.e(DEBUG_TAG, "Wanting to show nearby fragment but context is null");
+            return;
+        }
+
+        AppLocationManager appLocationManager = AppLocationManager.getInstance(getContext());
+        final boolean haveProviders = appLocationManager.anyLocationProviderMatchesCriteria(cr);
+        if (haveProviders
+                && fragmentHelper.getLastSuccessfullySearchedBusStop() == null
+                && !fragMan.isDestroyed()) {
+            //Go ahead with the request
+            Log.d("mainActivity", "Recreating stop fragment");
+            actuallyShowNearbyStopsFragment();
+            pendingNearbyStopsRequest = false;
+        } else if(!haveProviders){
+            Log.e(DEBUG_TAG, "NO PROVIDERS FOR POSITION");
+        }
+    }
     /////////// LOCATION METHODS //////////
 
     /*
@@ -750,10 +822,10 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     }
 
      */
+    /*
 
-    /**
      * Run location requests separately and asynchronously
-     */
+
     class NearbyStopsRequester implements Runnable {
         Context appContext;
         Criteria cr;
@@ -804,5 +876,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
 
         }
     }
+
+     */
 
 }

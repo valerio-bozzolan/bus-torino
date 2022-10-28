@@ -79,6 +79,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(DEBUG_TAG, "onCreate, savedInstanceState is: "+savedInstanceState);
         setContentView(R.layout.activity_principal);
         final SharedPreferences theShPr = getMainSharedPreferences();
         boolean showingArrivalsFromIntent = false;
@@ -241,15 +242,17 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         Log.d(DEBUG_TAG, "The default screen to open is: "+vl);
         if (showingArrivalsFromIntent){
             //do nothing but exclude a case
-        }
-        else if (vl.equals("map")){
-            requestMapFragment(false);
-        } else if(vl.equals("favorites")){
-            checkAndShowFavoritesFragment(getSupportFragmentManager(), false);
-        } else if(vl.equals("lines")){
-            showLinesFragment(getSupportFragmentManager(), false, null);
-        } else {
-            showMainFragment(false);
+        }else if (savedInstanceState==null) {
+            //we are not restarting the activity from nothing
+            if (vl.equals("map")) {
+                requestMapFragment(false);
+            } else if (vl.equals("favorites")) {
+                checkAndShowFavoritesFragment(getSupportFragmentManager(), false);
+            } else if (vl.equals("lines")) {
+                showLinesFragment(getSupportFragmentManager(), false, null);
+            } else {
+                showMainFragment(false);
+            }
         }
         onCreateComplete = true;
 
@@ -322,6 +325,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         // Sync the toggle state after onRestoreInstanceState has occurred.
         drawerToggle.syncState();
     }
+
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
@@ -449,7 +453,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
      * @param fraMan the fragmentManager
      * @param arguments args for the fragment
      */
-    private static void createShowMainFragment(FragmentManager fraMan, Bundle arguments, boolean addToBackStack){
+    private static void createShowMainFragment(FragmentManager fraMan,@Nullable Bundle arguments, boolean addToBackStack){
         FragmentTransaction ft  = fraMan.beginTransaction()
                 .replace(R.id.mainActContentFrame, MainScreenFragment.class, arguments, MainScreenFragment.FRAGMENT_TAG)
                 .setReorderingAllowed(false)
@@ -514,14 +518,12 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 .commit();
     }
 
-    private MainScreenFragment showMainFragment(boolean addToBackStack){
+    private void showMainFragment(boolean addToBackStack){
         FragmentManager fraMan = getSupportFragmentManager();
         Fragment fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
         final MainScreenFragment mainScreenFragment;
         if (fragment==null | !(fragment instanceof MainScreenFragment)){
-            mainScreenFragment = MainScreenFragment.newInstance();
-            //mainScreenFragment = createAndShowMainFragment();
-            showMainFragment(fraMan, mainScreenFragment, addToBackStack);
+            createShowMainFragment(fraMan, null, addToBackStack);
         }
         else if(!fragment.isVisible()){
 
@@ -532,7 +534,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         } else{
             mainScreenFragment = (MainScreenFragment) fragment;
         }
-        return mainScreenFragment;
+        //return mainScreenFragment;
     }
     @Nullable
     private MainScreenFragment getMainFragmentIfVisible(){
@@ -565,9 +567,9 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     @Override
     public void readyGUIfor(FragmentKind fragmentType) {
-        MainScreenFragment probableFragment = getMainFragmentIfVisible();
-        if (probableFragment!=null){
-            probableFragment.readyGUIfor(fragmentType);
+        MainScreenFragment mainFragmentIfVisible = getMainFragmentIfVisible();
+        if (mainFragmentIfVisible!=null){
+            mainFragmentIfVisible.readyGUIfor(fragmentType);
         }
         int titleResId;
         switch (fragmentType){
@@ -622,14 +624,12 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 showMainFragment(fraMan, probableFragment, true);
                 probableFragment.requestArrivalsForStopID(ID);
             } else {
-                //createAndShowMainFragment
                 // we have no fragment
                 final Bundle args = new Bundle();
                 args.putString(MainScreenFragment.PENDING_STOP_SEARCH, ID);
                 //if onCreate is complete, then we are not asking for the first showing fragment
                 boolean addtobackstack = onCreateComplete;
                 createShowMainFragment(fraMan, args ,addtobackstack);
-                //probableFragment = createAndShowMainFragment();
             }
         } else {
             //the MainScreeFragment is shown, nothing to do
@@ -654,6 +654,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             probableFragment.enableRefreshLayout(yes);
         }
     }
+
 
     @Override
     public void showMapCenteredOnStop(Stop stop) {

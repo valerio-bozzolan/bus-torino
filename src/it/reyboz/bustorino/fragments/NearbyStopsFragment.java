@@ -582,7 +582,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         public void onLocationChanged(Location location) {
             //set adapter
             float accuracy = location.getAccuracy();
-            if(accuracy<60 && !dbUpdateRunning) {
+            if(accuracy<100 && !dbUpdateRunning) {
                 distance = 20;
                 final Bundle msgBundle = new Bundle();
                 msgBundle.putParcelable(BUNDLE_LOCATION,location);

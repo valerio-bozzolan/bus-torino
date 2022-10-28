@@ -215,6 +215,7 @@ public class PalinaAdapter extends ArrayAdapter<Route> implements SharedPreferen
         }
 
         List<Passaggio> passaggi = route.passaggi;
+        //TODO: Sort the passaggi with realtime first if source is GTTJSONFetcher
         if(passaggi.size() == 0) {
             vh.rowRouteTimetable.setText(R.string.no_passages);
 

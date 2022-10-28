@@ -375,6 +375,7 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
                 count++;
             }
         return count < 200;
+
     }
     protected boolean adjustFetchersToSource(){
         if (lastUpdatedPalina == null) return false;

@@ -58,8 +58,7 @@ class LinesFragment : ScreenBaseFragment() {
     private lateinit var patternsSpinner: Spinner
 
     private lateinit var currentRoutes: List<GtfsRoute>
-    private lateinit var currentPatterns: List<MatoPatternWithStops>
-    private lateinit var currentPatternStops: List<PatternStop>
+    private lateinit var selectedPatterns: List<MatoPatternWithStops>
 
     private lateinit var routeDescriptionTextView: TextView
     private lateinit var stopsRecyclerView: RecyclerView
@@ -103,6 +102,7 @@ class LinesFragment : ScreenBaseFragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+
         Log.d(DEBUG_TAG, "saveInstanceState bundle: $outState")
     }
 
@@ -112,6 +112,7 @@ class LinesFragment : ScreenBaseFragment() {
 
         linesSpinner = rootView.findViewById(R.id.linesSpinner)
         patternsSpinner = rootView.findViewById(R.id.patternsSpinner)
+
 
         routeDescriptionTextView = rootView.findViewById(R.id.routeDescriptionTextView)
         stopsRecyclerView = rootView.findViewById(R.id.patternStopsRecyclerView)
@@ -134,20 +135,23 @@ class LinesFragment : ScreenBaseFragment() {
         viewModel.patternsWithStopsByRouteLiveData.observe(viewLifecycleOwner){
                 patterns ->
             run {
-                currentPatterns = patterns.sortedBy { p-> p.pattern.code }
+                selectedPatterns = patterns.sortedBy { p-> p.pattern.code }
                 //patterns. //sortedBy {-1*it.stopsIndices.size}// "${p.pattern.directionId} - ${p.pattern.headsign}" }
                 patternsAdapter?.let {
                     it.clear()
-                    it.addAll(currentPatterns.map { p->"${p.pattern.directionId} - ${p.pattern.headsign}" })
+                    it.addAll(selectedPatterns.map { p->"${p.pattern.directionId} - ${p.pattern.headsign}" })
                     it.notifyDataSetChanged()
+                }
+                viewModel.selectedPatternLiveData.value?.let {
+                   setSelectedPattern(it)
                 }
 
                 val  pos = patternsSpinner.selectedItemPosition
                 //might be possible that the selectedItem is different (larger than list size)
-                if(pos!= INVALID_POSITION && pos >= 0 && (pos < currentPatterns.size)){
-                    val p = currentPatterns[pos]
+                if(pos!= INVALID_POSITION && pos >= 0 && (pos < selectedPatterns.size)){
+                    val p = selectedPatterns[pos]
                     Log.d(DEBUG_TAG, "Setting patterns with pos $pos and p gtfsID ${p.pattern.code}")
-                    setPatternAndReqStops(currentPatterns[pos])
+                    setPatternAndReqStops(selectedPatterns[pos])
                 }
 
             }
@@ -190,9 +194,10 @@ class LinesFragment : ScreenBaseFragment() {
 
             patternsSpinner.onItemSelectedListener = object : OnItemSelectedListener{
                 override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
-                    val patternWithStops = currentPatterns.get(position)
+                    val patternWithStops = selectedPatterns.get(position)
                     //
                     setPatternAndReqStops(patternWithStops)
+                    //viewModel.currentPositionInPatterns.value = position
 
                 }
 
@@ -232,6 +237,22 @@ class LinesFragment : ScreenBaseFragment() {
         return null
     }
 
+    private fun setSelectedPattern(patternWs: MatoPatternWithStops){
+        Log.d(DEBUG_TAG, "Finding pattern to show: ${patternWs.pattern.code}")
+        var pos = -2
+        val code = patternWs.pattern.code.trim()
+        for(k in selectedPatterns.indices){
+            if(selectedPatterns[k].pattern.code.trim() == code){
+                pos = k
+                break
+            }
+        }
+        Log.d(DEBUG_TAG, "Found pattern $code in position: $pos")
+        if(pos>=0){
+            patternsSpinner.setSelection(pos)
+        }
+    }
+
     private fun setRoutes(routes: List<GtfsRoute>){
         Log.d(DEBUG_TAG, "Resetting routes")
         currentRoutes = routes.sortedWith<GtfsRoute>(linesComparator)
@@ -239,10 +260,11 @@ class LinesFragment : ScreenBaseFragment() {
         if (linesAdapter!=null){
 
             var selGtfsRoute = viewModel.getRouteIDQueried()
-            var selPatternIndex = 0
+            var selRouteIdx = 0
             if(selGtfsRoute == null){
                 selGtfsRoute =""
             }
+            Log.d(DEBUG_TAG, "Setting routes, selected route gtfsID: $selGtfsRoute")
             val adapter = linesAdapter!!
 
             if (adapter.isEmpty) {
@@ -254,14 +276,14 @@ class LinesFragment : ScreenBaseFragment() {
             }
             adapter.addAll(currentRoutes.map { r -> r.shortName })
             adapter.notifyDataSetChanged()
-            for(j in 0 until currentRoutes.size){
+            for(j in currentRoutes.indices){
                 val route = currentRoutes[j]
                 if (route.gtfsId == selGtfsRoute) {
-                    selPatternIndex = j
+                    selRouteIdx = j
                     Log.d(DEBUG_TAG, "Route $selGtfsRoute has index $j")
                 }
             }
-            linesSpinner.setSelection(selPatternIndex)
+            linesSpinner.setSelection(selRouteIdx)
             //
         }
         /*
@@ -273,7 +295,8 @@ class LinesFragment : ScreenBaseFragment() {
 
     private fun setCurrentStops(stops: List<Stop>){
 
-        val orderBy = currentPatternStops.withIndex().associate{it.value.stopGtfsId to it.index}
+        Log.d(DEBUG_TAG, "Setting stops from: "+viewModel.currentPatternStops.value)
+        val orderBy = viewModel.currentPatternStops.value!!.withIndex().associate{it.value.stopGtfsId to it.index}
         val stopsSorted = stops.sortedBy { s -> orderBy[s.gtfsID] }
         val numStops = stopsSorted.size
         Log.d(DEBUG_TAG, "RecyclerView adapter is: ${stopsRecyclerView.adapter}")
@@ -302,12 +325,14 @@ class LinesFragment : ScreenBaseFragment() {
         }
 
 
+
     }
 
     private fun setPatternAndReqStops(patternWithStops: MatoPatternWithStops){
         Log.d(DEBUG_TAG, "Requesting stops for pattern ${patternWithStops.pattern.code}")
-        currentPatternStops = patternWithStops.stopsIndices.sortedBy { i-> i.order }
-
+        //currentPatternStops = patternWithStops.stopsIndices.sortedBy { i-> i.order }
+        viewModel.currentPatternStops.value =  patternWithStops.stopsIndices.sortedBy { i-> i.order }
+        viewModel.selectedPatternLiveData.value = patternWithStops
         viewModel.requestStopsForPatternWithStops(patternWithStops)
     }
 
