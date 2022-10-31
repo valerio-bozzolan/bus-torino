@@ -55,8 +55,8 @@ android {
         applicationId "it.reyboz.bustorino"
         minSdkVersion 16
         targetSdkVersion 31
-        versionCode 44
-        versionName "1.18.2"
+        versionCode 45
+        versionName "1.18.3"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
         javaCompileOptions {

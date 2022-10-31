@@ -1,0 +1,10 @@
+* corretto un problema all'avvio dell'app legato ai permessi di geolocalizzazione - https://gitpull.it/T1138
+* corretto un crash legato alla riapertura dell'app sulla schermata degli arrivi - https://gitpull.it/T1129
+* corretto un problema che impediva il recupero della schermata aperta al riavvio dell'app
+* corretto un problema di visualizzazione delle linee, ora vengono mantenute sia la linea cercata che la direzione
+
+Grazie a Francesco Bonicelli per la segnalazione del bug sulla posizione!
+
+Questa versione è stata completamente forgiata da Fabio Mazza. Aiutaci nell'obiettivo di donargli 3€ a settimana:
+
+https://liberapay.com/Libre_BusTO/

@@ -1,0 +1,10 @@
+* fix bug at app startup related to geolocation permissions - https://gitpull.it/T1138
+* fix crash related to reopening the app on the arrivals screen - https://gitpull.it/T1129
+* fix bug preventing recovery of the open screen when restarting the app
+* fix bug related to lines screen, now both the searched line and direction are retained
+
+Thanks to Francesco Bonicelli for reporting the geolocation bug!
+
+This version has been fully forged by Fabio Mazza. Help us in our goal of donating 3€ per week:
+
+https://liberapay.com/Libre_BusTO/
