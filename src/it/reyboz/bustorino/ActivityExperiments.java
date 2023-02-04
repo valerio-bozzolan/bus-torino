@@ -18,7 +18,9 @@
 package it.reyboz.bustorino;
 
 import android.os.Bundle;
+import androidx.appcompat.app.ActionBar;
 import it.reyboz.bustorino.fragments.LinesDetailFragment;
+import it.reyboz.bustorino.fragments.TestRealtimeGtfsFragment;
 import it.reyboz.bustorino.middleware.GeneralActivity;
 
 public class ActivityExperiments extends GeneralActivity {
@@ -29,11 +31,22 @@ public class ActivityExperiments extends GeneralActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_experiments);
+
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setIcon(R.drawable.ic_launcher);
+        }
         if (savedInstanceState==null) {
             getSupportFragmentManager().beginTransaction()
                     .setReorderingAllowed(true)
+                    /*
                     .add(R.id.fragment_container_view, LinesDetailFragment.class,
+
                             LinesDetailFragment.Companion.makeArgs("gtt:56U"))
+                    .commit();
+                     */
+                    .add(R.id.fragment_container_view, TestRealtimeGtfsFragment.class, null)
                     .commit();
         }
     }

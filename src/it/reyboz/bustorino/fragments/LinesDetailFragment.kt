@@ -16,6 +16,7 @@ import it.reyboz.bustorino.backend.gtfs.PolylineParser
 import it.reyboz.bustorino.data.gtfs.MatoPatternWithStops
 import it.reyboz.bustorino.data.gtfs.PatternStop
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Polyline
 
@@ -33,13 +34,11 @@ class LinesDetailFragment() : Fragment() {
     private lateinit var gtfsStopsForCurrentPattern: List<PatternStop>
 
     private lateinit var map: MapView
-    private lateinit var polyLine: Polyline
-
     private lateinit var viewingPattern: MatoPatternWithStops
 
     private lateinit var viewModel: LinesViewModel
 
-
+    private var polyline = Polyline();
 
     companion object {
         private const val LINEID_KEY="lineID"
@@ -51,6 +50,8 @@ class LinesDetailFragment() : Fragment() {
             b.putString(LINEID_KEY, lineID)
             return b
         }
+        private const val DEFAULT_CENTER_LAT = 45.0708
+        private const val DEFAULT_CENTER_LON = 7.6858
     }
 
 
@@ -73,9 +74,13 @@ class LinesDetailFragment() : Fragment() {
 
         // add ability to zoom with 2 fingers
         map.setMultiTouchControls(true)
-        map.minZoomLevel = 13.0
+        map.minZoomLevel = 14.0
 
-
+        //map controller setup
+        val mapController = map.controller
+        mapController.setZoom(14.0)
+        mapController.setCenter(GeoPoint(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON))
+        map.invalidate()
 
         viewModel.patternsWithStopsByRouteLiveData.observe(viewLifecycleOwner){
             patterns -> savePatternsToShow(patterns)
@@ -91,11 +96,16 @@ class LinesDetailFragment() : Fragment() {
             val pattern = viewingPattern.pattern
 
             val pointsList = PolylineParser.decodePolyline(pattern.patternGeometryPoly, pattern.patternGeometryLength)
-            val polyLine=Polyline(map)
-            polyLine.setPoints(pointsList)
+            //val polyLine=Polyline(map)
+            //polyLine.setPoints(pointsList)
+            if(map.overlayManager.contains(polyline)){
+                map.overlayManager.remove(polyline)
+            }
+            polyline = Polyline(map)
+            polyline.setPoints(pointsList)
 
-            map.overlayManager.add(polyLine)
-            map.controller.animateTo(pointsList[0])
+            map.overlayManager.add(polyline)
+            //map.controller.animateTo(pointsList[0])
         }
 
         viewModel.setRouteIDQuery(lineID)

@@ -11,7 +11,9 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="title_barcode_scanner_install">Install Barcode Scanner?</string>
-    <string name="message_install_barcode_scanner">This application requires an app to scan the QR codes. Would you like to install Barcode Scanner now?</string>
+    <string name="message_install_barcode_scanner">This application requires an app to scan the QR codes. Would you like
+        to install Barcode Scanner now?
+    </string>
 
     <string name="insert_bus_stop_number">Bus stop number</string>
     <string name="insert_bus_stop_name">Bus stop name</string>
@@ -208,7 +210,7 @@
     <!-- preferences -->
     <string name="pref_directions_capitalize">Capitalize directions</string>
     <string-array name="directions_capitalize">
-        <item >Do not change arrivals directions</item>
+        <item>Do not change arrivals directions</item>
         <item>Capitalize everything</item>
         <item>Capitalize only first letter</item>
     </string-array>
@@ -222,7 +224,7 @@
     <string name="pref_shown_startup_def_desc">Touch to change it</string>
     <string name="pref_lines_click_msg">Show arrivals touching on stop</string>
     <string name="pref_experimental_msg">Enable experiments</string>
-    
+
     <!-- lines -->
     <string name="long_press_stop_4_options">Long press the stop for options</string>
 
@@ -232,5 +234,7 @@
         <item>@string/nav_map_text</item>
         <item>@string/lines</item>
     </array>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

@@ -36,13 +36,17 @@ import it.reyboz.bustorino.R;
 public class CustomInfoWindow extends BasicInfoWindow {
     //TODO: Make the action on the Click customizable
     private final TouchResponder touchResponder;
-    private final String stopID, name;
+    private final String stopID, name, routesStopping;
+    //final DisplayMetrics metrics;
 
     @Override
     public void onOpen(Object item) {
         super.onOpen(item);
-        TextView descr_textView = (TextView) mView.findViewById(R.id.bubble_description);
+        TextView descr_textView = mView.findViewById(R.id.bubble_description);
         CharSequence text = descr_textView.getText();
+        TextView titleTV = mView.findViewById(R.id.bubble_title);
+        //Log.d("BusTO-MapInfoWindow", "Descrip: "+text+", title "+(titleTV==null? "null": titleTV.getText()));
+
         if (text==null || !text.toString().isEmpty()){
             descr_textView.setVisibility(View.VISIBLE);
         } else
@@ -51,21 +55,30 @@ public class CustomInfoWindow extends BasicInfoWindow {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mView.setElevation(3.2f);
         }
+        TextView subDescriptTextView = mView.findViewById(R.id.bubble_subdescription);
+        if (routesStopping!=null && !routesStopping.isEmpty()){
+            subDescriptTextView.setText(routesStopping);
+            subDescriptTextView.setVisibility(View.VISIBLE);
+        }
+
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    public CustomInfoWindow(MapView mapView, String stopID, String name, TouchResponder responder) {
+    public CustomInfoWindow(MapView mapView, String stopID, String name, String routesStopping, TouchResponder responder) {
         // get the personalized layout
         super(R.layout.map_popup, mapView);
         touchResponder =responder;
         this.stopID = stopID;
         this.name = name;
+        this.routesStopping = routesStopping;
+
+        //metrics = Resources.getSystem().getDisplayMetrics();
 
         // make clickable
         mView.setOnTouchListener((View v, MotionEvent e) -> {
             if (e.getAction() == MotionEvent.ACTION_UP) {
                 // on click
-                touchResponder.onActionUp(stopID, name);
+                touchResponder.onActionUp(this.stopID, this.name);
             }
             return true;
         });

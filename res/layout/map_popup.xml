@@ -3,26 +3,37 @@
     android:orientation="vertical" android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@color/cardview_light_background"
-    android:padding="8dp">
+    android:padding="9dp"
+>
 
     <TextView
             android:id="@+id/bubble_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/blue_500"/>
+            android:gravity="center"
+            android:textColor="@color/blue_700"
+            android:textSize="16sp"
+            android:maxWidth="400sp"
+    />
 
     <TextView
             android:id="@+id/bubble_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
+            android:textSize="15sp"
     />
 
     <TextView
-        android:id="@+id/bubble_subdescription"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
+            android:id="@+id/bubble_subdescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:gravity="center_horizontal"
+            android:textSize="11sp"
+            android:maxWidth="130sp"
     />
 
     <ImageView

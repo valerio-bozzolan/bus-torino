@@ -80,6 +80,7 @@ public class MapFragment extends ScreenBaseFragment {
     public static final String BUNDLE_LONGIT = "lon";
     public static final String BUNDLE_NAME = "name";
     public static final String BUNDLE_ID = "ID";
+    public static final String BUNDLE_ROUTES_STOPPING = "routesStopping";
 
     public static final String FRAGMENT_TAG="BusTOMapFragment";
 
@@ -111,6 +112,7 @@ public class MapFragment extends ScreenBaseFragment {
         @Override
         public void onActionUp(@NonNull String stopID, @Nullable String stopName) {
             if (listenerMain!= null){
+                Log.d(DEBUG_TAG, "Asked to show arrivals for stop ID: "+stopID);
                 listenerMain.requestArrivalsForStopID(stopID);
             }
         }
@@ -131,7 +133,11 @@ public class MapFragment extends ScreenBaseFragment {
 
     private final ActivityResultLauncher<String[]> positionRequestLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
-                if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) && result.get(Manifest.permission.ACCESS_FINE_LOCATION)){
+                if (result == null){
+                    Log.w(DEBUG_TAG, "Got asked permission but request is null, doing nothing?");
+                }
+                else if(Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION)) &&
+                        Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION))){
 
                     map.getOverlays().remove(mLocationOverlay);
                     startLocationOverlay(true, map);
@@ -155,20 +161,21 @@ public class MapFragment extends ScreenBaseFragment {
     public static MapFragment getInstance(){
         return new MapFragment();
     }
-    public static MapFragment getInstance(double stopLatit, double stopLong, String stopName, String stopID){
+    public static MapFragment getInstance(@NonNull Stop stop){
         MapFragment fragment= new MapFragment();
         Bundle args = new Bundle();
-        args.putDouble(BUNDLE_LATIT, stopLatit);
-        args.putDouble(BUNDLE_LONGIT, stopLong);
-        args.putString(BUNDLE_NAME, stopName);
-        args.putString(BUNDLE_ID, stopID);
+        args.putDouble(BUNDLE_LATIT, stop.getLatitude());
+        args.putDouble(BUNDLE_LONGIT, stop.getLongitude());
+        args.putString(BUNDLE_NAME, stop.getStopDisplayName());
+        args.putString(BUNDLE_ID, stop.ID);
+        args.putString(BUNDLE_ROUTES_STOPPING, stop.routesThatStopHereToString());
         fragment.setArguments(args);
 
         return fragment;
     }
-    public static MapFragment getInstance(@NonNull Stop stop){
-        return getInstance(stop.getLatitude(), stop.getLongitude(), stop.getStopDisplayName(), stop.ID);
-    }
+    //public static MapFragment getInstance(@NonNull Stop stop){
+     //   return getInstance(stop.getLatitude(), stop.getLongitude(), stop.getStopDisplayName(), stop.ID);
+    //}
 
 
     @Nullable
@@ -265,9 +272,8 @@ public class MapFragment extends ScreenBaseFragment {
     @Override
     public void onPause() {
         super.onPause();
+        Log.w(DEBUG_TAG, "On pause called mapfrag");
         saveMapState();
-        //cancel asynctask
-        Log.w(DEBUG_TAG, "On pause called");
         if (stopFetcher!= null)
             stopFetcher.cancel(true);
     }
@@ -279,7 +285,6 @@ public class MapFragment extends ScreenBaseFragment {
     private void saveMapState(){
         savedMapState = new Bundle();
         saveMapState(savedMapState);
-
     }
 
     /**
@@ -287,13 +292,17 @@ public class MapFragment extends ScreenBaseFragment {
      * @param bundle the bundle in which to save the data
      */
     private void saveMapState(Bundle bundle){
+        Log.d(DEBUG_TAG, "Saving state, location following: "+followingLocation);
+        bundle.putBoolean(FOLLOWING_LOCAT_KEY, followingLocation);
+        if (map == null){
+            //The map is null, it  can happen?
+            Log.e(DEBUG_TAG, "Cannot save map center, map is null");
+            return;
+        }
         final IGeoPoint loc = map.getMapCenter();
         bundle.putDouble(MAP_CENTER_LAT_KEY, loc.getLatitude());
         bundle.putDouble(MAP_CENTER_LON_KEY, loc.getLongitude());
         bundle.putDouble(MAP_CURRENT_ZOOM_KEY, map.getZoomLevelDouble());
-        Log.d(DEBUG_TAG, "Saving state, location following: "+followingLocation);
-        bundle.putBoolean(FOLLOWING_LOCAT_KEY, followingLocation);
-
     }
 
     @Override
@@ -380,12 +389,14 @@ public class MapFragment extends ScreenBaseFragment {
         GeoPoint marker = null;
         String name = null;
         String ID = null;
+        String routesStopping = "";
         if (incoming != null) {
             double lat = incoming.getDouble(BUNDLE_LATIT);
             double lon = incoming.getDouble(BUNDLE_LONGIT);
             marker = new GeoPoint(lat, lon);
             name = incoming.getString(BUNDLE_NAME);
             ID = incoming.getString(BUNDLE_ID);
+            routesStopping = incoming.getString(BUNDLE_ROUTES_STOPPING, "");
         }
 
 
@@ -465,7 +476,8 @@ public class MapFragment extends ScreenBaseFragment {
         //requestStopsToShow();
         if (marker != null) {
             // make a marker with the info window open for the searched marker
-            Marker stopMarker = makeMarker(marker, name , ID, true);
+            //TODO:  make Stop Bundle-able
+            Marker stopMarker = makeMarker(marker, ID , name, routesStopping,true);
             map.getController().animateTo(marker);
         }
 
@@ -518,7 +530,7 @@ public class MapFragment extends ScreenBaseFragment {
             }
             GeoPoint marker = new GeoPoint(stop.getLatitude(), stop.getLongitude());
 
-            Marker stopMarker = makeMarker(marker, stop.getStopDefaultName(), stop.ID, false);
+            Marker stopMarker = makeMarker(marker, stop, false);
             stopsFolderOverlay.add(stopMarker);
             if (!map.getOverlays().contains(stopsFolderOverlay)) {
                 Log.w(DEBUG_TAG, "Map doesn't have folder overlay");
@@ -530,13 +542,21 @@ public class MapFragment extends ScreenBaseFragment {
         map.invalidate();
     }
 
-    public Marker makeMarker(GeoPoint geoPoint, String stopName, String ID, boolean isStartMarker) {
+    public Marker makeMarker(GeoPoint geoPoint, Stop stop, boolean isStartMarker){
+        return  makeMarker(geoPoint,stop.ID,
+                stop.getStopDefaultName(),
+                stop.routesThatStopHereToString(), isStartMarker);
+    }
+
+    public Marker makeMarker(GeoPoint geoPoint, String stopID, String stopName,
+                             String routesStopping, boolean isStartMarker) {
 
         // add a marker
         final Marker marker = new Marker(map);
 
         // set custom info window as info window
-        CustomInfoWindow popup = new CustomInfoWindow(map, ID, stopName, responder);
+        CustomInfoWindow popup = new CustomInfoWindow(map, stopID, stopName, routesStopping,
+                responder);
         marker.setInfoWindow(popup);
 
         // make the marker clickable
@@ -568,7 +588,7 @@ public class MapFragment extends ScreenBaseFragment {
         // add to it a title
         marker.setTitle(stopName);
         // set the description as the ID
-        marker.setSnippet(ID);
+        marker.setSnippet(stopID);
 
         // show popup info window of the searched marker
         if (isStartMarker) {
