@@ -1,0 +1,14 @@
+Fix crash caused by NullPointerException on org.osmdroid.views.MapView.getMapCenter() (MapFragment.java:290) on version 1.18.3
+Segnalato da valerio.bozzolan
+Risolto da fabio.mazza
+https://gitpull.it/T1146
+
+Fix crash caused by NullPointerException in MapFragment.java:134 on version 1.18.2
+Segnalato da valerio.bozzolan
+Risolto da fabio.mazza
+https://gitpull.it/T1142
+
+Feature request - Bus list in maps pop-up
+Segnalato da canonex
+Risolto da fabio.mazza
+https://gitpull.it/T1140

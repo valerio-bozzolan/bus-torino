@@ -1,0 +1,14 @@
+{
+	"en-US": {
+		"reportedBy": "Reported by:",
+		"reportedByName": "Reported by %s",
+		"resolvedBy": "Resolved by:",
+		"resolvedByName": "Resolved by %s"
+	},
+	"it": {
+		"reportedBy": "Segnalazione di:",
+		"reportedByName": "Segnalato da %s",
+		"resolvedBy": "Risolto da:",
+		"resolvedByName": "Risolto da %s"
+	}
+}
