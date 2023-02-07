@@ -1,14 +1,9 @@
-Fix crash caused by NullPointerException on org.osmdroid.views.MapView.getMapCenter() (MapFragment.java:290) on version 1.18.3
-Segnalato da valerio.bozzolan
-Risolto da fabio.mazza
-https://gitpull.it/T1146
+Migliorata la mappa per elencare le linee che passano da una fermata
+- Richiesta da canonex, https://gitpull.it/T1140
 
-Fix crash caused by NullPointerException in MapFragment.java:134 on version 1.18.2
-Segnalato da valerio.bozzolan
-Risolto da fabio.mazza
-https://gitpull.it/T1142
+Fix crash occasionali nell'aprire l'app sulla mappa
+- Segnalazione da Ilma M. e Stefano B., https://gitpull.it/T1146
+- Segnalazione da un utente misterioso, https://gitpull.it/T1142
 
-Feature request - Bus list in maps pop-up
-Segnalato da canonex
-Risolto da fabio.mazza
-https://gitpull.it/T1140
+Versione interamente sviluppata da Fabio Mazza
+- https://liberapay.com/Libre_BusTO/donate
