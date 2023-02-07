@@ -26,6 +26,15 @@ if( !defined( 'REPO_PATH' ) ) {
 	define( 'REPO_PATH', __DIR__ . '/..' );
 }
 
+// Phabricator custom Maniphest field
+// https://gitpull.it/config/edit/maniphest.custom-field-definitions/
+//
+// the '%s' will be replaced with a Fastlane-compatible language
+// https://docs.fastlane.tools/actions/deliver/
+if( !defined( 'PHABRICATOR_MANIPHEST_CUSTOM_FIELD_CHANGELOG' ) ) {
+	define( 'PHABRICATOR_MANIPHEST_CUSTOM_FIELD_CHANGELOG', 'custom.changelog.%s' );
+}
+
 // load gradle stuff
 $gradle_content = file_get_contents( REPO_PATH . '/build.gradle' );
 preg_match( '/versionCode +([0-9]+)/', $gradle_content, $matches );
@@ -117,6 +126,13 @@ foreach( $I18N as $lang => $msg ) {
 
 	$changelog_blocks = [];
 
+	// NOTE: Phabricator has custom fields that can be populated to retrieve the changelog
+	// in the specified language
+	$phab_maniphest_custom_field_changelog = sprintf(
+		PHABRICATOR_MANIPHEST_CUSTOM_FIELD_CHANGELOG,
+		$lang
+	);
+
 	// for each Task
 	foreach( $tasks as $task ) {
 		$task_id          = $task['id'];
@@ -136,6 +152,10 @@ foreach( $I18N as $lang => $msg ) {
 		$task_url   = PHABRICATOR_HOME . "T{$task_id}";
 		$url_author = PHABRICATOR_HOME . 'p/' . $username_author;
 		$url_owner  = PHABRICATOR_HOME . 'p/' . $username_owner;
+
+		// get the most appropriate changelog field or the Task name
+		$changelog_title = $task['fields'][$phab_maniphest_custom_field_changelog]
+			?? $task_name;
 
 		// just try to show something useful for a F-Droid changelog
 		$changelog_lines = [];
