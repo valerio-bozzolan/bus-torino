@@ -36,7 +36,7 @@ if( !defined( 'PHABRICATOR_MANIPHEST_CUSTOM_FIELD_CHANGELOG' ) ) {
 }
 
 // load gradle stuff
-$gradle_content = file_get_contents( REPO_PATH . '/build.gradle' );
+$gradle_content = file_get_contents( REPO_PATH . '/app/build.gradle' );
 preg_match( '/versionCode +([0-9]+)/', $gradle_content, $matches );
 $version_code = $matches[1] ?? null;
 
