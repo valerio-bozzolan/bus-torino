@@ -30,13 +30,12 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="?attr/colorPrimaryDark"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark"
+        android:background="@color/grey_050"
+        android:theme="@style/ThemeOverlay.AppCompat.Light"
         app:headerLayout="@layout/nav_header"
-        app:insetForeground="@color/teal_200"
-        app:itemIconTint="@color/teal_200"
+        app:itemIconTint="@color/teal_500"
         app:itemTextAppearance="?android:attr/textAppearanceMedium"
-        app:itemTextColor="@android:color/white"
+        app:itemTextColor="@color/black_900"
         android:fitsSystemWindows="true"
         app:menu="@menu/drawer_main" />
 
