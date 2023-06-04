@@ -78,26 +78,26 @@ class Converters {
             }
         }
 
-        fun wheelchairFromString(string:  String?): GtfsStop.WheelchairAccess?{
+        fun wheelchairFromString(string:  String?): WheelchairAccess{
             string?.let { if (it.trim() == "1")
-                return GtfsStop.WheelchairAccess.SOMETIMES
+                return WheelchairAccess.SOMETIMES
             else if(it.trim() == "0")
-                return GtfsStop.WheelchairAccess.UNKNOWN
+                return WheelchairAccess.UNKNOWN
             else if(it.trim() == "2")
-                return GtfsStop.WheelchairAccess.IMPOSSIBLE
+                return WheelchairAccess.IMPOSSIBLE
             else //throw Exception("Cannot convert $string to wheelchair access") }
-            return GtfsStop.WheelchairAccess.UNKNOWN
+            return WheelchairAccess.UNKNOWN
 
         }
-            return null
+            return WheelchairAccess.UNKNOWN
         }
         @TypeConverter
-        fun wheelchairToInt(access:GtfsStop.WheelchairAccess): Int{
+        fun wheelchairToInt(access: WheelchairAccess): Int{
            return  access.value;
         }
         @TypeConverter
-        fun wheelchairFromInt(value: Int): GtfsStop.WheelchairAccess{
-            return  GtfsStop.WheelchairAccess.getByValue(value)?: GtfsStop.WheelchairAccess.UNKNOWN
+        fun wheelchairFromInt(value: Int): WheelchairAccess {
+            return  WheelchairAccess.getByValue(value)?: WheelchairAccess.UNKNOWN
         }
     }
 }

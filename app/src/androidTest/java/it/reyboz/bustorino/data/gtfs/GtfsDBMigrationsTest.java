@@ -48,6 +48,7 @@ public class GtfsDBMigrationsTest {
 
     // Array of all migrations
     private static final Migration[] ALL_MIGRATIONS = new Migration[]{
-            GtfsDatabase.Companion.getMIGRATION_1_2()};
+            GtfsDatabase.Companion.getMIGRATION_1_2(),
+    };
 }
 

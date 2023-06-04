@@ -12,7 +12,8 @@ import com.android.volley.Response
 import com.google.transit.realtime.GtfsRealtime
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.NetworkVolleyManager
-import it.reyboz.bustorino.backend.gtfs.GtfsRealtimeRequest
+import it.reyboz.bustorino.backend.gtfs.GtfsPositionUpdate
+import it.reyboz.bustorino.backend.gtfs.GtfsRtPositionsRequest
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -29,15 +30,17 @@ class TestRealtimeGtfsFragment : Fragment() {
     private lateinit var buttonLaunch: Button
     private lateinit var messageTextView: TextView
 
-    private val requestListener = object: GtfsRealtimeRequest.Companion.RequestListener{
-        override fun onResponse(response: GtfsRealtime.FeedMessage?) {
+    private val requestListener = object: GtfsRtPositionsRequest.Companion.RequestListener{
+        override fun onResponse(response: ArrayList<GtfsPositionUpdate>?) {
             if (response == null) return
 
-            if (response.entityCount == 0) {
+            if (response.size == 0) {
                 messageTextView.text = "No entities in the message"
                 return
             }
-            messageTextView.text = "Entity message 0: ${response.getEntity(0)}"
+            val position = response[0]
+            //position.
+            messageTextView.text = "Entity message 0: ${position}"
         }
 
     }
@@ -62,7 +65,7 @@ class TestRealtimeGtfsFragment : Fragment() {
         buttonLaunch.setOnClickListener {
 
             context?.let {cont->
-                val req = GtfsRealtimeRequest(GtfsRealtimeRequest.URL_POSITION,
+                val req = GtfsRtPositionsRequest(
                     Response.ErrorListener { Toast.makeText(cont, "Error: ${it.message}",Toast.LENGTH_SHORT) },
                     requestListener
                 )

@@ -114,7 +114,7 @@ public class Palina extends Stop {
         if(routes == null || routes.size() == 0) {
             return "";
         }
-        final StringBuilder sb = new StringBuilder();
+        /*final StringBuilder sb = new StringBuilder();
         final LinesNameSorter nameSorter = new LinesNameSorter();
         Collections.sort(routes, (o1, o2) -> nameSorter.compare(o1.getName().trim(), o2.getName().trim()));
         int i, lenMinusOne = routes.size() - 1;
@@ -124,9 +124,33 @@ public class Palina extends Stop {
         }
         // last one:
         sb.append(routes.get(i).getName());
-
-        setRoutesThatStopHereString(sb.toString());
+        */
+        ArrayList<String> names = new ArrayList<>();
+        for (Route r: routes){
+            names.add(r.getName());
+        }
+        final String routesThatStopHere = buildRoutesStringFromNames(names);
+        setRoutesThatStopHereString(routesThatStopHere);
         return routesThatStopHereToString();
+    }
+
+    /**
+     * Sort the names of the routes for the string "routes stopping here" and make the string
+     * @param names of the Routes that pass in the stop
+     * @return the full string of routes stopping (eg, "10, 13, 42" ecc)
+     */
+    public static String buildRoutesStringFromNames(List<String> names){
+        final StringBuilder sb = new StringBuilder();
+        final LinesNameSorter nameSorter = new LinesNameSorter();
+        Collections.sort(names, nameSorter);
+        int i, lenMinusOne = names.size() - 1;
+
+        for (i = 0; i < lenMinusOne; i++) {
+            sb.append(names.get(i).trim()).append(", ");
+        }
+        //last one
+        sb.append(names.get(i).trim());
+        return sb.toString();
     }
 
 

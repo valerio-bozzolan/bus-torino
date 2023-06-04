@@ -147,6 +147,28 @@ class MatoQueries  {
               }
             }
         """
+        const val TRIP_DETAILS="""
+         query TripInfo(${'$'}field: String!){
+            trip(id: ${'$'}field){
+                gtfsId
+                serviceId
+                route{
+                    gtfsId
+                }
+                pattern{
+                    name
+                    code
+                    headsign
+                }
+                wheelchairAccessible
+                activeDates
+                tripShortName
+                tripHeadsign
+                bikesAllowed
+                semanticHash
+            }
+        }
+        """
 
         fun getNameAndRequest(type: QueryType): Pair<String, String>{
             return  when (type){
@@ -155,12 +177,13 @@ class MatoQueries  {
                 QueryType.ARRIVALS -> Pair("AllStopsDirect", QUERY_ARRIVALS)
                 QueryType.ROUTES -> Pair("AllRoutes", ROUTES_BY_FEED)
                 QueryType.PATTERNS_FOR_ROUTES -> Pair("RoutesWithPatterns", ROUTES_WITH_PATTERNS)
+                QueryType.TRIP -> Pair("TripInfo", TRIP_DETAILS)
             }
         }
     }
 
     enum class QueryType {
-        ARRIVALS, ALL_STOPS, FEEDS, ROUTES, PATTERNS_FOR_ROUTES
+        ARRIVALS, ALL_STOPS, FEEDS, ROUTES, PATTERNS_FOR_ROUTES, TRIP
     }
 
 }

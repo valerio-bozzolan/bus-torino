@@ -27,7 +27,8 @@ import it.reyboz.bustorino.backend.Stop
                     childColumns = [MatoPattern.COL_ROUTE_ID],
                     onDelete = ForeignKey.CASCADE,
             )
-        ]
+        ],
+    indices = [Index(MatoPattern.COL_CODE), Index(MatoPattern.COL_ROUTE_ID)]
 )
 data class MatoPattern(
     @ColumnInfo(name= COL_NAME)
@@ -103,7 +104,8 @@ data class MatoPattern(
                 childColumns = [PatternStop.COL_PATTERN_ID],
                 onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(PatternStop.COL_PATTERN_ID)]
 )
 data class PatternStop(
     @ColumnInfo(name= COL_PATTERN_ID)

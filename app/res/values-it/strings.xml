@@ -160,6 +160,7 @@
     <string name="default_notification_channel_description">Canale unico delle notifiche</string>
     <string name="database_notification_channel">Database</string>
     <string name="database_notification_channel_desc">Informazioni sul database (aggiornamento)</string>
+    <string name="db_trips_download_message">Downloading trips from MaTO server</string>
 
 
     <string name="too_many_permission_asks">Chiesto troppe volte per il permesso %1$s</string>

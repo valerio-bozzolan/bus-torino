@@ -19,12 +19,15 @@
 package it.reyboz.bustorino.fragments;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -38,9 +41,14 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 
+import it.reyboz.bustorino.backend.gtfs.GtfsPositionUpdate;
+import it.reyboz.bustorino.backend.gtfs.GtfsUtils;
 import it.reyboz.bustorino.backend.utils;
+import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops;
+import it.reyboz.bustorino.map.*;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -60,11 +68,10 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import java.lang.ref.WeakReference;
 import java.util.*;
 
+import kotlin.Pair;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.NextGenDB;
-import it.reyboz.bustorino.map.CustomInfoWindow;
-import it.reyboz.bustorino.map.LocationOverlay;
 import it.reyboz.bustorino.middleware.GeneralActivity;
 import it.reyboz.bustorino.util.Permissions;
 
@@ -106,7 +113,15 @@ public class MapFragment extends ScreenBaseFragment {
     private Bundle savedMapState = null;
     protected ImageButton btCenterMap;
     protected ImageButton btFollowMe;
+    private boolean hasMapStartFinished = false;
     private boolean followingLocation = false;
+
+    private MapViewModel mapViewModel ; //= new ViewModelProvider(this).get(MapViewModel.class);
+
+    private final HashMap<String,Marker> busPositionMarkersByTrip = new HashMap<>();
+    private FolderOverlay busPositionsOverlay = null;
+
+    private final HashMap<String, ObjectAnimator> tripMarkersAnimators = new HashMap<>();
 
     protected final CustomInfoWindow.TouchResponder responder = new CustomInfoWindow.TouchResponder() {
         @Override
@@ -201,6 +216,13 @@ public class MapFragment extends ScreenBaseFragment {
 
         //setup FolderOverlay
         stopsFolderOverlay = new FolderOverlay();
+        //setup Bus Markers Overlay
+        busPositionsOverlay = new FolderOverlay();
+        //reset shown bus updates
+        busPositionMarkersByTrip.clear();
+        tripMarkersAnimators.clear();
+        //set map not done
+        hasMapStartFinished = false;
 
 
         //Start map from bundle
@@ -254,6 +276,7 @@ public class MapFragment extends ScreenBaseFragment {
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
 
+        mapViewModel = new ViewModelProvider(this).get(MapViewModel.class);
         if (context instanceof FragmentListenerMain) {
             listenerMain = (FragmentListenerMain) context;
         } else {
@@ -265,6 +288,8 @@ public class MapFragment extends ScreenBaseFragment {
     public void onDetach() {
         super.onDetach();
         listenerMain = null;
+        //stop animations
+
         //    setupOnAttached = true;
         Log.w(DEBUG_TAG, "Fragment detached");
     }
@@ -274,6 +299,13 @@ public class MapFragment extends ScreenBaseFragment {
         super.onPause();
         Log.w(DEBUG_TAG, "On pause called mapfrag");
         saveMapState();
+        for (ObjectAnimator animator : tripMarkersAnimators.values()) {
+            if(animator!=null && animator.isRunning()){
+                animator.cancel();
+            }
+        }
+        tripMarkersAnimators.clear();
+
         if (stopFetcher!= null)
             stopFetcher.cancel(true);
     }
@@ -309,6 +341,14 @@ public class MapFragment extends ScreenBaseFragment {
     public void onResume() {
         super.onResume();
         if(listenerMain!=null) listenerMain.readyGUIfor(FragmentKind.MAP);
+        if(mapViewModel!=null) {
+            mapViewModel.requestUpdates();
+            //mapViewModel.testCascade();
+            mapViewModel.getTripsGtfsIDsToQuery().observe(this, dat -> {
+                Log.i(DEBUG_TAG, "Have these trips IDs missing from the DB, to be queried: "+dat);
+                mapViewModel.downloadandInsertTripsInDB(dat);
+            });
+        }
     }
 
     @Override
@@ -480,7 +520,25 @@ public class MapFragment extends ScreenBaseFragment {
             Marker stopMarker = makeMarker(marker, ID , name, routesStopping,true);
             map.getController().animateTo(marker);
         }
+        //add the overlays with the bus stops
+        if(busPositionsOverlay == null){
+            //Log.i(DEBUG_TAG, "Null bus positions overlay,redo");
+            busPositionsOverlay = new FolderOverlay();
+        }
 
+
+        if(mapViewModel!=null){
+            //should always be the case
+            mapViewModel.getUpdatesWithTripAndPatterns().observe(this, data->{
+                Log.d(DEBUG_TAG, "Have "+data.size()+" trip updates, has Map start finished: "+hasMapStartFinished);
+                if (hasMapStartFinished) updateBusPositionsInMap(data);
+                if(!isDetached())
+                    mapViewModel.requestDelayedUpdates(4000);
+            });
+        }
+        map.getOverlays().add(this.busPositionsOverlay);
+        //set map as started
+        hasMapStartFinished = true;
     }
 
     /**
@@ -499,6 +557,104 @@ public class MapFragment extends ScreenBaseFragment {
         stopFetcher = new AsyncStopFetcher(this);
         stopFetcher.execute(
                 new AsyncStopFetcher.BoundingBoxLimit(lngFrom,lngTo,latFrom, latTo));
+    }
+
+    private void updateBusMarker(final Marker marker,final GtfsPositionUpdate posUpdate,@Nullable boolean justCreated){
+        GeoPoint position;
+        final String updateID = posUpdate.getTripID();
+        if(!justCreated){
+            position = marker.getPosition();
+            if(posUpdate.getLatitude()!=position.getLatitude() || posUpdate.getLongitude()!=position.getLongitude()){
+                GeoPoint newpos = new GeoPoint(posUpdate.getLatitude(), posUpdate.getLongitude());
+                ObjectAnimator valueAnimator = MarkerAnimation.makeMarkerAnimator(map, marker, newpos, new GeoPointInterpolator.LinearFixed(), 2500);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                    valueAnimator.setAutoCancel(true);
+                } else if(tripMarkersAnimators.containsKey(updateID)) {
+                    ObjectAnimator otherAnim = tripMarkersAnimators.get(updateID);
+                    assert otherAnim != null;
+                    otherAnim.cancel();
+                }
+                tripMarkersAnimators.put(updateID,valueAnimator);
+                valueAnimator.start();
+            }
+                //marker.setPosition(new GeoPoint(posUpdate.getLatitude(), posUpdate.getLongitude()));
+        } else {
+
+            position = new GeoPoint(posUpdate.getLatitude(), posUpdate.getLongitude());
+            marker.setPosition(position);
+        }
+
+        marker.setRotation(posUpdate.getBearing()*(-1.f));
+    }
+
+    private void updateBusPositionsInMap(HashMap<String, Pair<GtfsPositionUpdate, TripAndPatternWithStops>> tripsPatterns){
+        Log.d(DEBUG_TAG, "Updating positions of the buses");
+        //if(busPositionsOverlay == null) busPositionsOverlay = new FolderOverlay();
+        for(String tripID: tripsPatterns.keySet()) {
+            final Pair<GtfsPositionUpdate, TripAndPatternWithStops> pair = tripsPatterns.get(tripID);
+            if (pair == null) continue;
+            final GtfsPositionUpdate update = pair.getFirst();
+            final TripAndPatternWithStops tripWithPatternStops = pair.getSecond();
+
+
+            //check if Marker is already created
+            if (busPositionMarkersByTrip.containsKey(tripID)){
+                //need to change the position of the marker
+                final Marker marker = busPositionMarkersByTrip.get(tripID);
+                assert marker!=null;
+                updateBusMarker(marker, update, false);
+                if(marker.getInfoWindow()!=null && marker.getInfoWindow() instanceof BusInfoWindow){
+                    BusInfoWindow window = (BusInfoWindow) marker.getInfoWindow();
+                    if(tripWithPatternStops != null) {
+                        //Log.d(DEBUG_TAG, "Update pattern for trip: "+tripID);
+                        window.setPatternAndDraw(tripWithPatternStops.getPattern());
+                    }
+
+                }
+            } else{
+                //marker is not there, need to make it
+                if(map==null) Log.e(DEBUG_TAG, "Creating marker with null map, things will explode");
+                final Marker marker = new Marker(map);
+
+                /*final Drawable mDrawable = DrawableUtils.Companion.getScaledDrawableResources(
+                        getResources(),
+                        R.drawable.point_heading_icon,
+                R.dimen.map_icons_size, R.dimen.map_icons_size);
+
+                 */
+                String route = GtfsUtils.getLineNameFromGtfsID(update.getRouteID());
+                final Drawable mdraw = ResourcesCompat.getDrawable(getResources(),R.drawable.point_heading_icon, null);
+                /*final Drawable mdraw = DrawableUtils.Companion.writeOnDrawable(getResources(),
+                        R.drawable.point_heading_icon,
+                        R.color.white,
+                        route,12);
+
+                 */
+                assert mdraw != null;
+                //mdraw.setBounds(0,0,28,28);
+                marker.setIcon(mdraw);
+                if(tripWithPatternStops == null){
+                    Log.d(DEBUG_TAG, "Trip "+tripID+" has no pattern");
+                }
+                marker.setInfoWindow(new BusInfoWindow(map, update, tripWithPatternStops != null ? tripWithPatternStops.getPattern() : null, new BusInfoWindow.onTouchUp() {
+                    @Override
+                    public void onActionUp() {
+
+                    }
+                }));
+
+                updateBusMarker(marker, update, true);
+                // the overlay is null when it's not attached yet?
+                // cannot recreate it because it becomes null very soon
+                // if(busPositionsOverlay == null) busPositionsOverlay = new FolderOverlay();
+                //save the marker
+                if(busPositionsOverlay!=null) {
+                    busPositionsOverlay.add(marker);
+                    busPositionMarkersByTrip.put(tripID, marker);
+                }
+
+            }
+        }
     }
 
     /**
@@ -522,7 +678,7 @@ public class MapFragment extends ScreenBaseFragment {
             shownStops.add(stop.ID);
             if(!map.isShown()){
                 if(good)
-                Log.d(DEBUG_TAG, "Need to show stop but map is not shown, probably detached already");
+                    Log.d(DEBUG_TAG, "Need to show stop but map is not shown, probably detached already");
                 good = false;
                 continue;
             } else if(map.getRepository() == null){
@@ -584,7 +740,7 @@ public class MapFragment extends ScreenBaseFragment {
         // add to it an icon
         //marker.setIcon(getResources().getDrawable(R.drawable.bus_marker));
 
-        marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.drawable.bus_marker, ctx.getTheme()));
+        marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.drawable.bus_stop, ctx.getTheme()));
         // add to it a title
         marker.setTitle(stopName);
         // set the description as the ID

@@ -17,12 +17,20 @@
  */
 package it.reyboz.bustorino.backend.mato
 
+import android.util.Log
 import it.reyboz.bustorino.data.gtfs.*
+import org.json.JSONException
 import org.json.JSONObject
 
+/**
+ * Class to hold the code for the parsing of responses from the Mato API,
+ * from the JSON Object
+ */
 abstract class ResponseParsing{
 
     companion object{
+
+        final val DEBUG_TAG="BusTO:MatoResponseParse"
         fun parseAgencyJSON(jsonObject: JSONObject): GtfsAgency {
             return GtfsAgency(
                 jsonObject.getString("gtfsId"),
@@ -115,6 +123,31 @@ abstract class ResponseParsing{
             return patternsOut
         }
 
+        fun parseTripInfo(jsonData: JSONObject): GtfsTrip?{
+
+
+            return try {
+                val jsonTrip = jsonData.getJSONObject("trip")
+
+                val routeId = jsonTrip.getJSONObject("route").getString("gtfsId")
+
+                val patternId =jsonTrip.getJSONObject("pattern").getString("code")
+                // still have "activeDates" which are the days in which the pattern is active
+                //Log.d("BusTO:RequestParsing", "Making GTFS trip for: $jsonData")
+                val trip = GtfsTrip(
+                    routeId, jsonTrip.getString("serviceId"), jsonTrip.getString("gtfsId"),
+                    jsonTrip.getString("tripHeadsign"), -1, "", "",
+                    Converters.wheelchairFromString(jsonTrip.getString("wheelchairAccessible")),
+                    false, patternId, jsonTrip.getString("semanticHash")
+                )
+                trip
+            } catch (e: JSONException){
+                Log.e(DEBUG_TAG, "Cannot parse json to make trip")
+                Log.e(DEBUG_TAG, "Json Data: $jsonData")
+                e.printStackTrace()
+                null
+            }
+        }
 
     }
 }

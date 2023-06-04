@@ -183,6 +183,7 @@
     <string name="default_notification_channel_description">Default channel for notifications</string>
     <string name="database_notification_channel">Database</string>
     <string name="database_notification_channel_desc">Notifications on the update of the database</string>
+    <string name="db_trips_download_message">Downloading trips from MaTO server</string>
 
     <string name="too_many_permission_asks">Asked for %1$s permission too many times</string>
     <string name="permission_storage_maps_msg">Cannot use the map with the storage permission!</string>

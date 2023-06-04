@@ -50,7 +50,7 @@ data class GtfsStop(
         valuesByColumn[COL_LATITUDE]?.toDoubleOrNull()!!,
         valuesByColumn[COL_LONGITUDE]?.toDoubleOrNull()!!,
         //valuesByColumn["zone_id"]?.toIntOrNull()!!,
-        Converters.wheelchairFromString(valuesByColumn[COL_WHEELCHAIR])!!
+        Converters.wheelchairFromString(valuesByColumn[COL_WHEELCHAIR])
     )
     companion object{
         const val DB_TABLE="stops_gtfs"
@@ -77,14 +77,4 @@ data class GtfsStop(
         return COLUMNS
     }
 
-    enum class WheelchairAccess(val value: Int){
-        UNKNOWN(0),
-        SOMETIMES(1),
-        IMPOSSIBLE(2);
-
-        companion object {
-            private val VALUES = values()
-            fun getByValue(value: Int) = VALUES.firstOrNull { it.value == value }
-        }
-    }
 }

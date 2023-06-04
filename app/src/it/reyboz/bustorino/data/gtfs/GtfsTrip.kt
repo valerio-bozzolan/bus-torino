@@ -33,7 +33,7 @@ import androidx.room.*
             onDelete = GtfsDatabase.FOREIGNKEY_ONDELETE),
          */
     ],
-    indices = [Index(GtfsTrip.COL_ROUTE_ID)]
+    indices = [Index(GtfsTrip.COL_ROUTE_ID), Index(GtfsTrip.COL_TRIP_ID)]
 )
 data class GtfsTrip(
     @ColumnInfo(name = COL_ROUTE_ID )
@@ -52,10 +52,13 @@ data class GtfsTrip(
     @ColumnInfo(name = COL_SHAPE_ID)
     val shapeID: String,
     @ColumnInfo(name = COL_WHEELCHAIR)
-    val isWheelchairAccess: Boolean,
+    val isWheelchairAccess: WheelchairAccess,
     @ColumnInfo(name = COL_LIMITED_R)
     val isLimitedRoute: Boolean,
-
+    @ColumnInfo(name= COL_PATTERN_ID, defaultValue = "")
+    val patternId: String,
+    @ColumnInfo(name = COL_SEM_HASH)
+    val semanticHash: String?,
 ): GtfsTable {
 
     constructor(valuesByColumn: Map<String,String>) : this(
@@ -66,8 +69,10 @@ data class GtfsTrip(
         valuesByColumn[COL_DIRECTION_ID]?.toIntOrNull()?: 0,
         valuesByColumn[COL_BLOCK_ID]!!,
         valuesByColumn[COL_SHAPE_ID]!!,
-        Converters.fromStringNum(valuesByColumn[COL_WHEELCHAIR], false),
-        Converters.fromStringNum(valuesByColumn[COL_LIMITED_R], false)
+        Converters.wheelchairFromString(valuesByColumn[COL_WHEELCHAIR]),
+        Converters.fromStringNum(valuesByColumn[COL_LIMITED_R], false),
+        valuesByColumn[COL_PATTERN_ID]?:"",
+        valuesByColumn[COL_SEM_HASH],
     )
 
     companion object{
@@ -82,6 +87,8 @@ data class GtfsTrip(
         const val COL_SHAPE_ID = "shape_id"
         const val COL_WHEELCHAIR="wheelchair_accessible"
         const val COL_LIMITED_R="limited_route"
+        const val COL_PATTERN_ID="pattern_code"
+        const val COL_SEM_HASH="semantic_hash"
 
         val COLUMNS= arrayOf(
             COL_ROUTE_ID,
@@ -103,5 +110,27 @@ data class GtfsTrip(
 
     override fun getColumns(): Array<String> {
         return COLUMNS
+    }
+
+}
+
+data class TripAndPatternWithStops(
+    @Embedded val trip: GtfsTrip,
+    @Relation(
+        parentColumn = GtfsTrip.COL_PATTERN_ID,
+        entityColumn = MatoPattern.COL_CODE
+    )
+    val pattern: MatoPattern,
+    @Relation(
+        parentColumn = MatoPattern.COL_CODE,
+        entityColumn = PatternStop.COL_PATTERN_ID,
+
+        )
+    var stopsIndices: List<PatternStop>){
+
+
+    init {
+        stopsIndices = stopsIndices.sortedBy { p-> p.order }
+
     }
 }

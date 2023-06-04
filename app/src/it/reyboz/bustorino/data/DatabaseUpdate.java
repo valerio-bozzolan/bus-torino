@@ -45,9 +45,7 @@ import kotlin.Pair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -100,20 +98,23 @@ public class DatabaseUpdate {
 
         return true;
     }
-    private static boolean updateGTFSRoutes(Context con, AtomicReference<Fetcher.Result> res){
+    private static HashMap<String, Set<String>> updateGTFSRoutes(Context con, AtomicReference<Fetcher.Result> res){
 
         final GtfsDBDao dao = GtfsDatabase.Companion.getGtfsDatabase(con).gtfsDao();
 
-        final List<GtfsRoute> routes= MatoAPIFetcher.Companion.getRoutes(
-                con, res
-        );
+        final List<GtfsRoute> routes= MatoAPIFetcher.Companion.getRoutes(con, res);
+
+        final HashMap<String,Set<String>> routesStoppingInStop = new HashMap<>();
+
         dao.insertRoutes(routes);
         if(res.get()!= Fetcher.Result.OK){
-            return false;
+            return routesStoppingInStop;
         }
         final ArrayList<String> gtfsRoutesIDs = new ArrayList<>(routes.size());
+        final HashMap<String,GtfsRoute> routesMap = new HashMap<>(routes.size());
         for(GtfsRoute r: routes){
             gtfsRoutesIDs.add(r.getGtfsId());
+            routesMap.put(r.getGtfsId(),r);
         }
         long t0 = System.currentTimeMillis();
         final ArrayList<MatoPattern> patterns = MatoAPIFetcher.Companion.getPatternsWithStops(con,gtfsRoutesIDs,res);
@@ -121,20 +122,36 @@ public class DatabaseUpdate {
         Log.d(DEBUG_TAG, "Downloaded patterns in "+tend+" ms");
         if(res.get()!=Fetcher.Result.OK){
             Log.e(DEBUG_TAG, "Something went wrong downloading patterns");
-            return false;
+            return routesStoppingInStop;
         }
+        //match patterns with routes
 
         final ArrayList<PatternStop> patternStops = new ArrayList<>(patterns.size());
+
         for(MatoPattern p: patterns){
+            //scan patterns
             final ArrayList<String> stopsIDs = p.getStopsGtfsIDs();
+            final GtfsRoute mRoute = routesMap.get(p.getRouteGtfsId());
+            if (mRoute == null) {
+                Log.e(DEBUG_TAG, "Error in parsing the route: " + p.getRouteGtfsId() + " , cannot find the IDs in the map");
+            }
             for (int i=0; i<stopsIDs.size(); i++){
-                patternStops.add(new PatternStop(p.getCode(),stopsIDs.get(i), i));
+                final String ID = stopsIDs.get(i);
+                patternStops.add(new PatternStop(p.getCode(),ID, i));
+                // save routes stopping in the stop
+
+                if (!routesStoppingInStop.containsKey(ID)){
+                    routesStoppingInStop.put(ID, new HashSet<>());
+                }
+                Set<String> mset= routesStoppingInStop.get(ID);
+                assert mset != null;
+                mset.add(mRoute.getShortName());
             }
         }
         dao.insertPatterns(patterns);
         dao.insertPatternStops(patternStops);
 
-        return true;
+        return routesStoppingInStop;
     }
 
 
@@ -157,6 +174,35 @@ public class DatabaseUpdate {
             return DatabaseUpdate.Result.ERROR_STOPS_DOWNLOAD;
 
         }
+
+        // GTFS data fetching
+        AtomicReference<Fetcher.Result> gtfsRes = new AtomicReference<>(Fetcher.Result.OK);
+        updateGTFSAgencies(con, gtfsRes);
+        if (gtfsRes.get()!= Fetcher.Result.OK){
+            Log.w(DEBUG_TAG, "Could not insert the feeds and agencies stuff");
+        } else{
+            Log.d(DEBUG_TAG, "Done downloading agencies");
+        }
+        gtfsRes.set(Fetcher.Result.OK);
+        final HashMap<String, Set<String>> routesStoppingByStop = updateGTFSRoutes(con,gtfsRes);
+        if (gtfsRes.get()!= Fetcher.Result.OK){
+            Log.w(DEBUG_TAG, "Could not insert the routes into DB");
+        } else{
+            Log.d(DEBUG_TAG, "Done downloading routes from MaTO");
+        }
+
+        /*db.beginTransaction();
+        startTime = System.currentTimeMillis();
+        int countStop = NextGenDB.writeLinesStoppingHere(db, routesStoppingByStop);
+         if(countStop!= routesStoppingByStop.size()){
+             Log.w(DEBUG_TAG, "Something went wrong in updating the linesStoppingBy, have "+countStop+" lines updated, with "
+                     +routesStoppingByStop.size()+" stops to update");
+         }
+         db.setTransactionSuccessful();
+         db.endTransaction();
+         endTime = System.currentTimeMillis();
+         Log.d(DEBUG_TAG, "Updating lines took "+(endTime-startTime)+" ms");
+         */
         //TODO: Get the type of stop from the lines
         //Empty the needed tables
         db.beginTransaction();
@@ -167,6 +213,8 @@ public class DatabaseUpdate {
         long startTime = System.currentTimeMillis();
 
         Log.d(DEBUG_TAG, "Inserting " + palinasMatoAPI.size() + " stops");
+        String routesStoppingString="";
+        int patternsStopsHits = 0;
         for (final Palina p : palinasMatoAPI) {
             final ContentValues cv = new ContentValues();
 
@@ -177,7 +225,14 @@ public class DatabaseUpdate {
             cv.put(NextGenDB.Contract.StopsTable.COL_LAT, p.getLatitude());
             cv.put(NextGenDB.Contract.StopsTable.COL_LONG, p.getLongitude());
             if (p.getAbsurdGTTPlaceName() != null) cv.put(NextGenDB.Contract.StopsTable.COL_PLACE, p.getAbsurdGTTPlaceName());
-            cv.put(NextGenDB.Contract.StopsTable.COL_LINES_STOPPING, p.routesThatStopHereToString());
+            if(p.gtfsID!= null && routesStoppingByStop.containsKey(p.gtfsID)){
+                final ArrayList<String> routesSs= new ArrayList<>(routesStoppingByStop.get(p.gtfsID));
+                routesStoppingString = Palina.buildRoutesStringFromNames(routesSs);
+                patternsStopsHits++;
+            } else{
+                routesStoppingString = p.routesThatStopHereToString();
+            }
+            cv.put(NextGenDB.Contract.StopsTable.COL_LINES_STOPPING, routesStoppingString);
             if (p.type != null) cv.put(NextGenDB.Contract.StopsTable.COL_TYPE, p.type.getCode());
             if (p.gtfsID != null) cv.put(NextGenDB.Contract.StopsTable.COL_GTFS_ID, p.gtfsID);
             //Log.d(DEBUG_TAG,cv.toString());
@@ -190,62 +245,7 @@ public class DatabaseUpdate {
         db.endTransaction();
         long endTime = System.currentTimeMillis();
         Log.d(DEBUG_TAG, "Inserting stops took: " + ((double) (endTime - startTime) / 1000) + " s");
-
-        // GTFS data fetching
-        AtomicReference<Fetcher.Result> gtfsRes = new AtomicReference<>(Fetcher.Result.OK);
-        updateGTFSAgencies(con, gtfsRes);
-        if (gtfsRes.get()!= Fetcher.Result.OK){
-            Log.w(DEBUG_TAG, "Could not insert the feeds and agencies stuff");
-        } else{
-            Log.d(DEBUG_TAG, "Done downloading agencies");
-        }
-        gtfsRes.set(Fetcher.Result.OK);
-        updateGTFSRoutes(con,gtfsRes);
-        if (gtfsRes.get()!= Fetcher.Result.OK){
-            Log.w(DEBUG_TAG, "Could not insert the routes into DB");
-        } else{
-            Log.d(DEBUG_TAG, "Done downloading routes from MaTO");
-        }
-        /*
-        final ArrayList<Route> routes = f.getAllLinesFromGTT(gres);
-
-        if (routes == null) {
-            Log.w(DEBUG_TAG, "Something went wrong downloading the lines");
-            dbHelp.close();
-            return DatabaseUpdate.Result.ERROR_LINES_DOWNLOAD;
-
-        }
-
-        db.beginTransaction();
-        startTime = System.currentTimeMillis();
-        for (Route r : routes) {
-            final ContentValues cv = new ContentValues();
-            cv.put(NextGenDB.Contract.LinesTable.COLUMN_NAME, r.getName());
-            switch (r.type) {
-                case BUS:
-                    cv.put(NextGenDB.Contract.LinesTable.COLUMN_TYPE, "URBANO");
-                    break;
-                case RAILWAY:
-                    cv.put(NextGenDB.Contract.LinesTable.COLUMN_TYPE, "FERROVIA");
-                    break;
-                case LONG_DISTANCE_BUS:
-                    cv.put(NextGenDB.Contract.LinesTable.COLUMN_TYPE, "EXTRA");
-                    break;
-            }
-            cv.put(NextGenDB.Contract.LinesTable.COLUMN_DESCRIPTION, r.description);
-
-            //db.insert(LinesTable.TABLE_NAME,null,cv);
-            int rows = db.update(NextGenDB.Contract.LinesTable.TABLE_NAME, cv, NextGenDB.Contract.LinesTable.COLUMN_NAME + " = ?", new String[]{r.getName()});
-            if (rows < 1) { //we haven't changed anything
-                db.insert(NextGenDB.Contract.LinesTable.TABLE_NAME, null, cv);
-            }
-        }
-        db.setTransactionSuccessful();
-        db.endTransaction();
-        endTime = System.currentTimeMillis();
-        Log.d(DEBUG_TAG, "Inserting lines took: " + ((double) (endTime - startTime) / 1000) + " s");
-
-         */
+        Log.d(DEBUG_TAG, "\t"+patternsStopsHits+" routes string were built from the patterns");
         dbHelp.close();
 
         return DatabaseUpdate.Result.DONE;

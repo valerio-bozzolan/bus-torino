@@ -24,6 +24,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -350,6 +351,13 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode==STORAGE_PERMISSION_REQ){
             final String storagePerm = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+            if (permissionDoneRunnables.containsKey(storagePerm)) {
+                Runnable toRun = permissionDoneRunnables.get(storagePerm);
+                if (toRun != null)
+                    toRun.run();
+                permissionDoneRunnables.remove(storagePerm);
+            }
+
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d(DEBUG_TAG, "Permissions check: " + Arrays.toString(permissions));
 
@@ -469,8 +477,17 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     }
 
     private void requestMapFragment(final boolean allowReturn){
+        // starting from Android 11, we don't need to have the STORAGE permission anymore for the map cache
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+            //nothing to do
+            Log.d(DEBUG_TAG, "Build codes allow the showing of the map");
+            createAndShowMapFragment(null, allowReturn);
+            return;
+        }
         final String permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
         int result = askForPermissionIfNeeded(permission, STORAGE_PERMISSION_REQ);
+        Log.d(DEBUG_TAG, "Permission for storage: "+result);
         switch (result) {
             case PERMISSION_OK:
                 createAndShowMapFragment(null, allowReturn);

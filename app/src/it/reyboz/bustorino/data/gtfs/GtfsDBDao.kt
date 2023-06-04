@@ -22,8 +22,13 @@ import androidx.room.*
 
 @Dao
 interface GtfsDBDao {
+    // get queries
     @Query("SELECT * FROM "+GtfsRoute.DB_TABLE)
     fun getAllRoutes() : LiveData<List<GtfsRoute>>
+
+    @Query("SELECT * FROM ${GtfsRoute.DB_TABLE} WHERE ${GtfsRoute.COL_ROUTE_ID} IN (:routeGtfsIds)")
+    fun getRoutesByIDs(routeGtfsIds: List<String>): LiveData<List<GtfsRoute>>
+
 
     @Query("SELECT "+GtfsTrip.COL_TRIP_ID+" FROM "+GtfsTrip.DB_TABLE)
     fun getAllTripsIDs() : List<String>
@@ -40,12 +45,14 @@ interface GtfsDBDao {
     )
     fun getShapeByID(shapeID: String) : LiveData<List<GtfsShape>>
 
-
     @Query("SELECT * FROM ${GtfsRoute.DB_TABLE} WHERE ${GtfsRoute.COL_AGENCY_ID} LIKE :agencyID")
     fun getRoutesByAgency(agencyID:String) : LiveData<List<GtfsRoute>>
 
     @Query("SELECT * FROM ${MatoPattern.TABLE_NAME} WHERE ${MatoPattern.COL_ROUTE_ID} LIKE :routeID")
-    fun getPatternsByRouteID(routeID: String): LiveData<List<MatoPattern>>
+    fun getPatternsLiveDataByRouteID(routeID: String): LiveData<List<MatoPattern>>
+
+    @Query("SELECT * FROM "+MatoPattern.TABLE_NAME+" WHERE ${MatoPattern.COL_ROUTE_ID} LIKE :routeGtfsId")
+    fun getPatternsForRouteID(routeGtfsId: String) : List<MatoPattern>
 
     @Query("SELECT * FROM ${PatternStop.TABLE_NAME} WHERE ${PatternStop.COL_PATTERN_ID} LIKE :patternGtfsID")
     fun getStopsByPatternID(patternGtfsID: String): LiveData<List<PatternStop>>
@@ -53,6 +60,18 @@ interface GtfsDBDao {
     @Transaction
     @Query("SELECT * FROM ${MatoPattern.TABLE_NAME} WHERE ${MatoPattern.COL_ROUTE_ID} LIKE :routeID")
     fun getPatternsWithStopsByRouteID(routeID: String): LiveData<List<MatoPatternWithStops>>
+
+    @Transaction
+    @Query("SELECT * FROM ${MatoPattern.TABLE_NAME} WHERE ${MatoPattern.COL_CODE} IN (:patternGtfsIDs)")
+    fun getPatternsWithStopsFromIDs(patternGtfsIDs: List<String>) : LiveData<List<MatoPatternWithStops>>
+
+    @Transaction
+    @Query("SELECT * FROM ${GtfsTrip.DB_TABLE} WHERE ${GtfsTrip.COL_TRIP_ID} IN (:tripsIds)")
+    fun getTripsFromIDs(tripsIds: List<String>) : List<GtfsTrip>
+
+    @Transaction
+    @Query("SELECT * FROM ${GtfsTrip.DB_TABLE} WHERE ${GtfsTrip.COL_TRIP_ID} IN (:trips)")
+    fun getTripPatternStops(trips: List<String>): LiveData<List<TripAndPatternWithStops>>
 
     fun getRoutesForFeed(feed:String): LiveData<List<GtfsRoute>>{
         val agencyID = "${feed}:%"
@@ -120,9 +139,6 @@ interface GtfsDBDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertPatterns(patterns: List<MatoPattern>)
 
-    @Query("SELECT * FROM "+MatoPattern.TABLE_NAME+
-            " WHERE ${MatoPattern.COL_ROUTE_ID} LIKE :routeGtfsId")
-    fun getPatternsForRouteID(routeGtfsId: String) : List<MatoPattern>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertPatternStops(patternStops: List<PatternStop>)
 }

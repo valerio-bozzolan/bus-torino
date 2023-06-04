@@ -38,23 +38,25 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.collections.ArrayList
 
 
-open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
+open class MatoAPIFetcher(
+    private val minNumPassaggi: Int
+) : ArrivalsFetcher {
     var appContext: Context? = null
         set(value) {
             field = value!!.applicationContext
         }
-    constructor(): this(2)
+    constructor(): this(DEF_MIN_NUMPASSAGGI)
 
 
     override fun ReadArrivalTimesAll(stopID: String?, res: AtomicReference<Fetcher.Result>?): Palina {
         stopID!!
 
         val now = Calendar.getInstance().time
-        var numMinutes = 0
+        var numMinutes = 30
         var palina = Palina(stopID)
         var numPassaggi = 0
         var trials = 0
-        val numDepartures = 4
+        val numDepartures = 8
         while (numPassaggi < minNumPassaggi && trials < 2) {
 
             //numDepartures+=2
@@ -87,7 +89,7 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
             } catch (e: ExecutionException) {
                 e.printStackTrace()
                 if (res.get() == Fetcher.Result.OK)
-                res.set(Fetcher.Result.SERVER_ERROR)
+                    res.set(Fetcher.Result.SERVER_ERROR)
             } catch (e: TimeoutException) {
                 res.set(Fetcher.Result.CONNECTION_ERROR)
                 e.printStackTrace()
@@ -107,6 +109,7 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
         const val VOLLEY_TAG = "MatoAPIFetcher"
 
         const val DEBUG_TAG = "BusTO:MatoAPIFetcher"
+        const val DEF_MIN_NUMPASSAGGI=2
 
         val REQ_PARAMETERS = mapOf(
             "Content-Type" to "application/json; charset=utf-8",
@@ -122,6 +125,7 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
                 MatoQueries.QueryType.FEEDS -> VOLLEY_TAG +"_Feeds"
                 MatoQueries.QueryType.ROUTES -> VOLLEY_TAG +"_AllRoutes"
                 MatoQueries.QueryType.PATTERNS_FOR_ROUTES -> VOLLEY_TAG + "_PatternsForRoute"
+                MatoQueries.QueryType.TRIP -> VOLLEY_TAG+"_Trip"
             }
         }
 
@@ -359,7 +363,7 @@ open class MatoAPIFetcher(val minNumPassaggi: Int) : ArrivalsFetcher {
             return routes
 
         }
-        fun getPatternsWithStops(context: Context, routesGTFSIds: ArrayList<String>, res: AtomicReference<Fetcher.Result>?): ArrayList<MatoPattern>{
+        fun getPatternsWithStops(context: Context, routesGTFSIds: MutableCollection<String>, res: AtomicReference<Fetcher.Result>?): ArrayList<MatoPattern>{
             val requestQueue = NetworkVolleyManager.getInstance(context).requestQueue
 
             val future = RequestFuture.newFuture<JSONObject>()

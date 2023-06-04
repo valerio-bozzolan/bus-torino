@@ -281,6 +281,20 @@ public abstract class utils {
             return outFetchers;
         }
     }
+    /*public String getShorterDirection(String headSign){
+        String[] parts = headSign.split(",");
+        if (parts.length<=1){
+            return  headSign.trim();
+        }
+        String first = parts[0].trim();
+        String second = parts[1].trim();
+        String firstLower = first.toLowerCase(Locale.ITALIAN);
+        switch (firstLower){
+            case "circolare destra":
+            case "circolare sinistra":
+                case
+        }
+    }*/
     /**
      * Print the first i lines of the the trace of an exception
      * https://stackoverflow.com/questions/21706722/fetch-only-first-n-lines-of-a-stack-trace

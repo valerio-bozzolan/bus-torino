@@ -37,6 +37,9 @@ import androidx.room.migration.Migration
         PatternStop::class
                ],
     version = GtfsDatabase.VERSION,
+    autoMigrations = [
+        AutoMigration(from=2,to=3)
+    ]
 )
 @TypeConverters(Converters::class)
 abstract class GtfsDatabase : RoomDatabase() {
@@ -62,7 +65,7 @@ abstract class GtfsDatabase : RoomDatabase() {
             }
         }
 
-        const val VERSION = 2
+        const val VERSION = 3
         const val FOREIGNKEY_ONDELETE = ForeignKey.CASCADE
 
         val MIGRATION_1_2 = Migration(1,2) {

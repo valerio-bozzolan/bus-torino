@@ -35,7 +35,13 @@ class MatoVolleyJSONRequest(type: MatoQueries.QueryType,
             return Response.error(VolleyError("Response not ready, status "+response.statusCode))
         val obj:JSONObject
         try {
-            obj = JSONObject(String(response.data)).getJSONObject("data")
+            val resp = JSONObject(String(response.data))
+            obj = resp.getJSONObject("data")
+            if (resp.has("errors")){
+
+                Log.e("BusTO:MatoJSON","Errors encountered in the response: ${resp.getJSONObject("errors")}\n" +
+                        "Variables to the query where: ${variables}\nThe next action done with the data is probably going to fail")
+            }
         }catch (ex: JSONException){
             Log.e("BusTO-VolleyJSON","Cannot parse response as JSON")
             ex.printStackTrace()

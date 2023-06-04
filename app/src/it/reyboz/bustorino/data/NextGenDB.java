@@ -27,10 +27,12 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 import android.util.Log;
 
+import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static it.reyboz.bustorino.data.NextGenDB.Contract.*;
 
@@ -295,6 +297,34 @@ public class NextGenDB extends SQLiteOpenHelper{
             );
         }
         return stops;
+    }
+
+    public static synchronized int writeLinesStoppingHere(SQLiteDatabase db, HashMap<String,Set<String>> linesStoppingBy){
+        int rowsUpdated = 0;
+        for (String stopGtfsID : linesStoppingBy.keySet()){
+            if (linesStoppingBy.get(stopGtfsID)==null) continue;
+            if (linesStoppingBy.get(stopGtfsID).isEmpty()) continue;
+            ArrayList<String> ll = new ArrayList<>(linesStoppingBy.get(stopGtfsID));
+            String stringForStops = Palina.buildRoutesStringFromNames(ll);
+
+            ContentValues cv = new ContentValues();
+            cv.put(StopsTable.COL_LINES_STOPPING, stringForStops);
+
+            // Which row to update, based on the title
+            String selection = StopsTable.COL_GTFS_ID + " LIKE ?";
+            String[] selectionArgs = { stopGtfsID };
+
+            int count = db.update(
+                    StopsTable.TABLE_NAME,
+                    cv,
+                    selection,
+                    selectionArgs);
+            if (count > 1){
+                Log.e(DEBUG_TAG, "Updated the linesStoppingBy for more than one stop");
+            }
+            rowsUpdated += count;
+        }
+        return  rowsUpdated;
     }
     /*
     static ArrayList<Stop> createStopListFromCursor(Cursor data){
