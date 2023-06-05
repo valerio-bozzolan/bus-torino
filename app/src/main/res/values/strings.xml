@@ -4,6 +4,7 @@
     <string name="app_name" translatable="false">BusTO</string>
     <string name="app_name_full" translatable="false">Libre BusTO</string>
     <string name="app_name_debug" translatable="false">BusTO dev</string>
+    <string name="app_name_gitpull" translatable="false">BusTO git</string>
     <string name="app_description">You\'re using the latest in technology when it comes to respecting your privacy.
     </string>
     <string name="search">Search</string>
