@@ -15,8 +15,10 @@ import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.gtfs.PolylineParser
 import it.reyboz.bustorino.data.gtfs.MatoPatternWithStops
 import it.reyboz.bustorino.data.gtfs.PatternStop
+import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
+import org.osmdroid.util.MapTileIndex
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Polyline
 
@@ -39,6 +41,7 @@ class LinesDetailFragment() : Fragment() {
     private lateinit var viewModel: LinesViewModel
 
     private var polyline = Polyline();
+    private var stopPosList = ArrayList<GeoPoint>()
 
     companion object {
         private const val LINEID_KEY="lineID"
@@ -67,18 +70,44 @@ class LinesDetailFragment() : Fragment() {
         patternsSpinner.adapter = patternsAdapter
 
         map = rootView.findViewById(R.id.lineMap)
+        val USGS_SAT: OnlineTileSourceBase = object : OnlineTileSourceBase(
+            "USGS National Map Sat",
+            0,
+            15,
+            256,
+            "",
+            arrayOf("https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/"),
+            "USGS"
+        ) {
+            override fun getTileURLString(pMapTileIndex: Long): String {
+                return baseUrl + MapTileIndex.getZoom(pMapTileIndex) + "/" + MapTileIndex.getY(pMapTileIndex) + "/" + MapTileIndex.getX(
+                    pMapTileIndex
+                )
+            }
+        }
         map.setTileSource(TileSourceFactory.MAPNIK)
+        /*
+        object : OnlineTileSourceBase("USGS Topo", 0, 18, 256, "",
+             arrayOf("https://basemap.nationalmap.gov/ArcGIS/rest/services/USGSTopo/MapServer/tile/" )) {
+            override fun getTileURLString(pMapTileIndex: Long) : String{
+                return baseUrl +
+                MapTileIndex.getZoom(pMapTileIndex)+"/" + MapTileIndex.getY(pMapTileIndex) +
+                "/" + MapTileIndex.getX(pMapTileIndex)+ mImageFilenameEnding;
+            }
+        }
+         */
         //map.setTilesScaledToDpi(true);
         //map.setTilesScaledToDpi(true);
         map.setFlingEnabled(true)
+        map.setUseDataConnection(true)
 
         // add ability to zoom with 2 fingers
         map.setMultiTouchControls(true)
-        map.minZoomLevel = 14.0
+        map.minZoomLevel = 10.0
 
         //map controller setup
         val mapController = map.controller
-        mapController.setZoom(14.0)
+        mapController.setZoom(12.0)
         mapController.setCenter(GeoPoint(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON))
         map.invalidate()
 
@@ -98,6 +127,7 @@ class LinesDetailFragment() : Fragment() {
             val pointsList = PolylineParser.decodePolyline(pattern.patternGeometryPoly, pattern.patternGeometryLength)
             //val polyLine=Polyline(map)
             //polyLine.setPoints(pointsList)
+            //save points
             if(map.overlayManager.contains(polyline)){
                 map.overlayManager.remove(polyline)
             }
@@ -105,7 +135,8 @@ class LinesDetailFragment() : Fragment() {
             polyline.setPoints(pointsList)
 
             map.overlayManager.add(polyline)
-            //map.controller.animateTo(pointsList[0])
+            map.controller.animateTo(pointsList[0])
+            map.invalidate()
         }
 
         viewModel.setRouteIDQuery(lineID)

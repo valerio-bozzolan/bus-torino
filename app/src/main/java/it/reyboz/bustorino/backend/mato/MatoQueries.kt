@@ -148,26 +148,26 @@ class MatoQueries  {
             }
         """
         const val TRIP_DETAILS="""
-         query TripInfo(${'$'}field: String!){
-            trip(id: ${'$'}field){
+     query TripInfo(${'$'}field: String!){
+        trip(id: ${'$'}field){
+            gtfsId
+            serviceId
+            route{
                 gtfsId
-                serviceId
-                route{
-                    gtfsId
-                }
-                pattern{
-                    name
-                    code
-                    headsign
-                }
-                wheelchairAccessible
-                activeDates
-                tripShortName
-                tripHeadsign
-                bikesAllowed
-                semanticHash
             }
+            pattern{
+                name
+                code
+                headsign
+            }
+            wheelchairAccessible
+            activeDates
+            tripShortName
+            tripHeadsign
+            bikesAllowed
+            semanticHash
         }
+    }
         """
 
         fun getNameAndRequest(type: QueryType): Pair<String, String>{

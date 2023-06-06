@@ -63,7 +63,7 @@ public class DatabaseUpdate {
 
 
     enum Result {
-            DONE, ERROR_STOPS_DOWNLOAD, ERROR_LINES_DOWNLOAD
+            DONE, ERROR_STOPS_DOWNLOAD, ERROR_LINES_DOWNLOAD, DB_CLOSED
         }
 
     /**
@@ -163,18 +163,6 @@ public class DatabaseUpdate {
      */
     public static Result performDBUpdate(Context con, AtomicReference<Fetcher.Result> gres) {
 
-        final FiveTAPIFetcher f = new FiveTAPIFetcher();
-
-        final NextGenDB dbHelp = NextGenDB.getInstance(con.getApplicationContext());
-        final SQLiteDatabase db = dbHelp.getWritableDatabase();
-
-        final List<Palina> palinasMatoAPI = MatoAPIFetcher.Companion.getAllStopsGTT(con, gres);
-        if (gres.get() != Fetcher.Result.OK) {
-            Log.w(DEBUG_TAG, "Something went wrong downloading");
-            return DatabaseUpdate.Result.ERROR_STOPS_DOWNLOAD;
-
-        }
-
         // GTFS data fetching
         AtomicReference<Fetcher.Result> gtfsRes = new AtomicReference<>(Fetcher.Result.OK);
         updateGTFSAgencies(con, gtfsRes);
@@ -190,7 +178,6 @@ public class DatabaseUpdate {
         } else{
             Log.d(DEBUG_TAG, "Done downloading routes from MaTO");
         }
-
         /*db.beginTransaction();
         startTime = System.currentTimeMillis();
         int countStop = NextGenDB.writeLinesStoppingHere(db, routesStoppingByStop);
@@ -203,8 +190,24 @@ public class DatabaseUpdate {
          endTime = System.currentTimeMillis();
          Log.d(DEBUG_TAG, "Updating lines took "+(endTime-startTime)+" ms");
          */
+        // Stops insertion
+        final List<Palina> palinasMatoAPI = MatoAPIFetcher.Companion.getAllStopsGTT(con, gres);
+        if (gres.get() != Fetcher.Result.OK) {
+            Log.w(DEBUG_TAG, "Something went wrong downloading stops");
+            return DatabaseUpdate.Result.ERROR_STOPS_DOWNLOAD;
+
+        }
+        final NextGenDB dbHelp = NextGenDB.getInstance(con.getApplicationContext());
+        final SQLiteDatabase db = dbHelp.getWritableDatabase();
+
+        if(!db.isOpen()){
+            //catch errors like: java.lang.IllegalStateException: attempt to re-open an already-closed object: SQLiteDatabase
+            //we have to abort the work and restart it
+            return Result.DB_CLOSED;
+        }
         //TODO: Get the type of stop from the lines
         //Empty the needed tables
+
         db.beginTransaction();
         //db.execSQL("DELETE FROM "+StopsTable.TABLE_NAME);
         //db.delete(LinesTable.TABLE_NAME,null,null);
@@ -246,6 +249,7 @@ public class DatabaseUpdate {
         long endTime = System.currentTimeMillis();
         Log.d(DEBUG_TAG, "Inserting stops took: " + ((double) (endTime - startTime) / 1000) + " s");
         Log.d(DEBUG_TAG, "\t"+patternsStopsHits+" routes string were built from the patterns");
+        db.close();
         dbHelp.close();
 
         return DatabaseUpdate.Result.DONE;

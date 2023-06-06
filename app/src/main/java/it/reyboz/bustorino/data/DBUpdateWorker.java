@@ -42,6 +42,7 @@ public class DBUpdateWorker extends Worker{
     public static final int ERROR_FETCHING_VERSION = 4;
     public static final int ERROR_DOWNLOADING_STOPS = 5;
     public static final int ERROR_DOWNLOADING_LINES = 6;
+    public static final int ERROR_CODE_DB_CLOSED=-2;
 
     public static final String SUCCESS_REASON_KEY = "SUCCESS_REASON";
     public static final int SUCCESS_NO_ACTION_NEEDED = 9;
@@ -131,6 +132,9 @@ public class DBUpdateWorker extends Worker{
                     break;
                 case ERROR_LINES_DOWNLOAD:
                     dataBuilder.put(ERROR_REASON_KEY, ERROR_DOWNLOADING_LINES);
+                    break;
+                case DB_CLOSED:
+                    dataBuilder.put(ERROR_REASON_KEY, ERROR_CODE_DB_CLOSED);
                     break;
             }
             cancelNotification(notification_ID);

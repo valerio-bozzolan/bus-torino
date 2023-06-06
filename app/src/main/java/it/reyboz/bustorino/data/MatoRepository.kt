@@ -38,7 +38,8 @@ class MatoRepository(val mContext: Context) {
         netVolleyManager.addToRequestQueue(MatoVolleyJSONRequest(
             MatoQueries.QueryType.TRIP,params,{
                 try {
-                    val result = Result.success(ResponseParsing.parseTripInfo(it))
+                    val trip: GtfsTrip = ResponseParsing.parseTripInfo(it)
+                    val result = Result.success(trip)
                     callback.onResultAvailable(result)
                 } catch (e: JSONException){
                     // this might happen when the json is "{'data': {'trip': None}}"

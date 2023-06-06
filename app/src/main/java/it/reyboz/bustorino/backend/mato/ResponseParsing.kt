@@ -21,6 +21,7 @@ import android.util.Log
 import it.reyboz.bustorino.data.gtfs.*
 import org.json.JSONException
 import org.json.JSONObject
+import kotlin.jvm.Throws
 
 /**
  * Class to hold the code for the parsing of responses from the Mato API,
@@ -28,9 +29,9 @@ import org.json.JSONObject
  */
 abstract class ResponseParsing{
 
-    companion object{
+    companion object {
 
-        final val DEBUG_TAG="BusTO:MatoResponseParse"
+        final val DEBUG_TAG = "BusTO:MatoResponseParse"
         fun parseAgencyJSON(jsonObject: JSONObject): GtfsAgency {
             return GtfsAgency(
                 jsonObject.getString("gtfsId"),
@@ -51,7 +52,7 @@ abstract class ResponseParsing{
             val feed = GtfsFeed(jsonObject.getString("feedId"))
             val oo = jsonObject.getJSONArray("agencies")
             agencies.ensureCapacity(oo.length())
-            for (i in 0 until oo.length()){
+            for (i in 0 until oo.length()) {
                 val agObj = oo.getJSONObject(i)
 
                 agencies.add(
@@ -90,19 +91,19 @@ abstract class ResponseParsing{
         /**
          * Parse a route pattern from the JSON response of the MaTO server
          */
-        fun parseRoutePatternsStopsJSON(jsonObject: JSONObject) : ArrayList<MatoPattern>{
+        fun parseRoutePatternsStopsJSON(jsonObject: JSONObject): ArrayList<MatoPattern> {
             val routeGtfsId = jsonObject.getString("gtfsId")
 
             val patternsJSON = jsonObject.getJSONArray("patterns")
             val patternsOut = ArrayList<MatoPattern>(patternsJSON.length())
             var mPatternJSON: JSONObject
-            for(i in 0 until patternsJSON.length()){
+            for (i in 0 until patternsJSON.length()) {
                 mPatternJSON = patternsJSON.getJSONObject(i)
 
                 val stopsJSON = mPatternJSON.getJSONArray("stops")
 
                 val stopsCodes = ArrayList<String>(stopsJSON.length())
-                for(k in 0 until stopsJSON.length()){
+                for (k in 0 until stopsJSON.length()) {
                     stopsCodes.add(
                         stopsJSON.getJSONObject(k).getString("gtfsId")
                     )
@@ -116,38 +117,30 @@ abstract class ResponseParsing{
                     MatoPattern(
                         mPatternJSON.getString("name"), mPatternJSON.getString("code"),
                         mPatternJSON.getString("semanticHash"), mPatternJSON.getInt("directionId"),
-                        routeGtfsId,mPatternJSON.getString("headsign"), polyline, numGeo, stopsCodes
+                        routeGtfsId, mPatternJSON.getString("headsign"), polyline, numGeo, stopsCodes
                     )
                 )
             }
             return patternsOut
         }
 
-        fun parseTripInfo(jsonData: JSONObject): GtfsTrip?{
+        @Throws(JSONException::class)
+        fun parseTripInfo(jsonData: JSONObject): GtfsTrip {
 
+            val jsonTrip = jsonData.getJSONObject("trip")
 
-            return try {
-                val jsonTrip = jsonData.getJSONObject("trip")
+            val routeId = jsonTrip.getJSONObject("route").getString("gtfsId")
 
-                val routeId = jsonTrip.getJSONObject("route").getString("gtfsId")
-
-                val patternId =jsonTrip.getJSONObject("pattern").getString("code")
-                // still have "activeDates" which are the days in which the pattern is active
-                //Log.d("BusTO:RequestParsing", "Making GTFS trip for: $jsonData")
-                val trip = GtfsTrip(
-                    routeId, jsonTrip.getString("serviceId"), jsonTrip.getString("gtfsId"),
-                    jsonTrip.getString("tripHeadsign"), -1, "", "",
-                    Converters.wheelchairFromString(jsonTrip.getString("wheelchairAccessible")),
-                    false, patternId, jsonTrip.getString("semanticHash")
-                )
-                trip
-            } catch (e: JSONException){
-                Log.e(DEBUG_TAG, "Cannot parse json to make trip")
-                Log.e(DEBUG_TAG, "Json Data: $jsonData")
-                e.printStackTrace()
-                null
-            }
+            val patternId = jsonTrip.getJSONObject("pattern").getString("code")
+            // still have "activeDates" which are the days in which the pattern is active
+            //Log.d("BusTO:RequestParsing", "Making GTFS trip for: $jsonData")
+            val trip = GtfsTrip(
+                routeId, jsonTrip.getString("serviceId"), jsonTrip.getString("gtfsId"),
+                jsonTrip.getString("tripHeadsign"), -1, "", "",
+                Converters.wheelchairFromString(jsonTrip.getString("wheelchairAccessible")),
+                false, patternId, jsonTrip.getString("semanticHash")
+            )
+            return trip
         }
-
     }
 }

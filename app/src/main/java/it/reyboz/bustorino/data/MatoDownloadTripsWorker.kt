@@ -63,13 +63,17 @@ class MatoDownloadTripsWorker(appContext: Context, workerParams: WorkerParameter
         for(trip in tripsList){
             queriedMatoTrips.add(trip)
             matoRepository.requestTripUpdate(trip,{error->
-                Log.e(DEBUG_TAG, "Cannot download Gtfs Trip")
-                error.printStackTrace()
+                Log.e(DEBUG_TAG, "Cannot download Gtfs Trip $trip")
+                val stacktrace  = error.stackTrace.take(5)
+                Log.w(DEBUG_TAG, "Stacktrace:\n$stacktrace")
                 failedMatoTripsDownload.add(trip)
                 requestCountDown.countDown()
             }){
 
                 if(it.isSuccess){
+                    if (it.result == null){
+                        Log.e(DEBUG_TAG, "Got null result");
+                    }
                     downloadedMatoTrips.add(it.result!!)
                 } else{
                     failedMatoTripsDownload.add(trip)

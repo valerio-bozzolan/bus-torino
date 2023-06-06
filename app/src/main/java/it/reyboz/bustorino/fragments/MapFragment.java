@@ -590,6 +590,7 @@ public class MapFragment extends ScreenBaseFragment {
     private void updateBusPositionsInMap(HashMap<String, Pair<GtfsPositionUpdate, TripAndPatternWithStops>> tripsPatterns){
         Log.d(DEBUG_TAG, "Updating positions of the buses");
         //if(busPositionsOverlay == null) busPositionsOverlay = new FolderOverlay();
+        final ArrayList<String> noPatternsTrips = new ArrayList<>();
         for(String tripID: tripsPatterns.keySet()) {
             final Pair<GtfsPositionUpdate, TripAndPatternWithStops> pair = tripsPatterns.get(tripID);
             if (pair == null) continue;
@@ -634,7 +635,7 @@ public class MapFragment extends ScreenBaseFragment {
                 //mdraw.setBounds(0,0,28,28);
                 marker.setIcon(mdraw);
                 if(tripWithPatternStops == null){
-                    Log.d(DEBUG_TAG, "Trip "+tripID+" has no pattern");
+                    noPatternsTrips.add(tripID);
                 }
                 marker.setInfoWindow(new BusInfoWindow(map, update, tripWithPatternStops != null ? tripWithPatternStops.getPattern() : null, new BusInfoWindow.onTouchUp() {
                     @Override
@@ -654,6 +655,9 @@ public class MapFragment extends ScreenBaseFragment {
                 }
 
             }
+        }
+        if(noPatternsTrips.size()>0){
+            Log.i(DEBUG_TAG, "These trips have no matching pattern: "+noPatternsTrips);
         }
     }
 

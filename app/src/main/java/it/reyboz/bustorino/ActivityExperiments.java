@@ -46,7 +46,8 @@ public class ActivityExperiments extends GeneralActivity {
                             LinesDetailFragment.Companion.makeArgs("gtt:56U"))
                     .commit();
                      */
-                    .add(R.id.fragment_container_view, TestRealtimeGtfsFragment.class, null)
+                    .add(R.id.fragment_container_view, LinesDetailFragment.class,
+                            LinesDetailFragment.Companion.makeArgs("gtt:10U"))
                     .commit();
         }
     }
