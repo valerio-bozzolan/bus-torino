@@ -64,6 +64,7 @@
     </string>
     <string name="hint_button">GOT IT!</string>
     <string name="arrival_times">Arrival times</string>
+    <string name="no_passages_title">No arrivals found for lines:</string>
     <string name="about_history">
         <![CDATA[
         <h1>Welcome!</h1>

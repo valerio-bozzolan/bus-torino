@@ -9,4 +9,6 @@
 
     <dimen name="default_textView_margin">6dp</dimen>
 
+    <dimen name="margin_arr">5dp</dimen>
+
 </resources>

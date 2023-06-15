@@ -285,9 +285,6 @@ public class ResultListFragment extends Fragment{
             resultsListView.setVisibility(View.VISIBLE);
         }
     }
-    public void setNewListAdapter(ListAdapter adapter){
-        resetListAdapter(adapter);
-    }
 
     /**
      * Set the message textView

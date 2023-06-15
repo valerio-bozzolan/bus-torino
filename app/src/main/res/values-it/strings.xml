@@ -155,6 +155,8 @@
 
     <string name="arrival_source_changing">Cambiamento sorgente orari…</string>
     <string name="change_arrivals_source_message">Premi a lungo per cambiare la sorgente degli orari</string>
+    <string name="no_passages_title">Nessun passaggio per le linee:</string>
+
 
 
     <string name="default_notification_channel_description">Canale unico delle notifiche</string>

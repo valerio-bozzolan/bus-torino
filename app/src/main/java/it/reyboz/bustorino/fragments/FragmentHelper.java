@@ -126,7 +126,7 @@ public class FragmentHelper {
             } else {
                 arrivalsFragment = ArrivalsFragment.newInstance(p.ID);
             }
-            String probableTag = ResultListFragment.getFragmentTag(p);
+            String probableTag = ArrivalsFragment.getFragmentTag(p);
             attachFragmentToContainer(fm,arrivalsFragment,new AttachParameters(probableTag, true, addToBackStack));
         }
         // DO NOT CALL `setListAdapter` ever on arrivals fragment

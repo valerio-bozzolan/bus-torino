@@ -400,5 +400,18 @@ public class Palina extends Stop {
         if (min == Integer.MAX_VALUE) return 0;
         else return min;
     }
+
+    public ArrayList<String> getRoutesNamesWithNoPassages(){
+        ArrayList<String> mList = new ArrayList<>();
+        if(routes==null || routes.size() == 0){
+            return mList;
+        }
+        for(Route r: routes){
+            if(r.numPassaggi()==0)
+                mList.add(r.getNameForDisplay());
+        }
+
+        return  mList;
+    }
     //private void mergeRoute
 }

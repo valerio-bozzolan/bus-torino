@@ -27,14 +27,11 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
+import androidx.recyclerview.widget.RecyclerView;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Passaggio;
@@ -42,6 +39,7 @@ import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.utils;
 import it.reyboz.bustorino.util.PassaggiSorter;
 import it.reyboz.bustorino.util.RouteSorterByArrivalTime;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This once was a ListView Adapter for BusLine[].
@@ -52,9 +50,9 @@ import it.reyboz.bustorino.util.RouteSorterByArrivalTime;
  * @author Valerio Bozzolan
  * @author Ludovico Pavesi
  */
-public class PalinaAdapter extends ArrayAdapter<Route> implements SharedPreferences.OnSharedPreferenceChangeListener {
-    private LayoutInflater li;
-    private static int row_layout = R.layout.entry_bus_line_passage;
+public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaViewHolder> implements SharedPreferences.OnSharedPreferenceChangeListener {
+
+    private static final int ROW_LAYOUT = R.layout.entry_bus_line_passage;
     private static final int metroBg = R.drawable.route_background_metro;
     private static final int busBg = R.drawable.route_background_bus;
     private static final int extraurbanoBg = R.drawable.route_background_bus_long_distance;
@@ -65,98 +63,22 @@ public class PalinaAdapter extends ArrayAdapter<Route> implements SharedPreferen
     private final String KEY_CAPITALIZE;
     private Capitalize capit;
 
-    //private static final int cityIcon = R.drawable.city;
+    private final List<Route> mRoutes;
+    private final AdapterClickListener<Route> mRouteListener;
 
-    // hey look, a pattern!
-    private static class ViewHolder {
-        TextView rowStopIcon;
-        TextView rowRouteDestination;
-        TextView rowRouteTimetable;
-    }
-    private static Capitalize getCapitalize(SharedPreferences shPr, String key){
-        String capitalize = shPr.getString(key, "");
-
-        switch (capitalize.trim()){
-            case "KEEP":
-                return Capitalize.DO_NOTHING;
-            case "CAPITALIZE_ALL":
-                return Capitalize.ALL;
-
-            case "CAPITALIZE_FIRST":
-                return Capitalize.FIRST;
-        }
-        return  Capitalize.DO_NOTHING;
-    }
-
-    public PalinaAdapter(Context context, Palina p) {
-        super(context, row_layout, p.queryAllRoutes());
-        li = LayoutInflater.from(context);
-        Comparator<Passaggio> sorter = null;
-        if (p.getPassaggiSourceIfAny()== Passaggio.Source.GTTJSON){
-            sorter = new PassaggiSorter();
-        }
-        for(Route r: p.queryAllRoutes()){
-            if (sorter==null) Collections.sort(r.passaggi);
-            else Collections.sort(r.passaggi, sorter);
-        }
-        sort(new RouteSorterByArrivalTime());
-        /*
-        sort(new Comparator<Route>() {
-
-            @Override
-            public int compare(Route route, Route t1) {
-                LinesNameSorter sorter = new LinesNameSorter();
-                if(route.getNameForDisplay()!= null){
-                    if(t1.getNameForDisplay()!=null){
-                        return sorter.compare(route.getNameForDisplay(), t1.getNameForDisplay());
-                    }
-                    else return -1;
-                } else if(t1.getNameForDisplay()!=null){
-                    return +1;
-                }
-                else  return 0;
-            }
-        });
-
-         */
-        KEY_CAPITALIZE = context.getString(R.string.pref_arrival_times_capit);
-        SharedPreferences defSharPref = PreferenceManager.getDefaultSharedPreferences(context);
-        defSharPref.registerOnSharedPreferenceChangeListener(this);
-        this.capit = getCapitalize(defSharPref, KEY_CAPITALIZE);
-    }
-
-    /**
-     * Some parts taken from the AdapterBusLines class.<br>
-     * Some parts inspired by these enlightening tutorials:<br>
-     * http://www.simplesoft.it/android/guida-agli-adapter-e-le-listview-in-android.html<br>
-     * https://www.codeofaninja.com/2013/09/android-viewholder-pattern-example.html<br>
-     * And some other bits and bobs TIRATI FUORI DAL NULLA CON L'INTUIZIONE INTELLETTUALE PERCHÉ
-     * SEMBRA CHE NESSUNO ABBIA LA MINIMA IDEA DI COME FUNZIONA UN ADAPTER SU ANDROID.
-     */
     @NonNull
+    @NotNull
     @Override
-    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-        ViewHolder vh;
+    public PalinaViewHolder onCreateViewHolder(@NonNull @NotNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(ROW_LAYOUT, parent, false);
+        return new PalinaViewHolder(view);
+    }
 
-        if(convertView == null) {
-            // INFLATE!
-            // setting a parent here is not supported and causes a fatal exception, apparently.
-            convertView = li.inflate(row_layout, null);
+    @Override
+    public void onBindViewHolder(@NonNull @NotNull PalinaViewHolder vh, int position) {
+        final Route route = mRoutes.get(position);
 
-            // STORE TEXTVIEWS!
-            vh = new ViewHolder();
-            vh.rowStopIcon = (TextView) convertView.findViewById(R.id.routeID);
-            vh.rowRouteDestination = (TextView) convertView.findViewById(R.id.routeDestination);
-            vh.rowRouteTimetable = (TextView) convertView.findViewById(R.id.routesThatStopHere);
-
-            // STORE VIEWHOLDER IN\ON\OVER\UNDER\ABOVE\BESIDE THE VIEW!
-            convertView.setTag(vh);
-        } else {
-            // RECOVER THIS STUFF!
-            vh = (ViewHolder) convertView.getTag();
-        }
-
-        Route route = getItem(position);
         vh.rowStopIcon.setText(route.getNameForDisplay());
         if(route.destinazione==null || route.destinazione.length() == 0) {
             vh.rowRouteDestination.setVisibility(View.GONE);
@@ -184,6 +106,11 @@ public class PalinaAdapter extends ArrayAdapter<Route> implements SharedPreferen
 
             }
             vh.rowRouteDestination.setText(dest);
+
+            //set click listener
+            vh.itemView.setOnClickListener(view -> {
+                mRouteListener.onAdapterClickListener(route);
+            });
         }
 
         switch (route.type) {
@@ -223,8 +150,81 @@ public class PalinaAdapter extends ArrayAdapter<Route> implements SharedPreferen
             vh.rowRouteTimetable.setText(route.getPassaggiToString());
         }
 
-        return convertView;
     }
+
+    @Override
+    public int getItemCount() {
+        return mRoutes.size();
+    }
+
+    //private static final int cityIcon = R.drawable.city;
+
+    // hey look, a pattern!
+    public static class PalinaViewHolder extends RecyclerView.ViewHolder {
+        final TextView rowStopIcon;
+        final TextView rowRouteDestination;
+        final TextView rowRouteTimetable;
+
+        public PalinaViewHolder(@NonNull @NotNull View view) {
+            super(view);
+            /*
+            convertView.findViewById(R.id.routeID);
+            vh.rowRouteDestination = (TextView) convertView.findViewById(R.id.routeDestination);
+            vh.rowRouteTimetable = (TextView) convertView.findViewById(R.id.routesThatStopHere);
+             */
+            rowStopIcon = view.findViewById(R.id.routeID);
+            rowRouteDestination = view.findViewById(R.id.routeDestination);
+            rowRouteTimetable = view.findViewById(R.id.routesThatStopHere);
+        }
+    }
+    private static Capitalize getCapitalize(SharedPreferences shPr, String key){
+        String capitalize = shPr.getString(key, "");
+
+        switch (capitalize.trim()){
+            case "KEEP":
+                return Capitalize.DO_NOTHING;
+            case "CAPITALIZE_ALL":
+                return Capitalize.ALL;
+
+            case "CAPITALIZE_FIRST":
+                return Capitalize.FIRST;
+        }
+        return  Capitalize.DO_NOTHING;
+    }
+
+    public PalinaAdapter(Context context, Palina p, AdapterClickListener<Route> listener, boolean hideEmptyRoutes) {
+        Comparator<Passaggio> sorter = null;
+        if (p.getPassaggiSourceIfAny()== Passaggio.Source.GTTJSON){
+            sorter = new PassaggiSorter();
+        }
+        final List<Route> routes;
+        if (hideEmptyRoutes){
+            // build the routes by filtering them
+            routes = new ArrayList<>();
+            for(Route r: p.queryAllRoutes()){
+                //add only if there is at least one passage
+                if (r.numPassaggi()>0){
+                    routes.add(r);
+                }
+            }
+        } else
+            routes = p.queryAllRoutes();
+        for(Route r: routes){
+            if (sorter==null) Collections.sort(r.passaggi);
+            else Collections.sort(r.passaggi, sorter);
+        }
+
+        Collections.sort(routes,new RouteSorterByArrivalTime());
+
+        mRoutes = routes;
+        KEY_CAPITALIZE = context.getString(R.string.pref_arrival_times_capit);
+        SharedPreferences defSharPref = PreferenceManager.getDefaultSharedPreferences(context);
+        defSharPref.registerOnSharedPreferenceChangeListener(this);
+        this.capit = getCapitalize(defSharPref, KEY_CAPITALIZE);
+
+        this.mRouteListener = listener;
+    }
+
 
 
     @Override

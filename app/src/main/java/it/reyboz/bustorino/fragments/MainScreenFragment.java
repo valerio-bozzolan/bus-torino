@@ -137,7 +137,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                         uri = Uri.parse(result.getContents()); // this apparently prevents NullPointerException. Somehow.
                     } catch (NullPointerException e) {
                         if (getContext()!=null)
-                        Toast.makeText(getContext().getApplicationContext(),
+                            Toast.makeText(getContext().getApplicationContext(),
                                 R.string.no_qrcode, Toast.LENGTH_SHORT).show();
                         return;
                     }

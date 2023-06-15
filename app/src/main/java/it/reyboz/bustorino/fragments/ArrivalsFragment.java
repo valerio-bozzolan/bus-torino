@@ -18,13 +18,16 @@
 package it.reyboz.bustorino.fragments;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 
+import android.widget.*;
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
+import androidx.core.widget.NestedScrollView;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
@@ -33,17 +36,19 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.ListAdapter;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import it.reyboz.bustorino.R;
+import it.reyboz.bustorino.adapters.AdapterClickListener;
 import it.reyboz.bustorino.adapters.PalinaAdapter;
+import it.reyboz.bustorino.adapters.RouteOnlyLineAdapter;
 import it.reyboz.bustorino.backend.ArrivalsFetcher;
 import it.reyboz.bustorino.backend.DBStatusManager;
 import it.reyboz.bustorino.backend.Fetcher;
@@ -57,8 +62,10 @@ import it.reyboz.bustorino.data.AppDataProvider;
 import it.reyboz.bustorino.data.NextGenDB;
 import it.reyboz.bustorino.data.UserDB;
 import it.reyboz.bustorino.middleware.AsyncStopFavoriteAction;
+import it.reyboz.bustorino.util.LinesNameSorter;
+import it.reyboz.bustorino.util.ViewUtils;
 
-public class ArrivalsFragment extends ResultListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ArrivalsFragment extends ResultBaseFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private final static String KEY_STOP_ID = "stopid";
     private final static String KEY_STOP_NAME = "stopname";
@@ -81,10 +88,40 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     //Views
     protected ImageButton addToFavorites;
     protected TextView timesSourceTextView;
+    protected TextView messageTextView;
+    protected RecyclerView arrivalsRecyclerView;
+    private PalinaAdapter mListAdapter = null;
 
+
+    //private NestedScrollView theScrollView;
+    protected RecyclerView noArrivalsRecyclerView;
+    private RouteOnlyLineAdapter noArrivalsAdapter;
+    private TextView noArrivalsTitleView;
+    private GridLayoutManager layoutManager;
+
+    //private View canaryEndView;
     private List<ArrivalsFetcher> fetchers = null; //new ArrayList<>(Arrays.asList(utils.getDefaultArrivalsFetchers()));
 
     private boolean reloadOnResume = true;
+
+    private final AdapterClickListener<Route> mRouteClickListener = route -> {
+            String routeName;
+
+            routeName = FiveTNormalizer.routeInternalToDisplay(route.getNameForDisplay());
+            if (routeName == null) {
+                routeName = route.getNameForDisplay();
+            }
+            if(getContext()==null)
+                Log.e(DEBUG_TAG, "Touched on a route but Context is null");
+            else if (route.destinazione == null || route.destinazione.length() == 0) {
+                Toast.makeText(getContext(),
+                        getString(R.string.route_towards_unknown, routeName), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(),
+                        getString(R.string.route_towards_destination, routeName, route.destinazione), Toast.LENGTH_SHORT).show();
+            }
+
+    };
 
     public static ArrivalsFragment newInstance(String stopID){
         return newInstance(stopID, null);
@@ -95,12 +132,16 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         Bundle args = new Bundle();
         args.putString(KEY_STOP_ID,stopID);
         //parameter for ResultListFragmentrequestArrivalsForStopID
-        args.putSerializable(LIST_TYPE,FragmentKind.ARRIVALS);
+        //args.putSerializable(LIST_TYPE,FragmentKind.ARRIVALS);
         if (stopName != null){
             args.putString(KEY_STOP_NAME,stopName);
         }
         fragment.setArguments(args);
         return fragment;
+    }
+
+    public static String getFragmentTag(Palina p) {
+        return "palina_"+p.ID;
     }
 
     @Override
@@ -140,7 +181,14 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         View root = inflater.inflate(R.layout.fragment_arrivals, container, false);
         messageTextView = root.findViewById(R.id.messageTextView);
         addToFavorites = root.findViewById(R.id.addToFavorites);
-        resultsListView = root.findViewById(R.id.resultsListView);
+        //theScrollView = root.findViewById(R.id.arrivalsScrollView);
+        // recyclerview holding the arrival times
+        arrivalsRecyclerView = root.findViewById(R.id.arrivalsRecyclerView);
+        final LinearLayoutManager manager = new LinearLayoutManager(getContext());
+        arrivalsRecyclerView.setLayoutManager(manager);
+        final DividerItemDecoration mDividerItemDecoration = new DividerItemDecoration(arrivalsRecyclerView.getContext(),
+                manager.getOrientation());
+        arrivalsRecyclerView.addItemDecoration(mDividerItemDecoration);
         timesSourceTextView = root.findViewById(R.id.timesSourceTextView);
         timesSourceTextView.setOnLongClickListener(view -> {
             if(!fetchersChangeRequestPending){
@@ -165,25 +213,9 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             toggleLastStopToFavorites();
         });
 
-        resultsListView.setOnItemClickListener((parent, view, position, id) -> {
-            String routeName;
-
-            Route r = (Route) parent.getItemAtPosition(position);
-            routeName = FiveTNormalizer.routeInternalToDisplay(r.getNameForDisplay());
-            if (routeName == null) {
-                routeName = r.getNameForDisplay();
-            }
-            if (r.destinazione == null || r.destinazione.length() == 0) {
-                Toast.makeText(getContext(),
-                        getString(R.string.route_towards_unknown, routeName), Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getContext(),
-                        getString(R.string.route_towards_destination, routeName, r.destinazione), Toast.LENGTH_SHORT).show();
-            }
-        });
         String displayName = getArguments().getString(STOP_TITLE);
         if(displayName!=null)
-        setTextViewMessage(String.format(
+            setTextViewMessage(String.format(
                 getString(R.string.passages), displayName));
 
 
@@ -193,6 +225,19 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             messageTextView.setText(probablemessage);
             messageTextView.setVisibility(View.VISIBLE);
         }
+        //no arrivals stuff
+        noArrivalsRecyclerView = root.findViewById(R.id.noArrivalsRecyclerView);
+        layoutManager = new GridLayoutManager(getContext(),60);
+        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return 12;
+            }
+        });
+        noArrivalsRecyclerView.setLayoutManager(layoutManager);
+        noArrivalsTitleView = root.findViewById(R.id.noArrivalsMessageTextView);
+
+        //canaryEndView = root.findViewById(R.id.canaryEndView);
 
         /*String sourcesTextViewData = getArguments().getString(SOURCES_TEXT);
         if (sourcesTextViewData!=null){
@@ -208,13 +253,23 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     public void onResume() {
         super.onResume();
         LoaderManager loaderManager  = getLoaderManager();
-        Log.d(DEBUG_TAG, "OnResume, justCreated "+justCreated);
+        Log.d(DEBUG_TAG, "OnResume, justCreated "+justCreated+", lastUpdatedPalina is: "+lastUpdatedPalina);
         /*if(needUpdateOnAttach){
             updateFragmentData(null);
             needUpdateOnAttach=false;
         }*/
+        /*if(lastUpdatedPalina!=null){
+            updateFragmentData(null);
+            showArrivalsSources(lastUpdatedPalina);
+        }*/
+        if (mListAdapter!=null)
+            resetListAdapter(mListAdapter);
+        if(noArrivalsAdapter!=null){
+            noArrivalsRecyclerView.setAdapter(noArrivalsAdapter);
+
+        }
+
         if(stopID!=null){
-            //refresh the arrivals
             if(!justCreated){
                 fetchers = utils.getDefaultArrivalsFetchers(getContext());
                 adjustFetchersToSource();
@@ -314,11 +369,34 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             else needUpdateOnAttach = true;
         } else {
 
-            final PalinaAdapter adapter = new PalinaAdapter(getContext(), lastUpdatedPalina);
+            final PalinaAdapter adapter = new PalinaAdapter(getContext(), lastUpdatedPalina, mRouteClickListener, true);
             showArrivalsSources(lastUpdatedPalina);
-            super.resetListAdapter(adapter);
+            resetListAdapter(adapter);
+
+            final ArrayList<String> routesWithNoPassages = lastUpdatedPalina.getRoutesNamesWithNoPassages();
+            Collections.sort(routesWithNoPassages, new LinesNameSorter());
+            noArrivalsAdapter = new RouteOnlyLineAdapter(routesWithNoPassages);
+            if(noArrivalsRecyclerView!=null){
+                noArrivalsRecyclerView.setAdapter(noArrivalsAdapter);
+                //hide the views if there are no empty routes
+                if(routesWithNoPassages.isEmpty()){
+                    noArrivalsRecyclerView.setVisibility(View.GONE);
+                    noArrivalsTitleView.setVisibility(View.GONE);
+                } else {
+                    noArrivalsRecyclerView.setVisibility(View.VISIBLE);
+                    noArrivalsTitleView.setVisibility(View.VISIBLE);
+                }
+            }
+
+            //canaryEndView.setVisibility(View.VISIBLE);
+            //check if canaryEndView is visible
+            //boolean isCanaryVisibile = ViewUtils.Companion.isViewPartiallyVisibleInScroll(canaryEndView, theScrollView);
+            //Log.d(DEBUG_TAG, "Canary view fully visibile: "+isCanaryVisibile);
+
         }
     }
+
+
 
     /**
      * Set the message of the arrival times source
@@ -357,6 +435,8 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
             Log.w(DEBUG_TAG, "Tried to update the source fetcher but it didn't work");
         final String base_message = getString(R.string.times_source_fmt, source_txt);
         timesSourceTextView.setText(base_message);
+        timesSourceTextView.setVisibility(View.VISIBLE);
+
         if (p.getTotalNumberOfPassages() > 0) {
             timesSourceTextView.setVisibility(View.VISIBLE);
         } else {
@@ -381,11 +461,6 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
         if (lastUpdatedPalina == null) return false;
         final Passaggio.Source source = lastUpdatedPalina.getPassaggiSourceIfAny();
         return adjustFetchersToSource(source);
-    }
-
-    @Override
-    public void setNewListAdapter(ListAdapter adapter) {
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -484,7 +559,22 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
     public void onLoaderReset(Loader<Cursor> loader) {
         //NOTHING TO DO
     }
+    protected void resetListAdapter(PalinaAdapter adapter) {
+        mListAdapter = adapter;
+        if (arrivalsRecyclerView != null) {
+            arrivalsRecyclerView.setAdapter(adapter);
+            arrivalsRecyclerView.setVisibility(View.VISIBLE);
+        }
+    }
 
+    /**
+     * Set the message textView
+     * @param message the whole message to write in the textView
+     */
+    public void setTextViewMessage(String message) {
+        messageTextView.setText(message);
+        messageTextView.setVisibility(View.VISIBLE);
+    }
 
     public void toggleLastStopToFavorites() {
 
@@ -553,7 +643,17 @@ public class ArrivalsFragment extends ResultListFragment implements LoaderManage
 
     @Override
     public void onDestroyView() {
-        getArguments().putString(SOURCES_TEXT, timesSourceTextView.getText().toString());
+        arrivalsRecyclerView = null;
+        if(getArguments()!=null) {
+            getArguments().putString(SOURCES_TEXT, timesSourceTextView.getText().toString());
+            getArguments().putString(MESSAGE_TEXT_VIEW, messageTextView.getText().toString());
+        }
         super.onDestroyView();
+    }
+
+    public boolean isFragmentForTheSameStop(Palina p) {
+        if (getTag() != null)
+            return getTag().equals(getFragmentTag(p));
+        else return false;
     }
 }
