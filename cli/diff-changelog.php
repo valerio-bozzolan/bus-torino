@@ -187,7 +187,7 @@ foreach( $I18N as $lang => $msg ) {
 		$changelog_lines = [];
 
 		// Task name and URL
-		$changelog_lines[] = $task_name;
+		$changelog_lines[] = $changelog_title;
 
 		// reporter by (author)
 		// Avoid to repeat the same user twice
