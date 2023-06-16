@@ -35,6 +35,12 @@ if( !defined( 'PHABRICATOR_MANIPHEST_CUSTOM_FIELD_CHANGELOG' ) ) {
 	define( 'PHABRICATOR_MANIPHEST_CUSTOM_FIELD_CHANGELOG', 'custom.changelog.%s' );
 }
 
+// Phabricator custom Maniphest field for the "Reported by (original author)"
+// https://gitpull.it/config/edit/maniphest.custom-field-definitions/
+if( !defined( 'PHABRICATOR_MANIPHEST_CUSTOM_FIELD_REPORTER' ) ) {
+	define( 'PHABRICATOR_MANIPHEST_CUSTOM_FIELD_REPORTER', 'custom.reported.by' );
+}
+
 // load gradle stuff
 $gradle_content = file_get_contents( REPO_PATH . '/app/build.gradle' );
 preg_match( '/versionCode +([0-9]+)/', $gradle_content, $matches );
@@ -110,6 +116,12 @@ foreach( $maniphest_result['data'] as $task ) {
 	$phid_task_owner  = $task['fields']['ownerPHID'];
 	$USERS_BY_PHID[ $phid_task_author ] = null;
 	$USERS_BY_PHID[ $phid_task_owner  ] = null;
+
+        $phid_task_reporter = $task['fields'][PHABRICATOR_MANIPHEST_CUSTOM_FIELD_REPORTER] ?? null;
+	if( $phid_task_reporter ) {
+		$phid_task_reporter_entry = $phid_task_reporter[0];
+		$USERS_BY_PHID[ $phid_task_reporter_entry ] = null;
+        }
 }
 
 // get users info from their PHID identifiers
@@ -144,9 +156,19 @@ foreach( $I18N as $lang => $msg ) {
 		$task_descr       = $task['fields']['description'];
 		$phid_task_author = $task['fields']['authorPHID'];
 		$phid_task_owner  = $task['fields']['ownerPHID'];
+		$phid_reporter    = $task['fields'][PHABRICATOR_MANIPHEST_CUSTOM_FIELD_REPORTER] ?? null;
 
 		$author = $USERS_BY_PHID[ $phid_task_author ];
 		$owner  = $USERS_BY_PHID[ $phid_task_owner  ];
+
+		$reporter = null;
+		if($phid_reporter) {
+			$phid_reporter_entry = $phid_reporter[0];
+			$reporter = $USERS_BY_PHID[ $phid_reporter_entry ];
+			if($reporter) {
+				$author = $reporter;
+			}
+		}
 
 		$username_author = $author['fields']['username'];
 		$username_owner  = $owner ['fields']['username'];
