@@ -57,12 +57,15 @@ if( $I18N === null ) {
 	throw new Exception( "cannot JSON-decode file" );
 }
 
-// read first argument
-$diff_id = $argv[1] ?? null;
+// All the arguments must be Differential IDs
+$diff_ids = $argv;
+
+// Remove the first argument that is just the command name
+array_shift( $diff_ids );
 
 // no diff ID no party
-if( !$diff_id ) {
-	echo "Please specify Differential ID like D66\n";
+if( !$diff_ids ) {
+	echo "Please specify at least one Differential ID like D66\n";
 	exit( 1 );
 }
 
@@ -77,7 +80,8 @@ $USERS_BY_PHID = [];
 
 // https://gitpull.it/conduit/method/edge.search/
 $edge_api_parameters = [
-	'sourcePHIDs' => [ $diff_id ],
+	// apparently this does not support only PHIDs but also Monograms
+	'sourcePHIDs' => $diff_ids,
 	'types'       => [ 'revision.task' ],
 ];
 
