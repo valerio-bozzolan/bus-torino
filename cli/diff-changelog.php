@@ -190,7 +190,10 @@ foreach( $I18N as $lang => $msg ) {
 		$changelog_lines[] = $task_name;
 
 		// reporter by (author)
-		$changelog_lines[] = sprintf( $msg['reportedByName'], $username_author );
+		// Avoid to repeat the same user twice
+		if( $username_author !== $username_owner ) {
+			$changelog_lines[] = sprintf( $msg['reportedByName'], $username_author );
+		}
 
 		// resolved by (owner)
 		$changelog_lines[] = sprintf( $msg['resolvedByName'], $username_owner );
