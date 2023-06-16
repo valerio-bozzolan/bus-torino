@@ -1,0 +1,12 @@
+Mostra i bus in tempo reale sulla mappa.
+Tocca per mostrare il numero e la destinazione, tocca di nuovo per chiudere.
+
+Non chiedere l'accesso allo storage su Android 13 visto che non serve più lol
+https://gitpull.it/T699
+
+Migliorata la leggibilità del menù laterale.
+https://gitpull.it/T1164
+
+Le linee senza orari d'arrivo in fermata vengono mostrate separatamente per occupare meno spazio sullo schermo.
+
+Versione progettata da Fabio Mazza!

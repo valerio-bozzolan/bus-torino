@@ -1,0 +1,14 @@
+Show buses running on the map.
+(as blue markers, click to show the destination, click again to close)
+
+Do not request unneeded storage permissions on Android 13 and higher.
+https://gitpull.it/T699
+
+Improved sidebar readability.
+
+Try to catch crash bugs.
+https://gitpull.it/T1164
+
+Show lines with no arrival times separately to use less screen space.
+
+Version crafted by Fabio Mazza!
