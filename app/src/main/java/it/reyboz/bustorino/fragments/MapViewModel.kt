@@ -214,7 +214,9 @@ class MapViewModel(application: Application): AndroidViewModel(application) {
         val runNewWork = if(info.isEmpty()){
             true
         } else info[0].state!=WorkInfo.State.RUNNING && info[0].state!=WorkInfo.State.ENQUEUED
-        Log.d(DEBUG_TI, "Request to download and insert ${trips.size} trips, proceed: $runNewWork")
+        val addDat = if(info.isEmpty())
+            null else  info[0].state
+        Log.d(DEBUG_TI, "Request to download and insert ${trips.size} trips, proceed: $runNewWork, workstate: $addDat")
         if(runNewWork) {
             val tripsArr = trips.toTypedArray()
             val data = Data.Builder().putStringArray(MatoDownloadTripsWorker.TRIPS_KEYS, tripsArr).build()

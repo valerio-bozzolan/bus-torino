@@ -237,7 +237,7 @@
         <item>@string/nav_map_text</item>
         <item>@string/lines</item>
     </array>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
+    <string name="remove_all_trips">Remove all GTFS trips info</string>
+    <string name="all_trips_removed">All GTFS trips have been removed from the database</string>
 </resources>

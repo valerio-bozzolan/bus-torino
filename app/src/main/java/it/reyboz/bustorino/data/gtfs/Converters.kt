@@ -91,13 +91,5 @@ class Converters {
         }
             return WheelchairAccess.UNKNOWN
         }
-        @TypeConverter
-        fun wheelchairToInt(access: WheelchairAccess): Int{
-           return  access.value;
-        }
-        @TypeConverter
-        fun wheelchairFromInt(value: Int): WheelchairAccess {
-            return  WheelchairAccess.getByValue(value)?: WheelchairAccess.UNKNOWN
-        }
     }
 }

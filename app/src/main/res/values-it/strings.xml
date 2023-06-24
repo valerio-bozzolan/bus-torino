@@ -205,4 +205,8 @@
 
     <!-- lines -->
     <string name="long_press_stop_4_options">Tocca a lungo la fermata per le opzioni</string>
+    <string name="remove_all_trips">Rimuovi tutti i trip GTFS</string>
+    <string name="all_trips_removed">Tutti i trip GTFS sono rimossi dal database</string>
+
+
 </resources>

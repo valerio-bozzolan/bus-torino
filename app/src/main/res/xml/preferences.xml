@@ -87,6 +87,10 @@
                 android:summary="@string/database_update_req_descr"
                 android:key="pref_db_update_now"
             />
+        <androidx.preference.Preference
+                android:title="@string/remove_all_trips"
+                android:key="pref_clear_gtfs_trips"
+            />
     </androidx.preference.PreferenceCategory>
 
     <androidx.preference.PreferenceCategory

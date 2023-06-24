@@ -28,13 +28,21 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.Observer;
 import androidx.preference.*;
-import androidx.room.Database;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.OutOfQuotaPolicy;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.data.DatabaseUpdate;
+import it.reyboz.bustorino.data.GtfsMaintenanceWorker;
+import it.reyboz.bustorino.data.MatoDownloadTripsWorker;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
+import java.util.List;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = SettingsFragment.class.getName();
@@ -95,8 +103,33 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
                     }
                 }
         );
+
         else {
             Log.e("BusTO-Preferences", "Cannot find db update preference");
+        }
+        Preference clearGtfsTrips = findPreference("pref_clear_gtfs_trips");
+        if (clearGtfsTrips != null) {
+            clearGtfsTrips.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(@NonNull @NotNull Preference preference) {
+                    if (getContext() != null) {
+                        OneTimeWorkRequest requ = GtfsMaintenanceWorker.Companion.makeOneTimeRequest(GtfsMaintenanceWorker.CLEAR_GTFS_TRIPS);
+                        WorkManager.getInstance(getContext()).enqueue(requ);
+                        WorkManager.getInstance(getContext()).getWorkInfosByTagLiveData(GtfsMaintenanceWorker.CLEAR_GTFS_TRIPS).observe(getViewLifecycleOwner(),
+                                (Observer<List<WorkInfo>>) workInfos -> {
+                                    if(workInfos.isEmpty())
+                                        return;
+                                    if(workInfos.get(0).getState()==(WorkInfo.State.SUCCEEDED)){
+                                        Toast.makeText(
+                                                getContext(), R.string.all_trips_removed, Toast.LENGTH_SHORT
+                                        ).show();
+                                    }
+                                });
+                        return true;
+                    }
+                    return false;
+                }
+            });
         }
 
     }
