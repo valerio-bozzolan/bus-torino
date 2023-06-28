@@ -31,7 +31,6 @@ import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.FiveTAPIFetcher;
 import it.reyboz.bustorino.backend.Palina;
-import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.mato.MatoAPIFetcher;
 import it.reyboz.bustorino.data.gtfs.GtfsAgency;
 import it.reyboz.bustorino.data.gtfs.GtfsDatabase;
@@ -126,7 +125,9 @@ public class DatabaseUpdate {
         }
         //match patterns with routes
 
-        final ArrayList<PatternStop> patternStops = new ArrayList<>(patterns.size());
+        final ArrayList<PatternStop> patternStops = makeStopsForPatterns(patterns);
+        final List<String> allPatternsCodeInDB = dao.getPatternsCodes();
+        final HashSet<String> patternsCodesToDelete = new HashSet<>(allPatternsCodeInDB);
 
         for(MatoPattern p: patterns){
             //scan patterns
@@ -135,23 +136,45 @@ public class DatabaseUpdate {
             if (mRoute == null) {
                 Log.e(DEBUG_TAG, "Error in parsing the route: " + p.getRouteGtfsId() + " , cannot find the IDs in the map");
             }
-            for (int i=0; i<stopsIDs.size(); i++){
-                final String ID = stopsIDs.get(i);
-                patternStops.add(new PatternStop(p.getCode(),ID, i));
+            for (final String sID : stopsIDs) {
+                //add stops to pattern stops
                 // save routes stopping in the stop
-
-                if (!routesStoppingInStop.containsKey(ID)){
-                    routesStoppingInStop.put(ID, new HashSet<>());
+                if (!routesStoppingInStop.containsKey(sID)) {
+                    routesStoppingInStop.put(sID, new HashSet<>());
                 }
-                Set<String> mset= routesStoppingInStop.get(ID);
+                Set<String> mset = routesStoppingInStop.get(sID);
                 assert mset != null;
                 mset.add(mRoute.getShortName());
             }
+            //finally, remove from deletion list
+            patternsCodesToDelete.remove(p.getCode());
         }
+        // final time for insert
         dao.insertPatterns(patterns);
+        // clear patterns that are unused
+        Log.d(DEBUG_TAG, "Have to remove "+patternsCodesToDelete.size()+ " patterns from the DB");
+        dao.deletePatternsWithCodes(new ArrayList<>(patternsCodesToDelete));
         dao.insertPatternStops(patternStops);
 
         return routesStoppingInStop;
+    }
+
+    /**
+     * Make the list of stops that each pattern does, to be inserted into the DB
+     * @param patterns the MatoPattern
+     * @return a list of PatternStop
+     */
+    public static ArrayList<PatternStop> makeStopsForPatterns(List<MatoPattern> patterns){
+        final ArrayList<PatternStop> patternStops = new ArrayList<>(patterns.size());
+        for (MatoPattern p: patterns){
+            final ArrayList<String> stopsIDs = p.getStopsGtfsIDs();
+            for (int i=0; i<stopsIDs.size(); i++) {
+                //add stops to pattern stops
+                final String ID = stopsIDs.get(i);
+                patternStops.add(new PatternStop(p.getCode(), ID, i));
+            }
+        }
+        return patternStops;
     }
 
 

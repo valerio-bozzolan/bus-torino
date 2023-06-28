@@ -408,22 +408,7 @@ open class MatoAPIFetcher(
                 res?.set(Fetcher.Result.PARSER_ERROR)
                 //Log.e(DEBUG_TAG, "Downloading feeds: $outObj")
             }
-            /*
-            var numRequests = 0
-            for(routeName in routesGTFSIds){
-                if (!routeName.isEmpty()) numRequests++
-            }
-            val countDownForRequests = CountDownLatch(numRequests)
-            val lockSave = ReentrantLock()
-            //val countDownFor
-            for (routeName in routesGTFSIds){
-                val pars = JSONObject()
-                pars.put("")
 
-            }
-            val goodResponseListener = Response.Listener<JSONObject> {  }
-            val errorResponseListener = Response.ErrorListener {  }
-             */
 
             return patterns
         }

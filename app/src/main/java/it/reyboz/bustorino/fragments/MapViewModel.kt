@@ -20,15 +20,11 @@ package it.reyboz.bustorino.fragments
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
-import androidx.work.*
 import com.android.volley.Response
-import com.google.transit.realtime.GtfsRealtime.VehiclePosition
 import it.reyboz.bustorino.backend.NetworkVolleyManager
-import it.reyboz.bustorino.backend.Result
 import it.reyboz.bustorino.backend.gtfs.GtfsPositionUpdate
 import it.reyboz.bustorino.backend.gtfs.GtfsRtPositionsRequest
 import it.reyboz.bustorino.data.*
-import it.reyboz.bustorino.data.gtfs.GtfsTrip
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -39,10 +35,7 @@ import java.util.concurrent.Executors
  */
 class MapViewModel(application: Application): AndroidViewModel(application) {
     private val gtfsRepo = GtfsRepository(application)
-    private val executor = Executors.newFixedThreadPool(2)
 
-    private val oldRepo= OldDataRepository(executor, NextGenDB.getInstance(application))
-    private val matoRepository = MatoRepository(application)
     private val netVolleyManager = NetworkVolleyManager.getInstance(application)
 
 
@@ -107,13 +100,23 @@ class MapViewModel(application: Application): AndroidViewModel(application) {
         //add "gtt:" prefix because it's implicit in GTFS Realtime API
         return@map it.map { pos -> "gtt:"+pos.tripID  }
     }
-    // trips that are in the DB
-    val gtfsTripsInDB = tripsIDsInUpdates.switchMap {
+    //this holds the trips that have been downloaded but for which we have no pattern
+    /*private val gtfsTripsInDBMissingPattern = tripsIDsInUpdates.map { tripsIDs ->
+        val tripsInDB = gtfsRepo.gtfsDao.getTripsFromIDs(tripsIDs)
+        val tripsPatternCodes = tripsInDB.map { tr -> tr.patternId }
+        val codesInDB = gtfsRepo.gtfsDao.getPatternsCodesInTheDB(tripsPatternCodes)
+
+        tripsInDB.filter { !(codesInDB.contains(it.patternId)) }
+    }*/
+    //private val patternsCodesInDB = tripsDBPatterns.map { gtfsRepo.gtfsDao.getPatternsCodesInTheDB(it) }
+
+    // trips that are in the DB, together with the pattern. If the pattern is not present in the DB, it's null
+    val gtfsTripsPatternsInDB = tripsIDsInUpdates.switchMap {
         //Log.i(DEBUG_TI, "tripsIds in updates changed: ${it.size}")
         gtfsRepo.gtfsDao.getTripPatternStops(it)
     }
     //trip IDs to query, which are not present in the DB
-     val tripsGtfsIDsToQuery: LiveData<List<String>> = gtfsTripsInDB.map { tripswithPatterns ->
+     val tripsGtfsIDsToQuery: LiveData<List<String>> = gtfsTripsPatternsInDB.map { tripswithPatterns ->
         val tripNames=tripswithPatterns.map { twp-> twp.trip.tripID }
         Log.i(DEBUG_TI, "Have ${tripswithPatterns.size} trips in the DB")
         if (tripsIDsInUpdates.value!=null)
@@ -124,14 +127,21 @@ class MapViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
-    val updatesWithTripAndPatterns = gtfsTripsInDB.map { tripPatterns->
+    val updatesWithTripAndPatterns = gtfsTripsPatternsInDB.map { tripPatterns->
         Log.i(DEBUG_TI, "Mapping trips and patterns")
         val mdict = HashMap<String,Pair<GtfsPositionUpdate, TripAndPatternWithStops?>>()
+        //missing patterns
+        val routesToDownload = HashSet<String>()
         if(positionsLiveData.value!=null)
             for(update in positionsLiveData.value!!){
                 val trID = update.tripID
                 var found = false
                 for(trip in tripPatterns){
+                    if (trip.pattern == null){
+                        //pattern is null, which means we have to download
+                        // the pattern data from MaTO
+                        routesToDownload.add(trip.trip.routeID)
+                    }
                     if (trip.trip.tripID == "gtt:$trID"){
                         found = true
                         //insert directly
@@ -140,10 +150,17 @@ class MapViewModel(application: Application): AndroidViewModel(application) {
                     }
                 }
                 if (!found){
+                    //Log.d(DEBUG_TI, "Cannot find pattern ${tr}")
                     //give the update anyway
                     mdict[trID] = Pair(update,null)
                 }
             }
+        //have to request download of missing Patterns
+        if (routesToDownload.size > 0){
+            Log.d(DEBUG_TI, "Have ${routesToDownload.size} missing patterns from the DB: $routesToDownload")
+            downloadMissingPatterns(ArrayList(routesToDownload))
+        }
+
         return@map mdict
     }
     /*
@@ -152,38 +169,17 @@ class MapViewModel(application: Application): AndroidViewModel(application) {
      1 -> wait until they are all queried to insert in the DB
      2 -> after each request finishes, insert it into the DB
 
-     Keep in mind that trips do not change very often, so they might only need to be inserted once every two months
-     TODO: find a way to avoid trips getting scrubbed (check if they are really scrubbed)
+     Keep in mind that trips DO CHANGE often, and so do the Patterns
      */
+    fun downloadTripsFromMato(trips: List<String>): Boolean{
+        return MatoTripsDownloadWorker.downloadTripsFromMato(trips,getApplication(), DEBUG_TI)
+    }
+    fun downloadMissingPatterns(routeIds: List<String>): Boolean{
+        return MatoPatternsDownloadWorker.downloadPatternsForRoutes(routeIds, getApplication())
+    }
 
     init {
-        /*
-        //what happens when the trips to query with Mato are determined
-        tripsIDsQueried.addSource(tripsGtfsIDsToQuery) { tripList ->
-            // avoid infinite loop of querying to Mato, insert in DB and
-            // triggering another query update
 
-            val tripsToQuery =
-            Log.d(DEBUG_TI, "Querying trips IDs to Mato: $tripsToQuery")
-            for (t in tripsToQuery){
-                matoRepository.requestTripUpdate(t,matoTripReqErrorList, matoTripCallback)
-                }
-            tripsIDsQueried.value = tripsToQuery
-            }
-
-        tripsToInsert.addSource(tripsFromMato) { matoTrips ->
-            if (tripsIDsQueried.value == null) return@addSource
-            val tripsIdsToInsert = matoTrips.map { trip -> trip.tripID }
-
-            //val setTripsToInsert = HashSet(tripsIdsToInsert)
-            val tripsRequested = HashSet(tripsIDsQueried.value!!)
-            val insertInDB = tripsRequested.containsAll(tripsIdsToInsert)
-            if(insertInDB){
-                gtfsRepo.gtfsDao.insertTrips(matoTrips)
-            }
-            Log.d(DEBUG_TI, "MatoTrips: ${matoTrips.size}, total trips req: ${tripsRequested.size}, inserting: $insertInDB")
-        }
-         */
         Log.d(DEBUG_TI, "MapViewModel created")
         Log.d(DEBUG_TI, "Observers of positionsLiveData ${positionsLiveData.hasActiveObservers()}")
 
@@ -198,36 +194,12 @@ class MapViewModel(application: Application): AndroidViewModel(application) {
             ))
         positionsLiveData.value = n
     }
-    private val queriedMatoTrips = HashSet<String>()
 
-    private val downloadedMatoTrips = ArrayList<GtfsTrip>()
-    private val failedMatoTripsDownload = HashSet<String>()
 
     /**
      * Start downloading missing GtfsTrips and Insert them in the DB
      */
-    fun downloadandInsertTripsInDB(trips: List<String>): Boolean{
-        if (trips.isEmpty()) return false
-        val workManager = WorkManager.getInstance(getApplication())
-        val info = workManager.getWorkInfosForUniqueWork(MatoDownloadTripsWorker.WORK_TAG).get()
 
-        val runNewWork = if(info.isEmpty()){
-            true
-        } else info[0].state!=WorkInfo.State.RUNNING && info[0].state!=WorkInfo.State.ENQUEUED
-        val addDat = if(info.isEmpty())
-            null else  info[0].state
-        Log.d(DEBUG_TI, "Request to download and insert ${trips.size} trips, proceed: $runNewWork, workstate: $addDat")
-        if(runNewWork) {
-            val tripsArr = trips.toTypedArray()
-            val data = Data.Builder().putStringArray(MatoDownloadTripsWorker.TRIPS_KEYS, tripsArr).build()
-            val requ = OneTimeWorkRequest.Builder(MatoDownloadTripsWorker::class.java)
-                .setInputData(data).setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                .addTag(MatoDownloadTripsWorker.WORK_TAG)
-                .build()
-            workManager.enqueueUniqueWork(MatoDownloadTripsWorker.WORK_TAG, ExistingWorkPolicy.KEEP, requ)
-        }
-        return true
-    }
 
     companion object{
         const val DEBUG_TI="BusTO-MapViewModel"

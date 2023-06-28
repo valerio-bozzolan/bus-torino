@@ -17,32 +17,26 @@
  */
 package it.reyboz.bustorino.data
 
-import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
-import android.os.Build
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import androidx.lifecycle.viewModelScope
-import androidx.work.CoroutineWorker
-import androidx.work.ForegroundInfo
-import androidx.work.Worker
-import androidx.work.WorkerParameters
-import com.android.volley.Response
-import it.reyboz.bustorino.R
+import androidx.work.*
 import it.reyboz.bustorino.backend.Notifications
 import it.reyboz.bustorino.data.gtfs.GtfsTrip
-import kotlinx.coroutines.launch
 import java.util.concurrent.CountDownLatch
 
-class MatoDownloadTripsWorker(appContext: Context, workerParams: WorkerParameters)
+class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameters)
     : CoroutineWorker(appContext, workerParams) {
 
+
     override suspend fun doWork(): Result {
-        //val imageUriInput =
-        //    inputData.("IMAGE_URI") ?: return Result.failure()
+        return downloadGtfsTrips()
+    }
+
+    /**
+     * Download GTFS Trips from Mato
+     */
+    private fun downloadGtfsTrips():Result{
         val tripsList = inputData.getStringArray(TRIPS_KEYS)
 
         if (tripsList== null){
@@ -80,7 +74,7 @@ class MatoDownloadTripsWorker(appContext: Context, workerParams: WorkerParameter
                 }
                 Log.i(
                     DEBUG_TAG,"Result download, so far, trips: ${queriedMatoTrips.size}, failed: ${failedMatoTripsDownload.size}," +
-                        " succeded: ${downloadedMatoTrips.size}")
+                            " succeded: ${downloadedMatoTrips.size}")
                 //check if we can insert the trips
                 requestCountDown.countDown()
             }
@@ -102,35 +96,40 @@ class MatoDownloadTripsWorker(appContext: Context, workerParams: WorkerParameter
         val notificationManager =
             applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val context = applicationContext
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                Notifications.DB_UPDATE_CHANNELS_ID,
-                context.getString(R.string.database_notification_channel),
-                NotificationManager.IMPORTANCE_MIN
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
+        Notifications.createDBNotificationChannel(context)
 
-        val notification = NotificationCompat.Builder(context, Notifications.DB_UPDATE_CHANNELS_ID)
-            //.setContentIntent(PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), Constants.PENDING_INTENT_FLAG_IMMUTABLE))
-            .setSmallIcon(R.drawable.bus)
-            .setOngoing(true)
-            .setAutoCancel(true)
-            .setOnlyAlertOnce(true)
-            .setPriority(NotificationCompat.PRIORITY_MIN)
-            .setContentTitle(context.getString(R.string.app_name))
-            .setLocalOnly(true)
-            .setVisibility(NotificationCompat.VISIBILITY_SECRET)
-            .setContentText("Downloading data")
-            .build()
-        return ForegroundInfo(NOTIFICATION_ID, notification)
+        return ForegroundInfo(NOTIFICATION_ID, Notifications.makeMatoDownloadNotification(context))
     }
 
 
     companion object{
         const val TRIPS_KEYS = "tripsToDownload"
-        const val WORK_TAG = "tripsDownloaderAndInserter"
         const val DEBUG_TAG="BusTO:MatoTripDownWRK"
-        const val NOTIFICATION_ID=424242
+        const val NOTIFICATION_ID=42424221
+
+        const val TAG_TRIPS ="gtfsTripsDownload"
+
+        fun downloadTripsFromMato(trips: List<String>, context: Context, debugTag: String): Boolean{
+            if (trips.isEmpty()) return false
+            val workManager = WorkManager.getInstance(context)
+            val info = workManager.getWorkInfosForUniqueWork(TAG_TRIPS).get()
+
+            val runNewWork = if(info.isEmpty()) true
+                            else info[0].state!= WorkInfo.State.RUNNING && info[0].state!= WorkInfo.State.ENQUEUED
+            val addDat = if(info.isEmpty())
+                null else  info[0].state
+            Log.d(debugTag, "Request to download and insert ${trips.size} trips, proceed: $runNewWork, workstate: $addDat")
+            if(runNewWork) {
+                val tripsArr = trips.toTypedArray()
+                val dataBuilder = Data.Builder().putStringArray(TRIPS_KEYS, tripsArr)
+                //build()
+                val requ = OneTimeWorkRequest.Builder(MatoTripsDownloadWorker::class.java)
+                    .setInputData(dataBuilder.build()).setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                    .addTag(TAG_TRIPS)
+                    .build()
+                workManager.enqueueUniqueWork(TAG_TRIPS, ExistingWorkPolicy.KEEP, requ)
+            }
+            return true
+        }
     }
 }

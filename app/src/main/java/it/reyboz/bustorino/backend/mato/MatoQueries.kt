@@ -118,7 +118,7 @@ class MatoQueries  {
           }
         }
         """
-
+        //Query for the patterns, with the associated route
         const val ROUTES_WITH_PATTERNS="""
             query RoutesWithPatterns(${'$'}routes: [String]) {
               routes(ids: ${'$'}routes) {

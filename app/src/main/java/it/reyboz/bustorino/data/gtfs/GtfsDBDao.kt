@@ -48,6 +48,8 @@ interface GtfsDBDao {
     @Query("SELECT * FROM ${GtfsRoute.DB_TABLE} WHERE ${GtfsRoute.COL_AGENCY_ID} LIKE :agencyID")
     fun getRoutesByAgency(agencyID:String) : LiveData<List<GtfsRoute>>
 
+    @Query("SELECT ${MatoPattern.COL_CODE} FROM ${MatoPattern.TABLE_NAME} ")
+    fun getPatternsCodes(): List<String>
     @Query("SELECT * FROM ${MatoPattern.TABLE_NAME} WHERE ${MatoPattern.COL_ROUTE_ID} LIKE :routeID")
     fun getPatternsLiveDataByRouteID(routeID: String): LiveData<List<MatoPattern>>
 
@@ -65,6 +67,9 @@ interface GtfsDBDao {
     @Query("SELECT * FROM ${MatoPattern.TABLE_NAME} WHERE ${MatoPattern.COL_CODE} IN (:patternGtfsIDs)")
     fun getPatternsWithStopsFromIDs(patternGtfsIDs: List<String>) : LiveData<List<MatoPatternWithStops>>
 
+    @Query("SELECT ${MatoPattern.COL_CODE} FROM ${MatoPattern.TABLE_NAME} WHERE ${MatoPattern.COL_CODE} IN (:codes)")
+    fun getPatternsCodesInTheDB(codes: List<String>): List<String>
+
     @Transaction
     @Query("SELECT * FROM ${GtfsTrip.DB_TABLE} WHERE ${GtfsTrip.COL_TRIP_ID} IN (:tripsIds)")
     fun getTripsFromIDs(tripsIds: List<String>) : List<GtfsTrip>
@@ -73,10 +78,14 @@ interface GtfsDBDao {
     @Query("SELECT * FROM ${GtfsTrip.DB_TABLE} WHERE ${GtfsTrip.COL_TRIP_ID} IN (:trips)")
     fun getTripPatternStops(trips: List<String>): LiveData<List<TripAndPatternWithStops>>
 
+
+
     fun getRoutesForFeed(feed:String): LiveData<List<GtfsRoute>>{
         val agencyID = "${feed}:%"
         return getRoutesByAgency(agencyID)
     }
+
+
     @Transaction
     fun clearAndInsertRoutes(routes: List<GtfsRoute>){
         deleteAllRoutes()
@@ -111,6 +120,9 @@ interface GtfsDBDao {
     fun deleteAllStops()
     @Query("DELETE FROM "+GtfsTrip.DB_TABLE)
     fun deleteAllTrips()
+
+    @Query("DELETE FROM ${MatoPattern.TABLE_NAME} WHERE ${MatoPattern.COL_CODE} IN (:codes)")
+    fun deletePatternsWithCodes(codes: List<String>): Int
     @Update(onConflict = OnConflictStrategy.REPLACE)
     fun updateShapes(shapes: List<GtfsShape>) : Int
 

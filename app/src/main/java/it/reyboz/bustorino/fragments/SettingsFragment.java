@@ -31,13 +31,11 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.Observer;
 import androidx.preference.*;
 import androidx.work.OneTimeWorkRequest;
-import androidx.work.OutOfQuotaPolicy;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.data.DatabaseUpdate;
 import it.reyboz.bustorino.data.GtfsMaintenanceWorker;
-import it.reyboz.bustorino.data.MatoDownloadTripsWorker;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;

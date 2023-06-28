@@ -47,6 +47,7 @@ import androidx.preference.PreferenceManager;
 import it.reyboz.bustorino.backend.gtfs.GtfsPositionUpdate;
 import it.reyboz.bustorino.backend.gtfs.GtfsUtils;
 import it.reyboz.bustorino.backend.utils;
+import it.reyboz.bustorino.data.gtfs.MatoPattern;
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops;
 import it.reyboz.bustorino.map.*;
 import org.osmdroid.api.IGeoPoint;
@@ -346,7 +347,7 @@ public class MapFragment extends ScreenBaseFragment {
             //mapViewModel.testCascade();
             mapViewModel.getTripsGtfsIDsToQuery().observe(this, dat -> {
                 Log.i(DEBUG_TAG, "Have these trips IDs missing from the DB, to be queried: "+dat);
-                mapViewModel.downloadandInsertTripsInDB(dat);
+                mapViewModel.downloadTripsFromMato(dat);
             });
         }
     }
@@ -637,11 +638,11 @@ public class MapFragment extends ScreenBaseFragment {
                 if(tripWithPatternStops == null){
                     noPatternsTrips.add(tripID);
                 }
-                marker.setInfoWindow(new BusInfoWindow(map, update, tripWithPatternStops != null ? tripWithPatternStops.getPattern() : null, new BusInfoWindow.onTouchUp() {
-                    @Override
-                    public void onActionUp() {
+                MatoPattern markerPattern = null;
+                if(tripWithPatternStops != null && tripWithPatternStops.getPattern()!=null)
+                    markerPattern = tripWithPatternStops.getPattern();
+                marker.setInfoWindow(new BusInfoWindow(map, update, markerPattern , () -> {
 
-                    }
                 }));
 
                 updateBusMarker(marker, update, true);

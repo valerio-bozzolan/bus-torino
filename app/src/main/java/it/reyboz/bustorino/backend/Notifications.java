@@ -1,9 +1,11 @@
 package it.reyboz.bustorino.backend;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
+import androidx.core.app.NotificationCompat;
 import it.reyboz.bustorino.R;
 
 public class Notifications {
@@ -41,6 +43,37 @@ public class Notifications {
             // Register the channel with the system; you can't change the importance
             // or other notification behaviors after this
             NotificationManager notificationManager = con.getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+
+    public static Notification makeMatoDownloadNotification(Context context,String title){
+        return new NotificationCompat.Builder(context, Notifications.DB_UPDATE_CHANNELS_ID)
+                //.setContentIntent(PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), Constants.PENDING_INTENT_FLAG_IMMUTABLE))
+                .setSmallIcon(R.drawable.bus)
+                .setOngoing(true)
+                .setAutoCancel(true)
+                .setOnlyAlertOnce(true)
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setContentTitle(context.getString(R.string.app_name))
+                .setLocalOnly(true)
+                .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+                .setContentText(title)
+                .build();
+    }
+    public static Notification makeMatoDownloadNotification(Context context){
+        return makeMatoDownloadNotification(context, "Downloading data from MaTO");
+    }
+
+    public static void createDBNotificationChannel(Context context){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                Notifications.DB_UPDATE_CHANNELS_ID,
+                context.getString(R.string.database_notification_channel),
+                NotificationManager.IMPORTANCE_MIN
+            );
+            NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
     }

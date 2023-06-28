@@ -120,7 +120,7 @@ data class TripAndPatternWithStops(
         parentColumn = GtfsTrip.COL_PATTERN_ID,
         entityColumn = MatoPattern.COL_CODE
     )
-    val pattern: MatoPattern,
+    val pattern: MatoPattern?,
     @Relation(
         parentColumn = MatoPattern.COL_CODE,
         entityColumn = PatternStop.COL_PATTERN_ID,
