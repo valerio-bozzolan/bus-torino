@@ -373,7 +373,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         Log.d(DEBUG_TAG, "Saving instance state");
         Fragment fragment = getChildFragmentManager().findFragmentById(R.id.resultFrame);
         if (fragment!=null)
-        getChildFragmentManager().putFragment(outState, SAVED_FRAGMENT, fragment);
+            getChildFragmentManager().putFragment(outState, SAVED_FRAGMENT, fragment);
         if (fragmentHelper!=null) fragmentHelper.setBlockAllActivities(true);
 
         instanceStateSaved = true;
@@ -483,12 +483,13 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                 ArrivalsFragment frag = (ArrivalsFragment) fragment;
                 frag.setReloadOnResume(false);
             }
+            //deactivate
             suppressArrivalsReload = false;
         }
 
         if(pendingStopID!=null){
 
-            Log.d(DEBUG_TAG, "Re-requesting arrivals for pending stop "+pendingStopID);
+            Log.d(DEBUG_TAG, "Pending request for arrivals at stop ID: "+pendingStopID);
             requestArrivalsForStopID(pendingStopID);
             pendingStopID = null;
         }
@@ -767,6 +768,8 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             }
         }
         else {
+            Log.d(DEBUG_TAG, "This is probably the first arrivals search, preparing GUI");
+            prepareGUIForBusLines();
             new AsyncArrivalsSearcher(fragmentHelper,fetchers, getContext()).execute(ID);
             Log.d(DEBUG_TAG, "Started search for arrivals of stop " + ID);
         }

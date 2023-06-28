@@ -632,7 +632,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         if (showingMainFragmentFromOther){
             FragmentManager fraMan = getSupportFragmentManager();
             Fragment fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
-            Log.d(DEBUG_TAG, "Requested main fragment, not visible. Search by TAG: "+fragment);
+            Log.d(DEBUG_TAG, "Requested main fragment, not visible. Search by TAG returned: "+fragment);
             if(fragment!=null){
                 //the fragment is there but not shown
                 probableFragment = (MainScreenFragment) fragment;
