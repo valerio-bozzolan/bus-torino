@@ -1,0 +1,9 @@
+Fix crash of app when on the map screen when the database is not completely up-to-date 
+Reported by marcoM32
+Resolved by fabio.mazza
+https://gitpull.it/T1170
+
+Fix arrivals not showing when different screen chosen to show on startup
+Reported by marcoM32
+Resolved by fabio.mazza
+https://gitpull.it/T1172

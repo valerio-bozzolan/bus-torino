@@ -1,0 +1,9 @@
+Risoluzione bug che portava al crash con la mappa causato da dati mancanti nel database 
+Segnalato da marcoM32
+Risolto da fabio.mazza
+https://gitpull.it/T1172
+
+Corretta visualizzazione degli arrivi quando si personalizza la schermata da mostrare all'avvio
+Segnalato da marcoM32
+Risolto da fabio.mazza
+https://gitpull.it/T1172
