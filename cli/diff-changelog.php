@@ -63,38 +63,128 @@ if( $I18N === null ) {
 	throw new Exception( "cannot JSON-decode file" );
 }
 
+// Initialize some stuff.
+$diff_phids = [];
+$diff_data_by_phid = [];
+
+// Initialize Phorge Conduit API client.
+$client = new ConduitClient( PHABRICATOR_HOME );
+$client->setConduitToken( CONDUIT_API_TOKEN );
+
 // All the arguments must be Differential IDs
 $diff_ids = $argv;
 
 // Remove the first argument that is just the command name
 array_shift( $diff_ids );
 
-// no diff ID no party
-if( !$diff_ids ) {
-	echo "Please specify at least one Differential ID like D66\n";
-	exit( 1 );
+if( $diff_ids ) {
+
+	// Get Diff IDs but in numeric form (for API requests)
+	$diff_ids_numeric = [];
+	foreach( $diff_ids as $diff_id ) {
+		$diff_ids_numeric[] = (int)ltrim( $diff_id, 'D' );
+	}
+
+	// Start from Diff IDs (numeric) and get Diff PHIDs (string)
+	// https://we.phorge.it/conduit/method/differential.revision.search/
+	$diff_search_results = $client->callMethodSynchronous( 'differential.revision.search', [
+		'constraints' => [
+			'ids' => $diff_ids_numeric,
+		],
+	] );
+	foreach( $diff_search_results['data'] as $diff_search_result ) {
+		$diff_phid = $diff_search_result['phid'];
+		$diff_phids[] = $diff_phid;
+		$diff_data_by_phid[ $diff_phid ] = $diff_search_result;
+	}
+
+} else {
+
+	// If no Diff was specified, let's try guessing them, but that is a long journey
+	$git_commits_after_last_tag = [];
+
+	// Find last git tag
+	// Thanks https://stackoverflow.com/a/12083016/3451846
+	$git_last_tag = null;
+	exec( 'git describe --tags --abbrev=0', $git_last_tag );
+	$git_last_tag = $git_last_tag[0] ?? null;
+
+	// No tag, no party.
+	if( !$git_last_tag ) {
+		echo "Unable to find last git tag\n";
+		exit( 1 );
+	}
+
+	// Find git commits since last tag
+	$git_log_cmd = sprintf(
+		'git log --pretty=format:%s %s..HEAD',
+		'%H',
+		escapeshellarg( $git_last_tag )
+	);
+	exec( $git_log_cmd, $git_commits_after_last_tag );
+
+	// No commits, no party.
+	if( !$git_commits_after_last_tag ) {
+		echo "Unable to list some git commits since last Tag.\n";
+		echo "Please manually specify some Diff ID like D123 etc.\n";
+		exit( 1 );
+	}
+
+	// Find PHID of each commit hash
+	$diffusion_commit_phids = [];
+	$diffusion_commit_search = $client->callMethodSynchronous( 'diffusion.commit.search', [
+		'constraints' => [
+			'identifiers' => $git_commits_after_last_tag,
+		],
+	] );
+	foreach( $diffusion_commit_search['data'] as $diffusion_commit_data ) {
+		$diffusion_commit_phids[] = $diffusion_commit_data['phid'];
+	}
+
+	// Find Differential revisions from git commits
+	// Start from commit hash and get Diff PHIDs
+	// https://we.phorge.it/conduit/method/edge.search/
+	$commit_revisions = $client->callMethodSynchronous( 'edge.search', [
+		'sourcePHIDs' => $git_commits_after_last_tag,
+		'types' => [
+			'commit.revision',
+		],
+	] );
+	foreach( $commit_revisions['data'] as $commit_revision ) {
+		$diff_phid = $commit_revision['destinationPHID'];
+		$diff_phids[] = $diff_phid;
+	}
 }
 
-$client = new ConduitClient( PHABRICATOR_HOME );
-$client->setConduitToken( CONDUIT_API_TOKEN );
-
+// Initialize some stuff
 $tasks = [];
 $tasks_phid = [];
-
-// cache with users by phids
+$tasks_phids_from_diff_phid = [];
 $USERS_BY_PHID = [];
 
+// Start from Diff IDs and get Task PHIDs
 // https://gitpull.it/conduit/method/edge.search/
 $edge_api_parameters = [
 	// apparently this does not support only PHIDs but also Monograms
-	'sourcePHIDs' => $diff_ids,
+	'sourcePHIDs' => $diff_phids,
 	'types'       => [ 'revision.task' ],
 ];
 
-// find Tasks attached to Diff patch
+// Get Task PHIDs from Differential Revision PHIDs
+// https://we.phorge.it/conduit/method/edge.search/
 $edge_result = $client->callMethodSynchronous( 'edge.search', $edge_api_parameters );
 foreach( $edge_result['data'] as $data ) {
-	$tasks_phid[] = $data['destinationPHID'];
+	$diff_phid = $data['sourcePHID'];
+	$task_phid = $data['destinationPHID'];
+	$tasks_phid[] = $task_phid;
+	$tasks_phids_from_diff_phid[$diff_phid][] = $task_phid;
+}
+
+// Show Diffs that have no Tasks so you can fix on Phorge
+foreach( $diff_phids as $diff_phid ) {
+	if( empty( $tasks_phids_from_diff_phid[$diff_phid] ) ) {
+		echo "[WARN] Skipped Diff without Tasks: $diff_phid\n";
+	}
 }
 
 // https://gitpull.it/conduit/method/maniphest.search/
