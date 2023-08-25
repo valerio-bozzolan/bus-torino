@@ -18,12 +18,14 @@
 package it.reyboz.bustorino;
 
 import android.os.Bundle;
+import android.util.Log;
 import androidx.appcompat.app.ActionBar;
-import it.reyboz.bustorino.fragments.LinesDetailFragment;
-import it.reyboz.bustorino.fragments.TestRealtimeGtfsFragment;
+import androidx.fragment.app.FragmentTransaction;
+import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.GeneralActivity;
 
-public class ActivityExperiments extends GeneralActivity {
+public class ActivityExperiments extends GeneralActivity implements CommonFragmentListener {
 
     final static String DEBUG_TAG = "ExperimentsGTFS";
 
@@ -40,15 +42,51 @@ public class ActivityExperiments extends GeneralActivity {
         if (savedInstanceState==null) {
             getSupportFragmentManager().beginTransaction()
                     .setReorderingAllowed(true)
-                    /*
-                    .add(R.id.fragment_container_view, LinesDetailFragment.class,
 
-                            LinesDetailFragment.Companion.makeArgs("gtt:56U"))
+                   /* .add(R.id.fragment_container_view, LinesDetailFragment.class,
+
+                            LinesDetailFragment.Companion.makeArgs("gtt:4U"))
+
+                    */
+                    .add(R.id.fragment_container_view, LinesGridShowingFragment.class, null)
                     .commit();
-                     */
-                    .add(R.id.fragment_container_view, LinesDetailFragment.class,
-                            LinesDetailFragment.Companion.makeArgs("gtt:10U"))
-                    .commit();
+
+                    //.add(R.id.fragment_container_view, LinesDetailFragment.class,
+                    //        LinesDetailFragment.Companion.makeArgs("gtt:4U"))
+                    //.add(R.id.fragment_container_view, TestRealtimeGtfsFragment.class, null)
+                    //.commit();
         }
+    }
+
+    @Override
+    public void showFloatingActionButton(boolean yes) {
+        Log.d(DEBUG_TAG, "Asked to show the action button");
+    }
+
+    @Override
+    public void readyGUIfor(FragmentKind fragmentType) {
+        Log.d(DEBUG_TAG, "Asked to prepare the GUI for fragmentType "+fragmentType);
+    }
+
+    @Override
+    public void requestArrivalsForStopID(String ID) {
+
+    }
+
+    @Override
+    public void showMapCenteredOnStop(Stop stop) {
+
+    }
+    @Override
+    public void showLineOnMap(String routeGtfsId){
+
+        readyGUIfor(FragmentKind.LINES);
+        FragmentTransaction tr = getSupportFragmentManager().beginTransaction();
+        tr.replace(R.id.fragment_container_view, LinesDetailFragment.class,
+                LinesDetailFragment.Companion.makeArgs(routeGtfsId));
+        tr.addToBackStack("LineonMap-"+routeGtfsId);
+        tr.commit();
+
+
     }
 }

@@ -383,9 +383,9 @@ open class MatoAPIFetcher(
             requestQueue.add(request)
 
             val patterns = ArrayList<MatoPattern>()
-            //var outObj = ""
+            var resObj = JSONObject()
             try {
-                val resObj = future.get(60,TimeUnit.SECONDS)
+                resObj = future.get(60,TimeUnit.SECONDS)
                 //outObj = resObj.toString(1)
                 val routesJSON = resObj.getJSONArray("routes")
                 for (i in 0 until routesJSON.length()){
@@ -406,7 +406,7 @@ open class MatoAPIFetcher(
             } catch (e: JSONException){
                 e.printStackTrace()
                 res?.set(Fetcher.Result.PARSER_ERROR)
-                //Log.e(DEBUG_TAG, "Downloading feeds: $outObj")
+                Log.e(DEBUG_TAG, "Got result: $resObj")
             }
 
 

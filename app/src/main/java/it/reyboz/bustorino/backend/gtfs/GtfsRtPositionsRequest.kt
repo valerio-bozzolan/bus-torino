@@ -23,13 +23,12 @@ import com.android.volley.Response
 import com.android.volley.VolleyError
 import com.android.volley.toolbox.HttpHeaderParser
 import com.google.transit.realtime.GtfsRealtime
-import com.google.transit.realtime.GtfsRealtime.VehiclePosition
 
 class GtfsRtPositionsRequest(
                              errorListener: Response.ErrorListener?,
                              val listener: RequestListener) :
-    Request<ArrayList<GtfsPositionUpdate>>(Method.GET, URL_POSITION, errorListener) {
-    override fun parseNetworkResponse(response: NetworkResponse?): Response<ArrayList<GtfsPositionUpdate>> {
+    Request<ArrayList<LivePositionUpdate>>(Method.GET, URL_POSITION, errorListener) {
+    override fun parseNetworkResponse(response: NetworkResponse?): Response<ArrayList<LivePositionUpdate>> {
         if (response == null){
             return Response.error(VolleyError("Null response"))
         }
@@ -39,13 +38,13 @@ class GtfsRtPositionsRequest(
 
         val gtfsreq = GtfsRealtime.FeedMessage.parseFrom(response.data)
 
-        val positionList = ArrayList<GtfsPositionUpdate>()
+        val positionList = ArrayList<LivePositionUpdate>()
 
         if (gtfsreq.hasHeader() && gtfsreq.entityCount>0){
             for (i in 0 until gtfsreq.entityCount){
                 val entity = gtfsreq.getEntity(i)
                 if (entity.hasVehicle()){
-                    positionList.add(GtfsPositionUpdate(entity.vehicle))
+                    positionList.add(LivePositionUpdate(entity.vehicle))
                 }
             }
         }
@@ -53,7 +52,7 @@ class GtfsRtPositionsRequest(
         return Response.success(positionList, HttpHeaderParser.parseCacheHeaders(response))
     }
 
-    override fun deliverResponse(response: ArrayList<GtfsPositionUpdate>?) {
+    override fun deliverResponse(response: ArrayList<LivePositionUpdate>?) {
         listener.onResponse(response)
     }
 
@@ -64,7 +63,7 @@ class GtfsRtPositionsRequest(
         const val URL_ALERTS = "http://percorsieorari.gtt.to.it/das_gtfsrt/alerts.aspx"
 
         public interface RequestListener{
-            fun onResponse(response: ArrayList<GtfsPositionUpdate>?)
+            fun onResponse(response: ArrayList<LivePositionUpdate>?)
         }
     }
 

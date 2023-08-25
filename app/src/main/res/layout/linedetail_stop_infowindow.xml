@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+                                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                                   xmlns:tools="http://schemas.android.com/tools" android:layout_width="wrap_content"
+                                   android:layout_height="wrap_content"
+                                   android:background="@color/cardview_light_background"
+                                   app:cardCornerRadius="5dp"
+                                   app:cardElevation="0dp"
+                                   android:textAlignment="center"
+                                   android:padding="0dp"
+                                   android:gravity="center_horizontal"
+>
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+    >
+        <TextView
+                android:id="@+id/bubble_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:textColor="@color/line_drawn_poly"
+                android:textSize="16sp"
+                android:maxWidth="130sp"
+                app:layout_constraintStart_toStartOf="parent"
+                android:text="BALABALA"
+                android:textAlignment="center"
+                android:layout_margin="10dp"
+                app:layout_constraintTop_toTopOf="parent"
+        />
+        <TextView
+                android:id="@+id/bubble_description"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:textAlignment="center"
+                android:textSize="15sp"
+                android:maxWidth="100sp"
+                android:text="8"
+                app:layout_constraintTop_toBottomOf="@id/bubble_title"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginLeft="8dp" android:layout_marginEnd="8dp"/>
+
+        <TextView
+                android:id="@+id/bubble_subdescription"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:gravity="center_horizontal"
+                android:textSize="12sp"
+                android:textAlignment="center"
+                android:maxWidth="130sp"
+                android:text="21"
+                app:flow_horizontalBias="0.5"
+                app:layout_constraintTop_toBottomOf="@id/bubble_description"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginLeft="8dp" android:layout_marginEnd="8dp"
+                android:layout_marginBottom="10dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+        />
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" app:srcCompat="@drawable/baseline_close_16"
+                android:id="@+id/closeIcon"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginLeft="5dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginRight="1dp"
+                android:layout_marginTop="1dp"
+
+                app:layout_constraintStart_toEndOf="@+id/bubble_title"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

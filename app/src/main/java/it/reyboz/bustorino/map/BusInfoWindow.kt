@@ -18,34 +18,47 @@
 package it.reyboz.bustorino.map
 
 import android.annotation.SuppressLint
-import android.view.MotionEvent
-import android.view.View
 import android.view.View.*
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.marginEnd
 import it.reyboz.bustorino.R
-import it.reyboz.bustorino.backend.gtfs.GtfsPositionUpdate
+import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.gtfs.GtfsUtils
-import it.reyboz.bustorino.data.gtfs.GtfsTrip
+import it.reyboz.bustorino.backend.utils
 import it.reyboz.bustorino.data.gtfs.MatoPattern
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.infowindow.BasicInfoWindow
 
 @SuppressLint("ClickableViewAccessibility")
 class BusInfoWindow(map: MapView,
-                    val update: GtfsPositionUpdate,
+                    private val routeName: String,
+                    private val vehicleLabel: String,
                     var pattern: MatoPattern?,
-                    private val touchUp: onTouchUp):
+                    val showClose: Boolean,
+                    private val touchUp: onTouchUp
+    ):
     BasicInfoWindow(R.layout.bus_info_window,map) {
 
     init {
         mView.setOnTouchListener { view, motionEvent ->
-            touchUp.onActionUp()
+            touchUp.onActionUp(pattern)
             close()
             //mView.performClick()
             true
 
         }
     }
+    constructor(map: MapView, update: LivePositionUpdate, pattern: MatoPattern?, showClose: Boolean, touchUp: onTouchUp, ):
+            this(map,
+                GtfsUtils.getLineNameFromGtfsID(update.routeID),
+                update.vehicle,
+                pattern,
+                showClose,
+                touchUp
+                )
+
 
     override fun onOpen(item: Any?) {
        // super.onOpen(item)
@@ -53,10 +66,13 @@ class BusInfoWindow(map: MapView,
         val descrView = mView.findViewById<TextView>(R.id.businfo_description)
         val subdescrView = mView.findViewById<TextView>(R.id.businfo_subdescription)
 
-        val nameRoute =  GtfsUtils.getLineNameFromGtfsID(update.routeID)
-        titleView.text = (mView.resources.getString(R.string.line_fill, nameRoute)
+        val iconClose = mView.findViewById<ImageView>(R.id.closeIcon)
+
+        //val nameRoute =  GtfsUtils.getLineNameFromGtfsID(update.lineGtfsId)
+
+        titleView.text = (mView.resources.getString(R.string.line_fill, routeName)
                 )
-        subdescrView.text = update.vehicleInfo.label
+        subdescrView.text = vehicleLabel
 
 
         if(pattern!=null){
@@ -65,7 +81,19 @@ class BusInfoWindow(map: MapView,
         } else{
             descrView.visibility = GONE
         }
+        if(!showClose){
+            iconClose.visibility = GONE
+            val ctx = titleView.context
+            val layPars = (titleView.layoutParams as ConstraintLayout.LayoutParams).apply {
+                marginStart= 0 //utils.convertDipToPixelsInt(ctx, 8.0)//8.dpToPixels()
+                topMargin=utils.convertDipToPixelsInt(ctx, 4.0)
+                marginEnd=0
+                bottomMargin=0
+            }
+            //titleView.layoutParams = layPars
+        }
     }
+
     fun setPatternAndDraw(pattern: MatoPattern?){
         if(pattern==null){
             return
@@ -77,6 +105,6 @@ class BusInfoWindow(map: MapView,
     }
 
     fun interface onTouchUp{
-        fun onActionUp()
+        fun onActionUp(pattern: MatoPattern?)
     }
 }

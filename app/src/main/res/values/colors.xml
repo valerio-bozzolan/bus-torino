@@ -7,12 +7,17 @@
     <color name="orange_700_30light">#994d00</color>
     <color name="blue_500">#2196F3</color>
     <color name="blue_620">#2a65e8</color>
-    <color name="blue_700">#2060dd</color> <!-- #1976D2 -->
+    <color name="blue_700">#2060dd</color>
+    <color name="brown_vd">#8A4247</color><!-- #1976D2 -->
 
     <color name="blue_mid_2">#2378e8</color>
     <color name="blue_c_or_700">#0079f5</color>
     <color name="teal_dark">#2a968b</color>
     <color name="blue_comp_500">#0067ff</color>
+
+    <color name="blue_extra">#2F59CC</color>
+    <color name="brown_mattone">#CC5E43</color>
+    <color name="green_dark">#548017</color>
 
     <color name="teal_500">#009688</color>
     <color name="teal_300">#4DB6AC</color>
@@ -21,14 +26,22 @@
     <color name="grey_200">#dddddd</color>
     <color name="grey_050">#f8f8f8</color>
     <color name="grey_600">#757575</color>
+
     <!--<color name="white">#FFFFFF</color>
     <color name="accent">#009688</color>-->
     <color name="metro_red">#DE0908</color>
     <color name="red_darker">#b30000</color>
+    <color name="red_orange">#dd441f</color>
+    <color name="red_dark">#b30d0d</color>
     <color name="blue_extraurbano">#2060DD</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="black_900">#1c1c1c</color>
+
     <color name="line_pattern_color">@color/blue_mid_2</color><!-- 2e8df0-->
+
+    <color name="line_drawn_poly">@color/red_dark</color>
+
+    <color name="bus_marker_color">@color/blue_extra</color>
 
 </resources>

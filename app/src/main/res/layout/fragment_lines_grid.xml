@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".fragments.LinesGridShowingFragment">
+        <!--<androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/linesScrollView"
+                android:layout_weight="12"
+        >-->
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:animateLayoutChanges="true"
+        >
+            <ImageView
+                    android:src="@drawable/baseline_chevron_right_24"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/arrowUrb"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="@id/urbanLinesTitleView"
+                    android:layout_margin="4dp"
+                    android:layout_marginStart="16dp"
+                    android:rotation="0"
+            />
+            <TextView android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="@string/urban_lines"
+                      android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+                      android:textSize="@dimen/subtitle_size"
+                      android:layout_margin="4dp"
+                      android:textColor="@color/black_900"
+                      android:gravity="center"
+                      android:id="@+id/urbanLinesTitleView"
+                      app:layout_constraintTop_toTopOf="parent"
+                      app:layout_constraintLeft_toRightOf="@id/arrowUrb"
+                      app:layout_constraintBottom_toTopOf="@id/urbanLinesRecyclerView"
+                      android:layout_marginLeft="6dp"
+                      app:layout_constraintVertical_bias="0.0"
+                      app:layout_constraintVertical_chainStyle="spread"/>
+            <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:id="@+id/urbanLinesRecyclerView"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:visibility="visible"
+                    android:layout_below="@id/urbanLinesTitleView"
+                    app:layout_constraintTop_toBottomOf="@id/urbanLinesTitleView"
+                    app:layout_constraintBottom_toTopOf="@id/touristLinesTitleView"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintVertical_bias="0.0"
+
+            />
+            <ImageView
+                    android:src="@drawable/baseline_chevron_right_24"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/arrowTourist"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="@id/touristLinesTitleView"
+                    android:layout_margin="4dp"
+                    android:layout_marginStart="16dp"
+                    android:rotation="0"
+            />
+            <TextView android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="@string/turist_lines"
+                      android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+                      android:textSize="@dimen/subtitle_size"
+                      android:textColor="@color/black_900"
+                      android:layout_margin="4dp"
+                      android:layout_marginStart="6dp"
+                      android:gravity="center"
+                      android:id="@+id/touristLinesTitleView"
+                      app:layout_constraintLeft_toRightOf="@id/arrowTourist"
+                      app:layout_constraintTop_toBottomOf="@id/urbanLinesRecyclerView"
+                      app:layout_constraintBottom_toTopOf="@id/touristLinesRecyclerView"
+                      app:layout_constraintVertical_bias="0.0"
+                      android:layout_marginLeft="6dp"/>
+            <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:id="@+id/touristLinesRecyclerView"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:visibility="gone"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/touristLinesTitleView"
+                    app:layout_constraintBottom_toTopOf="@id/extraurbanLinesTitleView"
+                    app:layout_constraintVertical_bias="0.0"
+
+            />
+            <ImageView
+                    android:src="@drawable/baseline_chevron_right_24"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/arrowExtraurban"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="@id/extraurbanLinesTitleView"
+                    android:layout_margin="4dp"
+                    android:layout_marginStart="16dp"
+                    android:rotation="0"
+            />
+            <TextView android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="@string/extraurban_lines"
+                      android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+                      android:textSize="@dimen/subtitle_size"
+                      android:layout_margin="4dp"
+                      android:textColor="@color/black_900"
+                      android:gravity="center"
+                      android:layout_marginStart="6dp"
+                      android:id="@+id/extraurbanLinesTitleView"
+                      app:layout_constraintTop_toBottomOf="@id/touristLinesRecyclerView"
+                      app:layout_constraintLeft_toRightOf="@id/arrowExtraurban"
+                      app:layout_constraintBottom_toTopOf="@id/extraurbanLinesRecyclerView"
+                      app:layout_constraintVertical_bias="0.0"
+
+            />
+            <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:id="@+id/extraurbanLinesRecyclerView"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:visibility="gone"
+                    android:layout_below="@id/extraurbanLinesTitleView"
+
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/extraurbanLinesTitleView"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintVertical_bias="0.0"
+
+            />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+        <!--</androidx.core.widget.NestedScrollView>-->
+</FrameLayout>

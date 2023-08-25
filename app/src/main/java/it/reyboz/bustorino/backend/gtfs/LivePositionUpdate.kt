@@ -21,39 +21,45 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.Schedu
 import com.google.transit.realtime.GtfsRealtime.VehiclePosition
 import com.google.transit.realtime.GtfsRealtime.VehiclePosition.OccupancyStatus
 
-data class GtfsPositionUpdate(
-    val tripID: String,
-    val startTime: String,
-    val startDate: String,
+data class LivePositionUpdate(
+    val tripID: String, //tripID WITHOUT THE "gtt:" prefix
+    val startTime: String?,
+    val startDate: String?,
     val routeID: String,
+    val vehicle: String,
 
-    val latitude: Float,
-    val longitude: Float,
-    val bearing: Float,
+    val latitude: Double,
+    val longitude: Double,
+    val bearing: Float?,
 
     val timestamp: Long,
 
-    val vehicleInfo: VehicleInfo,
+    val nextStop: String?,
+
+    /*val vehicleInfo: VehicleInfo,
     val occupancyStatus: OccupancyStatus?,
     val scheduleRelationship: ScheduleRelationship?
+     */
 ){
     constructor(position: VehiclePosition) : this(
         position.trip.tripId,
         position.trip.startTime,
         position.trip.startDate,
         position.trip.routeId,
-        position.position.latitude,
-        position.position.longitude,
+        position.vehicle.label,
+
+        position.position.latitude.toDouble(),
+        position.position.longitude.toDouble(),
         position.position.bearing,
         position.timestamp,
-        VehicleInfo(position.vehicle.id, position.vehicle.label),
-        position.occupancyStatus,
         null
     )
- data class VehicleInfo(
+ /*data class VehicleInfo(
      val id: String,
      val label:String
  )
+
+  */
 }
 
 

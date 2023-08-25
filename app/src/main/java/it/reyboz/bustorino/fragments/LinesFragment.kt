@@ -45,7 +45,7 @@ class LinesFragment : ScreenBaseFragment() {
         fun newInstance(){
             LinesFragment()
         }
-        const val DEBUG_TAG="BusTO-LinesFragment"
+        private const val DEBUG_TAG="BusTO-LinesFragment"
         const val FRAGMENT_TAG="LinesFragment"
 
         val patternStopsComparator = PatternWithStopsSorter()

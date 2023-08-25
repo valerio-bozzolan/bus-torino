@@ -521,15 +521,16 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     private static void showLinesFragment(@NonNull FragmentManager fragmentManager,  boolean addToBackStack, @Nullable Bundle fragArgs){
         FragmentTransaction ft = fragmentManager.beginTransaction();
-        Fragment f = fragmentManager.findFragmentByTag(LinesFragment.FRAGMENT_TAG);
+        Fragment f = fragmentManager.findFragmentByTag(LinesGridShowingFragment.FRAGMENT_TAG);
         if(f!=null){
-            ft.replace(R.id.mainActContentFrame, f, LinesFragment.FRAGMENT_TAG);
+            ft.replace(R.id.mainActContentFrame, f, LinesGridShowingFragment.FRAGMENT_TAG);
         }else{
             //use new method
-            ft.replace(R.id.mainActContentFrame,LinesFragment.class,fragArgs,LinesFragment.FRAGMENT_TAG);
+            ft.replace(R.id.mainActContentFrame,LinesGridShowingFragment.class,fragArgs,
+                    LinesGridShowingFragment.FRAGMENT_TAG);
         }
         if (addToBackStack)
-            ft.addToBackStack("lines");
+            ft.addToBackStack("linesGrid");
         ft.setReorderingAllowed(true)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                 .commit();
@@ -654,6 +655,19 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         }
 
         mNavView.setCheckedItem(R.id.nav_arrivals);
+    }
+    @Override
+    public void showLineOnMap(String routeGtfsId){
+
+        readyGUIfor(FragmentKind.LINES);
+
+        FragmentTransaction tr = getSupportFragmentManager().beginTransaction();
+        tr.replace(R.id.mainActContentFrame, LinesDetailFragment.class,
+                LinesDetailFragment.Companion.makeArgs(routeGtfsId));
+        tr.addToBackStack("LineonMap-"+routeGtfsId);
+        tr.commit();
+
+
     }
 
     @Override

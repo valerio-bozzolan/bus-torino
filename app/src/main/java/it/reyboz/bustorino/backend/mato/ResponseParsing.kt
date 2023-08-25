@@ -117,7 +117,9 @@ abstract class ResponseParsing{
                     MatoPattern(
                         mPatternJSON.getString("name"), mPatternJSON.getString("code"),
                         mPatternJSON.getString("semanticHash"), mPatternJSON.getInt("directionId"),
-                        routeGtfsId, mPatternJSON.getString("headsign"), polyline, numGeo, stopsCodes
+                        routeGtfsId,
+                        sanitize( mPatternJSON.getString("headsign")),
+                        polyline, numGeo, stopsCodes
                     )
                 )
             }
@@ -135,12 +137,26 @@ abstract class ResponseParsing{
             // still have "activeDates" which are the days in which the pattern is active
             //Log.d("BusTO:RequestParsing", "Making GTFS trip for: $jsonData")
             val trip = GtfsTrip(
-                routeId, jsonTrip.getString("serviceId"), jsonTrip.getString("gtfsId"),
-                jsonTrip.getString("tripHeadsign"), -1, "", "",
+                routeId, jsonTrip.getString("serviceId"),
+                jsonTrip.getString("gtfsId"),
+                sanitize(jsonTrip.getString("tripHeadsign")),
+                -1, "", "",
                 Converters.wheelchairFromString(jsonTrip.getString("wheelchairAccessible")),
                 false, patternId, jsonTrip.getString("semanticHash")
             )
             return trip
+        }
+
+        @JvmStatic
+        fun sanitize(dir: String): String{
+            var str = dir.trim()
+            val lastChar = str[str.length-1]
+            if(lastChar==','|| lastChar==';') {
+                Log.d(DEBUG_TAG, "Sanitization: removing last char from $str")
+                str = str.dropLast(1)
+            }
+
+            return str
         }
     }
 }

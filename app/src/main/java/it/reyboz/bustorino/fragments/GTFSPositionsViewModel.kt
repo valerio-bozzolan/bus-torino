@@ -22,31 +22,30 @@ import android.util.Log
 import androidx.lifecycle.*
 import com.android.volley.Response
 import it.reyboz.bustorino.backend.NetworkVolleyManager
-import it.reyboz.bustorino.backend.gtfs.GtfsPositionUpdate
+import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.gtfs.GtfsRtPositionsRequest
 import it.reyboz.bustorino.data.*
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.concurrent.Executors
 
 /**
  * View Model for the map. For containing the stops, the trips and whatever
  */
-class MapViewModel(application: Application): AndroidViewModel(application) {
+class GTFSPositionsViewModel(application: Application): AndroidViewModel(application) {
     private val gtfsRepo = GtfsRepository(application)
 
     private val netVolleyManager = NetworkVolleyManager.getInstance(application)
 
 
-    val positionsLiveData = MutableLiveData<ArrayList<GtfsPositionUpdate>>()
+    val positionsLiveData = MutableLiveData<ArrayList<LivePositionUpdate>>()
     private val positionsRequestRunning = MutableLiveData<Boolean>()
 
 
     private val positionRequestListener = object: GtfsRtPositionsRequest.Companion.RequestListener{
-        override fun onResponse(response: ArrayList<GtfsPositionUpdate>?) {
+        override fun onResponse(response: ArrayList<LivePositionUpdate>?) {
             Log.i(DEBUG_TI,"Got response from the GTFS RT server")
-            response?.let {it:ArrayList<GtfsPositionUpdate> ->
+            response?.let {it:ArrayList<LivePositionUpdate> ->
                 if (it.size == 0) {
                     Log.w(DEBUG_TI,"No position updates from the server")
                     return
@@ -120,7 +119,7 @@ class MapViewModel(application: Application): AndroidViewModel(application) {
         val tripNames=tripswithPatterns.map { twp-> twp.trip.tripID }
         Log.i(DEBUG_TI, "Have ${tripswithPatterns.size} trips in the DB")
         if (tripsIDsInUpdates.value!=null)
-        return@map tripsIDsInUpdates.value!!.filter { !tripNames.contains(it) }
+            return@map tripsIDsInUpdates.value!!.filter { !tripNames.contains(it) }
         else {
             Log.e(DEBUG_TI,"Got results for gtfsTripsInDB but not tripsIDsInUpdates??")
             return@map ArrayList<String>()
@@ -129,7 +128,7 @@ class MapViewModel(application: Application): AndroidViewModel(application) {
 
     val updatesWithTripAndPatterns = gtfsTripsPatternsInDB.map { tripPatterns->
         Log.i(DEBUG_TI, "Mapping trips and patterns")
-        val mdict = HashMap<String,Pair<GtfsPositionUpdate, TripAndPatternWithStops?>>()
+        val mdict = HashMap<String,Pair<LivePositionUpdate, TripAndPatternWithStops?>>()
         //missing patterns
         val routesToDownload = HashSet<String>()
         if(positionsLiveData.value!=null)
@@ -174,7 +173,7 @@ class MapViewModel(application: Application): AndroidViewModel(application) {
     fun downloadTripsFromMato(trips: List<String>): Boolean{
         return MatoTripsDownloadWorker.downloadTripsFromMato(trips,getApplication(), DEBUG_TI)
     }
-    fun downloadMissingPatterns(routeIds: List<String>): Boolean{
+    private fun downloadMissingPatterns(routeIds: List<String>): Boolean{
         return MatoPatternsDownloadWorker.downloadPatternsForRoutes(routeIds, getApplication())
     }
 
@@ -186,11 +185,9 @@ class MapViewModel(application: Application): AndroidViewModel(application) {
         positionsRequestRunning.value = false;
     }
     fun testCascade(){
-       val n  = ArrayList<GtfsPositionUpdate>()
-        n.add(GtfsPositionUpdate("22920721U","lala","lalal","lol",1000.0f,1000.0f, 9000.0f,
-            378192810192, GtfsPositionUpdate.VehicleInfo("aj","a"),
-            null, null
-
+       val n  = ArrayList<LivePositionUpdate>()
+        n.add(LivePositionUpdate("22920721U","lala","lalal","lol","ASD",
+            1000.0,1000.0, 9000.0f, 21838191, null
             ))
         positionsLiveData.value = n
     }
@@ -202,7 +199,7 @@ class MapViewModel(application: Application): AndroidViewModel(application) {
 
 
     companion object{
-        const val DEBUG_TI="BusTO-MapViewModel"
+        private const val DEBUG_TI="BusTO-GTFSRTViewModel"
         const val DEFAULT_DELAY_REQUESTS: Long=4000
 
     }

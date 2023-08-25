@@ -64,16 +64,17 @@ public abstract class utils {
     public static Double angleRawDifferenceFromMeters(double distanceInMeters){
          return Math.toDegrees(distanceInMeters/EarthRadius);
     }
-    /*
-    public static int convertDipToPixels(Context con,float dips)
+
+    public static int convertDipToPixelsInt(Context con,double dips)
     {
         return (int) (dips * con.getResources().getDisplayMetrics().density + 0.5f);
     }
-     */
+
 
     public static float convertDipToPixels(Context con, float dp){
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,con.getResources().getDisplayMetrics());
     }
+
     /*
     public static int calculateNumColumnsFromSize(View containerView, int pixelsize){
         int width = containerView.getWidth();

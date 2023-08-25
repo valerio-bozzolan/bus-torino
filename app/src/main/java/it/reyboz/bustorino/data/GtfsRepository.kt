@@ -31,4 +31,8 @@ class GtfsRepository(
         else
             MutableLiveData(listOf())
     }
+
+    fun getAllRoutes(): LiveData<List<GtfsRoute>>{
+        return  gtfsDao.getAllRoutes()
+    }
 }

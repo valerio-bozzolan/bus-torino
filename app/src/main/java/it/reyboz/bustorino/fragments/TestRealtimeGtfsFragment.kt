@@ -1,24 +1,19 @@
 package it.reyboz.bustorino.fragments
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
-import com.android.volley.Response
-import com.google.transit.realtime.GtfsRealtime
+import androidx.fragment.app.viewModels
 import it.reyboz.bustorino.R
-import it.reyboz.bustorino.backend.NetworkVolleyManager
-import it.reyboz.bustorino.backend.gtfs.GtfsPositionUpdate
-import it.reyboz.bustorino.backend.gtfs.GtfsRtPositionsRequest
+import it.reyboz.bustorino.backend.mato.MQTTMatoClient
+import it.reyboz.bustorino.viewmodels.MQTTPositionsViewModel
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
 
 /**
  * A simple [Fragment] subclass.
@@ -30,7 +25,14 @@ class TestRealtimeGtfsFragment : Fragment() {
     private lateinit var buttonLaunch: Button
     private lateinit var messageTextView: TextView
 
-    private val requestListener = object: GtfsRtPositionsRequest.Companion.RequestListener{
+    private var subscribed = false
+    private lateinit var mqttMatoClient: MQTTMatoClient
+
+    private lateinit var lineEditText: EditText
+
+    private val mqttViewModel: MQTTPositionsViewModel by viewModels()
+
+    /*private val requestListener = object: GtfsRtPositionsRequest.Companion.RequestListener{
         override fun onResponse(response: ArrayList<GtfsPositionUpdate>?) {
             if (response == null) return
 
@@ -43,6 +45,14 @@ class TestRealtimeGtfsFragment : Fragment() {
             messageTextView.text = "Entity message 0: ${position}"
         }
 
+
+    }
+     */
+
+    private val listener = MQTTMatoClient.Companion.MQTTMatoListener{
+
+        messageTextView.text = "Update: ${it}"
+        Log.d("BUSTO-TestMQTT", "Received update $it")
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,16 +70,37 @@ class TestRealtimeGtfsFragment : Fragment() {
         val rootView= inflater.inflate(R.layout.fragment_test_realtime_gtfs, container, false)
 
         buttonLaunch = rootView.findViewById(R.id.btn_download_data)
+        buttonLaunch.text="Start"
         messageTextView = rootView.findViewById(R.id.gtfsMessageTextView)
+        lineEditText = rootView.findViewById(R.id.lineEditText)
+
+        mqttViewModel.updatesWithTripAndPatterns.observe(viewLifecycleOwner){
+            val upds = it.entries.map { it.value.first }
+            messageTextView.text = "$upds"
+        }
 
         buttonLaunch.setOnClickListener {
 
             context?.let {cont->
-                val req = GtfsRtPositionsRequest(
+                /*val req = GtfsRtPositionsRequest(
                     Response.ErrorListener { Toast.makeText(cont, "Error: ${it.message}",Toast.LENGTH_SHORT) },
                     requestListener
                 )
                 NetworkVolleyManager.getInstance(cont).addToRequestQueue(req)
+
+                 */
+                subscribed = if(subscribed){
+                    //mqttMatoClient.desubscribe(listener)
+                    mqttViewModel.stopPositionsListening()
+                    buttonLaunch.text="Start"
+                    false
+                } else{
+                    //mqttMatoClient.startAndSubscribe(lineEditText.text.trim().toString(), listener)
+                    mqttViewModel.requestPosUpdates(lineEditText.text.trim().toString())
+                    buttonLaunch.text="Stop"
+                    true
+                }
+
             }
 
 

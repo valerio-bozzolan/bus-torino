@@ -29,6 +29,12 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
     val stopsForPatternLiveData = MutableLiveData<List<Stop>>()
     private val executor = Executors.newFixedThreadPool(2)
 
+    val mapShowing = MutableLiveData(true)
+    fun setMapShowing(yes: Boolean){
+        mapShowing.value = yes
+        //retrigger redraw
+        stopsForPatternLiveData.postValue(stopsForPatternLiveData.value)
+    }
     init {
         val gtfsDao = GtfsDatabase.getGtfsDatabase(application).gtfsDao()
         gtfsRepo = GtfsRepository(gtfsDao)
@@ -37,6 +43,7 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
 
     }
 
+
     val routesGTTLiveData: LiveData<List<GtfsRoute>> by lazy{
         gtfsRepo.getLinesLiveDataForFeed("gtt")
     }
@@ -44,6 +51,7 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
         gtfsRepo.getPatternsWithStopsForRouteID(it)
 
     }
+
 
     fun setRouteIDQuery(routeID: String){
         routeIDToSearch.value = routeID
@@ -54,6 +62,10 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
     }
     var shouldShowMessage = true
 
+    fun setPatternToDisplay(patternStops: MatoPatternWithStops){
+
+        selectedPatternLiveData.value = patternStops
+    }
     /**
      * Find the
      */

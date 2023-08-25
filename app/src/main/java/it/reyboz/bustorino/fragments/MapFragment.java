@@ -27,7 +27,6 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -44,12 +43,14 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 
-import it.reyboz.bustorino.backend.gtfs.GtfsPositionUpdate;
-import it.reyboz.bustorino.backend.gtfs.GtfsUtils;
+import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate;
+import it.reyboz.bustorino.backend.mato.MQTTMatoClient;
 import it.reyboz.bustorino.backend.utils;
+import it.reyboz.bustorino.data.MatoTripsDownloadWorker;
 import it.reyboz.bustorino.data.gtfs.MatoPattern;
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops;
 import it.reyboz.bustorino.map.*;
+import it.reyboz.bustorino.viewmodels.MQTTPositionsViewModel;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -78,7 +79,7 @@ import it.reyboz.bustorino.util.Permissions;
 
 public class MapFragment extends ScreenBaseFragment {
 
-    private static final String TAG = "Busto-MapActivity";
+    //private static final String TAG = "Busto-MapActivity";
     private static final String MAP_CURRENT_ZOOM_KEY = "map-current-zoom";
     private static final String MAP_CENTER_LAT_KEY = "map-center-lat";
     private static final String MAP_CENTER_LON_KEY = "map-center-lon";
@@ -117,7 +118,8 @@ public class MapFragment extends ScreenBaseFragment {
     private boolean hasMapStartFinished = false;
     private boolean followingLocation = false;
 
-    private MapViewModel mapViewModel ; //= new ViewModelProvider(this).get(MapViewModel.class);
+    //private GTFSPositionsViewModel gtfsPosViewModel; //= new ViewModelProvider(this).get(MapViewModel.class);
+    private MQTTPositionsViewModel positionsViewModel;
 
     private final HashMap<String,Marker> busPositionMarkersByTrip = new HashMap<>();
     private FolderOverlay busPositionsOverlay = null;
@@ -270,6 +272,7 @@ public class MapFragment extends ScreenBaseFragment {
                     .show();
         });
 
+
         return root;
     }
 
@@ -277,7 +280,9 @@ public class MapFragment extends ScreenBaseFragment {
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
 
-        mapViewModel = new ViewModelProvider(this).get(MapViewModel.class);
+        //gtfsPosViewModel = new ViewModelProvider(this).get(GTFSPositionsViewModel.class);
+        //viewModel
+        positionsViewModel = new ViewModelProvider(this).get(MQTTPositionsViewModel.class);
         if (context instanceof FragmentListenerMain) {
             listenerMain = (FragmentListenerMain) context;
         } else {
@@ -306,6 +311,7 @@ public class MapFragment extends ScreenBaseFragment {
             }
         }
         tripMarkersAnimators.clear();
+        positionsViewModel.stopPositionsListening();
 
         if (stopFetcher!= null)
             stopFetcher.cancel(true);
@@ -342,12 +348,15 @@ public class MapFragment extends ScreenBaseFragment {
     public void onResume() {
         super.onResume();
         if(listenerMain!=null) listenerMain.readyGUIfor(FragmentKind.MAP);
-        if(mapViewModel!=null) {
-            mapViewModel.requestUpdates();
+        if(positionsViewModel !=null) {
+            //gtfsPosViewModel.requestUpdates();
+            positionsViewModel.requestPosUpdates(MQTTMatoClient.LINES_ALL);
             //mapViewModel.testCascade();
-            mapViewModel.getTripsGtfsIDsToQuery().observe(this, dat -> {
+            positionsViewModel.getTripsGtfsIDsToQuery().observe(this, dat -> {
                 Log.i(DEBUG_TAG, "Have these trips IDs missing from the DB, to be queried: "+dat);
-                mapViewModel.downloadTripsFromMato(dat);
+                //gtfsPosViewModel.downloadTripsFromMato(dat);
+                MatoTripsDownloadWorker.Companion.downloadTripsFromMato(dat,getContext().getApplicationContext(),
+                        "BusTO-MatoTripDownload");
             });
         }
     }
@@ -484,11 +493,16 @@ public class MapFragment extends ScreenBaseFragment {
 
                 @SuppressLint("MissingPermission")
                 Location userLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
                 if (userLocation != null) {
-                    mapController.setZoom(POSITION_FOUND_ZOOM);
-                    startPoint = new GeoPoint(userLocation);
-                    found = true;
-                    setLocationFollowing(true);
+                    double distan = utils.measuredistanceBetween(userLocation.getLatitude(), userLocation.getLongitude(),
+                            DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON);
+                    if (distan < 100_000.0) {
+                        mapController.setZoom(POSITION_FOUND_ZOOM);
+                        startPoint = new GeoPoint(userLocation);
+                        found = true;
+                        setLocationFollowing(true);
+                    }
                 }
             }
             if(!found){
@@ -528,14 +542,16 @@ public class MapFragment extends ScreenBaseFragment {
         }
 
 
-        if(mapViewModel!=null){
+        if(positionsViewModel !=null){
             //should always be the case
-            mapViewModel.getUpdatesWithTripAndPatterns().observe(this, data->{
+            positionsViewModel.getUpdatesWithTripAndPatterns().observe(getViewLifecycleOwner(), data->{
                 Log.d(DEBUG_TAG, "Have "+data.size()+" trip updates, has Map start finished: "+hasMapStartFinished);
                 if (hasMapStartFinished) updateBusPositionsInMap(data);
-                if(!isDetached())
-                    mapViewModel.requestDelayedUpdates(4000);
+                //if(!isDetached())
+                //    gtfsPosViewModel.requestDelayedUpdates(4000);
             });
+        } else {
+            Log.e(DEBUG_TAG, "PositionsViewModel is null");
         }
         map.getOverlays().add(this.busPositionsOverlay);
         //set map as started
@@ -560,21 +576,16 @@ public class MapFragment extends ScreenBaseFragment {
                 new AsyncStopFetcher.BoundingBoxLimit(lngFrom,lngTo,latFrom, latTo));
     }
 
-    private void updateBusMarker(final Marker marker,final GtfsPositionUpdate posUpdate,@Nullable boolean justCreated){
+    private void updateBusMarker(final Marker marker, final LivePositionUpdate posUpdate, @Nullable boolean justCreated){
         GeoPoint position;
         final String updateID = posUpdate.getTripID();
         if(!justCreated){
             position = marker.getPosition();
             if(posUpdate.getLatitude()!=position.getLatitude() || posUpdate.getLongitude()!=position.getLongitude()){
                 GeoPoint newpos = new GeoPoint(posUpdate.getLatitude(), posUpdate.getLongitude());
-                ObjectAnimator valueAnimator = MarkerAnimation.makeMarkerAnimator(map, marker, newpos, new GeoPointInterpolator.LinearFixed(), 2500);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                    valueAnimator.setAutoCancel(true);
-                } else if(tripMarkersAnimators.containsKey(updateID)) {
-                    ObjectAnimator otherAnim = tripMarkersAnimators.get(updateID);
-                    assert otherAnim != null;
-                    otherAnim.cancel();
-                }
+                ObjectAnimator valueAnimator = MarkerUtils.makeMarkerAnimator(
+                        map, marker, newpos, MarkerUtils.LINEAR_ANIMATION, 1200);
+                valueAnimator.setAutoCancel(true);
                 tripMarkersAnimators.put(updateID,valueAnimator);
                 valueAnimator.start();
             }
@@ -585,17 +596,18 @@ public class MapFragment extends ScreenBaseFragment {
             marker.setPosition(position);
         }
 
-        marker.setRotation(posUpdate.getBearing()*(-1.f));
+        if(posUpdate.getBearing()!=null)
+            marker.setRotation(posUpdate.getBearing()*(-1.f));
     }
 
-    private void updateBusPositionsInMap(HashMap<String, Pair<GtfsPositionUpdate, TripAndPatternWithStops>> tripsPatterns){
+    private void updateBusPositionsInMap(HashMap<String, Pair<LivePositionUpdate, TripAndPatternWithStops>> tripsPatterns){
         Log.d(DEBUG_TAG, "Updating positions of the buses");
         //if(busPositionsOverlay == null) busPositionsOverlay = new FolderOverlay();
         final ArrayList<String> noPatternsTrips = new ArrayList<>();
         for(String tripID: tripsPatterns.keySet()) {
-            final Pair<GtfsPositionUpdate, TripAndPatternWithStops> pair = tripsPatterns.get(tripID);
+            final Pair<LivePositionUpdate, TripAndPatternWithStops> pair = tripsPatterns.get(tripID);
             if (pair == null) continue;
-            final GtfsPositionUpdate update = pair.getFirst();
+            final LivePositionUpdate update = pair.getFirst();
             final TripAndPatternWithStops tripWithPatternStops = pair.getSecond();
 
 
@@ -624,8 +636,8 @@ public class MapFragment extends ScreenBaseFragment {
                 R.dimen.map_icons_size, R.dimen.map_icons_size);
 
                  */
-                String route = GtfsUtils.getLineNameFromGtfsID(update.getRouteID());
-                final Drawable mdraw = ResourcesCompat.getDrawable(getResources(),R.drawable.point_heading_icon, null);
+                //String route = GtfsUtils.getLineNameFromGtfsID(update.getRouteID());
+                final Drawable mdraw = ResourcesCompat.getDrawable(getResources(),R.drawable.map_bus_position_icon, null);
                 /*final Drawable mdraw = DrawableUtils.Companion.writeOnDrawable(getResources(),
                         R.drawable.point_heading_icon,
                         R.color.white,
@@ -641,12 +653,11 @@ public class MapFragment extends ScreenBaseFragment {
                 MatoPattern markerPattern = null;
                 if(tripWithPatternStops != null && tripWithPatternStops.getPattern()!=null)
                     markerPattern = tripWithPatternStops.getPattern();
-                marker.setInfoWindow(new BusInfoWindow(map, update, markerPattern , () -> {
-
-                }));
+                marker.setInfoWindow(new BusInfoWindow(map, update, markerPattern , false, (pattern) -> {    }));
+                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
 
                 updateBusMarker(marker, update, true);
-                // the overlay is null when it's not attached yet?
+                // the overlay is null when it's not attached yet?5
                 // cannot recreate it because it becomes null very soon
                 // if(busPositionsOverlay == null) busPositionsOverlay = new FolderOverlay();
                 //save the marker
@@ -717,7 +728,7 @@ public class MapFragment extends ScreenBaseFragment {
 
         // set custom info window as info window
         CustomInfoWindow popup = new CustomInfoWindow(map, stopID, stopName, routesStopping,
-                responder);
+                responder, R.layout.linedetail_stop_infowindow, R.color.red_darker);
         marker.setInfoWindow(popup);
 
         // make the marker clickable
@@ -741,7 +752,7 @@ public class MapFragment extends ScreenBaseFragment {
 
         // set its position
         marker.setPosition(geoPoint);
-        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
         // add to it an icon
         //marker.setIcon(getResources().getDrawable(R.drawable.bus_marker));
 

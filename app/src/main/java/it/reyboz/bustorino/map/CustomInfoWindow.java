@@ -23,11 +23,13 @@ import android.os.Build;
 import android.view.MotionEvent;
 import android.view.View;
 
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import androidx.core.content.ContextCompat;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.infowindow.BasicInfoWindow;
 
@@ -37,6 +39,8 @@ public class CustomInfoWindow extends BasicInfoWindow {
     //TODO: Make the action on the Click customizable
     private final TouchResponder touchResponder;
     private final String stopID, name, routesStopping;
+
+    private final int colorResID;
     //final DisplayMetrics metrics;
 
     @Override
@@ -45,6 +49,7 @@ public class CustomInfoWindow extends BasicInfoWindow {
         TextView descr_textView = mView.findViewById(R.id.bubble_description);
         CharSequence text = descr_textView.getText();
         TextView titleTV = mView.findViewById(R.id.bubble_title);
+        titleTV.setTextColor(ContextCompat.getColor(mView.getContext(),colorResID));
         //Log.d("BusTO-MapInfoWindow", "Descrip: "+text+", title "+(titleTV==null? "null": titleTV.getText()));
 
         if (text==null || !text.toString().isEmpty()){
@@ -61,16 +66,34 @@ public class CustomInfoWindow extends BasicInfoWindow {
             subDescriptTextView.setVisibility(View.VISIBLE);
         }
 
+        //check if there is a close image
+        ImageView image = mView.findViewById(R.id.closeIcon);
+        if (image != null) {
+            image.setOnClickListener( view -> close());
+        }
+
+    }
+    public CustomInfoWindow(MapView mapView, String stopID, String name, String routesStopping,
+                            TouchResponder responder){
+
+        this(mapView, stopID, name, routesStopping, responder,R.layout.map_popup, R.color.red_darker);
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    public CustomInfoWindow(MapView mapView, String stopID, String name, String routesStopping, TouchResponder responder) {
+    public CustomInfoWindow(MapView mapView,
+                            String stopID,
+                            String name,
+                            String routesStopping,
+                            TouchResponder responder,
+                            int layoutId,
+                            int colorResId) {
         // get the personalized layout
-        super(R.layout.map_popup, mapView);
+        super(layoutId, mapView);
         touchResponder =responder;
         this.stopID = stopID;
         this.name = name;
         this.routesStopping = routesStopping;
+        colorResID = colorResId;
 
         //metrics = Resources.getSystem().getDisplayMetrics();
 
@@ -82,6 +105,8 @@ public class CustomInfoWindow extends BasicInfoWindow {
             }
             return true;
         });
+
+
     }
 
     public interface TouchResponder{

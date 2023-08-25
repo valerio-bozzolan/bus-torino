@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+                                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                                   android:layout_width="wrap_content"
+                                   android:layout_height="wrap_content"
+                                   app:cardCornerRadius="5dp"
+                                   android:layout_margin="4dp"
+                                   >
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+    >
+    <androidx.cardview.widget.CardView
+                                       android:layout_width="wrap_content"
+                                       android:layout_height="wrap_content"
+                                       android:id="@+id/innerCardView"
+                                       android:background="@color/orange_500"
+                                       app:cardCornerRadius="54sp"
+                                       app:cardElevation="0sp"
+                                        android:layout_gravity="center_vertical"
+                                       android:layout_margin="5dp"
+                                       android:padding="3dp"
+                                       app:cardBackgroundColor="@color/orange_500"
+
+
+    >
+        <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:minHeight="54sp"
+                android:minWidth="54sp"
+        >
+            <TextView
+                    android:id="@+id/lineShortNameTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textColor="@color/grey_100"
+                    android:textSize="21sp"
+                    android:text="231"
+                    android:paddingStart="4sp"
+                    android:paddingLeft="4sp"
+                    android:paddingRight="4sp"
+                    android:paddingEnd="4sp"
+            >
+            </TextView>
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+        <TextView android:layout_width="0dp" android:layout_height="match_parent"
+                  android:id="@+id/lineDirectionTextView"
+                  android:layout_weight="8"
+                  android:textSize="20sp"
+                  android:text="@string/route_towards_destination"
+                  android:layout_margin="5dp"
+                  android:gravity="center_vertical"
+                  android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                  android:layout_marginEnd="10dp"
+        />
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -20,6 +20,11 @@
     <string name="passages">Fermata: %1$s</string>
     <string name="line">Linea</string>
     <string name="lines">Linee</string>
+    <string name="urban_lines">Linee urbane</string>
+    <string name="extraurban_lines">Linee extraurbane</string>
+    <string name="turist_lines">Linee turistiche</string>
+    <string name="direction_duep">Direzione:</string>
+
 
     <string name="line_fill">Linea: %1$s</string>
     <string name="lines_fill">Linee: %1$s</string>

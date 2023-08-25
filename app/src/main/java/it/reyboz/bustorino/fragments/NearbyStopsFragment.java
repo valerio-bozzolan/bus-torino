@@ -59,6 +59,7 @@ import it.reyboz.bustorino.middleware.AppLocationManager;
 import it.reyboz.bustorino.data.AppDataProvider;
 import it.reyboz.bustorino.data.NextGenDB.Contract.*;
 import it.reyboz.bustorino.adapters.SquareStopAdapter;
+import it.reyboz.bustorino.middleware.AutoFitGridLayoutManager;
 import it.reyboz.bustorino.util.LocationCriteria;
 import it.reyboz.bustorino.util.StopSorterByDistance;
 
@@ -630,45 +631,6 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         @Override
         public void onLocationDisabled() {
 
-        }
-    }
-
-    /**
-     * Simple trick to get an automatic number of columns (from https://www.journaldev.com/13792/android-gridlayoutmanager-example)
-     *
-     */
-     class AutoFitGridLayoutManager extends GridLayoutManager {
-
-        private int columnWidth;
-        private boolean columnWidthChanged = true;
-
-        public AutoFitGridLayoutManager(Context context, int columnWidth) {
-            super(context, 1);
-
-            setColumnWidth(columnWidth);
-        }
-
-        public void setColumnWidth(int newColumnWidth) {
-            if (newColumnWidth > 0 && newColumnWidth != columnWidth) {
-                columnWidth = newColumnWidth;
-                columnWidthChanged = true;
-            }
-        }
-
-        @Override
-        public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-            if (columnWidthChanged && columnWidth > 0) {
-                int totalSpace;
-                if (getOrientation() == VERTICAL) {
-                    totalSpace = getWidth() - getPaddingRight() - getPaddingLeft();
-                } else {
-                    totalSpace = getHeight() - getPaddingTop() - getPaddingBottom();
-                }
-                int spanCount = Math.max(1, totalSpace / columnWidth);
-                setSpanCount(spanCount);
-                columnWidthChanged = false;
-            }
-            super.onLayoutChildren(recycler, state);
         }
     }
 }

@@ -148,7 +148,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                 } else {
                     //Toast.makeText(MyActivity.this, "Scanned: " + result.getContents(), Toast.LENGTH_LONG).show();
                     if (getContext()!=null)
-                    Toast.makeText(getContext().getApplicationContext(),
+                        Toast.makeText(getContext().getApplicationContext(),
                             R.string.no_qrcode, Toast.LENGTH_SHORT).show();
 
 
@@ -727,6 +727,12 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         // Shows hints
 
 
+    }
+
+    @Override
+    public void showLineOnMap(String routeGtfsId) {
+        //pass to activity
+        mListener.showLineOnMap(routeGtfsId);
     }
 
     @Override

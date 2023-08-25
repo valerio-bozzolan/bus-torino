@@ -53,7 +53,7 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
         final View view = LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false);
         //sort the stops by distance
         if(stops != null && stops.size() > 0)
-        Collections.sort(stops,new StopSorterByDistance(userPosition));
+            Collections.sort(stops,new StopSorterByDistance(userPosition));
         return new SquareViewHolder(view);
     }
 

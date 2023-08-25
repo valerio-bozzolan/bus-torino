@@ -25,8 +25,7 @@ public class GtfsDBMigrationsTest {
 
     public GtfsDBMigrationsTest() {
         helper = new MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),
-                GtfsDatabase.class.getCanonicalName(),
-                new FrameworkSQLiteOpenHelperFactory());
+                GtfsDatabase.class.getCanonicalName());
     }
 
     @Test

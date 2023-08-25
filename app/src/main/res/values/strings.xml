@@ -32,6 +32,11 @@
     <string name="results">Choose the bus stop…</string>
     <string name="line">Line</string>
     <string name="lines">Lines</string>
+    <string name="urban_lines">Urban lines</string>
+    <string name="extraurban_lines">Extra urban lines</string>
+    <string name="turist_lines">Tourist lines</string>
+
+    <string name="direction_duep">Heading to:</string>
     <string name="lines_fill">Lines: %1$s</string>
     <string name="line_fill">Line: %1$s</string>
     <string name="no_passages">No timetable found</string>

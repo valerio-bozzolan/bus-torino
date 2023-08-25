@@ -37,4 +37,9 @@ public interface CommonFragmentListener {
      */
     void showMapCenteredOnStop(Stop stop);
 
+    /**
+     * We want to show the line in detail for route
+     * @param routeGtfsId the route gtfsID (eg, "gtt:10U")
+     */
+    void showLineOnMap(String routeGtfsId);
 }
