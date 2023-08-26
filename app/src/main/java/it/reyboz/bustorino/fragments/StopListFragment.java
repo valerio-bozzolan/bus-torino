@@ -17,9 +17,11 @@
  */
 package it.reyboz.bustorino.fragments;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import androidx.annotation.NonNull;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
@@ -29,6 +31,7 @@ import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.AppDataProvider;
 import it.reyboz.bustorino.data.NextGenDB.Contract.StopsTable;
 import it.reyboz.bustorino.adapters.StopAdapter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -68,6 +71,7 @@ public class StopListFragment extends ResultListFragment implements LoaderManage
     public void onResume() {
         super.onResume();
         LoaderManager loaderManager  = getLoaderManager();
+        mListener.readyGUIfor(FragmentKind.STOPS);
         if(stopList!=null) {
             mListAdapter = new StopAdapter(getContext(),stopList);
             resetListAdapter(mListAdapter);
@@ -142,4 +146,5 @@ public class StopListFragment extends ResultListFragment implements LoaderManage
     public void onLoaderReset(Loader<Cursor> loader) {
         loader.abandon();
     }
+
 }

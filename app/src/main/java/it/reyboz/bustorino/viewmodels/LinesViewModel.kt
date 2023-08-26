@@ -1,8 +1,9 @@
-package it.reyboz.bustorino.fragments
+package it.reyboz.bustorino.viewmodels
 
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
+import it.reyboz.bustorino.backend.Result
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.data.GtfsRepository
 import it.reyboz.bustorino.data.NextGenDB

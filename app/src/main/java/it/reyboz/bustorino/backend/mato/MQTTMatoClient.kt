@@ -125,6 +125,12 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
             }
             removed = done || removed
         }
+        // remove lines that have no responders
+        for(line in respondersMap.keys){
+            if(respondersMap[line]?.isEmpty() == true){
+                respondersMap.remove(line)
+            }
+        }
         Log.d(DEBUG_TAG, "Removed: $removed, respondersMap: $respondersMap")
     }
     fun getPositions(): PositionsMap{

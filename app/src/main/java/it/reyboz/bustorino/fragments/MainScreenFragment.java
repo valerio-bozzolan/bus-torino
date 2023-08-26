@@ -671,7 +671,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         if (!(existingFrag instanceof NearbyStopsFragment)){
             Log.d(DEBUG_TAG, "actually showing Nearby Stops Fragment");
             //there is no fragment showing
-            final NearbyStopsFragment fragment = NearbyStopsFragment.newInstance(NearbyStopsFragment.TYPE_STOPS);
+            final NearbyStopsFragment fragment = NearbyStopsFragment.newInstance(NearbyStopsFragment.FragType.STOPS);
 
             FragmentTransaction ft = fragMan.beginTransaction();
 

@@ -25,7 +25,6 @@ import it.reyboz.bustorino.backend.mato.MQTTMatoClient
 import it.reyboz.bustorino.data.GtfsRepository
 import it.reyboz.bustorino.data.MatoPatternsDownloadWorker
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
-import it.reyboz.bustorino.fragments.GTFSPositionsViewModel
 import kotlinx.coroutines.launch
 
 

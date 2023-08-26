@@ -67,13 +67,29 @@ import java.util.*;
 
 public class NearbyStopsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    public enum FragType{
+        STOPS(1), ARRIVALS(2);
+        private final int num;
+        FragType(int num){
+            this.num = num;
+        }
+        public static FragType fromNum(int i){
+            switch (i){
+                case 1: return STOPS;
+                case 2: return ARRIVALS;
+                default:
+                    throw new IllegalArgumentException("type not recognized");
+            }
+        }
+    }
+
     private FragmentListenerMain mListener;
     private FragmentLocationListener fragmentLocationListener;
 
     private final static String DEBUG_TAG = "NearbyStopsFragment";
     private final static String FRAGMENT_TYPE_KEY = "FragmentType";
-    public final static int TYPE_STOPS = 19, TYPE_ARRIVALS = 20;
-    private int fragment_type;
+    //public final static int TYPE_STOPS = 19, TYPE_ARRIVALS = 20;
+    private FragType fragment_type = FragType.STOPS;
 
     public final static String FRAGMENT_TAG="NearbyStopsFrag";
 
@@ -118,12 +134,12 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
      * this fragment using the provided parameters.
      * @return A new instance of fragment NearbyStopsFragment.
      */
-    public static NearbyStopsFragment newInstance(int fragmentType) {
-        if(fragmentType != TYPE_STOPS && fragmentType != TYPE_ARRIVALS )
-            throw new IllegalArgumentException("WRONG KIND OF FRAGMENT USED");
+    public static NearbyStopsFragment newInstance(FragType type) {
+        //if(fragmentType != TYPE_STOPS && fragmentType != TYPE_ARRIVALS )
+        //    throw new IllegalArgumentException("WRONG KIND OF FRAGMENT USED");
         NearbyStopsFragment fragment = new NearbyStopsFragment();
         final Bundle args = new Bundle(1);
-        args.putInt(FRAGMENT_TYPE_KEY,fragmentType);
+        args.putInt(FRAGMENT_TYPE_KEY,type.num);
         fragment.setArguments(args);
         return fragment;
     }
@@ -134,7 +150,7 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            setFragmentType(getArguments().getInt(FRAGMENT_TYPE_KEY));
+            setFragmentType(FragType.fromNum(getArguments().getInt(FRAGMENT_TYPE_KEY)));
         }
         locManager = AppLocationManager.getInstance(getContext());
         fragmentLocationListener = new FragmentLocationListener(this);
@@ -189,16 +205,13 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
      * Use this method to set the fragment type
      * @param type the type, TYPE_ARRIVALS or TYPE_STOPS
      */
-    private void setFragmentType(int type){
-        if(type!=TYPE_ARRIVALS && type !=TYPE_STOPS)
-            throw new IllegalArgumentException("type not recognized");
+    private void setFragmentType(FragType type){
         this.fragment_type = type;
         switch(type){
-            case TYPE_ARRIVALS:
-
+            case ARRIVALS:
                 TIME_INTERVAL_REQUESTS = 5*1000;
                 break;
-            case TYPE_STOPS:
+            case STOPS:
                 TIME_INTERVAL_REQUESTS = 1000;
 
         }
@@ -238,13 +251,13 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             //try another location provider
         }
         switch(fragment_type){
-            case TYPE_STOPS:
+            case STOPS:
                 if(dataAdapter!=null){
                     gridRecyclerView.setAdapter(dataAdapter);
                     circlingProgressBar.setVisibility(View.GONE);
                 }
                 break;
-            case TYPE_ARRIVALS:
+            case ARRIVALS:
                 if(arrivalsStopAdapter!=null){
                     gridRecyclerView.setAdapter(arrivalsStopAdapter);
                     circlingProgressBar.setVisibility(View.GONE);
@@ -357,10 +370,10 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
         //quick trial to hopefully always get the stops in the correct order
         Collections.sort(currentNearbyStops,new StopSorterByDistance(lastReceivedLocation));
         switch (fragment_type){
-            case TYPE_STOPS:
+            case STOPS:
                 showStopsInRecycler(currentNearbyStops);
                 break;
-            case TYPE_ARRIVALS:
+            case ARRIVALS:
                 arrivalsManager = new ArrivalsManager(currentNearbyStops);
                 flatProgressBar.setVisibility(View.VISIBLE);
                 flatProgressBar.setProgress(0);
@@ -388,8 +401,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
      * Call when you need to switch the type of fragment
      */
     private void switchFragmentType(){
-        if(fragment_type==TYPE_ARRIVALS){
-            setFragmentType(TYPE_STOPS);
+        if(fragment_type==FragType.ARRIVALS){
+            setFragmentType(FragType.STOPS);
             switchButton.setText(getString(R.string.show_arrivals));
             titleTextView.setText(getString(R.string.nearby_stops_message));
             if(arrivalsManager!=null)
@@ -397,8 +410,8 @@ public class NearbyStopsFragment extends Fragment implements LoaderManager.Loade
             if(dataAdapter!=null)
                 gridRecyclerView.setAdapter(dataAdapter);
 
-        } else if (fragment_type==TYPE_STOPS){
-            setFragmentType(TYPE_ARRIVALS);
+        } else if (fragment_type==FragType.STOPS){
+            setFragmentType(FragType.ARRIVALS);
             titleTextView.setText(getString(R.string.nearby_arrivals_message));
             switchButton.setText(getString(R.string.show_stops));
             if(arrivalsStopAdapter!=null)

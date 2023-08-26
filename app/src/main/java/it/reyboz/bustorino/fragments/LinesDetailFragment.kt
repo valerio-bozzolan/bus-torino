@@ -53,6 +53,7 @@ import it.reyboz.bustorino.map.BusPositionUtils
 import it.reyboz.bustorino.map.CustomInfoWindow.TouchResponder
 import it.reyboz.bustorino.map.MapViewModel
 import it.reyboz.bustorino.map.MarkerUtils
+import it.reyboz.bustorino.viewmodels.LinesViewModel
 import it.reyboz.bustorino.viewmodels.MQTTPositionsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -333,7 +334,6 @@ class LinesDetailFragment() : ScreenBaseFragment() {
             fragmentListener = context
         } else throw RuntimeException("$context must implement CommonFragmentListener")
 
-        fragmentListener.readyGUIfor(FragmentKind.LINES)
     }
 
 
@@ -662,6 +662,9 @@ class LinesDetailFragment() : ScreenBaseFragment() {
 
             //controller.setZoom()
         }
+        //initialize GUI here
+        fragmentListener.readyGUIfor(FragmentKind.LINES)
+
     }
 
     override fun onPause() {

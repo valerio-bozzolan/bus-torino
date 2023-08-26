@@ -194,7 +194,6 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
             fragmentListener = context
         } else throw RuntimeException("$context must implement CommonFragmentListener")
 
-        fragmentListener.readyGUIfor(FragmentKind.LINES)
     }
 
     override fun getBaseViewForSnackBar(): View? {
@@ -237,6 +236,8 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
                 arrows[AG_EXTRAURB]?.rotation=0f
             }
         }
+        fragmentListener.readyGUIfor(FragmentKind.LINES)
+
     }
 
 

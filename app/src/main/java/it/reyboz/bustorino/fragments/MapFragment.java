@@ -51,6 +51,7 @@ import it.reyboz.bustorino.data.gtfs.MatoPattern;
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops;
 import it.reyboz.bustorino.map.*;
 import it.reyboz.bustorino.viewmodels.MQTTPositionsViewModel;
+import it.reyboz.bustorino.viewmodels.StopsMapViewModel;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -104,8 +105,6 @@ public class MapFragment extends ScreenBaseFragment {
     protected FragmentListenerMain listenerMain;
 
     private HashSet<String> shownStops = null;
-    //the asynctask used to get the stops from the database
-    private AsyncStopFetcher stopFetcher = null;
 
 
     private MapView map = null;
@@ -117,6 +116,9 @@ public class MapFragment extends ScreenBaseFragment {
     protected ImageButton btFollowMe;
     private boolean hasMapStartFinished = false;
     private boolean followingLocation = false;
+
+    //the ViewModel from which we get the stop to display in the map
+    private StopsMapViewModel stopsViewModel;
 
     //private GTFSPositionsViewModel gtfsPosViewModel; //= new ViewModelProvider(this).get(MapViewModel.class);
     private MQTTPositionsViewModel positionsViewModel;
@@ -282,7 +284,9 @@ public class MapFragment extends ScreenBaseFragment {
 
         //gtfsPosViewModel = new ViewModelProvider(this).get(GTFSPositionsViewModel.class);
         //viewModel
-        positionsViewModel = new ViewModelProvider(this).get(MQTTPositionsViewModel.class);
+        ViewModelProvider provider = new ViewModelProvider(this);
+        positionsViewModel = provider.get(MQTTPositionsViewModel.class);
+        stopsViewModel = provider.get(StopsMapViewModel.class);
         if (context instanceof FragmentListenerMain) {
             listenerMain = (FragmentListenerMain) context;
         } else {
@@ -313,8 +317,6 @@ public class MapFragment extends ScreenBaseFragment {
         tripMarkersAnimators.clear();
         positionsViewModel.stopPositionsListening();
 
-        if (stopFetcher!= null)
-            stopFetcher.cancel(true);
     }
 
     /**
@@ -553,6 +555,12 @@ public class MapFragment extends ScreenBaseFragment {
         } else {
             Log.e(DEBUG_TAG, "PositionsViewModel is null");
         }
+        if(stopsViewModel !=null){
+
+            stopsViewModel.getStopsInBoundingBox().observe(getViewLifecycleOwner(),
+                    this::showStopsMarkers
+                    );
+        } else Log.d(DEBUG_TAG, "Cannot observe new stops in map, stopsViewModel is null");
         map.getOverlays().add(this.busPositionsOverlay);
         //set map as started
         hasMapStartFinished = true;
@@ -565,7 +573,11 @@ public class MapFragment extends ScreenBaseFragment {
     private void requestStopsToShow(){
         // get the top, bottom, left and right screen's coordinate
         BoundingBox bb = map.getBoundingBox();
-        double latFrom = bb.getLatSouth();
+        Log.d(DEBUG_TAG, "Requesting stops in bounding box, stopViewModel is null "+(stopsViewModel==null));
+        if(stopsViewModel!=null){
+            stopsViewModel.requestStopsInBoundingBox(bb);
+        }
+        /*double latFrom = bb.getLatSouth();
         double latTo = bb.getLatNorth();
         double lngFrom = bb.getLonWest();
         double lngTo = bb.getLonEast();
@@ -574,6 +586,8 @@ public class MapFragment extends ScreenBaseFragment {
         stopFetcher = new AsyncStopFetcher(this);
         stopFetcher.execute(
                 new AsyncStopFetcher.BoundingBoxLimit(lngFrom,lngTo,latFrom, latTo));
+
+         */
     }
 
     private void updateBusMarker(final Marker marker, final LivePositionUpdate posUpdate, @Nullable boolean justCreated){
@@ -778,59 +792,4 @@ public class MapFragment extends ScreenBaseFragment {
         return null;
     }
 
-    /**
-     * Simple asyncTask class to load the stops in the background
-     * Holds a weak reference to the fragment to do callbacks
-     */
-    static class AsyncStopFetcher extends AsyncTask<AsyncStopFetcher.BoundingBoxLimit,Void, List<Stop>>{
-
-        final WeakReference<MapFragment> fragmentWeakReference;
-
-        public AsyncStopFetcher(MapFragment fragment) {
-            this.fragmentWeakReference = new WeakReference<>(fragment);
-        }
-
-        @Override
-        protected List<Stop> doInBackground(BoundingBoxLimit... limits) {
-            if(fragmentWeakReference.get()==null || fragmentWeakReference.get().getContext() == null){
-                Log.w(DEBUG_TAG, "AsyncLoad fragmentWeakreference null");
-
-                return null;
-
-            }
-            final BoundingBoxLimit limit = limits[0];
-            //Log.d(DEBUG_TAG, "Async Stop Fetcher started working");
-
-            NextGenDB dbHelper = NextGenDB.getInstance(fragmentWeakReference.get().getContext());
-            ArrayList<Stop> stops = dbHelper.queryAllInsideMapView(limit.latitFrom, limit.latitTo,
-                    limit.longFrom, limit.latitTo);
-            dbHelper.close();
-            return stops;
-        }
-
-        @Override
-        protected void onPostExecute(List<Stop> stops) {
-            super.onPostExecute(stops);
-            //Log.d(DEBUG_TAG, "Async Stop Fetcher has finished working");
-            if(fragmentWeakReference.get()==null) {
-                Log.w(DEBUG_TAG, "AsyncLoad fragmentWeakreference null");
-                return;
-            }
-            if (stops!=null)
-                Log.d(DEBUG_TAG, "AsyncLoad number of stops: "+stops.size());
-            fragmentWeakReference.get().showStopsMarkers(stops);
-        }
-
-        private static class BoundingBoxLimit{
-            final double longFrom, longTo, latitFrom, latitTo;
-
-            public BoundingBoxLimit(double longFrom, double longTo, double latitFrom, double latitTo) {
-                this.longFrom = longFrom;
-                this.longTo = longTo;
-                this.latitFrom = latitFrom;
-                this.latitTo = latitTo;
-            }
-        }
-
-    }
 }
