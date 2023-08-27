@@ -39,7 +39,7 @@
                       app:layout_constraintBottom_toTopOf="@id/urbanLinesRecyclerView"
                       android:layout_marginLeft="6dp"
                       app:layout_constraintVertical_bias="0.0"
-                      app:layout_constraintVertical_chainStyle="spread"/>
+                      app:layout_constraintVertical_chainStyle="packed"/>
             <androidx.recyclerview.widget.RecyclerView
                     android:layout_width="match_parent"
                     android:layout_height="0dp"

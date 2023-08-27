@@ -119,29 +119,32 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
 
         //onClicks
         urbanLinesTitle.setOnClickListener {
-            if(openRecyclerView!=""&& openRecyclerView!= AG_URBAN){
-                openCloseRecyclerView(openRecyclerView)
-                openCloseRecyclerView(AG_URBAN)
-            }
+            openLinesAndCloseOthersIfNeeded(AG_URBAN)
         }
         extrurbanLinesTitle.setOnClickListener {
-            if(openRecyclerView!=""&& openRecyclerView!= AG_EXTRAURB){
-                openCloseRecyclerView(openRecyclerView)
-                openCloseRecyclerView(AG_EXTRAURB)
-
-            }
+            openLinesAndCloseOthersIfNeeded(AG_EXTRAURB)
         }
         touristLinesTitle.setOnClickListener {
-            if(openRecyclerView!="" && openRecyclerView!= AG_TOUR) {
-                openCloseRecyclerView(openRecyclerView)
-                openCloseRecyclerView(AG_TOUR)
-            }
+            openLinesAndCloseOthersIfNeeded(AG_TOUR)
+        }
+        //arrows onClicks
+        for(k in arrows.keys){
+            //k is either AG_TOUR, AG_EXTRAURBAN, AG_URBAN
+            arrows[k]?.setOnClickListener { openLinesAndCloseOthersIfNeeded(k) }
         }
 
         return rootView
     }
 
-    private fun openCloseRecyclerView(agency: String){
+    private fun openLinesAndCloseOthersIfNeeded(agency: String){
+        if(openRecyclerView!="" && openRecyclerView!= agency) {
+            switchRecyclerViewStatus(openRecyclerView)
+
+        }
+        switchRecyclerViewStatus(agency)
+    }
+
+    private fun switchRecyclerViewStatus(agency: String){
         val recyclerView = when(agency){
             AG_TOUR -> touristRecyclerView
             AG_EXTRAURB -> extraurbanRecyclerView
