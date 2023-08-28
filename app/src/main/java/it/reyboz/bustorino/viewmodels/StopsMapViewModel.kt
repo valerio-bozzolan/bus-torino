@@ -21,26 +21,16 @@ class StopsMapViewModel(application: Application): AndroidViewModel(application)
 
     private val executor = Executors.newFixedThreadPool(2)
     private val oldRepo = OldDataRepository(executor, NextGenDB.getInstance(application))
-    /*
-    private val boundingBoxLiveData = MutableLiveData<BoundingBox>()
 
-    fun setStopBoundingBox(bb: BoundingBox){
-        boundingBoxLiveData.value = bb
-    }
-
-     */
 
     val stopsInBoundingBox = MutableLiveData<ArrayList<Stop>>()
 
     private val callback =
-        OldDataRepository.Callback<ArrayList<Stop>> { result ->
-            result.let {
-                if(it.isSuccess){
-                    stopsInBoundingBox.postValue(it.result)
+        OldDataRepository.Callback<ArrayList<Stop>> { res ->
+                if(res.isSuccess){
+                    stopsInBoundingBox.postValue(res.result)
                     Log.d(DEBUG_TAG, "Setting value of stops in bounding box")
                 }
-
-            }
         }
 
     fun requestStopsInBoundingBox(bb: BoundingBox) {

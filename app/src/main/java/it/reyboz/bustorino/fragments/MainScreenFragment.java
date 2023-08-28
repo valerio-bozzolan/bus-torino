@@ -77,8 +77,6 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
 
     public final static String FRAGMENT_TAG = "MainScreenFragment";
 
-    /// UI ELEMENTS //
-    private ImageButton addToFavorites;
     private FragmentHelper fragmentHelper;
     private SwipeRefreshLayout swipeRefreshLayout;
     private EditText busStopSearchByIDEditText;
@@ -277,7 +275,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_main_screen, container, false);
-        addToFavorites = root.findViewById(R.id.addToFavorites);
+        /// UI ELEMENTS //
         busStopSearchByIDEditText = root.findViewById(R.id.busStopSearchByIDEditText);
         busStopSearchByNameEditText = root.findViewById(R.id.busStopSearchByNameEditText);
         progressBar = root.findViewById(R.id.progressBar);
@@ -336,7 +334,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         cr.setCostAllowed(true);
         cr.setPowerRequirement(Criteria.NO_REQUIREMENT);
 
-        locationManager = AppLocationManager.getInstance(getContext());
+        locationManager = AppLocationManager.getInstance(requireContext());
 
         Log.d(DEBUG_TAG, "OnCreateView, savedInstanceState null: "+(savedInstanceState==null));
 

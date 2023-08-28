@@ -18,12 +18,16 @@
 package it.reyboz.bustorino.map;
 
 
+import android.content.Context;
+import android.util.Log;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.IMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 public class LocationOverlay extends MyLocationNewOverlay {
 
+    private final static String DEBUG_TAG = "BusTOLocationOverlay";
     final OverlayCallbacks callbacks;
 
     public LocationOverlay(MapView mapView, OverlayCallbacks callbacks) {
@@ -47,6 +51,25 @@ public class LocationOverlay extends MyLocationNewOverlay {
 
         super.disableFollowLocation();
         callbacks.onDisableFollowMyLocation();
+    }
+
+    public static LocationOverlay createLocationOverlay(boolean enableLocation, MapView map, Context context, OverlayCallbacks locationCallbacks){
+        if(context== null) {
+            Log.d(DEBUG_TAG, "Cannot start location overlay, context is null");
+            return null;
+        }
+        // Location Overlay
+        // from OpenBikeSharing (THANK GOD)
+        Log.d(DEBUG_TAG, "Starting position overlay");
+        GpsMyLocationProvider imlp = new GpsMyLocationProvider(context.getApplicationContext());
+        imlp.setLocationUpdateMinDistance(5);
+        imlp.setLocationUpdateMinTime(2000);
+
+        final LocationOverlay overlay = new LocationOverlay(imlp,map, locationCallbacks);
+        if (enableLocation) overlay.enableMyLocation();
+        //overlay.setOptionsMenuEnabled(true);
+
+        return overlay;
     }
 
     public interface OverlayCallbacks{

@@ -51,6 +51,7 @@ import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
 import it.reyboz.bustorino.map.BusInfoWindow
 import it.reyboz.bustorino.map.BusPositionUtils
 import it.reyboz.bustorino.map.CustomInfoWindow.TouchResponder
+import it.reyboz.bustorino.map.LocationOverlay
 import it.reyboz.bustorino.map.MapViewModel
 import it.reyboz.bustorino.map.MarkerUtils
 import it.reyboz.bustorino.viewmodels.LinesViewModel
@@ -117,6 +118,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
     //private var stopPosList = ArrayList<GeoPoint>()
 
     private lateinit var stopsOverlay: FolderOverlay
+    private lateinit var locationOverlay: LocationOverlay
     //fragment actions
     private lateinit var fragmentListener: CommonFragmentListener
 
@@ -271,18 +273,23 @@ class LinesDetailFragment() : ScreenBaseFragment() {
         map = rootView.findViewById(R.id.lineMap)
         map.let {
             it.setTileSource(TileSourceFactory.MAPNIK)
-            /*
-                object : OnlineTileSourceBase("USGS Topo", 0, 18, 256, "",
-                     arrayOf("https://basemap.nationalmap.gov/ArcG IS/rest/services/USGSTopo/MapServer/tile/" )) {
-                    override fun getTileURLString(pMapTileIndex: Long) : String{
-                        return baseUrl +
-                        MapTileIndex.getZoom(pMapTileIndex)+"/" + MapTileIndex.getY(pMapTileIndex) +
-                        "/" + MapTileIndex.getX(pMapTileIndex)+ mImageFilenameEnding;
-                    }
+
+            locationOverlay = LocationOverlay.createLocationOverlay(true, it, requireContext(), object : LocationOverlay.OverlayCallbacks{
+                override fun onDisableFollowMyLocation() {
+                    Log.d(DEBUG_TAG, "Follow location disabled")
                 }
-                 */
+
+                override fun onEnableFollowMyLocation() {
+                    Log.d(DEBUG_TAG, "Follow location enabled")
+                }
+
+            })
+            locationOverlay.disableFollowLocation()
+
             stopsOverlay = FolderOverlay()
             busPositionsOverlay =  FolderOverlay()
+
+
             //map.setTilesScaledToDpi(true);
             //map.setTilesScaledToDpi(true);
             it.setFlingEnabled(true)
@@ -318,6 +325,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
             //map.invalidate()
 
             it.overlayManager.add(stopsOverlay)
+            it.overlayManager.add(locationOverlay)
             it.overlayManager.add(busPositionsOverlay)
 
             zoomToCurrentPattern()
