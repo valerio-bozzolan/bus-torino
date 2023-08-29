@@ -65,8 +65,11 @@ import it.reyboz.bustorino.middleware.AsyncStopFavoriteAction;
 import it.reyboz.bustorino.util.LinesNameSorter;
 import it.reyboz.bustorino.util.ViewUtils;
 
+import static it.reyboz.bustorino.fragments.ScreenBaseFragment.setOption;
+
 public class ArrivalsFragment extends ResultBaseFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    private static final String OPTION_SHOW_LEGEND = "show_legend";
     private final static String KEY_STOP_ID = "stopid";
     private final static String KEY_STOP_NAME = "stopname";
     private final static String DEBUG_TAG_ALL = "BUSTOArrivalsFragment";
@@ -91,6 +94,9 @@ public class ArrivalsFragment extends ResultBaseFragment implements LoaderManage
     protected TextView messageTextView;
     protected RecyclerView arrivalsRecyclerView;
     private PalinaAdapter mListAdapter = null;
+
+    private TextView howDoesItWorkTextView;
+    private Button hideHintButton;
 
 
     //private NestedScrollView theScrollView;
@@ -181,6 +187,11 @@ public class ArrivalsFragment extends ResultBaseFragment implements LoaderManage
         View root = inflater.inflate(R.layout.fragment_arrivals, container, false);
         messageTextView = root.findViewById(R.id.messageTextView);
         addToFavorites = root.findViewById(R.id.addToFavorites);
+        // "How does it work part"
+        howDoesItWorkTextView = root.findViewById(R.id.howDoesItWorkTextView);
+        hideHintButton = root.findViewById(R.id.hideHintButton);
+        hideHintButton.setOnClickListener(this::onHideHint);
+
         //theScrollView = root.findViewById(R.id.arrivalsScrollView);
         // recyclerview holding the arrival times
         arrivalsRecyclerView = root.findViewById(R.id.arrivalsRecyclerView);
@@ -288,6 +299,10 @@ public class ArrivalsFragment extends ResultBaseFragment implements LoaderManage
             updateMessage();
         }
 
+        if (ScreenBaseFragment.getOption(requireContext(),OPTION_SHOW_LEGEND, true)) {
+            showHints();
+        }
+
 
     }
 
@@ -333,6 +348,23 @@ public class ArrivalsFragment extends ResultBaseFragment implements LoaderManage
         this.reloadOnResume = reloadOnResume;
     }
 
+    // HINT "HOW TO USE"
+    private void showHints() {
+        howDoesItWorkTextView.setVisibility(View.VISIBLE);
+        hideHintButton.setVisibility(View.VISIBLE);
+        //actionHelpMenuItem.setVisible(false);
+    }
+
+    private void hideHints() {
+        howDoesItWorkTextView.setVisibility(View.GONE);
+        hideHintButton.setVisibility(View.GONE);
+        //actionHelpMenuItem.setVisible(true);
+    }
+
+    public void onHideHint(View v) {
+        hideHints();
+        setOption(requireContext(),OPTION_SHOW_LEGEND, false);
+    }
     /**
      * Give the fetchers
      * @return the list of the fetchers

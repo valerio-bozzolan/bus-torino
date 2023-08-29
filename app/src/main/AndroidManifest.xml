@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          >
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -13,18 +12,18 @@
 
     <queries>
         <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="http" />
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="http"/>
         </intent>
         <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="https" />
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
         </intent>
         <intent>
-            <action android:name="com.google.zxing.client.android.SCAN" />
+            <action android:name="com.google.zxing.client.android.SCAN"/>
         </intent>
         <intent>
-            <action android:name="com.google.zxing.client.android.ENCODE" />
+            <action android:name="com.google.zxing.client.android.ENCODE"/>
         </intent>
     </queries>
 
@@ -36,7 +35,6 @@
             android:networkSecurityConfig="@xml/networks_security_config"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:theme="@style/AppTheme.NoActionBar">
-
         <activity
                 android:name=".ActivityExperiments"
                 android:label="@string/experiments"
@@ -44,10 +42,10 @@
         </activity>
         <activity
                 android:name=".ActivityPrincipal"
+                android:exported="true"
                 android:label="@string/app_name"
                 android:screenOrientation="portrait"
-                android:windowSoftInputMode="adjustResize"
-            android:exported="true">
+                android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -105,7 +103,6 @@
                 android:enabled="true"
                 android:exported="false">
         </provider>
-
         <!-- Don't show the additional frame on samsung phones -->
         <meta-data
                 android:name="com.samsung.android.icon_container.has_icon_container"

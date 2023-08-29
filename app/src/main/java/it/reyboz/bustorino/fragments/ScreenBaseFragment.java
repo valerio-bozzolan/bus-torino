@@ -16,7 +16,7 @@ import static android.content.Context.MODE_PRIVATE;
 
 public abstract class ScreenBaseFragment extends Fragment {
 
-    protected final String PREF_FILE= BuildConfig.APPLICATION_ID+".fragment_prefs";
+    protected final static String PREF_FILE= BuildConfig.APPLICATION_ID+".fragment_prefs";
 
     protected void setOption(String optionName, boolean value) {
         Context mContext = getContext();
@@ -27,8 +27,8 @@ public abstract class ScreenBaseFragment extends Fragment {
 
     protected boolean getOption(String optionName, boolean optDefault) {
         Context mContext = getContext();
-        SharedPreferences preferences = mContext.getSharedPreferences(PREF_FILE, MODE_PRIVATE);
-        return preferences.getBoolean(optionName, optDefault);
+        assert mContext != null;
+        return getOption(mContext, optionName, optDefault);
     }
 
     protected void showToastMessage(int messageID, boolean short_lenght) {
@@ -52,4 +52,14 @@ public abstract class ScreenBaseFragment extends Fragment {
      */
     @Nullable
     public abstract View getBaseViewForSnackBar();
+
+    public static boolean getOption(Context context, String optionName, boolean optDefault){
+        SharedPreferences preferences = context.getSharedPreferences(PREF_FILE, MODE_PRIVATE);
+        return preferences.getBoolean(optionName, optDefault);
+    }
+    public static void setOption(Context context,String optionName, boolean value) {
+        SharedPreferences.Editor editor = context.getSharedPreferences(PREF_FILE, MODE_PRIVATE).edit();
+        editor.putBoolean(optionName, value);
+        editor.apply();
+    }
 }

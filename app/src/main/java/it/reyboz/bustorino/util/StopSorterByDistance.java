@@ -18,19 +18,21 @@
 package it.reyboz.bustorino.util;
 
 import android.location.Location;
+import it.reyboz.bustorino.backend.GPSPoint;
 import it.reyboz.bustorino.backend.Stop;
 
 import java.util.Comparator;
 
 public class StopSorterByDistance implements Comparator<Stop> {
-    private final Location locToCompare;
+    private final double latitude;
+    private final double longitude;
 
-    public StopSorterByDistance(Location locToCompare) {
-        this.locToCompare = locToCompare;
+    public StopSorterByDistance(GPSPoint geoPoint) {
+        latitude = geoPoint.getLatitude();
+        longitude = geoPoint.getLongitude();
     }
-
     @Override
     public int compare(Stop o1, Stop o2) {
-        return (int) (o1.getDistanceFromLocation(locToCompare)-o2.getDistanceFromLocation(locToCompare));
+        return (int) (o1.getDistanceFromLocation(latitude, longitude)-o2.getDistanceFromLocation(latitude, longitude));
     }
 }

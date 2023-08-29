@@ -34,7 +34,7 @@
                 android:id="@+id/routeDescrTextView"
                 app:layout_constraintStart_toStartOf="parent"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:textColor="@color/grey_600"
+                android:textColor="?android:attr/textColorPrimary"
                 android:gravity="center_vertical"
                 android:textSize="18sp"
                 android:layout_marginLeft="10dp"

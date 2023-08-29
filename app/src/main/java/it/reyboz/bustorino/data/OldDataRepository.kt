@@ -20,6 +20,8 @@ package it.reyboz.bustorino.data
 import android.content.Context
 import it.reyboz.bustorino.backend.Result
 import it.reyboz.bustorino.backend.Stop
+import it.reyboz.bustorino.backend.utils
+import java.util.ArrayList
 import java.util.concurrent.Executor
 
 class OldDataRepository(private val executor: Executor, private val nextGenDB: NextGenDB) {
@@ -55,10 +57,23 @@ class OldDataRepository(private val executor: Executor, private val nextGenDB: N
                 latitFrom, latitTo,
                 longitFrom, longitTo
             )
-            if (stops!=null)
-                callback.onComplete(Result.success(stops))
+
+            callback.onComplete(Result.success(stops))
         }
 
+    }
+
+    /**
+     * Request all the stops in position [latitude], [longitude], in the "square" with radius [distanceMeters]
+     * Returns nothing, [callback] will be called if the query succeeds
+     */
+    fun requestStopsWithinDistance(latitude: Double, longitude: Double, distanceMeters: Int, callback: Callback<ArrayList<Stop>>){
+
+        val latDelta = utils.latitudeDelta(distanceMeters.toDouble())
+        val longDelta = utils.longitudeDelta(distanceMeters.toDouble(), latitude)
+
+        requestStopsInArea(latitude-latDelta,
+            latitude+latDelta, longitude-longDelta, longitude+longDelta, callback)
     }
 
 

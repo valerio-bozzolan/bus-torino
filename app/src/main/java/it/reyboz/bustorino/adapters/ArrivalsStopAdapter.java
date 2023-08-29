@@ -42,7 +42,7 @@ import java.util.*;
 public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapter.ViewHolder> implements SharedPreferences.OnSharedPreferenceChangeListener {
     private final static int layoutRes = R.layout.arrivals_nearby_card;
     //private List<Stop> stops;
-    private @Nullable Location userPosition;
+    private @NonNull GPSPoint userPosition;
     private FragmentListenerMain listener;
     private List< Pair<Stop, Route> > routesPairList;
     private final Context context;
@@ -52,7 +52,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
     private NameCapitalize capit;
 
 
-    public ArrivalsStopAdapter(@Nullable List< Pair<Stop, Route> > routesPairList, FragmentListenerMain fragmentListener, Context con, @Nullable Location pos) {
+    public ArrivalsStopAdapter(@Nullable List< Pair<Stop, Route> > routesPairList, FragmentListenerMain fragmentListener, Context con, @NonNull GPSPoint pos) {
         listener  = fragmentListener;
         userPosition = pos;
         this.routesPairList = routesPairList;
@@ -85,7 +85,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
         if(stopRoutePair!=null && stopRoutePair.first!=null){
             final Stop stop = stopRoutePair.first;
             final Route r = stopRoutePair.second;
-            final Double distance = stop.getDistanceFromLocation(userPosition);
+            final Double distance = stop.getDistanceFromLocation(userPosition.getLatitude(), userPosition.longitude);
             if(distance!=Double.POSITIVE_INFINITY){
                 holder.distancetextView.setText(distance.intValue()+" m");
             } else {
@@ -181,11 +181,11 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
         }
     }
 
-    public void setUserPosition(@Nullable Location userPosition) {
+    public void setUserPosition(@Nullable GPSPoint userPosition) {
         this.userPosition = userPosition;
     }
 
-    public void setRoutesPairListAndPosition(List<Pair<Stop, Route>> mRoutesPairList, @Nullable Location pos) {
+    public void setRoutesPairListAndPosition(List<Pair<Stop, Route>> mRoutesPairList, @Nullable GPSPoint pos) {
         if(pos!=null){
             this.userPosition = pos;
         }
@@ -260,7 +260,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
     /**
      * Sort and remove the repetitions in the list
      */
-    private static void sortAndRemoveDuplicates(List< Pair<Stop, Route> > routesPairList, Location positionToSort ){
+    private static void sortAndRemoveDuplicates(List< Pair<Stop, Route> > routesPairList, GPSPoint positionToSort ){
         Collections.sort(routesPairList,new RoutePositionSorter(positionToSort));
         //All of this to get only the first occurrences of a line (name & direction)
         ListIterator<Pair<Stop,Route>> iterator = routesPairList.listIterator();

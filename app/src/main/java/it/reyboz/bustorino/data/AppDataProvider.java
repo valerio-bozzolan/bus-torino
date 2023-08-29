@@ -27,6 +27,7 @@ import android.util.Log;
 import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.backend.DBStatusManager;
 import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.backend.utils;
 import it.reyboz.bustorino.data.NextGenDB.Contract.*;
 
 import java.util.List;
@@ -219,15 +220,19 @@ public class AppDataProvider extends ContentProvider {
                 if(parts.size()>=4 && "location".equals(parts.get(1))){
                     Double latitude = Double.parseDouble(parts.get(2));
                     Double longitude = Double.parseDouble(parts.get(3));
-                    //converting distance to a float to not lose precision
-                    float distance = parts.size()>=5 ? Float.parseFloat(parts.get(4))/1000 : 0.02f;
+                    //distance in meters
+                    final double distance = parts.size()>=5 ? Double.parseDouble(parts.get(4)) : 50;
                     //if(parts.size()>=5)
                     //Log.d("LocationSearch"," given distance to search is "+parts.get(4)+" m");
-                    Double distasAngle = (distance/6371)*180/Math.PI; //small angles approximation, still valid for about 500 metres
+                    Double latDelta = utils.latitudeDelta(distance);
+                    Double longDelta = utils.longitudeDelta(distance, latitude);
+                    Log.d(DEBUG_TAG, "Location search around: "+latitude+" , "+longitude);
+                    Log.d(DEBUG_TAG, "Location search: latitude {"+(latitude-latDelta)+", "+(latitude+latDelta)+
+                            "} longitude {"+(longitude-longDelta)+", "+(longitude+longDelta)+"}");
 
-                    String whereClause = StopsTable.COL_LAT+ "< "+(latitude+distasAngle)+" AND "
-                            +StopsTable.COL_LAT +" > "+(latitude-distasAngle)+" AND "+
-                            StopsTable.COL_LONG+" < "+(longitude+distasAngle)+" AND "+StopsTable.COL_LONG+" > "+(longitude-distasAngle);
+                    String whereClause = StopsTable.COL_LAT+ "< "+(latitude+latDelta)+" AND "
+                            +StopsTable.COL_LAT +" > "+(latitude-latDelta)+" AND "+
+                            StopsTable.COL_LONG+" < "+(longitude+longDelta)+" AND "+StopsTable.COL_LONG+" > "+(longitude-longDelta);
                     //Log.d("Provider-LOCSearch","Querying stops  by position, query args: \n"+whereClause);
                     return db.query(StopsTable.TABLE_NAME,projection,whereClause,null,null,null,null);
                 }

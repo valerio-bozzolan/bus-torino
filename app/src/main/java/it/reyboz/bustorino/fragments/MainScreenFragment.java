@@ -68,7 +68,6 @@ import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSIONS;
 public class MainScreenFragment extends ScreenBaseFragment implements  FragmentListenerMain{
 
 
-    private static final String OPTION_SHOW_LEGEND = "show_legend";
     private static final String SAVED_FRAGMENT="saved_fragment";
 
     private static final String DEBUG_TAG = "BusTO - MainFragment";
@@ -82,8 +81,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     private EditText busStopSearchByIDEditText;
     private EditText busStopSearchByNameEditText;
     private ProgressBar progressBar;
-    private TextView howDoesItWorkTextView;
-    private Button hideHintButton;
+
     private MenuItem actionHelpMenuItem;
     private FloatingActionButton floatingActionButton;
     private FrameLayout resultFrameLayout;
@@ -279,8 +277,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         busStopSearchByIDEditText = root.findViewById(R.id.busStopSearchByIDEditText);
         busStopSearchByNameEditText = root.findViewById(R.id.busStopSearchByNameEditText);
         progressBar = root.findViewById(R.id.progressBar);
-        howDoesItWorkTextView = root.findViewById(R.id.howDoesItWorkTextView);
-        hideHintButton = root.findViewById(R.id.hideHintButton);
+
         swipeRefreshLayout = root.findViewById(R.id.listRefreshLayout);
         floatingActionButton = root.findViewById(R.id.floatingActionButton);
         resultFrameLayout = root.findViewById(R.id.resultFrame);
@@ -311,7 +308,6 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         coordLayout = root.findViewById(R.id.coord_layout);
 
         floatingActionButton.setOnClickListener((this::onToggleKeyboardLayout));
-        hideHintButton.setOnClickListener(this::onHideHint);
 
         AppCompatImageButton qrButton = root.findViewById(R.id.QRButton);
         qrButton.setOnClickListener(this::onQRButtonClick);
@@ -527,11 +523,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             barcodeLauncher.launch(scanOptions);
         }
     }
-    public void onHideHint(View v) {
 
-        hideHints();
-        setOption(OPTION_SHOW_LEGEND, false);
-    }
     /**
      * OK this is pure shit
      *
@@ -618,18 +610,6 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         busStopSearchByIDEditText.setSelection(busStopID.length());
     }
 
-    private void showHints() {
-        howDoesItWorkTextView.setVisibility(View.VISIBLE);
-        hideHintButton.setVisibility(View.VISIBLE);
-        //actionHelpMenuItem.setVisible(false);
-    }
-
-    private void hideHints() {
-        howDoesItWorkTextView.setVisibility(View.GONE);
-        hideHintButton.setVisibility(View.GONE);
-        //actionHelpMenuItem.setVisible(true);
-    }
-
     @Nullable
     @org.jetbrains.annotations.Nullable
     @Override
@@ -711,9 +691,6 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             switch (fragmentType) {
                 case ARRIVALS:
                     prepareGUIForBusLines();
-                    if (getOption(OPTION_SHOW_LEGEND, true)) {
-                        showHints();
-                    }
                     break;
                 case STOPS:
                     prepareGUIForBusStops();

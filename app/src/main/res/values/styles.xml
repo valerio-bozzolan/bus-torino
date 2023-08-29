@@ -51,5 +51,25 @@
         <item name="editTextPreferenceStyle">@style/Preference.DialogPreference.EditTextPreference</item>
         <item name="preferenceFragmentListStyle">@style/PreferenceFragmentList</item>
     </style>
+    <style name="Widget.AppTheme.NoActionBar.ActionBar.Fullscreen" parent="Widget.AppCompat.ActionBar">
+        <item name="android:background">@color/black_overlay</item>
+    </style>
+
+    <style name="Widget.AppTheme.NoActionBar.ButtonBar.Fullscreen" parent="">
+        <item name="android:background">@color/black_overlay</item>
+        <item name="android:buttonBarStyle">?android:attr/buttonBarStyle</item>
+    </style>
+
+    <!-- styles that support night mode -->
+    <style name="AppThemeDayNight" parent="Theme.MaterialComponents.DayNight">
+    </style>
+
+    <style name="AppThemeDayNight.NoActionBar" parent="AppThemeDayNight">
+
+        <item name="android:windowTranslucentStatus">false</item>
+
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
 
 </resources>

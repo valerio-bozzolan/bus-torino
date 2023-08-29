@@ -25,12 +25,9 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -44,7 +41,7 @@ import it.reyboz.bustorino.backend.mato.MatoAPIFetcher;
 import it.reyboz.bustorino.fragments.SettingsFragment;
 
 public abstract class utils {
-    private static final double EarthRadius = 6371e3;
+    private static final double EARTH_RADIUS = 6371.009e3;
 
 
     public static Double measuredistanceBetween(double lat1,double long1,double lat2,double long2){
@@ -58,11 +55,11 @@ public abstract class utils {
                 Math.cos(phi1)*Math.cos(phi2)*Math.sin(deltaTheta/2)*Math.sin(deltaTheta/2);
         final double c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 
-        return Math.abs(EarthRadius*c);
+        return Math.abs(EARTH_RADIUS *c);
 
     }
     public static Double angleRawDifferenceFromMeters(double distanceInMeters){
-         return Math.toDegrees(distanceInMeters/EarthRadius);
+         return Math.toDegrees(distanceInMeters/ EARTH_RADIUS);
     }
 
     public static int convertDipToPixelsInt(Context con,double dips)
@@ -70,6 +67,28 @@ public abstract class utils {
         return (int) (dips * con.getResources().getDisplayMetrics().density + 0.5f);
     }
 
+    /**
+     * Convert distance in meters on Earth in degrees of latitude, keeping the same longitude
+     * @param distanceMeters distance in meters
+     * @return angle in degrees
+     */
+    public static Double latitudeDelta(Double distanceMeters){
+        final double angleRad =  distanceMeters/EARTH_RADIUS;
+        return Math.toDegrees(angleRad);
+    }
+
+    /**
+     * Convert distance in meters on Earth in degrees of longitude, keeping the same latitude
+     * @param distanceMeters distance in meters
+     * @param latitude the latitude that is fixed
+     * @return angle in degrees
+     */
+    public static Double longitudeDelta(Double distanceMeters, Double latitude){
+        final double theta = Math.toRadians(latitude);
+        final double denom = Math.abs(Math.cos(theta));
+        final double angleRad =  2*Math.asin(Math.sin(distanceMeters / EARTH_RADIUS) / denom);
+        return Math.toDegrees(angleRad);
+    }
 
     public static float convertDipToPixels(Context con, float dp){
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,con.getResources().getDisplayMetrics());

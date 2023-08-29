@@ -25,26 +25,31 @@ import it.reyboz.bustorino.backend.Passaggio;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.utils;
+import org.osmdroid.api.IGeoPoint;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 public class RoutePositionSorter implements Comparator<Pair<Stop, Route>> {
-    private final Location loc;
+    private final double latPos, longPos;
     private final double minutialmetro = 6.0/100; //v = 5km/h
     private final double distancemultiplier = 2./3;
-    public RoutePositionSorter(Location loc) {
-        this.loc = loc;
+    public RoutePositionSorter(double latitude, double longitude){
+        latPos = latitude;
+        longPos = longitude;
+    }
+    public RoutePositionSorter(IGeoPoint position){
+        this(position.getLatitude(), position.getLongitude());
     }
 
     @Override
     public int compare(Pair<Stop, Route> pair1, Pair<Stop, Route> pair2) throws NullPointerException{
         int delta = 0;
         final Stop stop1 = pair1.first, stop2 = pair2.first;
-        double dist1 = utils.measuredistanceBetween(loc.getLatitude(),loc.getLongitude(),
+        double dist1 = utils.measuredistanceBetween(latPos,longPos,
                 stop1.getLatitude(),stop1.getLongitude());
-        double dist2 = utils.measuredistanceBetween(loc.getLatitude(),loc.getLongitude(),
+        double dist2 = utils.measuredistanceBetween(latPos,longPos,
                 stop2.getLatitude(),stop2.getLongitude());
         final List<Passaggio> passaggi1 = pair1.second.passaggi,
                 passaggi2 = pair2.second.passaggi;

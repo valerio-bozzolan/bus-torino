@@ -23,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import it.reyboz.bustorino.util.LinesNameSorter;
+import org.osmdroid.api.IGeoPoint;
 
 import java.net.URLEncoder;
 import java.util.Collections;
@@ -297,9 +298,11 @@ public class Stop implements Comparable<Stop> {
     }
 
 
-    public Double getDistanceFromLocation(Location loc){
-        if(this.lat!=null && this.lon !=null)
-        return utils.measuredistanceBetween(this.lat,this.lon,loc.getLatitude(),loc.getLongitude());
-        else return Double.POSITIVE_INFINITY;
+    public Double getDistanceFromLocation(IGeoPoint loc){
+        return getDistanceFromLocation(loc.getLatitude(), loc.getLongitude());
     }
-}
+    public Double getDistanceFromLocation(double latitude, double longitude){
+        if(this.lat!=null && this.lon !=null)
+            return utils.measuredistanceBetween(this.lat,this.lon,latitude, longitude);
+        else return Double.POSITIVE_INFINITY;
+    }}
