@@ -27,6 +27,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
 
     sourceSets {
         androidTest.assets.srcDirs += files("$projectDir/assets/schemas/".toString())
@@ -132,3 +135,4 @@ dependencies {
     androidTestImplementation "androidx.room:room-testing:$room_version"
 
 }
+

@@ -95,6 +95,7 @@
             android:layout_marginRight="16dp"
             android:layout_marginStart="16dip"
             android:indeterminateOnly="true"
+            android:minWidth="10dp"
             android:visibility="gone" />
 
 

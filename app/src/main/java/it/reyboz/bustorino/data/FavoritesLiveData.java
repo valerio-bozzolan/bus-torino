@@ -104,6 +104,10 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
 
     }
 
+    public void forceReload(){
+        loadData(true);
+    }
+
     @Override
     protected void onActive() {
         //Log.d(TAG, "onActive()");

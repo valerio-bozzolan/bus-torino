@@ -26,7 +26,6 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,6 +38,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
@@ -68,13 +68,11 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.infowindow.InfoWindow;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 
-import java.lang.ref.WeakReference;
 import java.util.*;
 
 import kotlin.Pair;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.Stop;
-import it.reyboz.bustorino.data.NextGenDB;
 import it.reyboz.bustorino.middleware.GeneralActivity;
 import it.reyboz.bustorino.util.Permissions;
 
@@ -114,6 +112,8 @@ public class MapFragment extends ScreenBaseFragment {
     private Bundle savedMapState = null;
     protected ImageButton btCenterMap;
     protected ImageButton btFollowMe;
+
+    protected CoordinatorLayout coordLayout;
     private boolean hasMapStartFinished = false;
     private boolean followingLocation = false;
 
@@ -202,7 +202,7 @@ public class MapFragment extends ScreenBaseFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         //use the same layout as the activity
-        View root = inflater.inflate(R.layout.activity_map, container, false);
+        View root = inflater.inflate(R.layout.fragment_map, container, false);
         if (getContext() == null){
             throw new IllegalStateException();
         }
@@ -218,6 +218,7 @@ public class MapFragment extends ScreenBaseFragment {
 
         btCenterMap = root.findViewById(R.id.icon_center_map);
         btFollowMe = root.findViewById(R.id.icon_follow);
+        coordLayout = root.findViewById(R.id.coord_layout);
 
         //setup FolderOverlay
         stopsFolderOverlay = new FolderOverlay();
@@ -786,10 +787,9 @@ public class MapFragment extends ScreenBaseFragment {
     }
 
     @Nullable
-    @org.jetbrains.annotations.Nullable
     @Override
     public View getBaseViewForSnackBar() {
-        return null;
+        return coordLayout;
     }
 
 }

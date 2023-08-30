@@ -35,6 +35,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -43,10 +44,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.work.WorkInfo;
 import it.reyboz.bustorino.*;
 import it.reyboz.bustorino.adapters.StopAdapterListener;
 import it.reyboz.bustorino.adapters.StopRecyclerAdapter;
 import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.data.DatabaseUpdate;
 import it.reyboz.bustorino.data.FavoritesViewModel;
 import it.reyboz.bustorino.middleware.AsyncStopFavoriteAction;
 
@@ -57,10 +60,16 @@ public class FavoritesFragment extends ScreenBaseFragment {
     private TextView favoriteTipTextView;
     private ImageView angeryBusImageView;
 
+    private boolean dbUpdateRunning = false;
+    private FavoritesViewModel model;
+
+
     @Nullable
     private CommonFragmentListener mListener;
 
     public static final String FRAGMENT_TAG = "BusTOFavFragment";
+    private final static String DEBUG_TAG = FRAGMENT_TAG;
+
 
     private final StopAdapterListener adapterListener = new StopAdapterListener() {
         @Override
@@ -130,8 +139,25 @@ public class FavoritesFragment extends ScreenBaseFragment {
         //register for the context menu
         registerForContextMenu(favoriteRecyclerView);
 
-        FavoritesViewModel model = new ViewModelProvider(this).get(FavoritesViewModel.class);
+
         model.getFavorites().observe(getViewLifecycleOwner(), this::showStops);
+
+        // watch the DB update
+        DatabaseUpdate.watchUpdateWorkStatus(getContext(), this, workInfos -> {
+            if(workInfos.isEmpty()) return;
+
+            WorkInfo wi = workInfos.get(0);
+            if(wi.getState() == WorkInfo.State.RUNNING){
+                dbUpdateRunning = true;
+            } else {
+                //force reload if it was previously running
+                if(model!=null && dbUpdateRunning) {
+                    Log.d(DEBUG_TAG,"DB Finished updating, reload favorites");
+                    model.getFavorites().forceReload();
+                }
+                dbUpdateRunning = false;
+            }
+        });
 
         showStops(new ArrayList<>());
         return root;
@@ -145,6 +171,7 @@ public class FavoritesFragment extends ScreenBaseFragment {
             throw new RuntimeException(context
                     + " must implement CommonFragmentListener");
         }
+        model  = new ViewModelProvider(this).get(FavoritesViewModel.class);
 
     }
 
@@ -222,7 +249,7 @@ public class FavoritesFragment extends ScreenBaseFragment {
     @Nullable
     @Override
     public View getBaseViewForSnackBar() {
-        return null;
+        return favoriteRecyclerView;
     }
 
     void showStops(List<Stop> busStops){

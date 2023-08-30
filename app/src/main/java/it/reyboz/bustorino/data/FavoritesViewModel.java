@@ -14,11 +14,10 @@ import it.reyboz.bustorino.backend.Stop;
 public class FavoritesViewModel extends AndroidViewModel {
 
     FavoritesLiveData favoritesLiveData;
-    final Context appContext;
 
     public FavoritesViewModel(@NonNull Application application) {
         super(application);
-        appContext = application.getApplicationContext();
+        //appContext = application.getApplicationContext();
     }
 
     @Override
@@ -27,9 +26,9 @@ public class FavoritesViewModel extends AndroidViewModel {
         super.onCleared();
     }
 
-    public LiveData<List<Stop>> getFavorites(){
+    public FavoritesLiveData getFavorites(){
         if (favoritesLiveData==null){
-            favoritesLiveData= new FavoritesLiveData(appContext, true);
+            favoritesLiveData= new FavoritesLiveData(getApplication(), true);
         }
         return favoritesLiveData;
     }

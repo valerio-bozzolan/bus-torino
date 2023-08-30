@@ -165,6 +165,7 @@ public class NextGenDB extends SQLiteOpenHelper{
 
     /**
      * Query some bus stops inside a map view
+     * @return stoplist, if empty it means that an error occurred
      *
      * You can obtain the coordinates from OSMDroid using something like this:
      *  BoundingBoxE6 bb = mMapView.getBoundingBox();
@@ -198,7 +199,12 @@ public class NextGenDB extends SQLiteOpenHelper{
             Log.e(DEBUG_TAG, "SQLiteException occurred");
             e.printStackTrace();
             return stops;
-        }finally {
+        }catch (Exception e){
+            Log.e(DEBUG_TAG, "Exception occurred when getting stops");
+            e.printStackTrace();
+            return stops;
+        }
+        finally {
             db.close();
         }
 

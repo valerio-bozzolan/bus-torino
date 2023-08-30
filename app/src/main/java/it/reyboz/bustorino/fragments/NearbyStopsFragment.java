@@ -212,6 +212,7 @@ public class NearbyStopsFragment extends Fragment {
                 return;
             }
             if(!stops.isEmpty()) {
+                Log.d(DEBUG_TAG, "Showing "+stops.size()+" stops nearby");
                 currentNearbyStops =stops;
                 showStopsInViews(currentNearbyStops, lastPosition);
             }

@@ -48,7 +48,7 @@ public abstract class ScreenBaseFragment extends Fragment {
 
     /**
      * Find the view on which the snackbar should be shown
-     * @return
+     * @return a view or null if you don't want the snackbar shown
      */
     @Nullable
     public abstract View getBaseViewForSnackBar();
