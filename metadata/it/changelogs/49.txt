@@ -1,0 +1,22 @@
+Nuova schermata delle linee che mostra la linea sulla mappa insieme ai bus in tempo reale
+Fatto da fabio.mazza
+https://gitpull.it/T1186
+
+Posizioni in tempo reale aggiornate più frequentemente
+
+Aumentata la versione minima di Android richiesta a Lollipop per compatibilità e sicurezza
+Fatto da fabio.mazza
+https://gitpull.it/T1184
+
+Aggiunto un bordino nero alle icone dei bus per vederle meglio sulla mappa
+Segnalato da Zubyte
+Risolto da fabio.mazza
+https://gitpull.it/T1183
+
+Mappa: non si sposta la visuale fuori Torino se la posizione è troppo lontana
+Risolto da fabio.mazza
+https://gitpull.it/T1182
+
+Aggiornamento del database visibile anche dai preferiti e dalla mappa.
+
+Diversi cambiamenti sotto il cofano per aumentare la stabilità dell'app

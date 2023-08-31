@@ -1,0 +1,22 @@
+New way to select and display each line on the map along with the real time positions of the buses
+Fatto da fabio.mazza
+https://gitpull.it/T1186
+
+Real time bus positions are updated more frequently
+
+Increased minimum required Android version from Kitkat to Lollipop also for security and compatibility reasons
+Done by fabio.mazza
+https://gitpull.it/T1184
+
+Map: add a border to bus icons for better accessibility
+Reported by Zubyte
+Resolved by fabio.mazza
+https://gitpull.it/T1183
+
+Map: do not move the view out of Torino, if you are outside the region
+Resolved by fabio.mazza
+https://gitpull.it/T1182
+
+Database update status visible from map or favorites too
+
+Upgrade background operations for better stability and bug fixing
