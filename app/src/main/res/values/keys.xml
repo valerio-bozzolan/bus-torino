@@ -23,4 +23,11 @@
         <item>gttjsonfetcher</item>
         <item>fivetscraper</item>
     </array>
+
+    <string name="pref_positions_source">pref_positions_source</string>
+    <array name="positions_source_values">
+        <item>mqtt</item>
+        <item>gtfsrt</item>
+    </array>
+
 </resources>

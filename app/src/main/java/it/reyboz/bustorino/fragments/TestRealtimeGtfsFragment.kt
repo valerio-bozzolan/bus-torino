@@ -12,7 +12,7 @@ import android.widget.TextView
 import androidx.fragment.app.viewModels
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.mato.MQTTMatoClient
-import it.reyboz.bustorino.viewmodels.MQTTPositionsViewModel
+import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
 
 
 /**
@@ -30,7 +30,7 @@ class TestRealtimeGtfsFragment : Fragment() {
 
     private lateinit var lineEditText: EditText
 
-    private val mqttViewModel: MQTTPositionsViewModel by viewModels()
+    private val mqttViewModel: LivePositionsViewModel by viewModels()
 
     /*private val requestListener = object: GtfsRtPositionsRequest.Companion.RequestListener{
         override fun onResponse(response: ArrayList<GtfsPositionUpdate>?) {
@@ -91,12 +91,12 @@ class TestRealtimeGtfsFragment : Fragment() {
                  */
                 subscribed = if(subscribed){
                     //mqttMatoClient.desubscribe(listener)
-                    mqttViewModel.stopPositionsListening()
+                    mqttViewModel.stopMatoUpdates()
                     buttonLaunch.text="Start"
                     false
                 } else{
                     //mqttMatoClient.startAndSubscribe(lineEditText.text.trim().toString(), listener)
-                    mqttViewModel.requestPosUpdates(lineEditText.text.trim().toString())
+                    mqttViewModel.requestMatoPosUpdates(lineEditText.text.trim().toString())
                     buttonLaunch.text="Stop"
                     true
                 }

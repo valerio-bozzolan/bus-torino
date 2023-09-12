@@ -10,6 +10,13 @@
             android:title="@string/pref_shown_startup"
             android:summary="%s"
             />
+
+        <androidx.preference.ListPreference
+                android:key="@string/pref_positions_source"
+                android:entries="@array/positions_source_sel"
+                android:entryValues="@array/positions_source_values"
+                android:title="@string/positions_source_pref_title"
+            />
     </androidx.preference.PreferenceCategory>
 
     <androidx.preference.PreferenceCategory

@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 /**
  * View Model for the map. For containing the stops, the trips and whatever
  */
-class GTFSPositionsViewModel(application: Application): AndroidViewModel(application) {
+class GtfsPositionsViewModel(application: Application): AndroidViewModel(application) {
     private val gtfsRepo = GtfsRepository(application)
 
     private val netVolleyManager = NetworkVolleyManager.getInstance(application)
@@ -62,11 +62,7 @@ class GTFSPositionsViewModel(application: Application): AndroidViewModel(applica
 
     }
     private val positionRequestErrorListener = Response.ErrorListener {
-        //error listener, it->VolleyError
         Log.e(DEBUG_TI, "Could not download the update, error:\n"+it.stackTrace)
-
-        //TODO: launch again if needed
-
     }
 
     fun requestUpdates(){

@@ -48,14 +48,10 @@ import it.reyboz.bustorino.data.MatoTripsDownloadWorker
 import it.reyboz.bustorino.data.gtfs.MatoPattern
 import it.reyboz.bustorino.data.gtfs.MatoPatternWithStops
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
-import it.reyboz.bustorino.map.BusInfoWindow
-import it.reyboz.bustorino.map.BusPositionUtils
+import it.reyboz.bustorino.map.*
 import it.reyboz.bustorino.map.CustomInfoWindow.TouchResponder
-import it.reyboz.bustorino.map.LocationOverlay
-import it.reyboz.bustorino.map.MapViewModel
-import it.reyboz.bustorino.map.MarkerUtils
 import it.reyboz.bustorino.viewmodels.LinesViewModel
-import it.reyboz.bustorino.viewmodels.MQTTPositionsViewModel
+import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
@@ -129,13 +125,15 @@ class LinesDetailFragment() : ScreenBaseFragment() {
     private var showOnTopOfLine = true
     private var recyclerInitDone = false
 
+    private var useMQTTPositions = true
+
     //position of live markers
     private val busPositionMarkersByTrip = HashMap<String,Marker>()
     private var busPositionsOverlay = FolderOverlay()
 
     private val tripMarkersAnimators = HashMap<String, ObjectAnimator>()
 
-    private val liveBusViewModel: MQTTPositionsViewModel by viewModels()
+    private val liveBusViewModel: LivePositionsViewModel by viewModels()
     @SuppressLint("SetTextI18n")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -164,17 +162,24 @@ class LinesDetailFragment() : ScreenBaseFragment() {
                 stopsRecyclerView.visibility = View.VISIBLE
 
                 viewModel.setMapShowing(false)
-                liveBusViewModel.stopPositionsListening()
+                liveBusViewModel.stopMatoUpdates()
                 switchButton.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_map_white_30))
             } else{
                 stopsRecyclerView.visibility = View.GONE
                 map.visibility = View.VISIBLE
                 viewModel.setMapShowing(true)
-                liveBusViewModel.requestPosUpdates(lineID)
+                if(useMQTTPositions)
+                    liveBusViewModel.requestMatoPosUpdates(lineID)
+                else
+                    liveBusViewModel.requestGTFSUpdates()
                 switchButton.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_list_30))
             }
         }
         viewModel.setRouteIDQuery(lineID)
+
+        val keySourcePositions = getString(R.string.pref_positions_source)
+        useMQTTPositions = PreferenceManager.getDefaultSharedPreferences(requireContext())
+            .getString(keySourcePositions, "mqtt").contentEquals("mqtt")
 
         viewModel.patternsWithStopsByRouteLiveData.observe(viewLifecycleOwner){
             patterns -> savePatternsToShow(patterns)
@@ -229,6 +234,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
                 //DO NOTHING
                 return@observe
             }
+            val filtdLineID = GtfsUtils.stripGtfsPrefix(lineID)
             //filter buses with direction, show those only with the same direction
             val outmap = HashMap<String, Pair<LivePositionUpdate, TripAndPatternWithStops?>>()
             val currentPattern = viewingPattern!!.pattern
@@ -236,21 +242,28 @@ class LinesDetailFragment() : ScreenBaseFragment() {
             Log.d(DEBUG_TAG, "Got $numUpds updates, current pattern is: ${currentPattern.name}, directionID: ${currentPattern.directionId}")
             val patternsDirections = HashMap<String,Int>()
             for((tripId, pair) in it.entries){
+                //remove trips with wrong line ideas
+                if(pair.first.routeID!=filtdLineID)
+                    continue
 
                 if(pair.second!=null && pair.second?.pattern !=null){
                     val dir = pair.second?.pattern?.directionId
                     if(dir !=null && dir == currentPattern.directionId){
-                        outmap.set(tripId, pair)
+                        outmap[tripId] = pair
                     }
                     patternsDirections.set(tripId,if (dir!=null) dir else -10)
                 } else{
                     outmap[tripId] = pair
                     //Log.d(DEBUG_TAG, "No pattern for tripID: $tripId")
-                    patternsDirections.set(tripId, -10)
+                    patternsDirections[tripId] = -10
                 }
             }
             Log.d(DEBUG_TAG, " Filtered updates are ${outmap.keys.size}") // Original updates directs: $patternsDirections\n
             updateBusPositionsInMap(outmap)
+            //if not using MQTT positions
+            if(!useMQTTPositions){
+                liveBusViewModel.requestDelayedGTFSUpdates(2000)
+            }
         }
 
         //download missing tripIDs
@@ -653,7 +666,16 @@ class LinesDetailFragment() : ScreenBaseFragment() {
         Log.d(DEBUG_TAG, "Resetting paused from onResume")
         pausedFragment = false
 
-        liveBusViewModel.requestPosUpdates(GtfsUtils.getLineNameFromGtfsID(lineID))
+        val keySourcePositions = getString(R.string.pref_positions_source)
+        useMQTTPositions = PreferenceManager.getDefaultSharedPreferences(requireContext())
+            .getString(keySourcePositions, "mqtt").contentEquals("mqtt")
+
+        //separate paths
+        if(useMQTTPositions)
+            liveBusViewModel.requestMatoPosUpdates(GtfsUtils.getLineNameFromGtfsID(lineID))
+        else
+            liveBusViewModel.requestGTFSUpdates()
+
 
         if(mapViewModel.currentLat.value!=MapViewModel.INVALID) {
             Log.d(DEBUG_TAG, "mapViewModel posi: ${mapViewModel.currentLat.value}, ${mapViewModel.currentLong.value}"+
@@ -677,7 +699,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
 
     override fun onPause() {
         super.onPause()
-        liveBusViewModel.stopPositionsListening()
+        liveBusViewModel.stopMatoUpdates()
         pausedFragment = true
         //save map
         val center = map.mapCenter

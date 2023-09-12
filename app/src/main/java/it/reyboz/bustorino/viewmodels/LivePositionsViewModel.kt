@@ -20,29 +20,38 @@ package it.reyboz.bustorino.viewmodels
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
+import com.android.volley.Response
+import it.reyboz.bustorino.backend.NetworkVolleyManager
+import it.reyboz.bustorino.backend.gtfs.GtfsRtPositionsRequest
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.mato.MQTTMatoClient
 import it.reyboz.bustorino.data.GtfsRepository
 import it.reyboz.bustorino.data.MatoPatternsDownloadWorker
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
-typealias UpdatesMap = HashMap<String, LivePositionUpdate>
-
-class MQTTPositionsViewModel(application: Application): AndroidViewModel(application) {
+class LivePositionsViewModel(application: Application): AndroidViewModel(application) {
 
     private val gtfsRepo = GtfsRepository(application)
 
     //private val updates = UpdatesMap()
     private val updatesLiveData = MutableLiveData<ArrayList<LivePositionUpdate>>()
+    private val netVolleyManager = NetworkVolleyManager.getInstance(application)
+
 
     private var mqttClient = MQTTMatoClient.getInstance()
 
     private var lineListening = ""
     private var lastTimeReceived: Long = 0
 
-    private val positionListener = MQTTMatoClient.Companion.MQTTMatoListener{
+    private val gtfsRtRequestRunning = MutableLiveData<Boolean>(false)
+
+    /**
+     * Responder to the MQTT Client
+     */
+    private val matoPositionListener = MQTTMatoClient.Companion.MQTTMatoListener{
 
         val mupds = ArrayList<LivePositionUpdate>()
         if(lineListening==MQTTMatoClient.LINES_ALL){
@@ -132,20 +141,20 @@ class MQTTPositionsViewModel(application: Application): AndroidViewModel(applica
     }
 
 
-    fun requestPosUpdates(line: String){
+    fun requestMatoPosUpdates(line: String){
         lineListening = line
         viewModelScope.launch {
-            mqttClient.startAndSubscribe(line,positionListener, getApplication())
+            mqttClient.startAndSubscribe(line,matoPositionListener, getApplication())
         }
 
 
         //updatePositions(1000)
     }
 
-    fun stopPositionsListening(){
+    fun stopMatoUpdates(){
         viewModelScope.launch {
             val tt = System.currentTimeMillis()
-            mqttClient.desubscribe(positionListener)
+            mqttClient.desubscribe(matoPositionListener)
             val time = System.currentTimeMillis() -tt
             Log.d(DEBUG_TI, "Took $time ms to unsubscribe")
         }
@@ -155,6 +164,49 @@ class MQTTPositionsViewModel(application: Application): AndroidViewModel(applica
     fun retriggerPositionUpdate(){
         if(updatesLiveData.value!=null){
             updatesLiveData.postValue(updatesLiveData.value)
+        }
+    }
+    //Gtfs Real time
+
+
+    private val gtfsPositionsReqListener = object: GtfsRtPositionsRequest.Companion.RequestListener{
+        override fun onResponse(response: ArrayList<LivePositionUpdate>?) {
+            Log.i(DEBUG_TI,"Got response from the GTFS RT server")
+            response?.let {it:ArrayList<LivePositionUpdate> ->
+                if (it.size == 0) {
+                    Log.w(DEBUG_TI,"No position updates from the GTFS RT server")
+                    return
+                }
+                else {
+                    //Log.i(DEBUG_TI, "Posting value to positionsLiveData")
+                    viewModelScope.launch { updatesLiveData.postValue(it) }
+
+                }
+            }
+            gtfsRtRequestRunning.postValue(false)
+
+        }
+
+    }
+    private val positionRequestErrorListener = Response.ErrorListener {
+        Log.e(DEBUG_TI, "Could not download the update, error:\n"+it.stackTrace)
+        gtfsRtRequestRunning.postValue(false)
+    }
+
+    fun requestGTFSUpdates(){
+        if(gtfsRtRequestRunning.value == null || !gtfsRtRequestRunning.value!!) {
+            val request = GtfsRtPositionsRequest(positionRequestErrorListener, gtfsPositionsReqListener)
+            netVolleyManager.requestQueue.add(request)
+            Log.i(DEBUG_TI, "Requested GTFS realtime position updates")
+            gtfsRtRequestRunning.value = true
+        }
+
+    }
+
+    fun requestDelayedGTFSUpdates(timems: Long){
+        viewModelScope.launch {
+            delay(timems)
+            requestGTFSUpdates()
         }
     }
 

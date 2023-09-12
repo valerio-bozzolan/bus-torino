@@ -206,7 +206,12 @@
     <string name="pref_shown_startup">Schermata da mostrare all\'avvio</string>
     <string name="pref_shown_startup_def_desc">Tocca per cambiare</string>
 
+    <string name="positions_source_pref_title">Fonte posizioni in tempo reale di bus e tram</string>
 
+    <array name="positions_source_sel">
+        <item>MaTO (aggiornate più spesso, può non funzionare)</item>
+        <item>GTFS RT (più stabile)</item>
+    </array>
 
     <!-- lines -->
     <string name="long_press_stop_4_options">Tocca a lungo la fermata per le opzioni</string>

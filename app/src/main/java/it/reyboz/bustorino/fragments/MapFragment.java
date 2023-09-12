@@ -50,7 +50,8 @@ import it.reyboz.bustorino.data.MatoTripsDownloadWorker;
 import it.reyboz.bustorino.data.gtfs.MatoPattern;
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops;
 import it.reyboz.bustorino.map.*;
-import it.reyboz.bustorino.viewmodels.MQTTPositionsViewModel;
+import it.reyboz.bustorino.viewmodels.GtfsPositionsViewModel;
+import it.reyboz.bustorino.viewmodels.LivePositionsViewModel;
 import it.reyboz.bustorino.viewmodels.StopsMapViewModel;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
@@ -120,8 +121,9 @@ public class MapFragment extends ScreenBaseFragment {
     //the ViewModel from which we get the stop to display in the map
     private StopsMapViewModel stopsViewModel;
 
-    //private GTFSPositionsViewModel gtfsPosViewModel; //= new ViewModelProvider(this).get(MapViewModel.class);
-    private MQTTPositionsViewModel positionsViewModel;
+    //private GtfsPositionsViewModel gtfsPosViewModel; //= new ViewModelProvider(this).get(MapViewModel.class);
+    private LivePositionsViewModel livePositionsViewModel;
+    private Boolean useMQTTViewModel = true;
 
     private final HashMap<String,Marker> busPositionMarkersByTrip = new HashMap<>();
     private FolderOverlay busPositionsOverlay = null;
@@ -230,6 +232,11 @@ public class MapFragment extends ScreenBaseFragment {
         //set map not done
         hasMapStartFinished = false;
 
+        String keySourcePositions=getString(R.string.pref_positions_source);
+        useMQTTViewModel = (
+                PreferenceManager.getDefaultSharedPreferences(requireContext())
+                        .getString(keySourcePositions,"mqtt").contentEquals("mqtt"));
+
 
         //Start map from bundle
         if (savedInstanceState !=null)
@@ -283,11 +290,12 @@ public class MapFragment extends ScreenBaseFragment {
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
 
-        //gtfsPosViewModel = new ViewModelProvider(this).get(GTFSPositionsViewModel.class);
-        //viewModel
         ViewModelProvider provider = new ViewModelProvider(this);
-        positionsViewModel = provider.get(MQTTPositionsViewModel.class);
+        //gtfsPosViewModel = provider.get(GtfsPositionsViewModel.class);
+        livePositionsViewModel = provider.get(LivePositionsViewModel.class);
         stopsViewModel = provider.get(StopsMapViewModel.class);
+
+
         if (context instanceof FragmentListenerMain) {
             listenerMain = (FragmentListenerMain) context;
         } else {
@@ -316,7 +324,7 @@ public class MapFragment extends ScreenBaseFragment {
             }
         }
         tripMarkersAnimators.clear();
-        positionsViewModel.stopPositionsListening();
+        if(useMQTTViewModel)   livePositionsViewModel.stopMatoUpdates();
 
     }
 
@@ -347,20 +355,57 @@ public class MapFragment extends ScreenBaseFragment {
         bundle.putDouble(MAP_CURRENT_ZOOM_KEY, map.getZoomLevelDouble());
     }
 
+
     @Override
     public void onResume() {
         super.onResume();
+        //TODO: cleanup duplicate code (maybe merging the positions classes?)
         if(listenerMain!=null) listenerMain.readyGUIfor(FragmentKind.MAP);
-        if(positionsViewModel !=null) {
+        /// choose which to use
+        String keySourcePositions=getString(R.string.pref_positions_source);
+        useMQTTViewModel = PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .getString(keySourcePositions,"mqtt").contentEquals("mqtt");
+        if(livePositionsViewModel !=null) {
             //gtfsPosViewModel.requestUpdates();
-            positionsViewModel.requestPosUpdates(MQTTMatoClient.LINES_ALL);
+            if(useMQTTViewModel)
+                livePositionsViewModel.requestMatoPosUpdates(MQTTMatoClient.LINES_ALL);
+            else
+                livePositionsViewModel.requestGTFSUpdates();
             //mapViewModel.testCascade();
-            positionsViewModel.getTripsGtfsIDsToQuery().observe(this, dat -> {
+            livePositionsViewModel.getTripsGtfsIDsToQuery().observe(this, dat -> {
+                Log.i(DEBUG_TAG, "Have these trips IDs missing from the DB, to be queried: "+dat);
+                //gtfsPosViewModel.downloadTripsFromMato(dat);
+                MatoTripsDownloadWorker.Companion.downloadTripsFromMato(dat,
+                        requireContext().getApplicationContext(),
+                        "BusTO-MatoTripDownload");
+            });
+        } /*else if(gtfsPosViewModel!=null){
+            gtfsPosViewModel.requestUpdates();
+            gtfsPosViewModel.getTripsGtfsIDsToQuery().observe(this, dat -> {
                 Log.i(DEBUG_TAG, "Have these trips IDs missing from the DB, to be queried: "+dat);
                 //gtfsPosViewModel.downloadTripsFromMato(dat);
                 MatoTripsDownloadWorker.Companion.downloadTripsFromMato(dat,getContext().getApplicationContext(),
                         "BusTO-MatoTripDownload");
             });
+        }
+        */
+        else Log.e(DEBUG_TAG, "livePositionsViewModel is null at onResume");
+    }
+
+    private void startRequestsPositions(){
+        if (livePositionsViewModel != null) {
+            //should always be the case
+            livePositionsViewModel.getUpdatesWithTripAndPatterns().observe(getViewLifecycleOwner(), data -> {
+                Log.d(DEBUG_TAG, "Have " + data.size() + " trip updates, has Map start finished: " + hasMapStartFinished);
+                if (hasMapStartFinished) updateBusPositionsInMap(data);
+
+                if(!isDetached() && !useMQTTViewModel)
+                    livePositionsViewModel.requestDelayedGTFSUpdates(3000);
+
+            });
+
+        } else {
+            Log.e(DEBUG_TAG, "PositionsViewModel is null");
         }
     }
 
@@ -543,19 +588,7 @@ public class MapFragment extends ScreenBaseFragment {
             //Log.i(DEBUG_TAG, "Null bus positions overlay,redo");
             busPositionsOverlay = new FolderOverlay();
         }
-
-
-        if(positionsViewModel !=null){
-            //should always be the case
-            positionsViewModel.getUpdatesWithTripAndPatterns().observe(getViewLifecycleOwner(), data->{
-                Log.d(DEBUG_TAG, "Have "+data.size()+" trip updates, has Map start finished: "+hasMapStartFinished);
-                if (hasMapStartFinished) updateBusPositionsInMap(data);
-                //if(!isDetached())
-                //    gtfsPosViewModel.requestDelayedUpdates(4000);
-            });
-        } else {
-            Log.e(DEBUG_TAG, "PositionsViewModel is null");
-        }
+        startRequestsPositions();
         if(stopsViewModel !=null){
 
             stopsViewModel.getStopsInBoundingBox().observe(getViewLifecycleOwner(),

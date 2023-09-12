@@ -21,6 +21,16 @@ import androidx.core.util.Pair;
 import it.reyboz.bustorino.backend.ServiceType;
 
 abstract public class GtfsUtils {
+
+    public static String stripGtfsPrefix(String routeID){
+        String[] explo = routeID.split(":");
+        //default is
+        String toParse = routeID;
+        if(explo.length>1) {
+            toParse = explo[1];
+        }
+        return toParse;
+    }
     public static Pair<ServiceType, String> getRouteInfoFromGTFS(String routeID){
         String[] explo = routeID.split(":");
         //default is

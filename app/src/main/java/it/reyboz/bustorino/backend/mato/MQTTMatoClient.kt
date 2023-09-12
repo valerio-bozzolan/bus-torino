@@ -164,8 +164,10 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
                             val topic = mapTopic(line)
                             if(elms.isEmpty())
                                 respondersMap.remove(line)
-                            else
+                            else {
                                 client.subscribe(topic, QoS.AtMostOnce.value, null, null)
+                                Log.d(DEBUG_TAG, "Resubscribed with topic $topic")
+                            }
                         }
                         Log.d(DEBUG_TAG, "Reconnected to MQTT Mato Client")
 
