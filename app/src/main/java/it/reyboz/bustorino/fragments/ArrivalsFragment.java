@@ -273,6 +273,8 @@ public class ArrivalsFragment extends ResultBaseFragment implements LoaderManage
             updateFragmentData(null);
             showArrivalsSources(lastUpdatedPalina);
         }*/
+        mListener.readyGUIfor(FragmentKind.ARRIVALS);
+
         if (mListAdapter!=null)
             resetListAdapter(mListAdapter);
         if(noArrivalsAdapter!=null){
