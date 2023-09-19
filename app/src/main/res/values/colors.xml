@@ -26,6 +26,9 @@
     <color name="grey_200">#dddddd</color>
     <color name="grey_050">#f8f8f8</color>
     <color name="grey_600">#757575</color>
+    <color name="grey_700">#444</color>
+    <color name="grey_800">#353535</color>
+    <color name="grey_900">#303030</color>
 
     <!--<color name="white">#FFFFFF</color>
     <color name="accent">#009688</color>-->

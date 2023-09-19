@@ -20,9 +20,13 @@ package it.reyboz.bustorino.backend;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
+import android.text.Html;
+import android.text.Spanned;
 import android.util.Log;
 import android.util.TypedValue;
 import androidx.annotation.Nullable;
@@ -91,7 +95,10 @@ public abstract class utils {
     }
 
     public static float convertDipToPixels(Context con, float dp){
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,con.getResources().getDisplayMetrics());
+        return convertDipToPixels(con.getResources(), dp);
+    }
+    public static float convertDipToPixels(Resources res, float dp){
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,res.getDisplayMetrics());
     }
 
     /*
@@ -371,5 +378,13 @@ public abstract class utils {
             sb.append("; ");
         }
         return sb.toString();
+    }
+
+    public static Spanned convertHtml(String text) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return Html.fromHtml(text, Html.FROM_HTML_MODE_COMPACT);
+        } else {
+            return Html.fromHtml(text);
+        }
     }
 }

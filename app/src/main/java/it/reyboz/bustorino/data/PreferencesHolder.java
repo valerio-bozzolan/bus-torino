@@ -31,6 +31,7 @@ import androidx.preference.PreferenceManager;
 public abstract class PreferencesHolder {
 
     public static final String PREF_GTFS_DB_VERSION = "gtfs_db_version";
+    public static final String PREF_INTRO_ACTIVITY_RUN ="pref_intro_activity_run";
 
     public static SharedPreferences getMainSharedPreferences(Context context){
         return context.getSharedPreferences(context.getString(R.string.mainSharedPreferences), MODE_PRIVATE);
@@ -47,5 +48,15 @@ public abstract class PreferencesHolder {
         SharedPreferences.Editor ed = pref.edit();
         ed.putInt(PREF_GTFS_DB_VERSION,version);
         ed.apply();
+    }
+
+    /**
+     * Check if the introduction activity has been run at least one
+     * @param con the context needed
+     * @return true if it has been run
+     */
+    public static boolean hasIntroFinishedOneShot(Context con){
+        final SharedPreferences pref = getMainSharedPreferences(con);
+        return pref.getBoolean(PREF_INTRO_ACTIVITY_RUN, false);
     }
 }

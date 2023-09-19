@@ -10,8 +10,8 @@
     <ImageButton
             android:id="@+id/QRButton"
             style="?android:attr/borderlessButtonStyle"
-            android:layout_width="30dip"
-            android:layout_height="30dip"
+            android:layout_width="40dip"
+            android:layout_height="40dip"
             android:layout_alignBottom="@+id/searchButton"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"

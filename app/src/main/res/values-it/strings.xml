@@ -7,6 +7,8 @@
     <string name="qrcode">QR Code</string>
     <string name="yes">Si</string>
     <string name="no">No</string>
+    <string name="next">Prossimo</string>
+    <string name="previous">Precedente</string>
     <string name="title_barcode_scanner_install">Installare Barcode Scanner?</string>
     <string name="message_install_barcode_scanner">Questa azione richiede un\'altra app per scansionare i codici QR. Vuoi installare Barcode Scanner?</string>
     <string name="insert_bus_stop_number">Numero fermata</string>
@@ -49,7 +51,7 @@
     <string name="action_rename_bus_stop_username">Rinomina</string>
     <string name="dialog_rename_bus_stop_username_title">Rinomina fermata</string>
     <string name="dialog_rename_bus_stop_username_reset_button">Reset</string>
-    <string name="about">Informazioni</string>
+    <string name="about_activity">Informazioni</string>
     <string name="howDoesItWork"><b>Tocca la stella</b> per aggiungere la fermata ai preferiti\n\n<b>Come leggere gli orari:</b>
         \n<b>&#160;&#160;&#160;12:56*</b> Orario in tempo reale\n<b>&#160;&#160;&#160;12:56</b> &#160; Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario.
         \n<b>Tocca a lungo</b> su <b>Fonte Orari</b> per cambiare sorgente degli orari di arrivo.
@@ -60,7 +62,7 @@
         <h1>Benvenuto!</h1>
         
         <p>Grazie per aver scelto BusTO, un\'app <b>indipendente</b> da GTT/5T, per spostarsi a Torino attraverso <b>software libero</b>:</p>
-		
+		<br>
 		<p>Perché usare BusTO?</p>
 		<p>
         - Non sei <b>monitorato</b><br>
@@ -68,10 +70,10 @@
         - La tua <b>privacy</b> è al sicuro<br>
         - Inoltre l\'app è molto leggera!<br>
         </p>
-
-        <h2>Come Funziona?</h2>
-        <p>Quest\'app ottiene i passaggi dei bus in tempo reale filtrando i dati forniti pubblicamente sul sito <b>www.gtt.to.it</b> o <i>www.5t.torino.it</i> "per uso personale".</p>
-
+        <br>
+        <h2>Come funziona?</h2>
+        <p>Quest\'app ottiene i passaggi dei bus, le fermate e altre informazioni utili unendo dati forniti dal sito <b>www.gtt.to.it</b>, <i>www.5t.torino.it</i>, <b>muoversiatorino.it</b> "per uso personale" e altre fonti Open Data (aperto.comune.torino.it).</p>
+        <br>
 		<p>Ingredienti:<br>
 		- <b>Fabio Mazza</b> attuale rockstar developer anziano.<br>
 		- <b>Andrea Ugo</b> attuale rockstar developer in formazione.<br>
@@ -82,16 +84,18 @@
 		- <b>Marco Gagino</b> apprezzato ex collaboratore, ideatore icona e grafica.<br>
 		- <b>JSoup</b> libreria per "<i>web scaping</i>".<br>
 		- <b>Google</b> icone e libreria di supporto per il Material Design.<br>
-		- Tutti i contributori!
+		- Tutti i contributori e i beta tester!
 		</p>
-
+        <br>
 		<h2>Licenze</h2>
 		<p>L\'app e il relativo codice sorgente sono distribuiti sotto la licenza <i>GNU General Public License v3+</i>.
 		Ciò <b>significa</b> che puoi usare, studiare, migliorare e ricondividere quest\'app con <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: a patto di mantenere sempre questi diritti a tua volta e di dare credito a Valerio Bozzolan.
 		</p>
-		
+
+		<br>
 		<h2>Note</h2>
-		<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza NESSUNA garanzia.</p>
+		<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza NESSUNA garanzia sul suo funzionamento attuale e/o futuro.</p>
+		<p>Tutti i dati utilizzati dall\'app provengono <b>direttamente</b> da GTT o da simili agenzie pubbliche: se trovi che sono inesatti per qualche motivo, ti invitiamo a rivolgerti a loro.</p>
 		<p>Buon utilizzo! :)</p>
     ]]>
     </string>
@@ -105,7 +109,7 @@
 
 
     <string name="nearby_stops_message">Fermate vicine</string>
-    <string name="position_searching_message">Ricerca della posizione in corso&#8230;</string>
+    <string name="position_searching_message">Ricerca della posizione</string>
     <string name="no_stops_nearby">Nessuna fermata nei dintorni</string>
     <string name="main_menu_pref">Preferenze</string>
     <string name="database_update_msg_inapp">Aggiornamento del database&#8230;</string>
@@ -137,7 +141,7 @@
     <!--
     Mixed button strings
     !-->
-    <string name="open_telegram">Entra nel canale Telegram</string>
+    <string name="open_telegram"> Canale Telegram</string>
 
     <!--
     Map view buttons strings
@@ -217,6 +221,32 @@
     <string name="long_press_stop_4_options">Tocca a lungo la fermata per le opzioni</string>
     <string name="remove_all_trips">Rimuovi tutti i trip GTFS</string>
     <string name="all_trips_removed">Tutti i trip GTFS sono rimossi dal database</string>
+
+    <!-- tutorial -->
+    <string name="tutorial_action">Mostra tutorial</string>
+    <string name="tutorial_first">
+        <![CDATA[Grazie per aver installato BusTO, l\'app gratuita, libera e <b>open source</b> per il trasporto pubblico di Torino. Stai usando un\'app <b>indipendente</b>, senza pubblicità e senza nessun tracciamento.
+]]> </string>
+    <string name="tutorial_search"><![CDATA[Puoi cercare gli orari d\'arrivo ad una fermata inserendo il numero nella casella di ricerca.<br>
+Se ti trovi a una fermata, puoi scansionare il codice QR presente sulla palina toccando l\'icona a sinistra della barra di ricerca.]]>
+    </string>
+    <string name="tutorial_arrivals">
+        <![CDATA[Una volta trovata una fermata, puoi aggiungerla ai <b>preferiti</b> toccando la stella a fianco del nome.]]>
+    </string>
+    <string name="tutorial_stops">
+        <![CDATA[Con la posizione abilitata, puoi vedere le <b>fermate più vicine</b> a te direttamente nella schermata principale...]]>
+    </string>
+    <string name="tutorial_map">
+        <![CDATA[...oppure puoi trovarle sulla mappa, assieme alle <b>posizioni in tempo reale</b> dei bus e tram (in <font color="#2F59CC">blu</font>)]]>
+    </string>
+    <string name="tutorial_line">
+        <![CDATA[Scopri il percorso e le fermate della linea che preferisci, insieme alle posizioni in tempo reale dei bus/tram che la servono. Ricorda di scegliere la direzione che ti interessa!]]>
+    </string>
+    <string name="tutorial_menu">
+        <![CDATA[Tutte queste funzioni si trovano nel menu laterale.<br>
+Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su <b>Informazioni</b> per sapere di più sull\'app e il team di sviluppo.]]>
+    </string>
+    <string name="close_tutorial">Chiudi</string>
 
 
 </resources>

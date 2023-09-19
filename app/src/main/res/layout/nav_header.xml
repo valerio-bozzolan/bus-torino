@@ -27,8 +27,9 @@
         android:text="@string/app_name_full"
 
         android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        android:fontFamily="@font/pitagon_medium"
         android:textColor="@color/white"
-        android:textSize="20sp" />
+        android:textSize="22sp" />
 
     <!--<TextView
             android:text="@string/app_version"

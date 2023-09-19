@@ -32,6 +32,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import it.reyboz.bustorino.backend.utils;
 import it.reyboz.bustorino.middleware.BarcodeScanUtils;
 
 public class ActivityAbout extends AppCompatActivity {
@@ -40,7 +41,7 @@ public class ActivityAbout extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
-        Spanned htmlText = Html.fromHtml(getResources().getString(
+        Spanned htmlText = utils.convertHtml(getResources().getString(
                 R.string.about_history));
         TextView aboutTextView = findViewById(R.id.aboutTextView);
         assert aboutTextView != null;

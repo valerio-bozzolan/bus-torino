@@ -1,6 +1,9 @@
 package it.reyboz.bustorino.util
 
 import android.graphics.Rect
+import android.os.Build
+import android.text.Html
+import android.text.Spanned
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -91,5 +94,7 @@ class ViewUtils {
         }
 
         const val DEF_DURATION: Long = -2
+
+
     }
 }

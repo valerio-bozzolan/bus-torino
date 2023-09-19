@@ -82,25 +82,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         super.onCreate(savedInstanceState);
         Log.d(DEBUG_TAG, "onCreate, savedInstanceState is: "+savedInstanceState);
         setContentView(R.layout.activity_principal);
-        final SharedPreferences theShPr = getMainSharedPreferences();
         boolean showingArrivalsFromIntent = false;
-
-        //database check
-        GtfsDatabase gtfsDB = GtfsDatabase.Companion.getGtfsDatabase(this);
-
-        final int db_version = gtfsDB.getOpenHelper().getReadableDatabase().getVersion();
-        boolean dataUpdateRequested = false;
-        final int old_version = PreferencesHolder.getGtfsDBVersion(theShPr);
-        Log.d(DEBUG_TAG, "GTFS Database: old version is "+old_version+ ", new version is "+db_version);
-        if (old_version < db_version){
-            //decide update conditions in the future
-            if(old_version < 2 && db_version >= 2) {
-                dataUpdateRequested = true;
-                DatabaseUpdate.requestDBUpdateWithWork(this, true, true);
-            }
-            PreferencesHolder.setGtfsDBVersion(theShPr, db_version);
-        }
-
 
         Toolbar mToolbar = findViewById(R.id.default_toolbar);
         setSupportActionBar(mToolbar);
@@ -200,6 +182,23 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             requestArrivalsForStopID(busStopID); //this shows the fragment, too
             showingArrivalsFromIntent = true;
         }
+        //database check
+        GtfsDatabase gtfsDB = GtfsDatabase.Companion.getGtfsDatabase(this);
+
+        final int db_version = gtfsDB.getOpenHelper().getReadableDatabase().getVersion();
+        boolean dataUpdateRequested = false;
+        final SharedPreferences theShPr = getMainSharedPreferences();
+
+        final int old_version = PreferencesHolder.getGtfsDBVersion(theShPr);
+        Log.d(DEBUG_TAG, "GTFS Database: old version is "+old_version+ ", new version is "+db_version);
+        if (old_version < db_version){
+            //decide update conditions in the future
+            if(old_version < 2 && db_version >= 2) {
+                dataUpdateRequested = true;
+                DatabaseUpdate.requestDBUpdateWithWork(this, true, true);
+            }
+            PreferencesHolder.setGtfsDBVersion(theShPr, db_version);
+        }
         //Try (hopefully) database update
         if(!dataUpdateRequested)
             DatabaseUpdate.requestDBUpdateWithWork(this, false, false);
@@ -259,6 +258,12 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
         //last but not least, set the good default values
         manageDefaultValuesForSettings();
+
+        //check if first run activity (IntroActivity) has been started once or not
+        boolean hasIntroRun = theShPr.getBoolean(PreferencesHolder.PREF_INTRO_ACTIVITY_RUN,false);
+        if(!hasIntroRun){
+            startIntroductionActivity();
+        }
     }
     private ActionBarDrawerToggle setupDrawerToggle(Toolbar toolbar) {
         // NOTE: Make sure you pass in a valid toolbar reference.  ActionBarDrawToggle() does not require it
@@ -703,6 +708,12 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         ft.commit();
     }
 
+    void startIntroductionActivity(){
+        Intent intent = new Intent(ActivityPrincipal.this, ActivityIntro.class);
+        intent.putExtra(ActivityIntro.RESTART_MAIN, false);
+        startActivity(intent);
+    }
+
     class ToolbarItemClickListener implements Toolbar.OnMenuItemClickListener{
         private final Context activityContext;
 
@@ -712,23 +723,27 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
         @Override
         public boolean onMenuItemClick(MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.action_about:
-                    startActivity(new Intent(ActivityPrincipal.this, ActivityAbout.class));
-                    return true;
-                case R.id.action_hack:
-                    openIceweasel(getString(R.string.hack_url), activityContext);
-                    return true;
-                case R.id.action_source:
-                    openIceweasel("https://gitpull.it/source/libre-busto/", activityContext);
-                    return true;
-                case R.id.action_licence:
-                    openIceweasel("https://www.gnu.org/licenses/gpl-3.0.html", activityContext);
-                    return true;
-                case R.id.action_experiments:
-                    startActivity(new Intent(ActivityPrincipal.this, ActivityExperiments.class));
-                default:
+            final int id = item.getItemId();
+            if(id == R.id.action_about){
+                startActivity(new Intent(ActivityPrincipal.this, ActivityAbout.class));
+                return true;
+            } else if (id == R.id.action_hack) {
+                openIceweasel(getString(R.string.hack_url), activityContext);
+                return true;
+            } else if (id == R.id.action_source){
+                openIceweasel("https://gitpull.it/source/libre-busto/", activityContext);
+                return true;
+            } else if (id == R.id.action_licence){
+                openIceweasel("https://www.gnu.org/licenses/gpl-3.0.html", activityContext);
+                return true;
+            } else if (id == R.id.action_experiments) {
+                startActivity(new Intent(ActivityPrincipal.this, ActivityExperiments.class));
+                return true;
+            } else if (id == R.id.action_tutorial) {
+                startIntroductionActivity();
+                return true;
             }
+
             return false;
         }
     }

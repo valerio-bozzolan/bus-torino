@@ -11,6 +11,9 @@
     <string name="qrcode">Scan QR Code</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
     <string name="title_barcode_scanner_install">Install Barcode Scanner?</string>
     <string name="message_install_barcode_scanner">This application requires an app to scan the QR codes. Would you like
         to install Barcode Scanner now?
@@ -43,7 +46,7 @@
     <string name="no_qrcode">No QR code found, try using another app to scan</string>
     <string name="internal_error">Unexpected internal error, cannot extract data from GTT/5T website</string>
     <string name="action_help">Help</string>
-    <string name="action_about">About</string>
+    <string name="action_about">About the app</string>
     <string name="action_about_more">More about</string>
     <string name="action_wiki">Contribute</string>
     <string name="hack_url">https://gitpull.it/w/librebusto/en/</string>
@@ -60,7 +63,7 @@
     <string name="action_rename_bus_stop_username">Rename</string>
     <string name="dialog_rename_bus_stop_username_title">Rename the bus stop</string>
     <string name="dialog_rename_bus_stop_username_reset_button">Reset</string>
-    <string name="about">About</string>
+    <string name="about_activity">About the app</string>
     <string name="howDoesItWork">
         <b>Tap the star</b>
         to add the bus stop to the favourites\n\n<b>How to read timelines:</b>\n<b>&#160;&#160;&#160;12:56*</b> Real-time
@@ -75,7 +78,7 @@
         <h1>Welcome!</h1>
 
         <p>Thanks for using BusTO, a "politically" <b>independent</b> app useful to move around Torino using a <b>Free/Libre software</b>.</p>
-
+        <br>
         <p>Why use this app?</p>
 		<p>
         - You\'ll never be <b>tracked</b><br>
@@ -83,32 +86,34 @@
         - We\'ll always respect your <b>privacy</b><br>
         - Moreover, it\'s lightweight!<br>
         </p>
-
+        <br>
         <h2>How does it work?</h2>
-        <p>This app will show you bus timetables gathering data from <b>www.gtt.to.it</b> or <b>www.5t.torino.it</b> "for personal use".</p>
-
-		<p>Who worked on BusTO:<br>
-		- <b>Fabio Mazza</b> current senior rockstar developer.<br>
-        - <b>Andrea Ugo</b> current junior rockstar developer.<br>
-		- <b>Silviu Chiriac</b> designer of the 2021 logo.<br>
-		- <b>Marco M</b> rockstar tester and bug hunter.<br>
-		- <b>Ludovico Pavesi</b> previous senior rockstar developer asd.<br>
-		- <b>Valerio Bozzolan</b> maintainer and infrastructure sponsor.<br>
-		- <b>Marco Gagino</b> contributor and icon creator.<br>
+        <p>This app is able to do all the amazing things it does by pulling data from <b>www.gtt.to.it</b>, <b>www.5t.torino.it</b> or <b>muoversiatorino.it</b> "for personal use", along with open data from the AperTO (aperto.comune.torino.it) website.</p>
+        <br>
+		<p>The work of several people is behind this app, in particular:<br>
+		- <b>Fabio Mazza</b>, current senior rockstar developer.<br>
+        - <b>Andrea Ugo</b>, current junior rockstar developer.<br>
+		- <b>Silviu Chiriac</b>, designer of the 2021 logo.<br>
+		- <b>Marco M</b>, rockstar tester and bug hunter.<br>
+		- <b>Ludovico Pavesi</b>, previous senior rockstar developer (asd).<br>
+		- <b>Valerio Bozzolan</b>, maintainer and infrastructure (sponsor).<br>
+		- <b>Marco Gagino</b>, contributor and first icon creator.<br>
 		- <b>JSoup</b> web scraper library.<br>
 		- <b>makovkastar</b> floating buttons.<br>
-		- <b>Google</b> Material Design icons.<br>
-		- All the contributors!
+		- <b>Google</b> Material Design icons and Volley framework.<br>
+		- <b>Android</b> app components.<br>
+		- All the contributors, and the beta testers, too!
 		</p>
-		
+		<br>
 		<h2>Licenses</h2>
-		<p>The app and the related source code are released by Valerio Bozzolan under the terms of the <i>GNU General Public License v3+</i>).
+		<p>The app and the related source code are released by Valerio Bozzolan and the other authors under the terms of the <i>GNU General Public License v3+</i>).
 		So everyone is allowed to use, to study, to improve and to share this app by <b>any kind of means</b> and for <b>any purpose</b>: under the conditions of maintaining this rights and of attributing the original work to Valerio Bozzolan.</p>
-
+        <br>
 		<h2>Notes</h2>
-		<p>This app has been developed <b>hoping to be useful to everyone</b> but without ANY warranty.</p>
-		<p>This translation is kindly provided by Riccardo Caniato and Marco Gagino.</p>
-		<p>Get involved! :)</p>
+		<p>This app has been developed with the <b>hope to be useful to everyone</b>, but comes without ANY warranty of any kind.</p>
+		<p>The data used by the app comes <b>directly</b> from GTT and other public agencies: if you find any errors, please take it up to them, not to us.</p>
+		<p>This translation is kindly provided by Riccardo Caniato, Marco Gagino and Fabio Mazza.</p>
+		<p>Now you can hack public transport, too! :)</p>
     ]]>
     </string>
 
@@ -124,10 +129,10 @@
     <string name="nearby_stops_message">Nearby stops</string>
     <string name="nearby_arrivals_message">Nearby connections</string>
     <string name="app_version">App version</string>
-    <string name="num_stops_nearby_not_number">The number of stops to show in the recents is invalid</string>
+    <string name="num_stops_nearby_not_number">The number of stops to show in the recent stops is invalid</string>
     <string name="invalid_number">Invalid value, put a valid number</string>
 
-    <string name="position_searching_message">Finding the position&#8230;</string>
+    <string name="position_searching_message">Finding location</string>
     <string name="no_stops_nearby">No stops nearby</string>
     <string name="pref_num_elements">Minimum number of stops</string>
     <string name="main_menu_pref">Preferences</string>
@@ -155,7 +160,7 @@
     <!--
     Mixed button strings
     !-->
-    <string name="open_telegram">Join Telegram channel</string>
+    <string name="open_telegram"> Join Telegram channel</string>
     <!--
    Map view buttons strings
    !-->
@@ -251,4 +256,31 @@
 
     <string name="remove_all_trips">Remove all GTFS trips info</string>
     <string name="all_trips_removed">All GTFS trips have been removed from the database</string>
+
+    <!-- Tutorial strings -->
+    <string name="tutorial_action">Show tutorial</string>
+    <string name="tutorial_first">
+        <![CDATA[Thank you for installing BusTO, the free and <b>open source</b> app for Turin public transport. This is an <b>independent</b> app, with no ads and no tracking whatsoever.]]> </string>
+    <string name="tutorial_search"> <![CDATA[You can search for the arrival times at a bus stop by inserting the number in the top, or scanning a QR code when you are at the stop
+        touching the icon on the left ]]>
+    </string>
+    <string name="tutorial_arrivals">
+        <![CDATA[Once you have found a bus stop, you can save it in the <b>favorites</b> by touching the star next to its name]]>
+    </string>
+    <string name="tutorial_stops">
+        <![CDATA[You can see the stops near your position directly in the main screen...]]>
+    </string>
+
+    <string name="tutorial_map">
+    <![CDATA[...or you can find them in the map, along with the real-time positions of the buses running in the city (in <font color="#2F59CC">blue</font>)]]>
+    </string>
+    <string name="tutorial_line">
+        <![CDATA[You can also look at the line you want and see where the stops are, together with the vehicles serving the line at the moment. Remember to choose the direction you\'re interested in!]]>
+    </string>
+    <string name="tutorial_menu">
+        <![CDATA[You can find all of this from the lateral menu.
+Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About the app</b> section if you want to know more about the app and the developers.]]>
+    </string>
+    <string name="close_tutorial">Close</string>
+
 </resources>

@@ -20,9 +20,7 @@ package it.reyboz.bustorino.fragments;
 import android.content.Context;
 
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -30,9 +28,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.CursorLoader;
-import androidx.loader.content.Loader;
 import androidx.core.util.Pair;
 import androidx.preference.PreferenceManager;
 import androidx.appcompat.widget.AppCompatButton;
@@ -53,9 +48,7 @@ import it.reyboz.bustorino.adapters.ArrivalsStopAdapter;
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.backend.mato.MapiArrivalRequest;
 import it.reyboz.bustorino.data.DatabaseUpdate;
-import it.reyboz.bustorino.data.NextGenDB;
 import it.reyboz.bustorino.middleware.AppLocationManager;
-import it.reyboz.bustorino.data.AppDataProvider;
 import it.reyboz.bustorino.adapters.SquareStopAdapter;
 import it.reyboz.bustorino.middleware.AutoFitGridLayoutManager;
 import it.reyboz.bustorino.util.LocationCriteria;
@@ -105,7 +98,7 @@ public class NearbyStopsFragment extends Fragment {
     private int distance = 10;
     protected SharedPreferences globalSharedPref;
     private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
-    private TextView messageTextView,titleTextView;
+    private TextView messageTextView,titleTextView, loadingTextView;
     private CommonScrollListener scrollListener;
     private AppCompatButton switchButton;
     private boolean firstLocForStops = true,firstLocForArrivals = true;
@@ -175,10 +168,11 @@ public class NearbyStopsFragment extends Fragment {
         gridLayoutManager = new AutoFitGridLayoutManager(getContext().getApplicationContext(), Float.valueOf(utils.convertDipToPixels(getContext(),COLUMN_WIDTH_DP)).intValue());
         gridRecyclerView.setLayoutManager(gridLayoutManager);
         gridRecyclerView.setHasFixedSize(false);
-        circlingProgressBar = root.findViewById(R.id.loadingBar);
+        circlingProgressBar = root.findViewById(R.id.circularProgressBar);
         flatProgressBar = root.findViewById(R.id.horizontalProgressBar);
         messageTextView = root.findViewById(R.id.messageTextView);
         titleTextView = root.findViewById(R.id.titleTextView);
+        loadingTextView = root.findViewById(R.id.positionLoadingTextView);
         switchButton = root.findViewById(R.id.switchButton);
 
         scrollListener = new CommonScrollListener(mListener,false);
@@ -276,12 +270,14 @@ public class NearbyStopsFragment extends Fragment {
                 if(dataAdapter!=null){
                     gridRecyclerView.setAdapter(dataAdapter);
                     circlingProgressBar.setVisibility(View.GONE);
+                    loadingTextView.setVisibility(View.GONE);
                 }
                 break;
             case ARRIVALS:
                 if(arrivalsStopAdapter!=null){
                     gridRecyclerView.setAdapter(arrivalsStopAdapter);
                     circlingProgressBar.setVisibility(View.GONE);
+                    loadingTextView.setVisibility(View.GONE);
                 }
         }
 
@@ -413,6 +409,7 @@ public class NearbyStopsFragment extends Fragment {
         //showRecyclerHidingLoadMessage();
         if (gridRecyclerView.getVisibility() != View.VISIBLE) {
             circlingProgressBar.setVisibility(View.GONE);
+            loadingTextView.setVisibility(View.GONE);
             gridRecyclerView.setVisibility(View.VISIBLE);
         }
         messageTextView.setVisibility(View.GONE);
@@ -457,6 +454,7 @@ public class NearbyStopsFragment extends Fragment {
         messageTextView.setVisibility(View.VISIBLE);
         messageTextView.setText(R.string.no_stops_nearby);
         circlingProgressBar.setVisibility(View.GONE);
+        loadingTextView.setVisibility(View.GONE);
     }
 
     /**
@@ -465,6 +463,7 @@ public class NearbyStopsFragment extends Fragment {
     private void showRecyclerHidingLoadMessage(){
         if (gridRecyclerView.getVisibility() != View.VISIBLE) {
             circlingProgressBar.setVisibility(View.GONE);
+            loadingTextView.setVisibility(View.GONE);
             gridRecyclerView.setVisibility(View.VISIBLE);
         }
         messageTextView.setVisibility(View.GONE);

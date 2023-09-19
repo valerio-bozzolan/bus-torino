@@ -390,6 +390,9 @@ public class MapFragment extends ScreenBaseFragment {
         }
         */
         else Log.e(DEBUG_TAG, "livePositionsViewModel is null at onResume");
+
+        //rerequest stop
+        stopsViewModel.requestStopsInBoundingBox(map.getBoundingBox());
     }
 
     private void startRequestsPositions(){

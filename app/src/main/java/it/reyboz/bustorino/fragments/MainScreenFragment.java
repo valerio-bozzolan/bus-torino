@@ -4,6 +4,7 @@ package it.reyboz.bustorino.fragments;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -32,12 +33,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -47,6 +45,7 @@ import java.util.Map;
 
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.*;
+import it.reyboz.bustorino.data.PreferencesHolder;
 import it.reyboz.bustorino.middleware.AppLocationManager;
 import it.reyboz.bustorino.middleware.AsyncArrivalsSearcher;
 import it.reyboz.bustorino.middleware.AsyncStopsSearcher;
@@ -88,7 +87,6 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
 
     private boolean setupOnStart = true;
     private boolean suppressArrivalsReload = false;
-    private boolean instanceStateSaved = false;
     //private Snackbar snackbar;
     /*
      * Search mode
@@ -153,7 +151,8 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             });
 
     /// LOCATION STUFF ///
-    boolean pendingNearbyStopsRequest = false;
+    boolean pendingIntroRun = false;
+    boolean pendingNearbyStopsFragmentRequest = false;
     boolean locationPermissionGranted, locationPermissionAsked = false;
     AppLocationManager locationManager;
     private final ActivityResultLauncher<String[]> requestPermissionLauncher =
@@ -169,7 +168,8 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                     boolean resCoarse = result.get(Manifest.permission.ACCESS_COARSE_LOCATION);
                     boolean resFine = result.get(Manifest.permission.ACCESS_FINE_LOCATION);
                     Log.d(DEBUG_TAG, "Permissions for location are: "+result);
-                    if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) && result.get(Manifest.permission.ACCESS_FINE_LOCATION)){
+                    if(Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION))
+                            && Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION))){
                         locationPermissionGranted = true;
                         Log.w(DEBUG_TAG, "Starting position");
                         if (mListener!= null && getContext()!=null){
@@ -180,12 +180,12 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                         // show nearby fragment
                         //showNearbyStopsFragment();
                         Log.d(DEBUG_TAG, "We have location permission");
-                        if(pendingNearbyStopsRequest){
+                        if(pendingNearbyStopsFragmentRequest){
                             showNearbyFragmentIfNeeded(cr);
-                            pendingNearbyStopsRequest = false;
+                            pendingNearbyStopsFragmentRequest = false;
                         }
                     }
-                    if(pendingNearbyStopsRequest) pendingNearbyStopsRequest=false;
+                    if(pendingNearbyStopsFragmentRequest) pendingNearbyStopsFragmentRequest =false;
                 }
             });
 
@@ -228,7 +228,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                 if(!checkLocationPermission())
                     Log.e(DEBUG_TAG, "Asking to show nearbystopfragment when " +
                             "we have no location permission");
-                pendingNearbyStopsRequest = true;
+                pendingNearbyStopsFragmentRequest = true;
                 //mainHandler.post(new NearbyStopsRequester(getContext(), cr));
                 showNearbyFragmentIfNeeded(cr);
             }
@@ -335,7 +335,6 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         Log.d(DEBUG_TAG, "OnCreateView, savedInstanceState null: "+(savedInstanceState==null));
 
 
-
         return root;
     }
 
@@ -357,7 +356,6 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         if (getChildFragmentManager().findFragmentById(R.id.resultFrame)!= null){
             swipeRefreshLayout.setVisibility(View.VISIBLE);
         }
-        instanceStateSaved = false;
 
     }
 
@@ -370,7 +368,6 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             getChildFragmentManager().putFragment(outState, SAVED_FRAGMENT, fragment);
         if (fragmentHelper!=null) fragmentHelper.setBlockAllActivities(true);
 
-        instanceStateSaved = true;
     }
 
     public void setSuppressArrivalsReload(boolean value){
@@ -428,16 +425,21 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         Log.d(DEBUG_TAG, "onStart called, setupOnStart: "+setupOnStart);
         if (setupOnStart) {
             if (pendingStopID==null){
-                //We want the nearby bus stops!
-                //mainHandler.post(new NearbyStopsRequester(getContext(), cr));
-                Log.d(DEBUG_TAG, "Showing nearby stops");
-                if(!checkLocationPermission()){
-                    requestLocationPermission();
-                    pendingNearbyStopsRequest = true;
+
+                if(PreferencesHolder.hasIntroFinishedOneShot(requireContext())){
+                    Log.d(DEBUG_TAG, "Showing nearby stops");
+                    if(!checkLocationPermission()){
+                        requestLocationPermission();
+                        pendingNearbyStopsFragmentRequest = true;
+                    }
+                    else {
+                        showNearbyFragmentIfNeeded(cr);
+                    }
+                } else {
+                    //The Introductory Activity is about to be started, hence pause the request and show later
+                    pendingIntroRun = true;
                 }
-                else {
-                    showNearbyFragmentIfNeeded(cr);
-                }
+
             }
             else{
                 ///TODO: if there is a stop displayed, we need to hold the update
@@ -449,23 +451,30 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
 
     @Override
     public void onResume() {
-
-        final Context con = getContext();
-        Log.w(DEBUG_TAG, "OnResume called, setupOnStart: "+ setupOnStart);
-        if (con != null) {
-            if(locationManager==null)
-                locationManager = AppLocationManager.getInstance(con);
-
-            if(Permissions.locationPermissionGranted(con)){
-                Log.d(DEBUG_TAG, "Location permission OK");
-                if(!locationManager.isRequesterRegistered(requester))
-                    locationManager.addLocationRequestFor(requester);
-            } //don't request permission
-        }
-        else {
-            Log.w(DEBUG_TAG, "Context is null at onResume");
-        }
         super.onResume();
+
+        final Context con = requireContext();
+        Log.w(DEBUG_TAG, "OnResume called, setupOnStart: "+ setupOnStart);
+        if (locationManager == null)
+            locationManager = AppLocationManager.getInstance(con);
+        //recheck the introduction activity has been run
+        if(pendingIntroRun && PreferencesHolder.hasIntroFinishedOneShot(con)){
+            //request position permission if needed
+            if(!checkLocationPermission()){
+                requestLocationPermission();
+                pendingNearbyStopsFragmentRequest = true;
+            }
+            else {
+                showNearbyFragmentIfNeeded(cr);
+            }
+            //deactivate flag
+            pendingIntroRun = false;
+        }
+        if(Permissions.locationPermissionGranted(con)){
+            Log.d(DEBUG_TAG, "Location permission OK");
+            if(!locationManager.isRequesterRegistered(requester))
+                locationManager.addLocationRequestFor(requester);
+        } //don't request permission
         // if we have a pending stopID request, do it
         Log.d(DEBUG_TAG, "Pending stop ID for arrivals: "+pendingStopID);
         //this is the second time we are attaching this fragment
@@ -654,9 +663,9 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             FragmentTransaction ft = fragMan.beginTransaction();
 
             ft.replace(R.id.resultFrame, fragment, NearbyStopsFragment.FRAGMENT_TAG);
-            if (getActivity()!=null && !getActivity().isFinishing() &&!instanceStateSaved)
+            if (getActivity()!=null && !getActivity().isFinishing())
             ft.commit();
-            else Log.e(DEBUG_TAG, "Not showing nearby fragment because we saved instanceState");
+            else Log.e(DEBUG_TAG, "Not showing nearby fragment because activity null or is finishing");
         }
     }
 
@@ -680,9 +689,9 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         if (fragmentType == FragmentKind.ARRIVALS || fragmentType == FragmentKind.STOPS) {
             hideKeyboard();
 
-            if (pendingNearbyStopsRequest) {
+            if (pendingNearbyStopsFragmentRequest) {
                 locationManager.removeLocationRequestFor(requester);
-                pendingNearbyStopsRequest = false;
+                pendingNearbyStopsFragmentRequest = false;
             }
         }
 
@@ -788,9 +797,9 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                 && fragmentHelper.getLastSuccessfullySearchedBusStop() == null
                 && !fragMan.isDestroyed()) {
             //Go ahead with the request
-            Log.d("mainActivity", "Recreating stop fragment");
+
             actuallyShowNearbyStopsFragment();
-            pendingNearbyStopsRequest = false;
+            pendingNearbyStopsFragmentRequest = false;
         } else if(!haveProviders){
             Log.e(DEBUG_TAG, "NO PROVIDERS FOR POSITION");
         }

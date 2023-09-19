@@ -36,7 +36,7 @@ public class ActivityExperiments extends GeneralActivity implements CommonFragme
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(false);
             actionBar.setIcon(R.drawable.ic_launcher);
         }
         if (savedInstanceState==null) {
@@ -48,13 +48,14 @@ public class ActivityExperiments extends GeneralActivity implements CommonFragme
                             LinesDetailFragment.Companion.makeArgs("gtt:4U"))
 
                     */
-                    .add(R.id.fragment_container_view, LinesGridShowingFragment.class, null)
-                    .commit();
+                    //.add(R.id.fragment_container_view, LinesGridShowingFragment.class, null)
+                    //.add(R.id.fragment_container_view, IntroFragment.class, IntroFragment.makeArguments(0))
+                    //.commit();
 
                     //.add(R.id.fragment_container_view, LinesDetailFragment.class,
                     //        LinesDetailFragment.Companion.makeArgs("gtt:4U"))
-                    //.add(R.id.fragment_container_view, TestRealtimeGtfsFragment.class, null)
-                    //.commit();
+                    .add(R.id.fragment_container_view, TestRealtimeGtfsFragment.class, null)
+                    .commit();
         }
     }
 

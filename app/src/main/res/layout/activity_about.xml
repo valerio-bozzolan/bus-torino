@@ -20,6 +20,8 @@
             android:layout_marginRight="@dimen/activity_horizontal_margin"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:layout_weight="0.85"
+            android:fontFamily="@font/nevermind_compact"
+            android:textColor="@color/grey_700"
     />
     <View
             android:layout_width="match_parent"
@@ -39,7 +41,8 @@
             android:paddingLeft="10dp"
             android:id="@+id/openTelegramButton"
             android:drawableLeft = "@drawable/telegram_logo_50"
-            android:drawableStart="@drawable/telegram_logo_50" />
+            android:drawableStart="@drawable/telegram_logo_50"
+            android:fontFamily="@font/pitagon_semibold"/>
 
     <TextView
             android:text="@string/app_version"

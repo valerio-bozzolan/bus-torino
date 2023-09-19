@@ -13,10 +13,12 @@
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW"/>
+
             <data android:scheme="http"/>
         </intent>
         <intent>
             <action android:name="android.intent.action.VIEW"/>
+
             <data android:scheme="https"/>
         </intent>
         <intent>
@@ -35,6 +37,9 @@
             android:networkSecurityConfig="@xml/networks_security_config"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:theme="@style/AppTheme.NoActionBar">
+        <activity
+                android:name=".ActivityIntro"
+                android:exported="false"/>
         <activity
                 android:name=".ActivityExperiments"
                 android:label="@string/experiments"
@@ -87,7 +92,7 @@
         </activity>
         <activity
                 android:name=".ActivityAbout"
-                android:label="@string/about"
+                android:label="@string/about_activity"
                 android:parentActivityName=".ActivityPrincipal"
                 android:theme="@style/AboutTheme">
 
@@ -102,8 +107,7 @@
                 android:authorities="it.reyboz.bustorino.provider"
                 android:enabled="true"
                 android:exported="false">
-        </provider>
-        <!-- Don't show the additional frame on samsung phones -->
+        </provider> <!-- Don't show the additional frame on samsung phones -->
         <meta-data
                 android:name="com.samsung.android.icon_container.has_icon_container"
                 android:value="true"/>
