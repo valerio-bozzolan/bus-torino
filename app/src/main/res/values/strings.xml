@@ -39,7 +39,7 @@
     <string name="extraurban_lines">Extra urban lines</string>
     <string name="turist_lines">Tourist lines</string>
 
-    <string name="direction_duep">Heading to:</string>
+    <string name="direction_duep">Destination:</string>
     <string name="lines_fill">Lines: %1$s</string>
     <string name="line_fill">Line: %1$s</string>
     <string name="no_passages">No timetable found</string>
@@ -55,6 +55,9 @@
     <string name="action_author">Meet the author</string>
     <string name="added_in_favorites">Bus stop is now in your favorites</string>
     <string name="removed_from_favorites">Bus stop removed from your favorites</string>
+    <string name="favorites_line_add">Added line to favorites</string>
+    <string name="favorites_line_remove">Remove line from favorites</string>
+    <string name="favorites_lines">Favorites</string>
     <string name="action_favorites">Favorites</string>
     <string name="title_activity_favorites">Favorites</string>
     <string name="title_activity_map">Map</string>
@@ -281,6 +284,6 @@
         <![CDATA[You can find all of this from the lateral menu.
 Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About the app</b> section if you want to know more about the app and the developers.]]>
     </string>
-    <string name="close_tutorial">Close</string>
+    <string name="close_tutorial">OK, close the tutorial</string>
 
 </resources>

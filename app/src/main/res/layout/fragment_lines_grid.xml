@@ -18,6 +18,44 @@
             <ImageView
                     android:src="@drawable/baseline_chevron_right_24"
                     android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/arrowFavorites"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="@id/favoritesTitleView"
+                    android:layout_margin="4dp"
+                    android:layout_marginStart="16dp"
+                    android:rotation="90"
+            />
+            <TextView android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="@string/favorites_lines"
+                      android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+                      android:textSize="@dimen/subtitle_size"
+                      android:layout_margin="4dp"
+                      android:textColor="@color/black_900"
+                      android:gravity="center"
+                      android:id="@+id/favoritesTitleView"
+                      app:layout_constraintTop_toTopOf="parent"
+                      app:layout_constraintLeft_toRightOf="@id/arrowFavorites"
+                      app:layout_constraintBottom_toTopOf="@id/favoritesRecyclerView"
+                      android:layout_marginLeft="6dp"
+                      app:layout_constraintVertical_bias="0.0"
+                      app:layout_constraintVertical_chainStyle="packed"/>
+            <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/favoritesRecyclerView"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginRight="20dp"
+                    android:visibility="visible"
+                    app:layout_constraintTop_toBottomOf="@id/favoritesTitleView"
+                    app:layout_constraintBottom_toTopOf="@id/urbanLinesTitleView"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintVertical_bias="0.0"
+
+            />
+            <ImageView
+                    android:src="@drawable/baseline_chevron_right_24"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content" android:id="@+id/arrowUrb"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintBottom_toBottomOf="@id/urbanLinesTitleView"
@@ -34,12 +72,12 @@
                       android:textColor="@color/black_900"
                       android:gravity="center"
                       android:id="@+id/urbanLinesTitleView"
-                      app:layout_constraintTop_toTopOf="parent"
+                      app:layout_constraintTop_toBottomOf="@id/favoritesRecyclerView"
                       app:layout_constraintLeft_toRightOf="@id/arrowUrb"
                       app:layout_constraintBottom_toTopOf="@id/urbanLinesRecyclerView"
                       android:layout_marginLeft="6dp"
                       app:layout_constraintVertical_bias="0.0"
-                      app:layout_constraintVertical_chainStyle="packed"/>
+            />
             <androidx.recyclerview.widget.RecyclerView
                     android:layout_width="match_parent"
                     android:layout_height="0dp"

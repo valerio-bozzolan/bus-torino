@@ -35,4 +35,8 @@ class GtfsRepository(
     fun getAllRoutes(): LiveData<List<GtfsRoute>>{
         return  gtfsDao.getAllRoutes()
     }
+
+    fun getRouteFromGtfsId(gtfsId: String): LiveData<GtfsRoute>{
+        return gtfsDao.getRouteByGtfsID(gtfsId)
+    }
 }

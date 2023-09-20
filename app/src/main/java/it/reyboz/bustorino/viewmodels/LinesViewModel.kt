@@ -52,6 +52,9 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
         gtfsRepo.getPatternsWithStopsForRouteID(it)
 
     }
+    val gtfsRoute = routeIDToSearch.switchMap {
+        gtfsRepo.getRouteFromGtfsId(it)
+    }
 
 
     fun setRouteIDQuery(routeID: String){

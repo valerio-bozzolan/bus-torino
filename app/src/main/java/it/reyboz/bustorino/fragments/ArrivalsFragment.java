@@ -409,7 +409,7 @@ public class ArrivalsFragment extends ResultBaseFragment implements LoaderManage
 
             final ArrayList<String> routesWithNoPassages = lastUpdatedPalina.getRoutesNamesWithNoPassages();
             Collections.sort(routesWithNoPassages, new LinesNameSorter());
-            noArrivalsAdapter = new RouteOnlyLineAdapter(routesWithNoPassages);
+            noArrivalsAdapter = new RouteOnlyLineAdapter(routesWithNoPassages, null);
             if(noArrivalsRecyclerView!=null){
                 noArrivalsRecyclerView.setAdapter(noArrivalsAdapter);
                 //hide the views if there are no empty routes

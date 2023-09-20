@@ -15,7 +15,9 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.RecyclerView
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.adapters.RouteAdapter
+import it.reyboz.bustorino.adapters.RouteOnlyLineAdapter
 import it.reyboz.bustorino.backend.utils
+import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.GtfsRoute
 import it.reyboz.bustorino.middleware.AutoFitGridLayoutManager
 import it.reyboz.bustorino.util.LinesNameSorter
@@ -29,11 +31,12 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
 
     private val viewModel: LinesGridShowingViewModel by viewModels()
     //private lateinit var gridLayoutManager: AutoFitGridLayoutManager
-
+    private lateinit var favoritesRecyclerView: RecyclerView
     private lateinit var urbanRecyclerView: RecyclerView
     private lateinit var extraurbanRecyclerView: RecyclerView
     private lateinit var touristRecyclerView: RecyclerView
 
+    private lateinit var favoritesTitle: TextView
     private lateinit var urbanLinesTitle: TextView
     private lateinit var extrurbanLinesTitle: TextView
     private lateinit var touristLinesTitle: TextView
@@ -53,7 +56,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
         return@Comparator linesNameSorter.compare(a.shortName, b.shortName)
     }
 
-    private val routeClickListener = RouteAdapter.onItemClick {
+    private val routeClickListener = RouteAdapter.ItemClicker {
         fragmentListener.showLineOnMap(it.gtfsId)
     }
     private val arrows = HashMap<String, ImageView>()
@@ -66,10 +69,12 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
     ): View? {
         val rootView =  inflater.inflate(R.layout.fragment_lines_grid, container, false)
 
+        favoritesRecyclerView = rootView.findViewById(R.id.favoritesRecyclerView)
         urbanRecyclerView = rootView.findViewById(R.id.urbanLinesRecyclerView)
         extraurbanRecyclerView = rootView.findViewById(R.id.extraurbanLinesRecyclerView)
         touristRecyclerView = rootView.findViewById(R.id.touristLinesRecyclerView)
 
+        favoritesTitle = rootView.findViewById(R.id.favoritesTitleView)
         urbanLinesTitle = rootView.findViewById(R.id.urbanLinesTitleView)
         extrurbanLinesTitle = rootView.findViewById(R.id.extraurbanLinesTitleView)
         touristLinesTitle = rootView.findViewById(R.id.touristLinesTitleView)
@@ -77,6 +82,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
         arrows[AG_URBAN] = rootView.findViewById(R.id.arrowUrb)
         arrows[AG_TOUR] = rootView.findViewById(R.id.arrowTourist)
         arrows[AG_EXTRAURB] = rootView.findViewById(R.id.arrowExtraurban)
+        arrows[AG_FAV] = rootView.findViewById(R.id.arrowFavorites)
         //show urban expanded by default
 
         val recViews = listOf(urbanRecyclerView, extraurbanRecyclerView,  touristRecyclerView)
@@ -87,6 +93,13 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
             )
             recyView.layoutManager = gridLayoutManager
         }
+        //init favorites recyclerview
+        val gridLayoutManager = AutoFitGridLayoutManager(
+            requireContext().applicationContext,
+            (utils.convertDipToPixels(context, 70f)).toInt()
+        )
+        favoritesRecyclerView.layoutManager = gridLayoutManager
+
 
         viewModel.routesLiveData.observe(viewLifecycleOwner){
             //routesList = ArrayList(it)
@@ -116,6 +129,15 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
             }
 
         }
+        viewModel.favoritesLines.observe(viewLifecycleOwner){ routes->
+            val routesNames = routes.map { it.shortName }
+            //create new item click listener every time
+            val adapter = RouteOnlyLineAdapter(routesNames){  pos, _ ->
+                val r = routes[pos]
+                fragmentListener.showLineOnMap(r.gtfsId)
+            }
+            favoritesRecyclerView.adapter = adapter
+        }
 
         //onClicks
         urbanLinesTitle.setOnClickListener {
@@ -127,13 +149,32 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
         touristLinesTitle.setOnClickListener {
             openLinesAndCloseOthersIfNeeded(AG_TOUR)
         }
+        favoritesTitle.setOnClickListener {
+            closeOpenFavorites()
+        }
+        arrows[AG_FAV]?.setOnClickListener {
+            closeOpenFavorites()
+        }
         //arrows onClicks
-        for(k in arrows.keys){
+        for(k in Companion.AGENCIES){
             //k is either AG_TOUR, AG_EXTRAURBAN, AG_URBAN
             arrows[k]?.setOnClickListener { openLinesAndCloseOthersIfNeeded(k) }
         }
 
+
         return rootView
+    }
+    private fun closeOpenFavorites(){
+        if(favoritesRecyclerView.visibility == View.VISIBLE){
+            //close it
+            favoritesRecyclerView.visibility = View.GONE
+            setOpen(arrows[AG_FAV]!!, false)
+            viewModel.favoritesExpanded.value = false
+        } else{
+            favoritesRecyclerView.visibility = View.VISIBLE
+            setOpen(arrows[AG_FAV]!!, true)
+            viewModel.favoritesExpanded.value = true
+        }
     }
 
     private fun openLinesAndCloseOthersIfNeeded(agency: String){
@@ -205,6 +246,20 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
 
     override fun onResume() {
         super.onResume()
+        val pref = PreferencesHolder.getMainSharedPreferences(requireContext())
+        val res = pref.getStringSet(PreferencesHolder.PREF_FAVORITE_LINES, HashSet())
+        res?.let { viewModel.setFavoritesLinesIDs(HashSet(it))}
+        //restore state
+        viewModel.favoritesExpanded.value?.let {
+            if(!it){
+                //close it
+                favoritesRecyclerView.visibility = View.GONE
+                setOpen(arrows[AG_FAV]!!, false)
+            } else{
+                favoritesRecyclerView.visibility = View.VISIBLE
+                setOpen(arrows[AG_FAV]!!, true)
+            }
+        }
         viewModel.isUrbanExpanded.value?.let {
             if(it) {
                 urbanRecyclerView.visibility = View.VISIBLE
@@ -246,6 +301,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
 
     companion object {
         private const val COLUMN_WIDTH_DP=200
+        private const val AG_FAV = "fav"
         private const val AG_URBAN = "gtt:U"
         private const val AG_EXTRAURB ="gtt:E"
         private const val AG_TOUR ="gtt:T"

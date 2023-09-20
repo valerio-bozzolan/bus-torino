@@ -11,11 +11,11 @@ import it.reyboz.bustorino.data.gtfs.GtfsRoute
 import java.lang.ref.WeakReference
 
 class RouteAdapter(val routes: List<GtfsRoute>,
-                    click: onItemClick,
-                    private val layoutId: Int = R.layout.line_title_header) :
+                   click: ItemClicker,
+                   private val layoutId: Int = R.layout.line_title_header) :
     RecyclerView.Adapter<RouteAdapter.ViewHolder>()
 {
-        val clickreference: WeakReference<onItemClick>
+        val clickreference: WeakReference<ItemClicker>
         init {
             clickreference = WeakReference(click)
         }
@@ -53,7 +53,7 @@ class RouteAdapter(val routes: List<GtfsRoute>,
         }
     }
 
-    fun interface onItemClick{
+    fun interface ItemClicker{
         fun onRouteItemClicked(gtfsRoute: GtfsRoute)
     }
 }

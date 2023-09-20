@@ -211,11 +211,14 @@
     <string name="pref_shown_startup_def_desc">Tocca per cambiare</string>
 
     <string name="positions_source_pref_title">Fonte posizioni in tempo reale di bus e tram</string>
-
     <array name="positions_source_sel">
         <item>MaTO (aggiornate più spesso, può non funzionare)</item>
         <item>GTFS RT (più stabile)</item>
     </array>
+
+    <string name="favorites_line_add">Linea aggiunta ai preferiti</string>
+    <string name="favorites_line_remove">Linea rimossa dai preferiti</string>
+    <string name="favorites_lines">Preferite</string>
 
     <!-- lines -->
     <string name="long_press_stop_4_options">Tocca a lungo la fermata per le opzioni</string>
@@ -246,7 +249,7 @@ Se ti trovi a una fermata, puoi scansionare il codice QR presente sulla palina t
         <![CDATA[Tutte queste funzioni si trovano nel menu laterale.<br>
 Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su <b>Informazioni</b> per sapere di più sull\'app e il team di sviluppo.]]>
     </string>
-    <string name="close_tutorial">Chiudi</string>
+    <string name="close_tutorial">Capito, chiudi il tutorial</string>
 
 
 </resources>

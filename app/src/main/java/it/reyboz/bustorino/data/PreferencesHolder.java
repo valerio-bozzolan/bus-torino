@@ -19,11 +19,15 @@ package it.reyboz.bustorino.data;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 import it.reyboz.bustorino.R;
 
 import static android.content.Context.MODE_PRIVATE;
 
 import androidx.preference.PreferenceManager;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Static class for commonly used SharedPreference operations
@@ -32,6 +36,8 @@ public abstract class PreferencesHolder {
 
     public static final String PREF_GTFS_DB_VERSION = "gtfs_db_version";
     public static final String PREF_INTRO_ACTIVITY_RUN ="pref_intro_activity_run";
+
+    public static final String PREF_FAVORITE_LINES = "pref_favorite_lines";
 
     public static SharedPreferences getMainSharedPreferences(Context context){
         return context.getSharedPreferences(context.getString(R.string.mainSharedPreferences), MODE_PRIVATE);
@@ -58,5 +64,28 @@ public abstract class PreferencesHolder {
     public static boolean hasIntroFinishedOneShot(Context con){
         final SharedPreferences pref = getMainSharedPreferences(con);
         return pref.getBoolean(PREF_INTRO_ACTIVITY_RUN, false);
+    }
+
+    public static boolean addOrRemoveLineToFavorites(Context con, String gtfsLineId, boolean addToFavorites){
+        final SharedPreferences pref = getMainSharedPreferences(con);
+        final HashSet<String> favorites = new HashSet<>(pref.getStringSet(PREF_FAVORITE_LINES, new HashSet<>()));
+        boolean modified = true;
+        if(addToFavorites)
+            favorites.add(gtfsLineId);
+        else if(favorites.contains(gtfsLineId))
+            favorites.remove(gtfsLineId);
+        else
+            modified = false; // we are not changing anything
+        if(modified) {
+            final SharedPreferences.Editor editor = pref.edit();
+            editor.putStringSet(PREF_FAVORITE_LINES, favorites);
+            editor.apply();
+        }
+        return modified;
+    }
+
+    public static HashSet<String> getFavoritesLinesGtfsIDs(Context con){
+        final SharedPreferences pref = getMainSharedPreferences(con);
+        return new HashSet<>(pref.getStringSet(PREF_FAVORITE_LINES, new HashSet<>()));
     }
 }

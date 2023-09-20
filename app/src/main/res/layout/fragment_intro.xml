@@ -20,7 +20,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/tutorialTextView"
             app:layout_constraintTop_toBottomOf="@+id/image_tutorial"
-            android:layout_marginTop="60dp"
+            android:layout_marginTop="30dp"
             android:maxWidth="280dp"
             android:textSize="18sp"
             android:textAlignment="center"
@@ -37,7 +37,9 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="@id/tutorialTextView"
             android:backgroundTint="?colorPrimaryDark"
+            android:fontFamily="@font/pitagon_semibold"
             android:textColor="@color/white"
-            app:layout_constraintEnd_toEndOf="@id/tutorialTextView" android:layout_marginTop="12dp"/>
+            app:layout_constraintEnd_toEndOf="@id/tutorialTextView"
+            android:layout_marginTop="18dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -26,8 +26,8 @@ interface GtfsDBDao {
     @Query("SELECT * FROM "+GtfsRoute.DB_TABLE)
     fun getAllRoutes() : LiveData<List<GtfsRoute>>
 
-    @Query("SELECT * FROM ${GtfsRoute.DB_TABLE} WHERE ${GtfsRoute.COL_ROUTE_ID} IN (:routeGtfsIds)")
-    fun getRoutesByIDs(routeGtfsIds: List<String>): LiveData<List<GtfsRoute>>
+    @Query("SELECT * FROM ${GtfsRoute.DB_TABLE} WHERE ${GtfsRoute.COL_ROUTE_ID} LIKE :gtfsId")
+    fun getRouteByGtfsID(gtfsId: String) : LiveData<GtfsRoute>
 
 
     @Query("SELECT "+GtfsTrip.COL_TRIP_ID+" FROM "+GtfsTrip.DB_TABLE)

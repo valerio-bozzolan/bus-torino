@@ -3,9 +3,11 @@ package it.reyboz.bustorino
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -21,8 +23,10 @@ class ActivityIntro : AppCompatActivity(), IntroFragment.IntroListener {
     private lateinit var viewPager : ViewPager2
     private lateinit var btnForward: ImageButton
     private lateinit var btnBackward: ImageButton
+    private lateinit var closeBottomButton: ImageButton
 
     private var restartMain = true
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,6 +36,7 @@ class ActivityIntro : AppCompatActivity(), IntroFragment.IntroListener {
         viewPager = findViewById(R.id.viewPager)
         btnBackward = findViewById(R.id.btnPrevious)
         btnForward = findViewById(R.id.btnNext)
+        closeBottomButton = findViewById(R.id.btnCompactClose)
 
         val extras = intent.extras
         if(extras!=null){
@@ -56,6 +61,11 @@ class ActivityIntro : AppCompatActivity(), IntroFragment.IntroListener {
         btnBackward.setOnClickListener {
             viewPager.setCurrentItem(viewPager.currentItem-1, true)
         }
+        /*closeBottomButton.setOnClickListener {
+            closeIntroduction()
+        }
+
+         */
 
         viewPager.registerOnPageChangeCallback(object : OnPageChangeCallback() {
 
@@ -67,12 +77,30 @@ class ActivityIntro : AppCompatActivity(), IntroFragment.IntroListener {
                 }
                 if(position == NUM_ITEMS-1){
                     btnForward.visibility = View.INVISIBLE
-                } else{
-                    btnForward.visibility = View.VISIBLE
+                    closeBottomButton.visibility = View.VISIBLE
+                }else if(position == NUM_ITEMS-2){
+                    if(closeBottomButton.visibility == View.VISIBLE) {
+                        closeBottomButton.visibility = View.INVISIBLE
+                        btnForward.visibility = View.VISIBLE
+                    }
+                    //btnForward.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.arrow_forward_white, null))
+                    //btnForward.setBackgroundColor(ResourcesCompat.getColor(resources,R.attr.colorAccent, theme))
+                    /*val
+                    GET THE COLOR VALUE OF THE THEMER
+                    colo = TypedValue()
+                    theme.resolveAttribute(R.attr.colorAccent,colo, true)
+                    btnForward.backgroundTintList  //(colo.data)
+
+                     */
                 }
             }
 
+
         })
+
+        closeBottomButton.setOnClickListener {
+            closeIntroduction()
+        }
     }
 
 

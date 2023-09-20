@@ -20,6 +20,7 @@ package it.reyboz.bustorino.fragments
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Paint
 import android.os.Bundle
 import android.util.Log
@@ -45,6 +46,7 @@ import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.gtfs.PolylineParser
 import it.reyboz.bustorino.backend.utils
 import it.reyboz.bustorino.data.MatoTripsDownloadWorker
+import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.MatoPattern
 import it.reyboz.bustorino.data.gtfs.MatoPatternWithStops
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
@@ -67,7 +69,7 @@ import org.osmdroid.views.overlay.advancedpolyline.MonochromaticPaintList
 
 class LinesDetailFragment() : ScreenBaseFragment() {
 
-    private lateinit var lineID: String
+    private var lineID = ""
     private lateinit var patternsSpinner: Spinner
     private var patternsAdapter: ArrayAdapter<String>? = null
 
@@ -83,7 +85,31 @@ class LinesDetailFragment() : ScreenBaseFragment() {
     private var firstInit = true
     private var pausedFragment = false
     private lateinit var switchButton: ImageButton
+
+    private var favoritesButton: ImageButton? = null
+    private var isLineInFavorite = false
+    private val lineSharedPrefMonitor = SharedPreferences.OnSharedPreferenceChangeListener { pref, keychanged ->
+        if(keychanged!=PreferencesHolder.PREF_FAVORITE_LINES || lineID.isEmpty()) return@OnSharedPreferenceChangeListener
+        val newFavorites = pref.getStringSet(PreferencesHolder.PREF_FAVORITE_LINES, HashSet())
+        newFavorites?.let {
+            isLineInFavorite = it.contains(lineID)
+            //if the button has been intialized, change the icon accordingly
+            favoritesButton?.let { button->
+                if(isLineInFavorite) {
+                    button.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_star_filled, null))
+                    Toast.makeText(context,R.string.favorites_line_add,Toast.LENGTH_SHORT).show()
+                } else {
+                    button.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_star_outline, null))
+                    Toast.makeText(context,R.string.favorites_line_remove,Toast.LENGTH_SHORT).show()
+                }
+
+
+            }
+        }
+    }
+
     private lateinit var stopsRecyclerView: RecyclerView
+    private lateinit var descripTextView: TextView
     //adapter for recyclerView
     private val stopAdapterListener= object : StopAdapterListener {
         override fun onTappedStop(stop: Stop?) {
@@ -93,7 +119,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
                 viewModel.shouldShowMessage=false
             }
             stop?.let {
-                fragmentListener?.requestArrivalsForStopID(it.ID)
+                fragmentListener.requestArrivalsForStopID(it.ID)
             }
             if(stop == null){
                 Log.e(DEBUG_TAG,"Passed wrong stop")
@@ -142,11 +168,26 @@ class LinesDetailFragment() : ScreenBaseFragment() {
         val rootView = inflater.inflate(R.layout.fragment_lines_detail, container, false)
         lineID = requireArguments().getString(LINEID_KEY, "")
         switchButton = rootView.findViewById(R.id.switchImageButton)
+        favoritesButton = rootView.findViewById(R.id.favoritesButton)
         stopsRecyclerView = rootView.findViewById(R.id.patternStopsRecyclerView)
+        descripTextView = rootView.findViewById(R.id.lineDescripTextView)
+        descripTextView.visibility = View.INVISIBLE
 
         val titleTextView = rootView.findViewById<TextView>(R.id.titleTextView)
-
         titleTextView.text = getString(R.string.line)+" "+GtfsUtils.getLineNameFromGtfsID(lineID)
+
+        favoritesButton?.isClickable = true
+        favoritesButton?.setOnClickListener {
+            if(lineID.isNotEmpty())
+                PreferencesHolder.addOrRemoveLineToFavorites(requireContext(),lineID,!isLineInFavorite)
+        }
+        val preferences = PreferencesHolder.getMainSharedPreferences(requireContext())
+        val favorites = preferences.getStringSet(PreferencesHolder.PREF_FAVORITE_LINES, HashSet())
+        if(favorites!=null && favorites.contains(lineID)){
+            favoritesButton?.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_star_filled, null))
+            isLineInFavorite = true
+        }
+        preferences.registerOnSharedPreferenceChangeListener(lineSharedPrefMonitor)
 
         patternsSpinner = rootView.findViewById(R.id.patternsSpinner)
         patternsAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, ArrayList<String>())
@@ -194,6 +235,10 @@ class LinesDetailFragment() : ScreenBaseFragment() {
                 if(stopsRecyclerView.visibility==View.VISIBLE)
                     showStopsAsList(stops)
             }
+        }
+        viewModel.gtfsRoute.observe(viewLifecycleOwner){route->
+             descripTextView.text = route.longName
+            descripTextView.visibility = View.VISIBLE
         }
         if(pausedFragment && viewModel.selectedPatternLiveData.value!=null){
             val patt = viewModel.selectedPatternLiveData.value!!
@@ -310,7 +355,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
 
             // add ability to zoom with 2 fingers
             it.setMultiTouchControls(true)
-            it.minZoomLevel = 11.0
+            it.minZoomLevel = 12.0
 
             //map controller setup
             val mapController = it.controller

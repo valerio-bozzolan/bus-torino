@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
@@ -31,6 +32,7 @@ class IntroFragment : Fragment() {
     private var screenIndex = 1
     private lateinit var imageHolder: ImageView
     private lateinit var textView: TextView
+
 
 
     private lateinit var listener: IntroListener
@@ -88,6 +90,7 @@ class IntroFragment : Fragment() {
             6-> {
                 setImageBitmap(imageHolder,R.drawable.tuto_menu)
                 setTextHtmlDescription(R.string.tutorial_menu)
+                //this is the cheapest trick ever lol
                 val closeButton = root.findViewById<Button>(R.id.closeAllButton)
                 closeButton.visibility = View.VISIBLE
                 closeButton.setOnClickListener {
