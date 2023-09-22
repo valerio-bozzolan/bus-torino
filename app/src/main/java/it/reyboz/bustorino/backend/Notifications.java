@@ -63,7 +63,7 @@ public class Notifications {
                 .build();
     }
     public static Notification makeMatoDownloadNotification(Context context){
-        return makeMatoDownloadNotification(context, "Downloading data from MaTO");
+        return makeMatoDownloadNotification(context, context.getString(R.string.downloading_data_mato));
     }
 
     public static void createDBNotificationChannel(Context context){

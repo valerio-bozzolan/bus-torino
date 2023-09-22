@@ -73,6 +73,7 @@ class BusInfoWindow(map: MapView,
         titleView.text = (mView.resources.getString(R.string.line_fill, routeName)
                 )
         subdescrView.text = vehicleLabel
+        //mView.resources.getString(R.string.vehicle_fill, vehicleLabel)
 
 
         if(pattern!=null){

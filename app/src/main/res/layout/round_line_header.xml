@@ -5,7 +5,7 @@
                                    android:layout_height="wrap_content"
 
                                    android:background="@color/orange_500"
-                                   app:cardCornerRadius="54sp"
+                                   app:cardCornerRadius="26sp"
                                    app:cardElevation="0sp"
                                     android:layout_gravity="center_vertical"
                                    android:layout_margin="5dp"
@@ -16,8 +16,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:minHeight="54sp"
-            android:minWidth="54sp"
+            android:minHeight="52sp"
+            android:minWidth="52sp"
     >
         <TextView
                 android:id="@+id/routeBallID"
@@ -27,10 +27,10 @@
                 android:textColor="@color/grey_100"
                 android:textSize="21sp"
                 android:text="231"
-                android:paddingStart="4sp"
-                android:paddingLeft="4sp"
-                android:paddingRight="4sp"
-                android:paddingEnd="4sp"
+                android:paddingStart="4dp"
+                android:paddingLeft="4dp"
+                android:paddingRight="4dp"
+                android:paddingEnd="4dp"
         >
         </TextView>
     </RelativeLayout>

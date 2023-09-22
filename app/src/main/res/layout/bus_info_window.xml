@@ -20,7 +20,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
                 android:textColor="@color/bus_marker_color"
-                android:textSize="16sp"
+                android:textSize="17sp"
                 android:maxWidth="130sp"
                 android:text="BALABALA"
                 android:textAlignment="center"
@@ -31,6 +31,7 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
+                android:fontFamily="@font/nevermind_compact"
                 app:layout_constraintBottom_toTopOf="@+id/businfo_description" android:layout_marginRight="5dp"/>
         <ImageView
                 android:layout_width="wrap_content"
@@ -56,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
                 android:maxWidth="120sp"
-                android:textColor="@color/grey_600"
+                android:textColor="@color/grey_700"
                 app:layout_constraintTop_toBottomOf="@id/businfo_title"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"

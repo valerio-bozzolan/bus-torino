@@ -88,19 +88,20 @@ class LinesDetailFragment() : ScreenBaseFragment() {
 
     private var favoritesButton: ImageButton? = null
     private var isLineInFavorite = false
+    private var appContext: Context? = null
     private val lineSharedPrefMonitor = SharedPreferences.OnSharedPreferenceChangeListener { pref, keychanged ->
         if(keychanged!=PreferencesHolder.PREF_FAVORITE_LINES || lineID.isEmpty()) return@OnSharedPreferenceChangeListener
         val newFavorites = pref.getStringSet(PreferencesHolder.PREF_FAVORITE_LINES, HashSet())
-        newFavorites?.let {
-            isLineInFavorite = it.contains(lineID)
+        newFavorites?.let {favorites->
+            isLineInFavorite = favorites.contains(lineID)
             //if the button has been intialized, change the icon accordingly
             favoritesButton?.let { button->
                 if(isLineInFavorite) {
                     button.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_star_filled, null))
-                    Toast.makeText(context,R.string.favorites_line_add,Toast.LENGTH_SHORT).show()
+                    appContext?.let {  Toast.makeText(it,R.string.favorites_line_add,Toast.LENGTH_SHORT).show()}
                 } else {
                     button.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_star_outline, null))
-                    Toast.makeText(context,R.string.favorites_line_remove,Toast.LENGTH_SHORT).show()
+                    appContext?.let {Toast.makeText(it,R.string.favorites_line_remove,Toast.LENGTH_SHORT).show()}
                 }
 
 
@@ -187,6 +188,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
             favoritesButton?.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_star_filled, null))
             isLineInFavorite = true
         }
+        appContext = requireContext().applicationContext
         preferences.registerOnSharedPreferenceChangeListener(lineSharedPrefMonitor)
 
         patternsSpinner = rootView.findViewById(R.id.patternsSpinner)

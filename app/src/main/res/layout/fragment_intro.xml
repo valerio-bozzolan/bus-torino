@@ -1,45 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             tools:context=".fragments.IntroFragment">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context=".fragments.IntroFragment">
+    <androidx.core.widget.NestedScrollView
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:layout_centerInParent="true"
+                 >
+        <androidx.constraintlayout.widget.ConstraintLayout
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:layout_marginTop="10dp"
+                     android:layout_marginBottom="15dp"
+                    >
 
 
-    <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/image_tutorial"
-            app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/tutorialTextView"
-        app:layout_constraintVertical_chainStyle="packed"/>
-    <TextView
-            android:text="Blabla"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/tutorialTextView"
-            app:layout_constraintTop_toBottomOf="@+id/image_tutorial"
-            android:layout_marginTop="30dp"
-            android:maxWidth="280dp"
-            android:textSize="18sp"
-            android:textAlignment="center"
-            android:textColor="@color/grey_900"
-            android:fontFamily="@font/pitagon_medium"
-            app:layout_constraintBottom_toTopOf="@id/closeAllButton" app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
-    <Button
-            android:text="@string/close_tutorial"
-            android:layout_width="wrap_content"
-            android:visibility="gone"
-            android:layout_height="wrap_content" android:id="@+id/closeAllButton"
-            app:layout_constraintTop_toBottomOf="@id/tutorialTextView"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="@id/tutorialTextView"
-            android:backgroundTint="?colorPrimaryDark"
-            android:fontFamily="@font/pitagon_semibold"
-            android:textColor="@color/white"
-            app:layout_constraintEnd_toEndOf="@id/tutorialTextView"
-            android:layout_marginTop="18dp"/>
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/image_tutorial"
+                    app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/tutorialTextView"
+                app:layout_constraintVertical_chainStyle="packed"/>
+            <TextView
+                    android:text="Blabla"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/tutorialTextView"
+                    app:layout_constraintTop_toBottomOf="@+id/image_tutorial"
+                    android:layout_marginTop="30dp"
+                    android:maxWidth="280dp"
+                    android:textSize="18sp"
+                    android:textAlignment="center"
+                    android:textColor="@color/grey_900"
+                    android:fontFamily="@font/pitagon_medium"
+                    app:layout_constraintBottom_toTopOf="@id/closeAllButton" app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"/>
+            <Button
+                    android:text="@string/close_tutorial"
+                    android:layout_width="wrap_content"
+                    android:visibility="gone"
+                    android:layout_height="wrap_content" android:id="@+id/closeAllButton"
+                    app:layout_constraintTop_toBottomOf="@id/tutorialTextView"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="@id/tutorialTextView"
+                    android:backgroundTint="?colorPrimaryDark"
+                    android:textColor="@color/white"
+                    app:layout_constraintEnd_toEndOf="@id/tutorialTextView"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginBottom="5dp"
+            />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+</RelativeLayout>

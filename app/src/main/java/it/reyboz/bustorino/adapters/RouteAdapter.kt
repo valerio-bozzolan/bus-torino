@@ -12,7 +12,7 @@ import java.lang.ref.WeakReference
 
 class RouteAdapter(val routes: List<GtfsRoute>,
                    click: ItemClicker,
-                   private val layoutId: Int = R.layout.line_title_header) :
+                   private val layoutId: Int = R.layout.entry_line_num_descr) :
     RecyclerView.Adapter<RouteAdapter.ViewHolder>()
 {
         val clickreference: WeakReference<ItemClicker>

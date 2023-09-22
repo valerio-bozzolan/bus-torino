@@ -221,7 +221,7 @@
     <string name="map">Map</string>
     <string name="stop_search_view_title">Search by stop</string>
     <string name="requesting_db_update">Launching database update</string>
-
+    <string name="downloading_data_mato">Downloading data from MaTO server</string>
 
     <!-- preferences -->
     <string name="pref_directions_capitalize">Capitalize directions</string>
@@ -240,6 +240,7 @@
     <string name="pref_shown_startup_def_desc">Touch to change it</string>
     <string name="pref_lines_click_msg">Show arrivals touching on stop</string>
     <string name="pref_experimental_msg">Enable experiments</string>
+
 
     <!-- lines -->
     <string name="long_press_stop_4_options">Long press the stop for options</string>

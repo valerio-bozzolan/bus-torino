@@ -43,6 +43,7 @@
             android:id="@+id/viewPager"
             app:layout_constraintBottom_toTopOf="@+id/btnPrevious" android:layout_marginBottom="8dp"
             app:layout_constraintTop_toTopOf="parent"
+
             app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"/>
     <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"
