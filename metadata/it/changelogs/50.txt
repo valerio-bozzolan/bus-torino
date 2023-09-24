@@ -1,0 +1,15 @@
+Aggiunta schermata introduttiva per mostrare le bellissime funzionalità presenti
+Sviluppato da fabio.mazza
+https://gitpull.it/T1197
+
+Aggiunta sezione delle mie Linee Preferite
+Sviluppato da fabio.mazza
+https://gitpull.it/T1198
+
+Impostazioni: aggiunta possibilità di cambiare la sorgente delle posizioni dei bus in tempo reale (MaTO VS GTRF RT)
+Sviluppato da fabio.mazza
+https://gitpull.it/T1195
+
+Fix del refresh manuale quando si arriva dalla mappa
+Risolto da fabio.mazza
+https://gitpull.it/T1196

@@ -1,0 +1,15 @@
+Add introduction splash screen to show our beautiful features to newcomers
+Developed by fabio.mazza
+https://gitpull.it/T1197
+
+Allow to add any Line to Favorites
+Developed by fabio.mazza
+https://gitpull.it/T1198
+
+Settings: allow to select real-time bus and tram position source (MaTO VS GTRF RT)
+Developed by fabio.mazza
+https://gitpull.it/T1195
+
+Fix "pull refresh" when coming from map
+Fixed by fabio.mazza
+https://gitpull.it/T1196
