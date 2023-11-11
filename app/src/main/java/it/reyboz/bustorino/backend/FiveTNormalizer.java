@@ -200,9 +200,9 @@ public abstract class FiveTNormalizer {
                 // I wonder why GTT calls this "SE1" while other absurd names have a human readable name too.
                 return "1 Settimo";
             case "16CD":
-                return "16 Circolare Destra";
+                return "16 CD";
             case "16CS":
-                return "16 Circolare Sinistra";
+                return "16 CS";
             case "79":
                 return "Cremagliera Sassi-Superga";
             case "W01":
@@ -247,9 +247,37 @@ public abstract class FiveTNormalizer {
                 return "44 Scolastico";
             case "46N":
                 return "46 Navetta";
+            case "M1S":
+                return "MetroBus sostitutivo";
             default:
                 return null;
         }
+    }
+    public static String fixShortNameForDisplay(String routeID, boolean withBarratoSpace) {
+        /*if (routeID.length() == 3 && routeID.charAt(2) == 'B') {
+            return routeID.substring(0, 2).concat("/");
+        } else if (routeID.charAt(routeID.length() - 1) == '/' && routeID.charAt(routeID.length() - 2) == ' ') {
+            //remove last space
+            return routeID.substring(0, routeID.length() - 2).concat("/");
+        } else return routeID;
+         */
+        int len = routeID.length();
+        final boolean isBarrato = (routeID.charAt(len-1) == 'B') || (routeID.charAt(len-1) == '/');
+        if(isBarrato) {
+            String output;
+            if ((routeID.charAt(len - 2) == ' '))
+                output = routeID.substring(0, len - 2);
+            else output = routeID.substring(0, len - 1);
+            if(withBarratoSpace)
+                output = output.concat(" /");
+            else
+                output = output.concat("/");
+            return output;
+        } else return  routeID;
+    }
+
+    public static String fixShortNameForDisplay(String routeID){
+        return fixShortNameForDisplay(routeID, false);
     }
 
     public static String routeDisplayToInternal(String displayName){
@@ -316,4 +344,35 @@ public abstract class FiveTNormalizer {
         return name.replace(" ","");
     }
 
+    public static String getGtfsRouteID(Route route){
+        String routeName = route.getName();
+        String cutName = routeName.replace("\\s", "");
+
+        int len = cutName.length();
+        StringBuilder sb = new StringBuilder("gtt:");
+        if (cutName.charAt(len-1) == '/'){
+            sb.append(cutName.substring(0, len-2));
+            sb.append("B");
+            //cutName = cutName.substring(0, len-2).concat("B");
+        } else {
+            sb.append(cutName);
+        }
+        //determine service kind
+        switch (route.type){
+            case UNKNOWN:
+            case BUS:
+            case TRAM:
+                //tourist lines have "U" in the routeid
+                sb.append("U");
+                break;
+            case RAILWAY:
+                sb.append("F");
+                break;
+            case LONG_DISTANCE_BUS:
+                sb.append("E");
+        }
+
+
+        return sb.toString();
+    }
 }

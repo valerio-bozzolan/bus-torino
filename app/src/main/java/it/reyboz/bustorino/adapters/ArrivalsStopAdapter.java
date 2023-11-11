@@ -95,7 +95,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
             holder.stopNameView.setText(stopText);
             //final String routeName = String.format(context.getResources().getString(R.string.two_strings_format),r.getNameForDisplay(),r.destinazione);
             if (r!=null) {
-                holder.lineNameTextView.setText(r.getNameForDisplay());
+                holder.lineNameTextView.setText(r.getDisplayCode());
                 holder.lineDirectionTextView.setText(NameCapitalize.capitalizePass(r.destinazione, capit));
                 holder.arrivalsTextView.setText(r.getPassaggiToString(0,2,true));
             } else {

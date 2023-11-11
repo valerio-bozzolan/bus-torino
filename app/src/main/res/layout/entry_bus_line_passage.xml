@@ -1,24 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:paddingTop="8dip"
     android:paddingBottom="8dip"
-    android:paddingLeft="16dip"
+    android:paddingLeft="10dip"
     android:paddingRight="16dip">
 
 
-    <TextView
-        android:id="@+id/routeID"
-        android:layout_width="54dip"
-        android:layout_height="54dip"
-        android:background="@drawable/route_background_bus"
-        android:gravity="center"
-        android:textColor="@color/grey_100"
-        android:textSize="21sp"
-        android:layout_marginEnd="4dp"
-        android:layout_marginRight="4dp">
-    </TextView>
+    <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/routeCard"
+            android:background="@color/orange_500"
+            app:cardCornerRadius="25sp"
+            app:cardElevation="1sp"
+            android:layout_gravity="center_vertical"
+            app:cardBackgroundColor="@color/orange_500"
+            android:layout_marginEnd="6dp"
+
+    >
+        <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:minHeight="50sp"
+                android:minWidth="50sp"
+
+        >
+            <TextView
+                    android:id="@+id/routeNameTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textColor="@color/grey_100"
+                    android:textSize="21sp"
+                    android:text="231"
+                    android:paddingStart="3dp"
+                    android:paddingEnd="3dp"
+                    android:maxWidth="60sp"
+            >
+            </TextView>
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
 
     <!--the icon comes from setCompoundDrawables in PalinaAdapter -->
     <!--android:drawableLeft="@drawable/bus"
@@ -29,9 +54,9 @@
         android:textColor="@color/grey_600"
         android:layout_height="30dp"
         android:layout_width="match_parent"
-        android:layout_toEndOf="@id/routeID"
-        android:layout_toRightOf="@id/routeID"
-        android:layout_alignTop="@+id/routeID"
+        android:layout_toEndOf="@id/routeCard"
+        android:layout_toRightOf="@id/routeCard"
+        android:layout_alignTop="@id/routeCard"
         android:maxLines="1"
         android:drawablePadding="0dp"
         android:singleLine="true">
@@ -46,8 +71,8 @@
         android:layout_width="match_parent"
         android:layout_marginLeft="5dip"
         android:layout_marginStart="5dip"
-        android:layout_toEndOf="@id/routeID"
-        android:layout_toRightOf="@id/routeID"
+        android:layout_toEndOf="@id/routeCard"
+        android:layout_toRightOf="@id/routeCard"
         android:layout_below="@id/routeDestination">
     </TextView>
 

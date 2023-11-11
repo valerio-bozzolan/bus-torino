@@ -258,7 +258,7 @@
         <item>GTFS RT (more stable, less frequently updated)</item>
     </array>
 
-    <string name="remove_all_trips">Remove all GTFS trips info</string>
+    <string name="remove_all_trips">Remove trips data (free up space)</string>
     <string name="all_trips_removed">All GTFS trips have been removed from the database</string>
 
     <!-- Tutorial strings -->

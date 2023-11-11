@@ -35,6 +35,7 @@ public class Route implements Comparable<Route> {
     private final static int BRANCHID_MISSING = -1;
 
     private final String name;
+    private @Nullable String displayCode = null;
     public String destinazione;
     public final List<Passaggio> passaggi;
     //create a copy of the list, so that
@@ -213,9 +214,17 @@ public class Route implements Comparable<Route> {
         return name;
      }
 
-     public String getNameForDisplay(){
+     /*public String getNameForDisplay(){
          if(name.trim().equals("101Metrobus")) return "101 Metrobus";
          else return name;
+     }
+
+      */
+     public String getDisplayCode(){
+         if(displayCode!=null) return displayCode;
+
+         displayCode = FiveTNormalizer.fixShortNameForDisplay(name);
+         return displayCode;
      }
      /**
      * Get all passaggi in a single string

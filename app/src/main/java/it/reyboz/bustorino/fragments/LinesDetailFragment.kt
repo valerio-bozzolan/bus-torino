@@ -40,6 +40,7 @@ import it.reyboz.bustorino.R
 import it.reyboz.bustorino.adapters.NameCapitalize
 import it.reyboz.bustorino.adapters.StopAdapterListener
 import it.reyboz.bustorino.adapters.StopRecyclerAdapter
+import it.reyboz.bustorino.backend.FiveTNormalizer
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.backend.gtfs.GtfsUtils
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
@@ -175,7 +176,8 @@ class LinesDetailFragment() : ScreenBaseFragment() {
         descripTextView.visibility = View.INVISIBLE
 
         val titleTextView = rootView.findViewById<TextView>(R.id.titleTextView)
-        titleTextView.text = getString(R.string.line)+" "+GtfsUtils.getLineNameFromGtfsID(lineID)
+        titleTextView.text = getString(R.string.line)+" "+FiveTNormalizer.fixShortNameForDisplay(
+            GtfsUtils.getLineNameFromGtfsID(lineID), true)
 
         favoritesButton?.isClickable = true
         favoritesButton?.setOnClickListener {
@@ -239,6 +241,11 @@ class LinesDetailFragment() : ScreenBaseFragment() {
             }
         }
         viewModel.gtfsRoute.observe(viewLifecycleOwner){route->
+            if(route == null){
+                //need to close the fragment
+                activity?.supportFragmentManager?.popBackStack()
+                return@observe
+            }
              descripTextView.text = route.longName
             descripTextView.visibility = View.VISIBLE
         }

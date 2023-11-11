@@ -408,7 +408,7 @@ public class Palina extends Stop {
         }
         for(Route r: routes){
             if(r.numPassaggi()==0)
-                mList.add(r.getNameForDisplay());
+                mList.add(r.getDisplayCode());
         }
 
         return  mList;

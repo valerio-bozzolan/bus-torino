@@ -18,7 +18,6 @@
 package it.reyboz.bustorino.fragments;
 
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -27,7 +26,6 @@ import android.os.Bundle;
 import android.widget.*;
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
-import androidx.core.widget.NestedScrollView;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
@@ -46,7 +44,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import it.reyboz.bustorino.R;
-import it.reyboz.bustorino.adapters.AdapterClickListener;
 import it.reyboz.bustorino.adapters.PalinaAdapter;
 import it.reyboz.bustorino.adapters.RouteOnlyLineAdapter;
 import it.reyboz.bustorino.backend.ArrivalsFetcher;
@@ -63,7 +60,6 @@ import it.reyboz.bustorino.data.NextGenDB;
 import it.reyboz.bustorino.data.UserDB;
 import it.reyboz.bustorino.middleware.AsyncStopFavoriteAction;
 import it.reyboz.bustorino.util.LinesNameSorter;
-import it.reyboz.bustorino.util.ViewUtils;
 
 import static it.reyboz.bustorino.fragments.ScreenBaseFragment.setOption;
 
@@ -110,24 +106,41 @@ public class ArrivalsFragment extends ResultBaseFragment implements LoaderManage
 
     private boolean reloadOnResume = true;
 
-    private final AdapterClickListener<Route> mRouteClickListener = route -> {
-            String routeName;
+    private final PalinaAdapter.PalinaClickListener palinaClickListener = new PalinaAdapter.PalinaClickListener() {
+            @Override
+            public void showRouteFullDirection(Route route) {
+                String routeName;
+                Log.d(DEBUG_TAG, "Make toast for line "+route.getName());
 
-            routeName = FiveTNormalizer.routeInternalToDisplay(route.getNameForDisplay());
-            if (routeName == null) {
-                routeName = route.getNameForDisplay();
-            }
-            if(getContext()==null)
-                Log.e(DEBUG_TAG, "Touched on a route but Context is null");
-            else if (route.destinazione == null || route.destinazione.length() == 0) {
-                Toast.makeText(getContext(),
-                        getString(R.string.route_towards_unknown, routeName), Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getContext(),
-                        getString(R.string.route_towards_destination, routeName, route.destinazione), Toast.LENGTH_SHORT).show();
+
+                routeName = FiveTNormalizer.routeInternalToDisplay(route.getName());
+                if (routeName == null) {
+                    routeName = route.getDisplayCode();
+                }
+                if(getContext()==null)
+                    Log.e(DEBUG_TAG, "Touched on a route but Context is null");
+                else if (route.destinazione == null || route.destinazione.length() == 0) {
+                    Toast.makeText(getContext(),
+                            getString(R.string.route_towards_unknown, routeName), Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(),
+                            getString(R.string.route_towards_destination, routeName, route.destinazione), Toast.LENGTH_SHORT).show();
+                }
             }
 
+            @Override
+            public void requestShowingRoute(Route route) {
+                Log.d(DEBUG_TAG, "Need to show line for route:\ngtfsID "+route.getGtfsId()+ " name "+route.getName());
+                if(route.getGtfsId()!=null){
+                    mListener.showLineOnMap(route.getGtfsId());
+                } else {
+                    String gtfsID = FiveTNormalizer.getGtfsRouteID(route);
+                    Log.d(DEBUG_TAG, "GtfsID for route is: " + gtfsID);
+                    mListener.showLineOnMap(gtfsID);
+                }
+            }
     };
+
 
     public static ArrivalsFragment newInstance(String stopID){
         return newInstance(stopID, null);
@@ -403,7 +416,7 @@ public class ArrivalsFragment extends ResultBaseFragment implements LoaderManage
             else needUpdateOnAttach = true;
         } else {
 
-            final PalinaAdapter adapter = new PalinaAdapter(getContext(), lastUpdatedPalina, mRouteClickListener, true);
+            final PalinaAdapter adapter = new PalinaAdapter(getContext(), lastUpdatedPalina, palinaClickListener, true);
             showArrivalsSources(lastUpdatedPalina);
             resetListAdapter(adapter);
 

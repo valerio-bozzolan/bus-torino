@@ -55,4 +55,7 @@
 
     <color name="colorTransparent">#00000000</color>
 
+    <color name="urban_bus_bg">@color/orange_500</color>
+    <color name="extraurban_bus_bg">@color/blue_extraurbano</color>
+    <color name="metro_bg">@color/metro_red</color>
 </resources>

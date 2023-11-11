@@ -152,9 +152,9 @@ public class ResultListFragment extends Fragment{
                             String routeName;
 
                             Route r = (Route) parent.getItemAtPosition(position);
-                            routeName = FiveTNormalizer.routeInternalToDisplay(r.getNameForDisplay());
+                            routeName = FiveTNormalizer.routeInternalToDisplay(r.getName());
                             if (routeName == null) {
-                                routeName = r.getNameForDisplay();
+                                routeName = r.getDisplayCode();
                             }
                             if (r.destinazione == null || r.destinazione.length() == 0) {
                                 Toast.makeText(getContext(),

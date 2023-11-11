@@ -11,8 +11,8 @@ buildscript {
     }
     dependencies {
 
-        classpath 'com.android.tools.build:gradle:7.3.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.20"
+        classpath 'com.android.tools.build:gradle:7.4.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.22"
     }
 }
 
@@ -33,7 +33,7 @@ ext {
         arch_version = "2.1.0"
         room_version = "2.5.2"
         //kotlin
-        kotlin_version = '1.8.22'
+        kotlin_version = '1.8.0'
         coroutines_version = "1.7.0"
 
     }

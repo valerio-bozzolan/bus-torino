@@ -18,7 +18,10 @@
 package it.reyboz.bustorino.adapters;
 
 import android.content.Context;
+import android.content.res.Resources;
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.preference.PreferenceManager;
 
 import android.content.SharedPreferences;
@@ -49,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Valerio Bozzolan
  * @author Ludovico Pavesi
+ * @author Fabio Mazza
  */
 public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaViewHolder> implements SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -56,6 +60,7 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
     private static final int metroBg = R.drawable.route_background_metro;
     private static final int busBg = R.drawable.route_background_bus;
     private static final int extraurbanoBg = R.drawable.route_background_bus_long_distance;
+
     private static final int busIcon = R.drawable.bus;
     private static final int trainIcon = R.drawable.subway;
     private static final int tramIcon = R.drawable.tram;
@@ -64,7 +69,7 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
     private Capitalize capit;
 
     private final List<Route> mRoutes;
-    private final AdapterClickListener<Route> mRouteListener;
+    private final PalinaClickListener mRouteListener;
 
     @NonNull
     @NotNull
@@ -78,8 +83,11 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
     @Override
     public void onBindViewHolder(@NonNull @NotNull PalinaViewHolder vh, int position) {
         final Route route = mRoutes.get(position);
+        final Context con = vh.itemView.getContext();
+        final Resources res = con.getResources();
 
-        vh.rowStopIcon.setText(route.getNameForDisplay());
+        vh.routeIDTextView.setText(route.getDisplayCode());
+        vh.routeCard.setOnClickListener(view -> mRouteListener.requestShowingRoute(route));
         if(route.destinazione==null || route.destinazione.length() == 0) {
             vh.rowRouteDestination.setVisibility(View.GONE);
             // move around the route timetable
@@ -109,7 +117,7 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
 
             //set click listener
             vh.itemView.setOnClickListener(view -> {
-                mRouteListener.onAdapterClickListener(route);
+                mRouteListener.showRouteFullDirection(route);
             });
         }
 
@@ -119,24 +127,28 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
             case BUS:
             default:
                 // convertView could contain another background, reset it
-                vh.rowStopIcon.setBackgroundResource(busBg);
+                //vh.rowStopIcon.setBackgroundResource(busBg);
+
                 vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
                 break;
             case LONG_DISTANCE_BUS:
-                vh.rowStopIcon.setBackgroundResource(extraurbanoBg);
+                //vh.rowStopIcon.setBackgroundResource(extraurbanoBg);
+                vh.routeCard.setCardBackgroundColor(ResourcesCompat.getColor(res, R.color.extraurban_bus_bg, null));
                 vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
                 break;
             case METRO:
-                vh.rowStopIcon.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-                vh.rowStopIcon.setBackgroundResource(metroBg);
+                //vh.rowStopIcon.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                //vh.rowStopIcon.setBackgroundResource(metroBg);
+                vh.routeIDTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                vh.routeCard.setCardBackgroundColor(ResourcesCompat.getColor(res, R.color.metro_bg, null));
                 vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(trainIcon, 0, 0, 0);
                 break;
             case RAILWAY:
-                vh.rowStopIcon.setBackgroundResource(busBg);
+                //vh.rowStopIcon.setBackgroundResource(busBg);
                 vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(trainIcon, 0, 0, 0);
                 break;
             case TRAM: // never used but whatever.
-                vh.rowStopIcon.setBackgroundResource(busBg);
+                //vh.rowStopIcon.setBackgroundResource(busBg);
                 vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(tramIcon, 0, 0, 0);
                 break;
         }
@@ -161,7 +173,9 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
 
     // hey look, a pattern!
     public static class PalinaViewHolder extends RecyclerView.ViewHolder {
-        final TextView rowStopIcon;
+        //final TextView rowStopIcon;
+        final TextView routeIDTextView;
+        final CardView routeCard;
         final TextView rowRouteDestination;
         final TextView rowRouteTimetable;
 
@@ -172,7 +186,9 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
             vh.rowRouteDestination = (TextView) convertView.findViewById(R.id.routeDestination);
             vh.rowRouteTimetable = (TextView) convertView.findViewById(R.id.routesThatStopHere);
              */
-            rowStopIcon = view.findViewById(R.id.routeID);
+            //rowStopIcon = view.findViewById(R.id.routeID);
+            routeIDTextView = view.findViewById(R.id.routeNameTextView);
+            routeCard = view.findViewById(R.id.routeCard);
             rowRouteDestination = view.findViewById(R.id.routeDestination);
             rowRouteTimetable = view.findViewById(R.id.routesThatStopHere);
         }
@@ -192,7 +208,7 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
         return  Capitalize.DO_NOTHING;
     }
 
-    public PalinaAdapter(Context context, Palina p, AdapterClickListener<Route> listener, boolean hideEmptyRoutes) {
+    public PalinaAdapter(Context context, Palina p, PalinaClickListener listener, boolean hideEmptyRoutes) {
         Comparator<Passaggio> sorter = null;
         if (p.getPassaggiSourceIfAny()== Passaggio.Source.GTTJSON){
             sorter = new PassaggiSorter();
@@ -238,5 +254,19 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
 
     enum Capitalize{
         DO_NOTHING, ALL, FIRST
+    }
+
+    public interface PalinaClickListener{
+        /**
+         * Simple click listener for the whole line (show info)
+         * @param route for toast
+         */
+        void showRouteFullDirection(Route route);
+
+        /**
+         * Show the line with all the stops in the app
+         * @param route partial line info
+         */
+        void requestShowingRoute(Route route);
     }
 }
