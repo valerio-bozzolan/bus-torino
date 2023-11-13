@@ -421,19 +421,22 @@ public class ArrivalsFragment extends ResultBaseFragment implements LoaderManage
             resetListAdapter(adapter);
 
             final ArrayList<String> routesWithNoPassages = lastUpdatedPalina.getRoutesNamesWithNoPassages();
-            Collections.sort(routesWithNoPassages, new LinesNameSorter());
-            noArrivalsAdapter = new RouteOnlyLineAdapter(routesWithNoPassages, null);
-            if(noArrivalsRecyclerView!=null){
-                noArrivalsRecyclerView.setAdapter(noArrivalsAdapter);
+            if(routesWithNoPassages.isEmpty()){
                 //hide the views if there are no empty routes
-                if(routesWithNoPassages.isEmpty()){
-                    noArrivalsRecyclerView.setVisibility(View.GONE);
-                    noArrivalsTitleView.setVisibility(View.GONE);
-                } else {
+                noArrivalsRecyclerView.setVisibility(View.GONE);
+                noArrivalsTitleView.setVisibility(View.GONE);
+            }else{
+                Collections.sort(routesWithNoPassages, new LinesNameSorter());
+                noArrivalsAdapter = new RouteOnlyLineAdapter(routesWithNoPassages, null);
+                if(noArrivalsRecyclerView!=null){
+                    noArrivalsRecyclerView.setAdapter(noArrivalsAdapter);
+
                     noArrivalsRecyclerView.setVisibility(View.VISIBLE);
                     noArrivalsTitleView.setVisibility(View.VISIBLE);
+
                 }
             }
+
 
             //canaryEndView.setVisibility(View.VISIBLE);
             //check if canaryEndView is visible
