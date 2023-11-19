@@ -1,0 +1,4 @@
+- Mostra dettagli sulla linea direttamente dagli arrivi in fermata (toccando il numero della linea)
+- Ritocchi estetici (migliorata differenza fra "barrato" e "/")
+Sviluppato da fabio.mazza
+https://gitpull.it/T1215

@@ -1,0 +1,4 @@
+- Show line info directly from the arrivals screen (touching the line number)
+- Misc visualization improvements (e.g. harmonize "/" and "B")
+Developed by fabio.mazza
+https://gitpull.it/T1215
