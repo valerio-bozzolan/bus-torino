@@ -41,12 +41,10 @@ import android.view.ViewGroup;
 
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import com.android.volley.*;
 import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.adapters.ArrivalsStopAdapter;
 import it.reyboz.bustorino.backend.*;
-import it.reyboz.bustorino.backend.mato.MapiArrivalRequest;
 import it.reyboz.bustorino.data.DatabaseUpdate;
 import it.reyboz.bustorino.middleware.AppLocationManager;
 import it.reyboz.bustorino.adapters.SquareStopAdapter;
@@ -111,12 +109,38 @@ public class NearbyStopsFragment extends Fragment {
     private AppLocationManager locManager;
 
     //These are useful for the case of nearby arrivals
-    private ArrivalsManager arrivalsManager = null;
+    private NearbyArrivalsDownloader arrivalsManager = null;
     private ArrivalsStopAdapter arrivalsStopAdapter = null;
 
     private boolean dbUpdateRunning = false;
 
     private ArrayList<Stop> currentNearbyStops = new ArrayList<>();
+    private NearbyArrivalsDownloader nearbyArrivalsDownloader;
+
+    private final NearbyArrivalsDownloader.ArrivalsListener arrivalsListener = new NearbyArrivalsDownloader.ArrivalsListener() {
+        @Override
+        public void setProgress(int completedRequests, int pendingRequests) {
+            if(flatProgressBar!=null) {
+                if (pendingRequests == 0) {
+                    flatProgressBar.setIndeterminate(true);
+                    flatProgressBar.setVisibility(View.GONE);
+                } else {
+                    flatProgressBar.setIndeterminate(false);
+                    flatProgressBar.setProgress(completedRequests);
+                }
+            }
+        }
+
+        @Override
+        public void onAllRequestsCancelled() {
+            if(flatProgressBar!=null) flatProgressBar.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void showCompletedArrivals(ArrayList<Palina> completedPalinas) {
+            showArrivalsInRecycler(completedPalinas);
+        }
+    };
 
     //ViewModel
     private NearbyStopsViewModel viewModel;
@@ -154,6 +178,8 @@ public class NearbyStopsFragment extends Fragment {
             globalSharedPref = getContext().getSharedPreferences(getString(R.string.mainSharedPreferences), Context.MODE_PRIVATE);
             globalSharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener);
         }
+
+        nearbyArrivalsDownloader = new NearbyArrivalsDownloader(getContext().getApplicationContext(), arrivalsListener);
 
 
     }
@@ -265,17 +291,19 @@ public class NearbyStopsFragment extends Fragment {
             //ignored
             //try another location provider
         }
+        //fix view if we were showing the stops or the arrivals
+        prepareForFragmentType();
         switch(fragment_type){
             case STOPS:
                 if(dataAdapter!=null){
-                    gridRecyclerView.setAdapter(dataAdapter);
+                    //gridRecyclerView.setAdapter(dataAdapter);
                     circlingProgressBar.setVisibility(View.GONE);
                     loadingTextView.setVisibility(View.GONE);
                 }
                 break;
             case ARRIVALS:
                 if(arrivalsStopAdapter!=null){
-                    gridRecyclerView.setAdapter(arrivalsStopAdapter);
+                    //gridRecyclerView.setAdapter(arrivalsStopAdapter);
                     circlingProgressBar.setVisibility(View.GONE);
                     loadingTextView.setVisibility(View.GONE);
                 }
@@ -307,6 +335,7 @@ public class NearbyStopsFragment extends Fragment {
             }
         if(BuildConfig.DEBUG)
             Log.d(DEBUG_TAG, "Max distance for stops: "+MAX_DISTANCE+ ", Min number of stops: "+MIN_NUM_STOPS);
+
     }
 
 
@@ -346,10 +375,14 @@ public class NearbyStopsFragment extends Fragment {
                 showStopsInRecycler(stops);
                 break;
             case ARRIVALS:
-                arrivalsManager = new ArrivalsManager(stops);
-                flatProgressBar.setVisibility(View.VISIBLE);
+                if(getContext()==null) break; //don't do anything if we're not attached
+                if(arrivalsManager==null)
+                    arrivalsManager = new NearbyArrivalsDownloader(getContext().getApplicationContext(), arrivalsListener);
+                arrivalsManager.requestArrivalsForStops(stops);
+                /*flatProgressBar.setVisibility(View.VISIBLE);
                 flatProgressBar.setProgress(0);
                 flatProgressBar.setIndeterminate(false);
+                 */
                 //for the moment, be satisfied with only one location
                 //AppLocationManager.getInstance(getContext()).removeLocationRequestFor(fragmentLocationListener);
                 break;
@@ -369,8 +402,27 @@ public class NearbyStopsFragment extends Fragment {
      * Call when you need to switch the type of fragment
      */
     private void switchFragmentType(){
-        if(fragment_type==FragType.ARRIVALS){
-            setFragmentType(FragType.STOPS);
+        switch (fragment_type){
+            case ARRIVALS:
+                setFragmentType(FragType.STOPS);
+                break;
+            case STOPS:
+                setFragmentType(FragType.ARRIVALS);
+                break;
+            default:
+        }
+        prepareForFragmentType();
+        fragmentLocationListener.lastUpdateTime = -1;
+        //locManager.removeLocationRequestFor(fragmentLocationListener);
+        //locManager.addLocationRequestFor(fragmentLocationListener);
+        showStopsInViews(currentNearbyStops, lastPosition);
+    }
+
+    /**
+     * Prepare the views for the set fragment type
+     */
+    private void prepareForFragmentType(){
+        if(fragment_type==FragType.STOPS){
             switchButton.setText(getString(R.string.show_arrivals));
             titleTextView.setText(getString(R.string.nearby_stops_message));
             if(arrivalsManager!=null)
@@ -378,17 +430,12 @@ public class NearbyStopsFragment extends Fragment {
             if(dataAdapter!=null)
                 gridRecyclerView.setAdapter(dataAdapter);
 
-        } else if (fragment_type==FragType.STOPS){
-            setFragmentType(FragType.ARRIVALS);
+        } else if (fragment_type==FragType.ARRIVALS){
             titleTextView.setText(getString(R.string.nearby_arrivals_message));
             switchButton.setText(getString(R.string.show_stops));
             if(arrivalsStopAdapter!=null)
                 gridRecyclerView.setAdapter(arrivalsStopAdapter);
         }
-        fragmentLocationListener.lastUpdateTime = -1;
-        //locManager.removeLocationRequestFor(fragmentLocationListener);
-        //locManager.addLocationRequestFor(fragmentLocationListener);
-        showStopsInViews(currentNearbyStops, lastPosition);
     }
 
     //useful methods
@@ -424,7 +471,7 @@ public class NearbyStopsFragment extends Fragment {
         //int maxNum = Math.min(MAX_STOPS, stopList.size());
         for(Palina p: palinas){
             //if there are no routes available, skip stop
-            if(p.queryAllRoutes().size() == 0) continue;
+            if(p.queryAllRoutes().isEmpty()) continue;
             for(Route r: p.queryAllRoutes()){
                 //if there are no routes, should not do anything
                 if (r.passaggi != null && !r.passaggi.isEmpty())
@@ -469,86 +516,6 @@ public class NearbyStopsFragment extends Fragment {
         messageTextView.setVisibility(View.GONE);
     }
 
-    class ArrivalsManager implements Response.Listener<Palina>, Response.ErrorListener{
-        final HashMap<String,Palina> palinasDone = new HashMap<>();
-        //final Map<String,List<Route>> routesToAdd = new HashMap<>();
-        final static String REQUEST_TAG = "NearbyArrivals";
-        final NetworkVolleyManager volleyManager;
-        int activeRequestCount = 0,reqErrorCount = 0, reqSuccessCount=0;
-
-        ArrivalsManager(List<Stop> stops){
-            volleyManager = NetworkVolleyManager.getInstance(getContext());
-
-            int MAX_ARRIVAL_STOPS = 35;
-            Date currentDate = new Date();
-            int timeRange = 3600;
-            int departures = 10;
-            int numreq = 0;
-            for(Stop s: stops.subList(0,Math.min(stops.size(), MAX_ARRIVAL_STOPS))){
-
-                final MapiArrivalRequest req = new MapiArrivalRequest(s.ID, currentDate, timeRange, departures, this, this);
-                req.setTag(REQUEST_TAG);
-                volleyManager.addToRequestQueue(req);
-                activeRequestCount++;
-                numreq++;
-            }
-            flatProgressBar.setMax(numreq);
-        }
-
-
-
-        @Override
-        public void onErrorResponse(VolleyError error) {
-            if(error instanceof ParseError){
-                //TODO
-                Log.w(DEBUG_TAG,"Parsing error for stop request");
-            } else if (error instanceof NetworkError){
-                String s;
-                if(error.networkResponse!=null)
-                    s = new String(error.networkResponse.data);
-                else s="";
-                Log.w(DEBUG_TAG,"Network error: "+s);
-            }else {
-                Log.w(DEBUG_TAG,"Volley Error: "+error.getMessage());
-            }
-            if(error.networkResponse!=null){
-                Log.w(DEBUG_TAG, "Error status code: "+error.networkResponse.statusCode);
-            }
-            //counters
-            activeRequestCount--;
-            reqErrorCount++;
-            flatProgressBar.setProgress(reqErrorCount+reqSuccessCount);
-        }
-
-        @Override
-        public void onResponse(Palina result) {
-            //counter for requests
-            activeRequestCount--;
-            reqSuccessCount++;
-            //final Palina palinaInMap = palinasDone.get(result.ID);
-            //palina cannot be null here
-            //sorry for the brutal crash when it happens
-            //if(palinaInMap == null) throw new IllegalStateException("Cannot get the palina from the map");
-            //add the palina to the successful one
-            //TODO: Avoid redoing everything every time a new Result arrives
-            palinasDone.put(result.ID, result);
-            final ArrayList<Palina> outList = new ArrayList<>();
-            for(Palina p: palinasDone.values()){
-                final List<Route> routes = p.queryAllRoutes();
-                if(routes!=null && routes.size()>0) outList.add(p);
-            }
-            showArrivalsInRecycler(outList);
-            flatProgressBar.setProgress(reqErrorCount+reqSuccessCount);
-            if(activeRequestCount==0) {
-                flatProgressBar.setIndeterminate(true);
-                flatProgressBar.setVisibility(View.GONE);
-            }
-        }
-        void cancelAllRequests(){
-            volleyManager.getRequestQueue().cancelAll(REQUEST_TAG);
-            flatProgressBar.setVisibility(View.GONE);
-        }
-    }
     /**
      * Local locationListener, to use for the GPS
      */
@@ -569,7 +536,7 @@ public class NearbyStopsFragment extends Fragment {
             } else if(viewModel==null){
                 return;
             }
-            if(location.getAccuracy()<100 && !dbUpdateRunning) {
+            if(location.getAccuracy()<200 && !dbUpdateRunning) {
                if(viewModel.getDistanceMtLiveData().getValue()==null){
                     //never run request
                    distance = 40;

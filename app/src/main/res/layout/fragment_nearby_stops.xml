@@ -28,29 +28,31 @@
             app:backgroundTint="@color/blue_500"
             android:textColor="@android:color/white"
     />
+    <ProgressBar
+            style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="6dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/horizontalProgressBar"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@id/titleTextView"
+            android:indeterminate="true"
+            android:visibility="gone"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+    />
 
 
     <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
-            android:layout_height="match_parent" android:layout_below="@id/titleTextView"
+            android:layout_height="match_parent" android:layout_below="@id/horizontalProgressBar"
             android:id="@+id/stopGridRecyclerView"
             android:clickable="true"
             android:focusable="true" android:visibility="gone"
             android:clipChildren="false" android:clipToPadding="true" android:horizontalSpacing="10dp"
-            android:layout_above="@id/horizontalProgressBar"
-            android:verticalSpacing="10dp"/>
-    <ProgressBar
-            style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
-            android:layout_width="3dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/horizontalProgressBar"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentLeft="true"
             android:layout_alignParentBottom="true"
-            android:indeterminate="true"
-            android:visibility="gone"
-    />
+            android:verticalSpacing="10dp"/>
+
 
     <ProgressBar
             style="?android:attr/progressBarStyle"
