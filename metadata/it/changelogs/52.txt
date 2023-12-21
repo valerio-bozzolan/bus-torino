@@ -1,0 +1,4 @@
+Fix crash su Android 14 con le posizioni MaTO.
+Miglioramenti alle posizioni in tempo reale.
+
+Sviluppata da Fabio Mazza.

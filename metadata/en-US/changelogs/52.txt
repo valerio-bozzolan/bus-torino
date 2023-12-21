@@ -1,0 +1,4 @@
+Fix crash on Android 14 with MaTO live positions.
+Small improvements with GTFS positions.
+
+Developed by Fabio Mazza.
