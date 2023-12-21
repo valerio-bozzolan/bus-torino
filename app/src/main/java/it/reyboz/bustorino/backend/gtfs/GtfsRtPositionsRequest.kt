@@ -28,6 +28,7 @@ class GtfsRtPositionsRequest(
                              errorListener: Response.ErrorListener?,
                              val listener: RequestListener) :
     Request<ArrayList<LivePositionUpdate>>(Method.GET, URL_POSITION, errorListener) {
+
     override fun parseNetworkResponse(response: NetworkResponse?): Response<ArrayList<LivePositionUpdate>> {
         if (response == null){
             return Response.error(VolleyError("Null response"))

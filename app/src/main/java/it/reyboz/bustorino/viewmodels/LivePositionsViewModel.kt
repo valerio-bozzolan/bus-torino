@@ -20,6 +20,7 @@ package it.reyboz.bustorino.viewmodels
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
+import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Response
 import it.reyboz.bustorino.backend.NetworkVolleyManager
 import it.reyboz.bustorino.backend.gtfs.GtfsRtPositionsRequest
@@ -70,7 +71,7 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
         }
         val time = System.currentTimeMillis()
         if(lastTimeReceived == (0.toLong()) || (time-lastTimeReceived)>500){
-            updatesLiveData.value = (mupds)
+            updatesLiveData.postValue(mupds)
             lastTimeReceived = time
         }
 
@@ -167,8 +168,6 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
         }
     }
     //Gtfs Real time
-
-
     private val gtfsPositionsReqListener = object: GtfsRtPositionsRequest.Companion.RequestListener{
         override fun onResponse(response: ArrayList<LivePositionUpdate>?) {
             Log.i(DEBUG_TI,"Got response from the GTFS RT server")
@@ -189,13 +188,16 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
 
     }
     private val positionRequestErrorListener = Response.ErrorListener {
-        Log.e(DEBUG_TI, "Could not download the update, error:\n"+it.stackTrace)
+        Log.e(DEBUG_TI, "Could not download the update", it)
         gtfsRtRequestRunning.postValue(false)
     }
 
     fun requestGTFSUpdates(){
         if(gtfsRtRequestRunning.value == null || !gtfsRtRequestRunning.value!!) {
             val request = GtfsRtPositionsRequest(positionRequestErrorListener, gtfsPositionsReqListener)
+            request.setRetryPolicy(
+                DefaultRetryPolicy(1000,10,DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
+            )
             netVolleyManager.requestQueue.add(request)
             Log.i(DEBUG_TI, "Requested GTFS realtime position updates")
             gtfsRtRequestRunning.value = true
@@ -211,6 +213,6 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
     }
 
     companion object{
-        private const val DEBUG_TI = "BusTO-MQTTLiveData"
+        private const val DEBUG_TI = "BusTO-LivePosViewModel"
     }
 }

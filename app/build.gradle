@@ -95,7 +95,7 @@ dependencies {
     implementation 'com.google.protobuf:protobuf-java:3.17.2'
     // mqtt library
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
-    implementation 'com.github.hannesa2:paho.mqtt.android:3.5.3'
+    implementation 'com.github.hannesa2:paho.mqtt.android:4.1'
 
 
     // ViewModel

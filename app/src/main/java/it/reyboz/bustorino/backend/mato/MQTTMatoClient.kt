@@ -5,13 +5,10 @@ import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import info.mqtt.android.service.Ack
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.eclipse.paho.client.mqttv3.*
 import info.mqtt.android.service.MqttAndroidClient
 import info.mqtt.android.service.QoS
 
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import org.json.JSONArray
 import org.json.JSONException
 import java.lang.ref.WeakReference
@@ -34,10 +31,11 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
 
     private lateinit var lifecycle: LifecycleOwner
     private var context: Context?= null
+    private var connectionTrials = 0
 
     private fun connect(context: Context, iMqttActionListener: IMqttActionListener?){
 
-        val clientID = "mqttjs_${getRandomString(8)}"
+        val clientID = "mqtt-explorer-${getRandomString(8)}"//"mqttjs_${getRandomString(8)}"
 
         client = MqttAndroidClient(context,SERVER_ADDR,clientID,Ack.AUTO_ACK)
 
@@ -49,6 +47,7 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
         headersPars.setProperty("Host","mapi.5t.torino.it")
         options.customWebSocketHeaders = headersPars
 
+        Log.d(DEBUG_TAG,"client name: $clientID")
         //actually connect
         client.connect(options,null, iMqttActionListener)
         isStarted = true
@@ -63,28 +62,47 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
         Log.d(DEBUG_TAG, "Connected to server, reconnect: $reconnect")
         Log.d(DEBUG_TAG, "Have listeners: $respondersMap")
     }
+    private fun connectTopic(topic: String){
+        if(context==null){
+            Log.e(DEBUG_TAG, "Trying to connect but context is null")
+            return
+        }
+        connectionTrials += 1
+        connect(context!!, object : IMqttActionListener{
+            override fun onSuccess(asyncActionToken: IMqttToken?) {
+                val disconnectedBufferOptions = DisconnectedBufferOptions()
+                disconnectedBufferOptions.isBufferEnabled = true
+                disconnectedBufferOptions.bufferSize = 100
+                disconnectedBufferOptions.isPersistBuffer = false
+                disconnectedBufferOptions.isDeleteOldestMessages = false
+                client.setBufferOpts(disconnectedBufferOptions)
+                client.subscribe(topic, QoS.AtMostOnce.value)
+                isStarted = true
+            }
+
+            override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                Log.e(DEBUG_TAG, "FAILED To connect to the server",exception)
+                if (connectionTrials < 10) {
+                    Log.d(DEBUG_TAG, "Reconnecting")
+                    connectTopic(topic)
+                }
+                else {
+                    //reset connection trials
+                    connectionTrials = 0
+                }
+            }
+
+        })
+    }
 
     fun startAndSubscribe(lineId: String, responder: MQTTMatoListener, context: Context): Boolean{
         //start the client, and then subscribe to the topic
         val topic = mapTopic(lineId)
+        this.context = context.applicationContext
         synchronized(this) {
             if(!isStarted){
-                connect(context, object : IMqttActionListener{
-                    override fun onSuccess(asyncActionToken: IMqttToken?) {
-                        val disconnectedBufferOptions = DisconnectedBufferOptions()
-                        disconnectedBufferOptions.isBufferEnabled = true
-                        disconnectedBufferOptions.bufferSize = 100
-                        disconnectedBufferOptions.isPersistBuffer = false
-                        disconnectedBufferOptions.isDeleteOldestMessages = false
-                        client.setBufferOpts(disconnectedBufferOptions)
-                        client.subscribe(topic, QoS.AtMostOnce.value)
-                    }
 
-                    override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                        Log.e(DEBUG_TAG, "FAILED To connect to the server")
-                    }
-
-                })
+                connectTopic(topic)
                 //wait for connection
             } else {
                 client.subscribe(topic, QoS.AtMostOnce.value)
@@ -137,16 +155,22 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
         return currentPositions
     }
 
-    fun sendUpdateToResponders(responders: ArrayList<WeakReference<MQTTMatoListener>>): Boolean{
-        var sent = false
-        for (wrD in responders)
-            if (wrD.get() == null)
+    private fun sendUpdateToResponders(responders: ArrayList<WeakReference<MQTTMatoListener>>): Int{
+        //var sent = false
+        var count = 0
+        for (wrD in responders) {
+            if (wrD.get() == null) {
+                Log.d(DEBUG_TAG, "Removing weak reference")
                 responders.remove(wrD)
+            }
             else {
                 wrD.get()!!.onUpdateReceived(currentPositions)
-                sent = true
+                //sent = true
+                count++
             }
-        return sent
+        }
+
+        return count
     }
 
     override fun connectionLost(cause: Throwable?) {
@@ -185,7 +209,7 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
 
     override fun messageArrived(topic: String?, message: MqttMessage?) {
         if (topic==null || message==null) return
-
+        //Log.d(DEBUG_TAG,"Arrived message on topic $topic, ${String(message.payload)}")
         parseMessageAndAddToList(topic, message)
         //GlobalScope.launch { }
 
@@ -243,17 +267,20 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
                 it[vehicleId] = posUpdate
                 valid = true
             }
-            var sent = false
+            //sending
+            //Log.d(DEBUG_TAG, "Parsed update on topic $topic, line $lineId, responders $respondersMap")
+            var cc = 0
             if (LINES_ALL in respondersMap.keys) {
-                sent = sendUpdateToResponders(respondersMap[LINES_ALL]!!)
-
-
+                val count = sendUpdateToResponders(respondersMap[LINES_ALL]!!)
+                cc +=count
             }
+
             if(lineId in respondersMap.keys){
-                sent = sendUpdateToResponders(respondersMap[lineId]!!) or sent
+                cc += sendUpdateToResponders(respondersMap[lineId]!!)
 
             }
-            if(!sent){
+            //Log.d(DEBUG_TAG, "Sent to $cc responders, have $respondersMap")
+            if(cc==0){
                 Log.w(DEBUG_TAG, "We have received an update but apparently there is no one to send it")
                 var emptyResp = true
                 for(en in respondersMap.values){
@@ -270,8 +297,10 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
             }
             //Log.d(DEBUG_TAG, "We have update on line $lineId, vehicle $vehicleId")
         } catch (e: JSONException){
-            Log.e(DEBUG_TAG,"Cannot decipher message on topic $topic, line $lineId, veh $vehicleId")
-            e.printStackTrace()
+            Log.w(DEBUG_TAG,"Cannot decipher message on topic $topic, line $lineId, veh $vehicleId (bad JSON)")
+
+        } catch (e: Exception){
+            Log.e(DEBUG_TAG, "Exception occurred", e)
         }
     }
 

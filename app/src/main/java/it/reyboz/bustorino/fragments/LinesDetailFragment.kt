@@ -540,7 +540,8 @@ class LinesDetailFragment() : ScreenBaseFragment() {
         val paint = Paint()
         paint.color = ContextCompat.getColor(requireContext(),R.color.line_drawn_poly)
         paint.isAntiAlias = true
-        paint.strokeWidth = 16f
+        paint.strokeWidth = 13f
+
         paint.style = Paint.Style.FILL_AND_STROKE
         paint.strokeJoin = Paint.Join.ROUND
         paint.strokeCap = Paint.Cap.ROUND
