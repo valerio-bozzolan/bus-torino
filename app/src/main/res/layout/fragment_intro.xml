@@ -39,11 +39,25 @@
                     app:layout_constraintBottom_toTopOf="@id/closeAllButton" app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"/>
             <Button
+                    android:text="@string/grant_location_permission"
+                    android:layout_width="wrap_content"
+                    android:visibility="gone"
+                    android:layout_height="wrap_content" android:id="@+id/permissionButton"
+                    app:layout_constraintTop_toBottomOf="@id/tutorialTextView"
+                    app:layout_constraintBottom_toBottomOf="@id/closeAllButton"
+                    app:layout_constraintStart_toStartOf="@id/tutorialTextView"
+                    android:backgroundTint="?colorPrimaryDark"
+                    android:textColor="@color/white"
+                    app:layout_constraintEnd_toEndOf="@id/tutorialTextView"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginBottom="5dp"
+            />
+            <Button
                     android:text="@string/close_tutorial"
                     android:layout_width="wrap_content"
                     android:visibility="gone"
                     android:layout_height="wrap_content" android:id="@+id/closeAllButton"
-                    app:layout_constraintTop_toBottomOf="@id/tutorialTextView"
+                    app:layout_constraintTop_toBottomOf="@id/permissionButton"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="@id/tutorialTextView"
                     android:backgroundTint="?colorPrimaryDark"

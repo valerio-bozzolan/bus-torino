@@ -228,7 +228,7 @@
     <string name="all_trips_removed">Tutti i trip GTFS sono rimossi dal database</string>
 
     <!-- tutorial -->
-    <string name="tutorial_action">Mostra tutorial</string>
+    <string name="tutorial_action">Mostra introduzione</string>
     <string name="tutorial_first">
         <![CDATA[Grazie per aver installato BusTO, l\'app gratuita, libera e <b>open source</b> per il trasporto pubblico di Torino. Stai usando un\'app <b>indipendente</b>, senza pubblicità e senza nessun tracciamento.
 ]]> </string>
@@ -251,7 +251,21 @@ Se ti trovi a una fermata, puoi scansionare il codice QR presente sulla palina t
         <![CDATA[Tutte queste funzioni si trovano nel menu laterale.<br>
 Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su <b>Informazioni</b> per sapere di più sull\'app e il team di sviluppo.]]>
     </string>
-    <string name="close_tutorial">Capito, chiudi il tutorial</string>
+    <string name="close_tutorial">Capito, chiudi introduzione</string>
+    <string name="close_tutorial_short">Chiudi introduzione</string>
+    <string name="tutorial_permissions">
+        <![CDATA[
+         L\'app usa le notifiche per fornire informazioni sullo stato delle attività.
+         Tocca il bottone per abilitarle.
+        ]]>
+    </string>
+
+    <string name="grant_location_permission">Abilita accesso alla posizione</string>
+    <string name="location_permission_granted">Accesso alla posizione abilitato</string>
+    <string name="grant_notification_permission">Abilita notifiche</string>
+    <string name="notification_permission_granted">Notifiche abilitate</string>
+
+
 
 
 </resources>

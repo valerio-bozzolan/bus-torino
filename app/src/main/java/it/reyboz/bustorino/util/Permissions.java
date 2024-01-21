@@ -6,13 +6,12 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.LocationManager;
+import android.os.Build;
 import android.util.Log;
 
-import androidx.activity.result.ActivityResultCaller;
-import androidx.activity.result.ActivityResultLauncher;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 
 import java.util.List;
 
@@ -29,6 +28,12 @@ public class Permissions {
 
     final static public String[] LOCATION_PERMISSIONS={Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION};
+    //final static public String[] NOTIFICATION_PERMISSION={Manifest.permission.POST_NOTIFICATIONS};
+
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    public static String[] getNotificationPermissions(){
+        return new String[]{Manifest.permission.POST_NOTIFICATIONS};
+    }
 
     public static boolean anyLocationProviderMatchesCriteria(LocationManager mng, Criteria cr, boolean enabled) {
         List<String> providers = mng.getProviders(cr, enabled);
@@ -42,8 +47,12 @@ public class Permissions {
         return ContextCompat.checkSelfPermission(con, permission) == PackageManager.PERMISSION_GRANTED;
     }
 
-    public static boolean locationPermissionGranted(Context con){
+    public static boolean bothLocationPermissionsGranted(Context con){
         return isPermissionGranted(con, Manifest.permission.ACCESS_FINE_LOCATION) &&
+                isPermissionGranted(con, Manifest.permission.ACCESS_COARSE_LOCATION);
+    }
+    public static boolean anyLocationPermissionsGranted(Context con){
+        return isPermissionGranted(con, Manifest.permission.ACCESS_FINE_LOCATION) ||
                 isPermissionGranted(con, Manifest.permission.ACCESS_COARSE_LOCATION);
     }
 
@@ -52,5 +61,13 @@ public class Permissions {
                 !isPermissionGranted(con,Manifest.permission.ACCESS_COARSE_LOCATION)){
             ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_POSITION);
         }
+    }
+
+    /**
+     * Check if the system requires the POST_NOTIFICATION permission to send notifications
+     * @return true if required
+     */
+    public static boolean isNotificationPermissionNeeded(){
+        return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU);
     }
 }

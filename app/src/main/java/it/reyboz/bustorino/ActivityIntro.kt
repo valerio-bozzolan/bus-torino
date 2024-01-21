@@ -1,13 +1,11 @@
 package it.reyboz.bustorino
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.util.TypedValue
 import android.view.View
 import android.widget.ImageButton
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -17,8 +15,9 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.fragments.IntroFragment
+import it.reyboz.bustorino.middleware.GeneralActivity
 
-class ActivityIntro : AppCompatActivity(), IntroFragment.IntroListener {
+class ActivityIntro : GeneralActivity(), IntroFragment.IntroListener {
 
     private lateinit var viewPager : ViewPager2
     private lateinit var btnForward: ImageButton
@@ -26,7 +25,6 @@ class ActivityIntro : AppCompatActivity(), IntroFragment.IntroListener {
     private lateinit var closeBottomButton: ImageButton
 
     private var restartMain = true
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,7 +117,7 @@ class ActivityIntro : AppCompatActivity(), IntroFragment.IntroListener {
         const private val DEBUG_TAG = "BusTO-IntroActivity"
         const val RESTART_MAIN = "restartMainActivity"
 
-        const val NUM_ITEMS = 7
+        val NUM_ITEMS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) 8 else 7
     }
 
     override fun closeIntroduction() {

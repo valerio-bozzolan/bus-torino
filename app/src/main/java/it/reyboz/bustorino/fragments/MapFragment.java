@@ -50,7 +50,6 @@ import it.reyboz.bustorino.data.MatoTripsDownloadWorker;
 import it.reyboz.bustorino.data.gtfs.MatoPattern;
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops;
 import it.reyboz.bustorino.map.*;
-import it.reyboz.bustorino.viewmodels.GtfsPositionsViewModel;
 import it.reyboz.bustorino.viewmodels.LivePositionsViewModel;
 import it.reyboz.bustorino.viewmodels.StopsMapViewModel;
 import org.osmdroid.api.IGeoPoint;
@@ -265,7 +264,7 @@ public class MapFragment extends ScreenBaseFragment {
 
         btCenterMap.setOnClickListener(v -> {
             //Log.i(TAG, "centerMap clicked ");
-            if(Permissions.locationPermissionGranted(getContext())) {
+            if(Permissions.bothLocationPermissionsGranted(getContext())) {
                 final GeoPoint myPosition = mLocationOverlay.getMyLocation();
                 map.getController().animateTo(myPosition);
             } else
@@ -275,7 +274,7 @@ public class MapFragment extends ScreenBaseFragment {
 
         btFollowMe.setOnClickListener(v -> {
             //Log.i(TAG, "btFollowMe clicked ");
-            if(Permissions.locationPermissionGranted(getContext()))
+            if(Permissions.bothLocationPermissionsGranted(getContext()))
                 setLocationFollowing(!followingLocation);
             else
                 Toast.makeText(getContext(), R.string.enable_position_message_map, Toast.LENGTH_SHORT)
@@ -502,7 +501,7 @@ public class MapFragment extends ScreenBaseFragment {
 
 
        //ask for location permission
-        if(!Permissions.locationPermissionGranted(activity)){
+        if(!Permissions.bothLocationPermissionsGranted(activity)){
             if(shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)){
                 //TODO: show dialog for permission rationale
                 Toast.makeText(activity, R.string.enable_position_message_map, Toast.LENGTH_SHORT).show();
@@ -516,7 +515,7 @@ public class MapFragment extends ScreenBaseFragment {
         // and set the start zoom
         IMapController mapController = map.getController();
         GeoPoint startPoint = null;
-        startLocationOverlay(Permissions.locationPermissionGranted(activity),
+        startLocationOverlay(Permissions.bothLocationPermissionsGranted(activity),
                 map);
         // set the center point
         if (marker != null) {
@@ -540,7 +539,7 @@ public class MapFragment extends ScreenBaseFragment {
             LocationManager locationManager =
                     (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
             //check for permission
-            if (locationManager != null && Permissions.locationPermissionGranted(activity)) {
+            if (locationManager != null && Permissions.bothLocationPermissionsGranted(activity)) {
 
                 @SuppressLint("MissingPermission")
                 Location userLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);

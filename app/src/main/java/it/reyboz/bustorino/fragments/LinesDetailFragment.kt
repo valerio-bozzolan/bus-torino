@@ -419,7 +419,14 @@ class LinesDetailFragment() : ScreenBaseFragment() {
     }
 
     private fun savePatternsToShow(patterns: List<MatoPatternWithStops>){
-        currentPatterns = patterns.sortedBy { p-> p.pattern.code }
+        val patternsSorter = Comparator{ p1: MatoPatternWithStops, p2: MatoPatternWithStops ->
+            if(p1.pattern.directionId != p2.pattern.directionId)
+                return@Comparator p1.pattern.directionId - p2.pattern.directionId
+            else
+                return@Comparator -1*(p1.stopsIndices.size - p2.stopsIndices.size)
+
+        }
+        currentPatterns = patterns.sortedWith(patternsSorter)
 
         patternsAdapter?.let {
             it.clear()

@@ -351,6 +351,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         return super.onCreateOptionsMenu(menu);
     }
 
+    //requesting permissions
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

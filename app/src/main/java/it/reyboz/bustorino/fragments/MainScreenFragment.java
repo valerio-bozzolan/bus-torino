@@ -4,7 +4,6 @@ package it.reyboz.bustorino.fragments;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -159,14 +158,12 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
                 @Override
                 public void onActivityResult(Map<String, Boolean> result) {
-                    if(result==null || result.get(Manifest.permission.ACCESS_COARSE_LOCATION) == null
-                            ||result.get(Manifest.permission.ACCESS_FINE_LOCATION) == null) return;
+                    if(result==null) return;
 
                     if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) == null ||
                             result.get(Manifest.permission.ACCESS_FINE_LOCATION) == null)
                         return;
-                    boolean resCoarse = result.get(Manifest.permission.ACCESS_COARSE_LOCATION);
-                    boolean resFine = result.get(Manifest.permission.ACCESS_FINE_LOCATION);
+
                     Log.d(DEBUG_TAG, "Permissions for location are: "+result);
                     if(Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION))
                             && Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION))){
@@ -470,7 +467,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             //deactivate flag
             pendingIntroRun = false;
         }
-        if(Permissions.locationPermissionGranted(con)){
+        if(Permissions.bothLocationPermissionsGranted(con)){
             Log.d(DEBUG_TAG, "Location permission OK");
             if(!locationManager.isRequesterRegistered(requester))
                 locationManager.addLocationRequestFor(requester);

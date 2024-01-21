@@ -286,6 +286,17 @@
         <![CDATA[You can find all of this from the lateral menu.
 Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About the app</b> section if you want to know more about the app and the developers.]]>
     </string>
+    <string name="tutorial_permissions">
+        <![CDATA[The app needs the <b>Notifications</b> permission to show the information about background processing.
+         Press the button below to grant it]]>
+    </string>
+    <string name="grant_location_permission">Grant location permission</string>
+    <string name="location_permission_granted">Location permission granted</string>
+
     <string name="close_tutorial">OK, close the tutorial</string>
+    <string name="close_tutorial_short">Close the tutorial</string>
+    <string name="grant_notification_permission">Enable notifications</string>
+    <string name="notification_permission_granted">Notifications enabled</string>
+
 
 </resources>

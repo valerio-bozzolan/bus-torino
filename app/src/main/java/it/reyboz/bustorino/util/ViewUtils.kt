@@ -1,14 +1,16 @@
 package it.reyboz.bustorino.util
 
+import android.R
+import android.content.Context
+import android.content.res.Resources.Theme
 import android.graphics.Rect
-import android.os.Build
-import android.text.Html
-import android.text.Spanned
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.Transformation
+import androidx.annotation.ColorInt
 import androidx.core.widget.NestedScrollView
 
 
@@ -95,6 +97,13 @@ class ViewUtils {
 
         const val DEF_DURATION: Long = -2
 
+        fun getColorFromTheme(context: Context, resId: Int): Int {
+            val typedValue = TypedValue()
+            val theme: Theme = context.getTheme()
+            theme.resolveAttribute(resId, typedValue, true)
+            val color = typedValue.data
+            return color
+        }
 
     }
 }
