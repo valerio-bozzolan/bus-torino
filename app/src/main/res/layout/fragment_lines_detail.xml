@@ -90,21 +90,21 @@
                                     app:layout_constraintStart_toStartOf="parent"
                                     app:layout_constraintEnd_toEndOf="parent"
                                     app:layout_constraintBottom_toBottomOf="parent"/>
-    <!--<ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/icon_center_map"
-            android:src="@drawable/ic_center_map"
+        <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/locationEnableIcon"
+                android:src="@drawable/location_circlew_red"
 
-            android:layout_marginTop="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginEnd="10dp"
-            android:background="#00ffffff"
-            android:contentDescription="@string/bt_center_map_description"
-            app:layout_constraintTop_toTopOf="@id/lineMap"
-            app:layout_constraintEnd_toEndOf="@id/lineMap"
-            android:cropToPadding="true" />
-
+                android:layout_marginTop="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="#00ffffff"
+                android:contentDescription="@string/enable_position"
+                app:layout_constraintTop_toTopOf="@id/lineMap"
+                app:layout_constraintEnd_toEndOf="@id/lineMap"
+                android:cropToPadding="true" />
+    <!--
     <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

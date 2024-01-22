@@ -85,7 +85,7 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
     }
     // get the trip IDs in the DB
     private val gtfsTripsPatternsInDB = tripsIDsInUpdates.switchMap {
-        Log.i(DEBUG_TI, "tripsIds in updates changed: ${it.size}")
+        //Log.i(DEBUG_TI, "tripsIds in updates: ${it.size}")
         gtfsRepo.gtfsDao.getTripPatternStops(it)
     }
     //trip IDs to query, which are not present in the DB

@@ -88,6 +88,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
     private lateinit var switchButton: ImageButton
 
     private var favoritesButton: ImageButton? = null
+    private lateinit var locationIcon: ImageButton
     private var isLineInFavorite = false
     private var appContext: Context? = null
     private val lineSharedPrefMonitor = SharedPreferences.OnSharedPreferenceChangeListener { pref, keychanged ->
@@ -97,6 +98,8 @@ class LinesDetailFragment() : ScreenBaseFragment() {
             isLineInFavorite = favorites.contains(lineID)
             //if the button has been intialized, change the icon accordingly
             favoritesButton?.let { button->
+                //avoid crashes if fragment not attached
+                if(context==null) return@let
                 if(isLineInFavorite) {
                     button.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_star_filled, null))
                     appContext?.let {  Toast.makeText(it,R.string.favorites_line_add,Toast.LENGTH_SHORT).show()}
@@ -170,6 +173,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
         val rootView = inflater.inflate(R.layout.fragment_lines_detail, container, false)
         lineID = requireArguments().getString(LINEID_KEY, "")
         switchButton = rootView.findViewById(R.id.switchImageButton)
+        locationIcon = rootView.findViewById(R.id.locationEnableIcon)
         favoritesButton = rootView.findViewById(R.id.favoritesButton)
         stopsRecyclerView = rootView.findViewById(R.id.patternStopsRecyclerView)
         descripTextView = rootView.findViewById(R.id.lineDescripTextView)
@@ -205,19 +209,42 @@ class LinesDetailFragment() : ScreenBaseFragment() {
             if(map.visibility == View.VISIBLE){
                 map.visibility = View.GONE
                 stopsRecyclerView.visibility = View.VISIBLE
+                locationIcon.visibility = View.GONE
 
                 viewModel.setMapShowing(false)
                 liveBusViewModel.stopMatoUpdates()
+                //map.overlayManager.remove(busPositionsOverlay)
+
                 switchButton.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_map_white_30))
             } else{
                 stopsRecyclerView.visibility = View.GONE
                 map.visibility = View.VISIBLE
+                locationIcon.visibility = View.VISIBLE
                 viewModel.setMapShowing(true)
+
+                //map.overlayManager.add(busPositionsOverlay)
+                //map.
                 if(useMQTTPositions)
-                    liveBusViewModel.requestMatoPosUpdates(lineID)
+                    liveBusViewModel.requestMatoPosUpdates(GtfsUtils.getLineNameFromGtfsID(lineID))
                 else
                     liveBusViewModel.requestGTFSUpdates()
+
                 switchButton.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_list_30))
+            }
+        }
+        locationIcon.setOnClickListener {
+            if(locationOverlay.isMyLocationEnabled){
+                //switch off
+                locationOverlay.disableMyLocation()
+                locationIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.location_circlew_grey))
+                //show message
+                Toast.makeText(requireContext(),R.string.location_disabled,Toast.LENGTH_SHORT).show()
+            } else{
+                //switch on
+                locationOverlay.enableMyLocation()
+                locationIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.location_circlew_red))
+                //show message
+                Toast.makeText(requireContext(),R.string.location_enabled,Toast.LENGTH_SHORT).show()
             }
         }
         viewModel.setRouteIDQuery(lineID)
@@ -659,6 +686,17 @@ class LinesDetailFragment() : ScreenBaseFragment() {
                                         ) {
         //Log.d(MapFragment.DEBUG_TAG, "Updating positions of the buses")
         //if(busPositionsOverlay == null) busPositionsOverlay = new FolderOverlay();
+        // cleanup the patterns
+        // at first run, the buses which have no direction are still displayed. If those become missing in the data,
+        // it becomes clear that they don't have the same direction
+        val currentBusesTripsIds = HashSet(busPositionMarkersByTrip.keys)
+        for (tripID in currentBusesTripsIds){
+            if (!tripsPatterns.keys.contains(tripID)){
+                //the tripId is not in the updates anymore, remove it
+                removeBusMarker(tripID)
+            }
+        }
+
         val noPatternsTrips = ArrayList<String>()
         for (tripID in tripsPatterns.keys) {
             val (update, tripWithPatternStops) = tripsPatterns[tripID] ?: continue
@@ -718,6 +756,8 @@ class LinesDetailFragment() : ScreenBaseFragment() {
                 }
             }
         }
+
+
         if (noPatternsTrips.size > 0) {
             Log.i(DEBUG_TAG, "These trips have no matching pattern: $noPatternsTrips")
         }

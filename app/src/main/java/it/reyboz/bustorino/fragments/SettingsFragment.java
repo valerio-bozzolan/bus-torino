@@ -51,6 +51,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     Handler mHandler;
     public final static String PREF_KEY_STARTUP_SCREEN="startup_screen_to_show";
     public final static String KEY_ARRIVALS_FETCHERS_USE = "arrivals_fetchers_use_setting";
+    public final static String LIVE_POSITIONS_PREF_MQTT_VALUE="mqtt";
 
     private boolean setSummaryStartupPref = false;
 

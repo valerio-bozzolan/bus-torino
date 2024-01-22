@@ -769,6 +769,14 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             editor.putStringSet(SettingsFragment.KEY_ARRIVALS_FETCHERS_USE, utils.convertArrayToSet(defaultVals));
             edit=true;
         }
+        //Live bus positions
+        final String keySourcePositions=getString(R.string.pref_positions_source);
+        final String positionsSource = mainSharedPref.getString(keySourcePositions, "");
+        if(positionsSource.isEmpty()){
+            String[] defaultVals = getResources().getStringArray(R.array.positions_source_values);
+            editor.putString(keySourcePositions, defaultVals[0]);
+            edit=true;
+        }
         if (edit){
             editor.commit();
         }

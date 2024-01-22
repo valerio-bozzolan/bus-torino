@@ -76,6 +76,8 @@ import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.middleware.GeneralActivity;
 import it.reyboz.bustorino.util.Permissions;
 
+import static it.reyboz.bustorino.fragments.SettingsFragment.LIVE_POSITIONS_PREF_MQTT_VALUE;
+
 public class MapFragment extends ScreenBaseFragment {
 
     //private static final String TAG = "Busto-MapActivity";
@@ -234,7 +236,7 @@ public class MapFragment extends ScreenBaseFragment {
         String keySourcePositions=getString(R.string.pref_positions_source);
         useMQTTViewModel = (
                 PreferenceManager.getDefaultSharedPreferences(requireContext())
-                        .getString(keySourcePositions,"mqtt").contentEquals("mqtt"));
+                        .getString(keySourcePositions,LIVE_POSITIONS_PREF_MQTT_VALUE).contentEquals(LIVE_POSITIONS_PREF_MQTT_VALUE));
 
 
         //Start map from bundle
@@ -363,7 +365,8 @@ public class MapFragment extends ScreenBaseFragment {
         /// choose which to use
         String keySourcePositions=getString(R.string.pref_positions_source);
         useMQTTViewModel = PreferenceManager.getDefaultSharedPreferences(requireContext())
-                .getString(keySourcePositions,"mqtt").contentEquals("mqtt");
+                .getString(keySourcePositions,LIVE_POSITIONS_PREF_MQTT_VALUE).contentEquals(
+                        LIVE_POSITIONS_PREF_MQTT_VALUE);
         if(livePositionsViewModel !=null) {
             //gtfsPosViewModel.requestUpdates();
             if(useMQTTViewModel)

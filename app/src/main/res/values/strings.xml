@@ -169,6 +169,9 @@
    !-->
     <string name="bt_center_map_description">Center on my location</string>
     <string name="bt_follow_me_description">Follow me</string>
+    <string name="enable_position">Enable or disable location</string>
+    <string name="location_enabled">Location enabled</string>
+    <string name="location_disabled">Location disabled</string>
 
     <!--
     Arrival times sources

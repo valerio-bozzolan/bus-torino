@@ -87,14 +87,17 @@ class IntroFragment : Fragment() {
             }
             4 ->{
                 setImageBitmap(imageHolder, R.drawable.tuto_map)
-                val permGranted = (Permissions.anyLocationPermissionsGranted(requireContext()))
-                setInteractButtonState(ButtonState.LOCATION, !permGranted)
                 textView.text = utils.convertHtml(getString(R.string.tutorial_map))
-                interactButton.setOnClickListener {
-                    //ask location permission
-                    locationRequestResLauncher.launch(Permissions.LOCATION_PERMISSIONS)
+                if (Build.VERSION.SDK_INT >= 23) {
+                    //only show if running on Android M or above
+                    val permGranted = (Permissions.anyLocationPermissionsGranted(requireContext()))
+                    setInteractButtonState(ButtonState.LOCATION, !permGranted)
+                    interactButton.setOnClickListener {
+                        //ask location permission
+                        locationRequestResLauncher.launch(Permissions.LOCATION_PERMISSIONS)
+                    }
+                    interactButton.visibility = View.VISIBLE
                 }
-                interactButton.visibility = View.VISIBLE
 
             }
             5 ->{
