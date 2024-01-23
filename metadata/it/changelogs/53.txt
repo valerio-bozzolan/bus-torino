@@ -1,0 +1,6 @@
+- Richiesta permessi al primo avvio (notifiche incluse per Android 13+).
+- Nella schermata della singola linea le direzioni complete vengono mostrate per prime.
+- Nella mappa della schermata della linea, aggiunto pulsante per interrompere la geolocalizzazione e risparmiare il 100% in più di batteria! Wow!
+- Bugfix mappa.
+
+Versione sviluppata da Fabio Mazza \o/
