@@ -194,37 +194,42 @@ $maniphest_api_parameters = [
 	],
 ];
 
-// query Tasks info
-$maniphest_result = $client->callMethodSynchronous( 'maniphest.search', $maniphest_api_parameters );
-foreach( $maniphest_result['data'] as $task ) {
+if( $tasks_phid ) {
 
-	// append in known Tasks
-	$tasks[] = $task;
+	// query Tasks info
+	$maniphest_result = $client->callMethodSynchronous( 'maniphest.search', $maniphest_api_parameters );
+	foreach( $maniphest_result['data'] as $task ) {
 
-	// remember User PHIDs since we will need to get their extra info
-	$phid_task_author = $task['fields']['authorPHID'];
-	$phid_task_owner  = $task['fields']['ownerPHID'];
-	$USERS_BY_PHID[ $phid_task_author ] = null;
-	$USERS_BY_PHID[ $phid_task_owner  ] = null;
+		// append in known Tasks
+		$tasks[] = $task;
 
-        $phid_task_reporter = $task['fields'][PHABRICATOR_MANIPHEST_CUSTOM_FIELD_REPORTER] ?? null;
-	if( $phid_task_reporter ) {
-		$phid_task_reporter_entry = $phid_task_reporter[0];
-		$USERS_BY_PHID[ $phid_task_reporter_entry ] = null;
-        }
+		// remember User PHIDs since we will need to get their extra info
+		$phid_task_author = $task['fields']['authorPHID'];
+		$phid_task_owner  = $task['fields']['ownerPHID'];
+		$USERS_BY_PHID[ $phid_task_author ] = null;
+		$USERS_BY_PHID[ $phid_task_owner  ] = null;
+
+		$phid_task_reporter = $task['fields'][PHABRICATOR_MANIPHEST_CUSTOM_FIELD_REPORTER] ?? null;
+		if( $phid_task_reporter ) {
+			$phid_task_reporter_entry = $phid_task_reporter[0];
+			$USERS_BY_PHID[ $phid_task_reporter_entry ] = null;
+		}
+	}
 }
 
-// get users info from their PHID identifiers
-$users_phid = array_keys( $USERS_BY_PHID );
-$users_api_parameters = [
-	'constraints' => [
-		'phids' => $users_phid,
-	],
-];
-$users_result = $client->callMethodSynchronous( 'user.search', $users_api_parameters );
-foreach( $users_result['data'] as $user_data ) {
-	$phid_user = $user_data['phid'];
-	$USERS_BY_PHID[ $phid_user ] = $user_data;
+if( $USERS_BY_PHID ) {
+	// get users info from their PHID identifiers
+	$users_phid = array_keys( $USERS_BY_PHID );
+	$users_api_parameters = [
+		'constraints' => [
+			'phids' => $users_phid,
+		],
+	];
+	$users_result = $client->callMethodSynchronous( 'user.search', $users_api_parameters );
+	foreach( $users_result['data'] as $user_data ) {
+		$phid_user = $user_data['phid'];
+		$USERS_BY_PHID[ $phid_user ] = $user_data;
+	}
 }
 
 // for each language
