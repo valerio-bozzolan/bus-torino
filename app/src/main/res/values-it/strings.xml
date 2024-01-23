@@ -148,9 +148,9 @@
     !-->
     <string name="bt_center_map_description">La mia posizione</string>
     <string name="bt_follow_me_description">Segui posizione</string>
-    <string name="enable_position">Abilita o disabilita posizione</string>
-    <string name="location_enabled">Posizione abilitata</string>
-    <string name="location_disabled">Posizione disabilitata</string>
+    <string name="enable_position">Attiva o disattiva posizione</string>
+    <string name="location_enabled">Posizione attivata</string>
+    <string name="location_disabled">Posizione disattivata</string>
 
     <!--
     Arrival times sources
