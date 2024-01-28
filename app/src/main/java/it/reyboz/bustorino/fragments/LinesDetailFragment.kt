@@ -28,6 +28,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -53,6 +54,8 @@ import it.reyboz.bustorino.data.gtfs.MatoPatternWithStops
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
 import it.reyboz.bustorino.map.*
 import it.reyboz.bustorino.map.CustomInfoWindow.TouchResponder
+import it.reyboz.bustorino.middleware.LocationUtils
+import it.reyboz.bustorino.util.Permissions
 import it.reyboz.bustorino.viewmodels.LinesViewModel
 import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
 import kotlinx.coroutines.delay
@@ -88,9 +91,10 @@ class LinesDetailFragment() : ScreenBaseFragment() {
     private lateinit var switchButton: ImageButton
 
     private var favoritesButton: ImageButton? = null
-    private lateinit var locationIcon: ImageButton
+    private var locationIcon: ImageButton? = null
     private var isLineInFavorite = false
     private var appContext: Context? = null
+    private var isLocationPermissionOK = false
     private val lineSharedPrefMonitor = SharedPreferences.OnSharedPreferenceChangeListener { pref, keychanged ->
         if(keychanged!=PreferencesHolder.PREF_FAVORITE_LINES || lineID.isEmpty()) return@OnSharedPreferenceChangeListener
         val newFavorites = pref.getStringSet(PreferencesHolder.PREF_FAVORITE_LINES, HashSet())
@@ -146,6 +150,24 @@ class LinesDetailFragment() : ScreenBaseFragment() {
 
     private lateinit var stopsOverlay: FolderOverlay
     private lateinit var locationOverlay: LocationOverlay
+    private val locationOverlayResponder = object : LocationOverlay.OverlayCallbacks{
+        override fun onDisableFollowMyLocation() {
+            Log.d(DEBUG_TAG, "Follow location disabled")
+        }
+
+        override fun onEnableFollowMyLocation() {
+            Log.d(DEBUG_TAG, "Follow location enabled")
+        }
+    }
+    //location request responder
+    private val locationRequestResLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){ res ->
+        //onActivityResult(res: map<String,Boolean>)
+        if(res[Permissions.LOCATION_PERMISSIONS[0]] ==true || res[Permissions.LOCATION_PERMISSIONS[1]] ==true)
+            locationIcon?.let { onPositionIconButtonClick(it) }
+        else{
+            context?.let { Toast.makeText(it,R.string.location_permission_not_granted, Toast.LENGTH_SHORT).show() }
+        }
+    }
     //fragment actions
     private lateinit var fragmentListener: CommonFragmentListener
 
@@ -209,7 +231,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
             if(map.visibility == View.VISIBLE){
                 map.visibility = View.GONE
                 stopsRecyclerView.visibility = View.VISIBLE
-                locationIcon.visibility = View.GONE
+                locationIcon?.visibility = View.GONE
 
                 viewModel.setMapShowing(false)
                 liveBusViewModel.stopMatoUpdates()
@@ -219,7 +241,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
             } else{
                 stopsRecyclerView.visibility = View.GONE
                 map.visibility = View.VISIBLE
-                locationIcon.visibility = View.VISIBLE
+                locationIcon?.visibility = View.VISIBLE
                 viewModel.setMapShowing(true)
 
                 //map.overlayManager.add(busPositionsOverlay)
@@ -232,21 +254,15 @@ class LinesDetailFragment() : ScreenBaseFragment() {
                 switchButton.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_list_30))
             }
         }
-        locationIcon.setOnClickListener {
-            if(locationOverlay.isMyLocationEnabled){
-                //switch off
-                locationOverlay.disableMyLocation()
-                locationIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.location_circlew_grey))
-                //show message
-                Toast.makeText(requireContext(),R.string.location_disabled,Toast.LENGTH_SHORT).show()
-            } else{
-                //switch on
-                locationOverlay.enableMyLocation()
-                locationIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.location_circlew_red))
-                //show message
-                Toast.makeText(requireContext(),R.string.location_enabled,Toast.LENGTH_SHORT).show()
-            }
+        locationIcon?.let {view ->
+            if(!LocationUtils.isLocationEnabled(requireContext()) || !Permissions.anyLocationPermissionsGranted(requireContext()))
+                setLocationIconEnabled(false)
+            //set click Listener
+            view.setOnClickListener(this::onPositionIconButtonClick)
         }
+        //set
+
+
         viewModel.setRouteIDQuery(lineID)
 
         val keySourcePositions = getString(R.string.pref_positions_source)
@@ -360,6 +376,48 @@ class LinesDetailFragment() : ScreenBaseFragment() {
         return rootView
     }
 
+    private fun setLocationIconEnabled(setTrue: Boolean){
+        if(setTrue)
+            locationIcon?.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.location_circlew_red))
+        else
+            locationIcon?.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.location_circlew_grey))
+    }
+
+    /**
+     * Switch position icon from activ
+     */
+    private fun onPositionIconButtonClick(view: View){
+        if(locationOverlay.isMyLocationEnabled){
+            //switch off
+            locationOverlay.disableMyLocation()
+            //set image on respective button
+            setLocationIconEnabled(false)
+            if(context!=null) {
+                if (LocationUtils.isLocationEnabled(context)) {
+                    //show message
+                    Toast.makeText(context, R.string.location_disabled, Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else{
+            //switch on
+            locationOverlay.enableMyLocation()
+            if(context!=null) {
+                if(!Permissions.anyLocationPermissionsGranted(context)) {
+                    locationRequestResLauncher.launch(Permissions.LOCATION_PERMISSIONS)
+                    Toast.makeText(context, R.string.enable_position_message_map, Toast.LENGTH_SHORT).show()
+                }
+                else if (LocationUtils.isLocationEnabled(context)) {
+                    //set image on button
+                    setLocationIconEnabled(true)
+                    //show message
+                    Toast.makeText(context, R.string.location_enabled, Toast.LENGTH_SHORT).show()
+                } else{
+                    Toast.makeText(context, R.string.map_location_disabled_device, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     private fun initializeMap(rootView : View){
         val ctx = requireContext().applicationContext
         Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx))
@@ -368,16 +426,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
         map.let {
             it.setTileSource(TileSourceFactory.MAPNIK)
 
-            locationOverlay = LocationOverlay.createLocationOverlay(true, it, requireContext(), object : LocationOverlay.OverlayCallbacks{
-                override fun onDisableFollowMyLocation() {
-                    Log.d(DEBUG_TAG, "Follow location disabled")
-                }
-
-                override fun onEnableFollowMyLocation() {
-                    Log.d(DEBUG_TAG, "Follow location enabled")
-                }
-
-            })
+            locationOverlay = LocationOverlay.createLocationOverlay(true, it, requireContext(), locationOverlayResponder)
             locationOverlay.disableFollowLocation()
 
             stopsOverlay = FolderOverlay()
@@ -409,9 +458,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
                         mapViewModel.currentZoom.value!!,null,null)
                     //controller.setCenter(GeoPoint(mapViewModel.currentLat.value!!, mapViewModel.currentLong.value!!))
                     //controller.setZoom(mapViewModel.currentZoom.value!!)
-
                  */
-
                 }
             mapController.setZoom(zoom)
             mapController.setCenter(centerMap)
@@ -424,7 +471,6 @@ class LinesDetailFragment() : ScreenBaseFragment() {
 
             zoomToCurrentPattern()
             firstInit = false
-
         }
 
 

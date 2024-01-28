@@ -1,16 +1,21 @@
 package it.reyboz.bustorino.fragments;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import it.reyboz.bustorino.BuildConfig;
+
+import java.util.Map;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -61,5 +66,25 @@ public abstract class ScreenBaseFragment extends Fragment {
         SharedPreferences.Editor editor = context.getSharedPreferences(PREF_FILE, MODE_PRIVATE).edit();
         editor.putBoolean(optionName, value);
         editor.apply();
+    }
+    public ActivityResultLauncher<String[]> getPositionRequestLauncher(LocationRequestListener listener){
+        return registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<>() {
+            @Override
+            public void onActivityResult(Map<String, Boolean> result) {
+                if (result == null) return;
+
+                if (result.get(Manifest.permission.ACCESS_COARSE_LOCATION) == null ||
+                        result.get(Manifest.permission.ACCESS_FINE_LOCATION) == null)
+                    return;
+                final boolean coarseGranted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION));
+                final boolean fineGranted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION));
+
+                listener.onPermissionResult(coarseGranted, fineGranted);
+            }
+        });
+    }
+
+    public interface LocationRequestListener{
+        void onPermissionResult(boolean isCoarseGranted, boolean isFineGranted);
     }
 }

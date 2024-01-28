@@ -53,6 +53,7 @@ import it.reyboz.bustorino.middleware.BarcodeScanOptions;
 import it.reyboz.bustorino.middleware.BarcodeScanUtils;
 import it.reyboz.bustorino.util.LocationCriteria;
 import it.reyboz.bustorino.util.Permissions;
+import org.jetbrains.annotations.NotNull;
 
 import static it.reyboz.bustorino.backend.utils.getBusStopIDFromUri;
 import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSIONS;
@@ -92,11 +93,11 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
      */
     private static final int SEARCH_BY_NAME = 0;
     private static final int SEARCH_BY_ID = 1;
-    private static final int SEARCH_BY_ROUTE = 2; // TODO: implement this -- https://gitpull.it/T12
+    //private static final int SEARCH_BY_ROUTE = 2; // implement this -- DONE!
     private int searchMode;
     //private ImageButton addToFavorites;
     //// HIDDEN BUT IMPORTANT ELEMENTS ////
-    FragmentManager fragMan;
+    FragmentManager childFragMan;
     Handler mainHandler;
     private final Runnable refreshStop = new Runnable() {
         public void run() {
@@ -105,8 +106,8 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             ArrivalsFetcher[] arrivalsFetchers = new ArrivalsFetcher[fetcherList.size()];
             arrivalsFetchers = fetcherList.toArray(arrivalsFetchers);
 
-            if (fragMan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
-                ArrivalsFragment fragment = (ArrivalsFragment) fragMan.findFragmentById(R.id.resultFrame);
+            if (childFragMan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
+                ArrivalsFragment fragment = (ArrivalsFragment) childFragMan.findFragmentById(R.id.resultFrame);
                 if (fragment == null){
                     //we create a new fragment, which is WRONG
                     Log.e("BusTO-RefreshStop", "Asking for refresh when there is no fragment");
@@ -166,7 +167,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
 
                     Log.d(DEBUG_TAG, "Permissions for location are: "+result);
                     if(Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION))
-                            && Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION))){
+                            || Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION))){
                         locationPermissionGranted = true;
                         Log.w(DEBUG_TAG, "Starting position");
                         if (mListener!= null && getContext()!=null){
@@ -178,7 +179,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                         //showNearbyStopsFragment();
                         Log.d(DEBUG_TAG, "We have location permission");
                         if(pendingNearbyStopsFragmentRequest){
-                            showNearbyFragmentIfNeeded(cr);
+                            showNearbyFragmentIfPossible();
                             pendingNearbyStopsFragmentRequest = false;
                         }
                     }
@@ -203,7 +204,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                 //pendingNearbyStopsRequest = false;
                 if (getContext()!= null && !isNearbyFragmentShown())
                     //mainHandler.post(new NearbyStopsRequester(getContext(), cr));
-                    showNearbyFragmentIfNeeded(cr);
+                    showNearbyFragmentIfPossible();
             }
         }
 
@@ -227,7 +228,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                             "we have no location permission");
                 pendingNearbyStopsFragmentRequest = true;
                 //mainHandler.post(new NearbyStopsRequester(getContext(), cr));
-                showNearbyFragmentIfNeeded(cr);
+                showNearbyFragmentIfPossible();
             }
         }
 
@@ -313,8 +314,8 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         searchButton.setOnClickListener(this::onSearchClick);
 
         // Fragment stuff
-        fragMan = getChildFragmentManager();
-        fragMan.addOnBackStackChangedListener(() -> Log.d("BusTO Main Fragment", "BACK STACK CHANGED"));
+        childFragMan = getChildFragmentManager();
+        childFragMan.addOnBackStackChangedListener(() -> Log.d("BusTO Main Fragment", "BACK STACK CHANGED"));
 
         fragmentHelper = new FragmentHelper(this, getChildFragmentManager(), getContext(), R.id.resultFrame);
         setSearchModeBusStopID();
@@ -430,7 +431,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                         pendingNearbyStopsFragmentRequest = true;
                     }
                     else {
-                        showNearbyFragmentIfNeeded(cr);
+                        showNearbyFragmentIfPossible();
                     }
                 } else {
                     //The Introductory Activity is about to be started, hence pause the request and show later
@@ -462,7 +463,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                 pendingNearbyStopsFragmentRequest = true;
             }
             else {
-                showNearbyFragmentIfNeeded(cr);
+                showNearbyFragmentIfPossible();
             }
             //deactivate flag
             pendingIntroRun = false;
@@ -474,8 +475,21 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         } //don't request permission
         // if we have a pending stopID request, do it
         Log.d(DEBUG_TAG, "Pending stop ID for arrivals: "+pendingStopID);
-        //this is the second time we are attaching this fragment
+        //this is the second time we are attaching this fragment ->
         Log.d(DEBUG_TAG, "Waiting for new stop request: "+ suppressArrivalsReload);
+        //TODO: if we come back to this from another fragment, and the user has given again the permission
+        // for the Location, we should show the Nearby Stops
+        if(!suppressArrivalsReload && pendingStopID==null){
+            //none of the following cases are true
+            // check if we are showing any fragment
+            final Fragment fragment = getChildFragmentManager().findFragmentById(R.id.resultFrame);
+            if(fragment==null || swipeRefreshLayout.getVisibility() != View.VISIBLE){
+                //we are not showing anything
+                if(Permissions.anyLocationPermissionsGranted(getContext())){
+                    showNearbyFragmentIfPossible();
+                }
+            }
+        }
         if (suppressArrivalsReload){
             // we have to suppress the reloading of the (possible) ArrivalsFragment
             Fragment fragment = getChildFragmentManager().findFragmentById(R.id.resultFrame);
@@ -603,7 +617,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     }
     protected boolean isNearbyFragmentShown(){
         Fragment fragment = getChildFragmentManager().findFragmentByTag(NearbyStopsFragment.FRAGMENT_TAG);
-        return (fragment!= null && fragment.isVisible());
+        return (fragment!= null && fragment.isResumed());
     }
 
     /**
@@ -650,14 +664,14 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
 
     private void actuallyShowNearbyStopsFragment(){
         swipeRefreshLayout.setVisibility(View.VISIBLE);
-        final Fragment existingFrag = fragMan.findFragmentById(R.id.resultFrame);
+        final Fragment existingFrag = childFragMan.findFragmentById(R.id.resultFrame);
         // fragment;
         if (!(existingFrag instanceof NearbyStopsFragment)){
             Log.d(DEBUG_TAG, "actually showing Nearby Stops Fragment");
             //there is no fragment showing
             final NearbyStopsFragment fragment = NearbyStopsFragment.newInstance(NearbyStopsFragment.FragType.STOPS);
 
-            FragmentTransaction ft = fragMan.beginTransaction();
+            FragmentTransaction ft = childFragMan.beginTransaction();
 
             ft.replace(R.id.resultFrame, fragment, NearbyStopsFragment.FRAGMENT_TAG);
             if (getActivity()!=null && !getActivity().isFinishing())
@@ -777,28 +791,23 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         requestPermissionLauncher.launch(LOCATION_PERMISSIONS);
     }
 
-    private void showNearbyFragmentIfNeeded(Criteria cr){
-        if(isNearbyFragmentShown()) {
+    private void showNearbyFragmentIfPossible() {
+        if (isNearbyFragmentShown()) {
             //nothing to do
-            Log.w(DEBUG_TAG, "launched nearby fragment request but we already are showing");
+            Log.w(DEBUG_TAG, "Asked to show nearby fragment but we already are showing it");
             return;
         }
-        if(getContext()==null){
+        if (getContext() == null) {
             Log.e(DEBUG_TAG, "Wanting to show nearby fragment but context is null");
             return;
         }
 
-        AppLocationManager appLocationManager = AppLocationManager.getInstance(getContext());
-        final boolean haveProviders = appLocationManager.anyLocationProviderMatchesCriteria(cr);
-        if (haveProviders
-                && fragmentHelper.getLastSuccessfullySearchedBusStop() == null
-                && !fragMan.isDestroyed()) {
+        if (fragmentHelper.getLastSuccessfullySearchedBusStop() == null
+                && !childFragMan.isDestroyed()) {
             //Go ahead with the request
 
             actuallyShowNearbyStopsFragment();
             pendingNearbyStopsFragmentRequest = false;
-        } else if(!haveProviders){
-            Log.e(DEBUG_TAG, "NO PROVIDERS FOR POSITION");
         }
     }
     /////////// LOCATION METHODS //////////

@@ -41,7 +41,7 @@ public class Permissions {
         for (String s : providers) {
             Log.d(DEBUG_TAG, "Provider " + s);
         }
-        return providers.size() > 0;
+        return !providers.isEmpty();
     }
     public static boolean isPermissionGranted(Context con,String permission){
         return ContextCompat.checkSelfPermission(con, permission) == PackageManager.PERMISSION_GRANTED;

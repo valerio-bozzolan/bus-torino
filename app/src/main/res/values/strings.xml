@@ -149,8 +149,9 @@
     <string name="settings_group_database">Database management</string>
     <string name="settings_reset_database">Launch manual database update</string>
 
-    <string name="enable_position_message_map">Allow access to position to show it on the map</string>
-    <string name="enableGpsText">Please enable GPS</string>
+    <string name="enable_position_message_map">Allow access to location to show it on the map</string>
+    <string name="enable_position_message_nearby">Allow access to location to show stops nearby</string>
+    <string name="enableGpsText">Please enable location on the device</string>
     <string name="database_update_msg_inapp">Database update in progress&#8230;</string>
     <string name="database_update_msg_notif">Updating the database</string>
     <string name="database_update_req">Force database update</string>
@@ -172,6 +173,7 @@
     <string name="enable_position">Enable or disable location</string>
     <string name="location_enabled">Location enabled</string>
     <string name="location_disabled">Location disabled</string>
+    <string name="map_location_disabled_device">Location is disabled on device</string>
 
     <!--
     Arrival times sources
@@ -295,6 +297,7 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     </string>
     <string name="grant_location_permission">Grant location permission</string>
     <string name="location_permission_granted">Location permission granted</string>
+    <string name="location_permission_not_granted">Location permission has not been granted</string>
 
     <string name="close_tutorial">OK, close the tutorial</string>
     <string name="close_tutorial_short">Close the tutorial</string>

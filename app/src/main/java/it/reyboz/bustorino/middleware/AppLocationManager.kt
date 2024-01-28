@@ -24,6 +24,7 @@ import android.location.*
 import android.os.Bundle
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.core.location.LocationListenerCompat
 import it.reyboz.bustorino.util.LocationCriteria
 import it.reyboz.bustorino.util.Permissions
 import java.lang.ref.WeakReference
@@ -31,6 +32,8 @@ import kotlin.math.min
 
 /**
  * Singleton class used to access location. Possibly extended with other location sources.
+ *
+ * 2024: This is far too much. We need to simplify the whole mechanism (no more singleton)
  */
 class AppLocationManager private constructor(context: Context) : LocationListener {
     private val appContext: Context
@@ -259,9 +262,9 @@ class AppLocationManager private constructor(context: Context) : LocationListene
         private const val DEBUG_TAG = "BUSTO LocAdapter"
         private var instance: AppLocationManager? = null
         @JvmStatic
-        fun getInstance(con: Context): AppLocationManager? {
+        fun getInstance(con: Context): AppLocationManager {
             if (instance == null) instance = AppLocationManager(con)
-            return instance
+            return instance!!
         }
 
         fun checkLocationPermission(context: Context?): Boolean {

@@ -151,6 +151,7 @@
     <string name="enable_position">Attiva o disattiva posizione</string>
     <string name="location_enabled">Posizione attivata</string>
     <string name="location_disabled">Posizione disattivata</string>
+    <string name="map_location_disabled_device">La posizione è disabilitata sul dispositivo</string>
 
     <!--
     Arrival times sources
@@ -265,6 +266,8 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
 
     <string name="grant_location_permission">Abilita accesso alla posizione</string>
     <string name="location_permission_granted">Accesso alla posizione abilitato</string>
+    <string name="location_permission_not_granted">Accesso alla posizione non consentito dall\'utente</string>
+
     <string name="grant_notification_permission">Abilita notifiche</string>
     <string name="notification_permission_granted">Notifiche abilitate</string>
 
