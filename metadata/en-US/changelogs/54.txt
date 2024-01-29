@@ -1,0 +1,7 @@
+- Request permissions on first launch (for notifications too in Android 13+).
+- Full directions are shown first in the single line screen
+- Added button on the map in the Line screen to stop using geolocation and save 100% more battery!
+- Ask for location permission in the Line screen if needed
+- Bugfixes.
+
+Version developed by Fabio Mazza \o/
