@@ -4,14 +4,14 @@ apply plugin: 'com.android.application'
 
 
 android {
-    compileSdkVersion 33
-    buildToolsVersion '33.0.2'
+    compileSdk 34
     namespace "it.reyboz.bustorino"
 
     defaultConfig {
         applicationId "it.reyboz.bustorino"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
+        buildToolsVersion = '34.0.0'
         versionCode 54
         versionName "2.1.4"
         vectorDrawables.useSupportLibrary = true
@@ -43,9 +43,6 @@ android {
         }
     }
 
-    lintOptions {
-        abortOnError false
-    }
 
     repositories {
         mavenCentral()
@@ -61,6 +58,9 @@ android {
     }
     kotlin {
         jvmToolchain 17
+    }
+    lint {
+        abortOnError false
     }
 }
 
@@ -88,7 +88,7 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
 
 
-    implementation 'org.jsoup:jsoup:1.13.1'
+    implementation 'org.jsoup:jsoup:1.15.3'
     implementation 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
     implementation 'com.android.volley:volley:1.2.1'
 
@@ -99,7 +99,7 @@ dependencies {
     implementation "ch.acra:acra-mail:$acra_version"
     implementation "ch.acra:acra-dialog:$acra_version"
     // google transit realtime
-    implementation 'com.google.protobuf:protobuf-java:3.17.2'
+    implementation 'com.google.protobuf:protobuf-java:3.19.6'
     // mqtt library
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
     implementation 'com.github.hannesa2:paho.mqtt.android:4.1'
