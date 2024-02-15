@@ -131,6 +131,8 @@
 
 
     <string name="enable_position_message_map">Consenti l\'accesso alla posizione per mostrarla sulla mappa</string>
+    <string name="enable_position_message_nearby">Consenti l\'accesso alla posizione per mostrare le fermate vicine</string>
+
     <string name="enableGpsText">Abilitare il GPS</string>
     <string name="bus_arriving_at">arriva alle</string>
     <string name="arrivals_card_at_the_stop">alla fermata</string>
@@ -175,6 +177,8 @@
     <string name="default_notification_channel_description">Canale default delle notifiche</string>
     <string name="database_notification_channel">Operazioni sul database</string>
     <string name="database_notification_channel_desc">Informazioni sul database (aggiornamento)</string>
+    <string name="mqtt_notification_text">Servizio posizioni in tempo reale attivo</string>
+
 
     <string name="db_trips_download_message">Downloading trips from MaTO server</string>
 

@@ -91,7 +91,7 @@ public class DBUpdateWorker extends Worker{
                 .setContentTitle(con.getString(R.string.database_update_msg_notif))
                 .setProgress(0,0,true)
                 .setPriority(NotificationCompat.PRIORITY_LOW);
-        builder.setSmallIcon(R.drawable.ic_bus_orange);
+        builder.setSmallIcon(R.drawable.ic_bus_stilized);
 
 
         notificationManager.notify(notification_ID,builder.build());

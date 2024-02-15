@@ -1,23 +1,25 @@
 package it.reyboz.bustorino.backend.mato
 
+import android.app.Notification
+import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import info.mqtt.android.service.Ack
-import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
-import org.eclipse.paho.client.mqttv3.*
 import info.mqtt.android.service.MqttAndroidClient
 import info.mqtt.android.service.QoS
-
+import it.reyboz.bustorino.backend.Notifications
+import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
+import org.eclipse.paho.client.mqttv3.*
 import org.json.JSONArray
 import org.json.JSONException
 import java.lang.ref.WeakReference
-import java.util.ArrayList
-import java.util.Properties
+import java.util.*
 
 typealias PositionsMap = HashMap<String, HashMap<String, LivePositionUpdate> >
 
-class MQTTMatoClient private constructor(): MqttCallbackExtended{
+class MQTTMatoClient(): MqttCallbackExtended{
 
     private var isStarted = false
     private var subscribedToAll = false
@@ -30,14 +32,29 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
     private val currentPositions = PositionsMap()
 
     private lateinit var lifecycle: LifecycleOwner
+    //TODO: remove class reference to context (always require context in all methods)
     private var context: Context?= null
     private var connectionTrials = 0
+    private var notification: Notification? = null
+
+    //private lateinit var notification: Notification
 
     private fun connect(context: Context, iMqttActionListener: IMqttActionListener?){
 
         val clientID = "mqtt-explorer-${getRandomString(8)}"//"mqttjs_${getRandomString(8)}"
 
+        //notification = Notifications.makeMQTTServiceNotification(context)
+
         client = MqttAndroidClient(context,SERVER_ADDR,clientID,Ack.AUTO_ACK)
+        // WE DO NOT WANT A FOREGROUND SERVICE -> it's only more mayhem
+        // (and the positions need to be downloaded only when the app is shown)
+        /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            //we need a notification
+            val notific = Notifications.makeMQTTServiceNotification(context)
+            client.setForegroundService(notific)
+            notification=notific
+        }*/
+
 
         val options = MqttConnectOptions()
         //options.sslProperties =
@@ -121,7 +138,7 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
         return true
     }
 
-    fun desubscribe(responder: MQTTMatoListener){
+    fun stopMatoRequests(responder: MQTTMatoListener){
         var removed = false
         for ((line,v)in respondersMap.entries){
             var done = false
@@ -143,7 +160,8 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
             }
             removed = done || removed
         }
-        // remove lines that have no responders
+        // check responders map, remove lines that have no responders
+
         for(line in respondersMap.keys){
             if(respondersMap[line]?.isEmpty() == true){
                 respondersMap.remove(line)
@@ -153,6 +171,15 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
     }
     fun getPositions(): PositionsMap{
         return currentPositions
+    }
+
+    /**
+     * Cancel the notification
+     */
+    fun removeNotification(context: Context){
+        val notifManager = context.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        notifManager.cancel(MQTT_NOTIFICATION_ID)
     }
 
     private fun sendUpdateToResponders(responders: ArrayList<WeakReference<MQTTMatoListener>>): Int{
@@ -174,8 +201,19 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
     }
 
     override fun connectionLost(cause: Throwable?) {
+        var doReconnect = false
+        for ((line,elms) in respondersMap.entries){
+            if(!elms.isEmpty()){
+                doReconnect = true
+                break
+            }
+        }
+        if (!doReconnect){
+            Log.d(DEBUG_TAG, "Disconnected, but no responders to give the positions, avoid reconnecting")
+            //finish here
+            return
+        }
         Log.w(DEBUG_TAG, "Lost connection in MQTT Mato Client")
-
 
         synchronized(this){
            // isStarted = false
@@ -227,9 +265,7 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
 
         try {
             val jsonList = JSONArray(messString)
-            //val full = if(jsonList.length()>7) {
-            //    if (jsonList.get(7).equals(null)) null else jsonList.getInt(7)
-            //}else null
+
             /*val posUpdate = MQTTPositionUpdate(lineId+"U", vehicleId,
                 jsonList.getDouble(0),
                 jsonList.getDouble(1),
@@ -240,7 +276,6 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
                 if(jsonList.get(6).equals(null)) null else jsonList.getInt(6),
                 //full
                 )
-
              */
             if(jsonList.get(4)==null){
                 Log.d(DEBUG_TAG, "We have null tripId: line $lineId veh $vehicleId: $jsonList")
@@ -309,18 +344,27 @@ class MQTTMatoClient private constructor(): MqttCallbackExtended{
         //NOT USED (we're not sending any messages)
     }
 
+    /*/**
+     * Stop the service forever. Client has not to be used again!!
+     */
+    fun closeClientForever(){
+        client.disconnect()
+        client.close()
+    }*/
+
+    fun disconnect(){
+        client.disconnect()
+    }
+
 
     companion object{
 
         const val SERVER_ADDR="wss://mapi.5t.torino.it:443/scre"
         const val LINES_ALL="ALL"
         private const val DEBUG_TAG="BusTO-MatoMQTT"
-        @Volatile
-        private var instance: MQTTMatoClient? = null
+        //this has to match the value in MQTT library (MQTTAndroidClient)
+        const val MQTT_NOTIFICATION_ID: Int = 77
 
-        fun getInstance() = instance?: synchronized(this){
-            instance?: MQTTMatoClient().also { instance= it }
-        }
 
         @JvmStatic
         fun mapTopic(lineId: String): String{

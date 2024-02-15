@@ -12,6 +12,8 @@ public class Notifications {
     public static final String DEFAULT_CHANNEL_ID ="Default";
     public static final String DB_UPDATE_CHANNELS_ID ="Database Update";
 
+    //match this value to the one used by the MQTTAndroidClient MANUALLY
+
     public static void createDefaultNotificationChannel(Context context) {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
@@ -51,7 +53,7 @@ public class Notifications {
     public static Notification makeMatoDownloadNotification(Context context,String title){
         return new NotificationCompat.Builder(context, Notifications.DB_UPDATE_CHANNELS_ID)
                 //.setContentIntent(PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), Constants.PENDING_INTENT_FLAG_IMMUTABLE))
-                .setSmallIcon(R.drawable.bus)
+                .setSmallIcon(R.drawable.ic_bus_stilized_transparent)
                 .setOngoing(true)
                 .setAutoCancel(true)
                 .setOnlyAlertOnce(true)
@@ -64,6 +66,15 @@ public class Notifications {
     }
     public static Notification makeMatoDownloadNotification(Context context){
         return makeMatoDownloadNotification(context, context.getString(R.string.downloading_data_mato));
+    }
+
+    public static Notification makeMQTTServiceNotification(Context context){
+        return makeMatoDownloadNotification(context, context.getString(R.string.mqtt_notification_text));
+    }
+
+    public static void cancelNotification(Context context, int notificationID){
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        manager.cancel(notificationID);
     }
 
     public static void createDBNotificationChannel(Context context){

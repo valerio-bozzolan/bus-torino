@@ -203,6 +203,7 @@
     <string name="default_notification_channel_description">Default channel for notifications</string>
     <string name="database_notification_channel">Database operations</string>
     <string name="database_notification_channel_desc">Updates of the app database</string>
+    <string name="mqtt_notification_text">Bus live positions service is running</string>
 
     <string name="db_trips_download_message">Downloading trips from MaTO server</string>
 

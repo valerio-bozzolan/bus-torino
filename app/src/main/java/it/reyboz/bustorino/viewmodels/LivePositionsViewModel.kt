@@ -42,7 +42,7 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
     private val netVolleyManager = NetworkVolleyManager.getInstance(application)
 
 
-    private var mqttClient = MQTTMatoClient.getInstance()
+    private var mqttClient = MQTTMatoClient()
 
     private var lineListening = ""
     private var lastTimeReceived: Long = 0
@@ -155,7 +155,7 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
     fun stopMatoUpdates(){
         viewModelScope.launch {
             val tt = System.currentTimeMillis()
-            mqttClient.desubscribe(matoPositionListener)
+            mqttClient.stopMatoRequests(matoPositionListener)
             val time = System.currentTimeMillis() -tt
             Log.d(DEBUG_TI, "Took $time ms to unsubscribe")
         }
@@ -210,6 +210,13 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
             delay(timems)
             requestGTFSUpdates()
         }
+    }
+
+    override fun onCleared() {
+        //stop the MQTT Service
+        Log.d(DEBUG_TI, "Clearing the live positions view model, stopping the mqttClient")
+        mqttClient.disconnect()
+        super.onCleared()
     }
 
     companion object{
