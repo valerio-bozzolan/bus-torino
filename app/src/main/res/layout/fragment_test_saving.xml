@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context=".fragments.TestSavingFragment">
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        <Button
+                android:text="@string/btn_backup_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/saveButton"
+                app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/favoritesCheckBox"
+                android:layout_marginTop="50dp"
+                android:layout_marginBottom="50dp"
+                app:layout_constraintVertical_bias="0.0"
+                app:layout_constraintVertical_chainStyle="packed"
+
+        />
+
+
+        <CheckBox
+                android:text="@string/load_file_favorites"
+                android:layout_width="wrap_content"
+                android:checked="true"
+                app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/saveButton"
+                app:layout_constraintBottom_toTopOf="@id/preferencesCheckBox"
+                app:layout_constraintVertical_bias="0.0"
+                android:minHeight="48dp"
+
+                android:layout_height="wrap_content" android:id="@+id/favoritesCheckBox"/>
+        <CheckBox
+                android:text="@string/load_preferences"
+                android:layout_width="wrap_content"
+                android:checked="true"
+                app:layout_constraintTop_toBottomOf="@id/favoritesCheckBox"
+                app:layout_constraintBottom_toTopOf="@id/loadDataButton"
+                app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintVertical_bias="0.0"
+                android:minHeight="48dp"
+                android:layout_marginTop="8dp"
+
+                android:layout_height="wrap_content" android:id="@+id/preferencesCheckBox"/>
+        <Button
+                android:text="@string/btn_load_backup_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/loadDataButton"
+                app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferencesCheckBox"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginTop="18dp"
+                app:layout_constraintVertical_bias="0.0"
+
+
+        />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>

@@ -57,8 +57,7 @@ public class DatabaseUpdate {
     public static final int VERSION_UNAVAILABLE = -2;
     public static final int JSON_PARSING_ERROR = -4;
 
-    public static final String DB_VERSION_KEY = "NextGenDB.GTTVersion";
-    public static final String DB_LAST_UPDATE_KEY = "NextGenDB.LastDBUpdate";
+
 
 
     enum Result {
@@ -305,8 +304,8 @@ public class DatabaseUpdate {
                         .build())
                 .setInputData(reqData)
                 .build();
-        final int version = theShPr.getInt(DatabaseUpdate.DB_VERSION_KEY, -10);
-        final long lastDBUpdateTime = theShPr.getLong(DatabaseUpdate.DB_LAST_UPDATE_KEY, -10);
+        final int version = theShPr.getInt(PreferencesHolder.DB_GTT_VERSION_KEY, -10);
+        final long lastDBUpdateTime = theShPr.getLong(PreferencesHolder.DB_LAST_UPDATE_KEY, -10);
         if ((version >= 0 || lastDBUpdateTime >=0) && !restart)
             workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
                     ExistingPeriodicWorkPolicy.KEEP, wr);

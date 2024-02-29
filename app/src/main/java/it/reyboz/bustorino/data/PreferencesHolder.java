@@ -19,7 +19,6 @@ package it.reyboz.bustorino.data;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 import it.reyboz.bustorino.R;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -36,8 +35,11 @@ public abstract class PreferencesHolder {
 
     public static final String PREF_GTFS_DB_VERSION = "gtfs_db_version";
     public static final String PREF_INTRO_ACTIVITY_RUN ="pref_intro_activity_run";
-
+    public static final String DB_GTT_VERSION_KEY = "NextGenDB.GTTVersion";
+    public static final String DB_LAST_UPDATE_KEY = "NextGenDB.LastDBUpdate";
     public static final String PREF_FAVORITE_LINES = "pref_favorite_lines";
+
+    public static final Set<String> IGNORE_KEYS_LOAD_MAIN = Set.of(PREF_GTFS_DB_VERSION, PREF_INTRO_ACTIVITY_RUN, DB_GTT_VERSION_KEY, DB_LAST_UPDATE_KEY);
 
     public static SharedPreferences getMainSharedPreferences(Context context){
         return context.getSharedPreferences(context.getString(R.string.mainSharedPreferences), MODE_PRIVATE);

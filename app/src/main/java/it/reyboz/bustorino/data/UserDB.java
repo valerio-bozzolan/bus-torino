@@ -27,11 +27,13 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 
+import de.siegmar.fastcsv.reader.CloseableIterator;
+import de.siegmar.fastcsv.reader.CsvReader;
+import de.siegmar.fastcsv.reader.CsvRow;
+import de.siegmar.fastcsv.writer.CsvWriter;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.StopsDBInterface;
 
@@ -40,8 +42,12 @@ public class UserDB extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "user.db";
 	static final String TABLE_NAME = "favorites";
     private final Context c; // needed during upgrade
+    public final static String COL_ID = "ID";
+    public final static String COL_USERNAME="username";
+
+    public static final int FILE_INVALID=-10;
     private final static String[] usernameColumnNameAsArray = {"username"};
-    public final static String[] getFavoritesColumnNamesAsArray = {"ID", "username"};
+    public final static String[] getFavoritesColumnNamesAsArray = {COL_ID, COL_USERNAME};
 
     private static final Uri FAVORITES_URI = AppDataProvider.getUriBuilderToComplete().appendPath(
             AppDataProvider.FAVORITES).build();
@@ -322,5 +328,67 @@ public class UserDB extends SQLiteOpenHelper {
         }
 
         return found;
+    }
+
+    //extract rows into CSV
+    public boolean writeFavoritesToCsv(CsvWriter writer){
+        SQLiteDatabase db =  this.getReadableDatabase();
+
+        String sortOrder =
+                COL_ID + " DESC";
+        Cursor cursor = db.query(TABLE_NAME, getFavoritesColumnNamesAsArray,null,null,null,null, sortOrder);
+
+        final int nCols = 2;//cursor.getColumnCount();
+        writer.writeRow(cursor.getColumnNames());
+        while (cursor.moveToNext()){
+            String[] arr = {cursor.getString(0), cursor.getString(1)};
+            writer.writeRow(arr);
+        }
+        cursor.close();
+        return true;
+    }
+
+    public int insertRowsFromCSV(CsvReader reader){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        boolean firstrow = true;
+        final HashMap<String,Integer> colIndexByRows = new HashMap<>();
+
+        final CloseableIterator<CsvRow> rowsIter = reader.iterator();
+        if (!rowsIter.hasNext()){
+            //nothing to do, it's an empty file
+            return -1;
+        }
+        final CsvRow firstRow =  rowsIter.next();
+        // close if there isn't another rows
+        if(!rowsIter.hasNext()) return -2;
+        for (int i =0; i<firstRow.getFieldCount(); i++){
+            colIndexByRows.put(firstRow.getField(i),i);
+        }
+        if (!colIndexByRows.containsKey(COL_ID) || !colIndexByRows.containsKey(COL_USERNAME)){
+            //Cannot accept the file
+            return FILE_INVALID;
+        }
+        //begin
+        db.beginTransaction();
+        int updated = 0;
+        final int col_id = colIndexByRows.get(COL_ID);
+        final int col_username = colIndexByRows.get(COL_USERNAME);
+        while (rowsIter.hasNext()){
+            final CsvRow row = rowsIter.next();
+            final ContentValues cv = new ContentValues();
+            cv.put(COL_ID, row.getField(col_id));
+            cv.put(COL_USERNAME, row.getField(col_username));
+
+            long rowid = db.insertWithOnConflict(TABLE_NAME, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+            if (rowid >= 0)
+                updated +=1;
+        }
+        db.setTransactionSuccessful();
+        db.endTransaction();
+
+        db.close();
+
+       return updated;
     }
 }

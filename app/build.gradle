@@ -123,7 +123,7 @@ dependencies {
     //multidex - we need this to build the app
     implementation "androidx.multidex:multidex:$multidex_version"
 
-    implementation 'de.siegmar:fastcsv:2.0.0'
+    implementation 'de.siegmar:fastcsv:2.2.2'
 
     testImplementation 'junit:junit:4.12'
     implementation 'junit:junit:4.12'

@@ -76,13 +76,13 @@ public class DBUpdateWorker extends Worker{
         final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
         final int notification_ID = 32198;
         final SharedPreferences shPr = con.getSharedPreferences(con.getString(R.string.mainSharedPreferences),MODE_PRIVATE);
-        final int current_DB_version = shPr.getInt(DatabaseUpdate.DB_VERSION_KEY,-10);
+        final int current_DB_version = shPr.getInt(PreferencesHolder.DB_GTT_VERSION_KEY,-10);
 
         final int new_DB_version = DatabaseUpdate.getNewVersion();
 
         final boolean isUpdateCompulsory = getInputData().getBoolean(FORCED_UPDATE,false);
 
-        final long lastDBUpdateTime = shPr.getLong(DatabaseUpdate.DB_LAST_UPDATE_KEY, 0);
+        final long lastDBUpdateTime = shPr.getLong(PreferencesHolder.DB_LAST_UPDATE_KEY, 0);
         long currentTime = System.currentTimeMillis()/1000;
 
         //showNotification(notificationManager, notification_ID);
@@ -143,9 +143,9 @@ public class DBUpdateWorker extends Worker{
         Log.d(DEBUG_TAG, "Update finished successfully!");
         //update the version in the shared preference
         final SharedPreferences.Editor editor = shPr.edit();
-        editor.putInt(DatabaseUpdate.DB_VERSION_KEY, new_DB_version);
+        editor.putInt(PreferencesHolder.DB_GTT_VERSION_KEY, new_DB_version);
         currentTime = System.currentTimeMillis()/1000;
-        editor.putLong(DatabaseUpdate.DB_LAST_UPDATE_KEY, currentTime);
+        editor.putLong(PreferencesHolder.DB_LAST_UPDATE_KEY, currentTime);
         editor.apply();
         cancelNotification(notification_ID);
 

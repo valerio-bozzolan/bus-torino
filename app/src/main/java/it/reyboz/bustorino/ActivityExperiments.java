@@ -27,7 +27,7 @@ import it.reyboz.bustorino.middleware.GeneralActivity;
 
 public class ActivityExperiments extends GeneralActivity implements CommonFragmentListener {
 
-    final static String DEBUG_TAG = "ExperimentsGTFS";
+    final static String DEBUG_TAG = "ExperimentsActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +54,7 @@ public class ActivityExperiments extends GeneralActivity implements CommonFragme
 
                     //.add(R.id.fragment_container_view, LinesDetailFragment.class,
                     //        LinesDetailFragment.Companion.makeArgs("gtt:4U"))
-                    .add(R.id.fragment_container_view, TestRealtimeGtfsFragment.class, null)
+                    .add(R.id.fragment_container_view, TestSavingFragment.class, null)
                     .commit();
         }
     }

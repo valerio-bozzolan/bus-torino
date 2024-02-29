@@ -275,7 +275,14 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
     <string name="grant_notification_permission">Abilita notifiche</string>
     <string name="notification_permission_granted">Notifiche abilitate</string>
 
+    <string name="saved_data">Dati salvati</string>
+    <string name="btn_backup_message">Salva backup</string>
+    <string name="btn_load_backup_message">Importa i dati dal backup</string>
+    <string name="data_imported_backup">Backup importato</string>
 
+    <string name="message_check_at_least_one">Seleziona almeno un elemento da importare!</string>
+    <string name="load_file_favorites">Importa preferiti dal backup</string>
+    <string name="load_preferences">Importa preferenze dal backup</string>
 
 
 </resources>

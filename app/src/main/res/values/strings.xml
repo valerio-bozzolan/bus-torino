@@ -164,7 +164,7 @@
     <!--
     Mixed button strings
     !-->
-    <string name="open_telegram"> Join Telegram channel</string>
+    <string name="open_telegram">Join Telegram channel</string>
     <!--
    Map view buttons strings
    !-->
@@ -283,7 +283,7 @@
     </string>
 
     <string name="tutorial_map">
-    <![CDATA[...or you can find them in the map, along with the real-time positions of the buses running in the city (in <font color="#2F59CC">blue</font>)]]>
+        <![CDATA[...or you can find them in the map, along with the real-time positions of the buses running in the city (in <font color="#2F59CC">blue</font>)]]>
     </string>
     <string name="tutorial_line">
         <![CDATA[You can also look at the line you want and see where the stops are, together with the vehicles serving the line at the moment. Remember to choose the direction you\'re interested in!]]>
@@ -305,5 +305,12 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="grant_notification_permission">Enable notifications</string>
     <string name="notification_permission_granted">Notifications enabled</string>
 
+    <string name="saved_data">Data saved</string>
+    <string name="btn_backup_message">Backup to file</string>
+    <string name="btn_load_backup_message">Import data from backup</string>
+    <string name="data_imported_backup">Backup has been imported</string>
+    <string name="message_check_at_least_one">Check at least one item to import!</string>
+    <string name="load_file_favorites">Import favorites from backup</string>
+    <string name="load_preferences">Import preferences from backup</string>
 
 </resources>
