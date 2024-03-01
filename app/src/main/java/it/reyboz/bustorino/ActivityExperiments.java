@@ -32,7 +32,7 @@ public class ActivityExperiments extends GeneralActivity implements CommonFragme
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_experiments);
+        setContentView(R.layout.activity_container_fragment);
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -54,7 +54,7 @@ public class ActivityExperiments extends GeneralActivity implements CommonFragme
 
                     //.add(R.id.fragment_container_view, LinesDetailFragment.class,
                     //        LinesDetailFragment.Companion.makeArgs("gtt:4U"))
-                    .add(R.id.fragment_container_view, TestSavingFragment.class, null)
+                    .add(R.id.fragment_container_view, BackupImportFragment.class, null)
                     .commit();
         }
     }

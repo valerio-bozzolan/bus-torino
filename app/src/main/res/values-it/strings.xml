@@ -275,6 +275,9 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
     <string name="grant_notification_permission">Abilita notifiche</string>
     <string name="notification_permission_granted">Notifiche abilitate</string>
 
+    <!-- BACKUP -->
+    <string name="backup_restore">Backup e ripristino</string>
+    <string name="backup_activity">Importa / esporta dati</string>
     <string name="saved_data">Dati salvati</string>
     <string name="btn_backup_message">Salva backup</string>
     <string name="btn_load_backup_message">Importa i dati dal backup</string>

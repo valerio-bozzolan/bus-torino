@@ -18,6 +18,7 @@
 package it.reyboz.bustorino.fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -33,6 +34,7 @@ import androidx.preference.*;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
+import it.reyboz.bustorino.ActivityBackup;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.data.DatabaseUpdate;
 import it.reyboz.bustorino.data.GtfsMaintenanceWorker;
@@ -89,15 +91,24 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
         Preference dbUpdateNow = findPreference("pref_db_update_now");
         if (dbUpdateNow!=null)
         dbUpdateNow.setOnPreferenceClickListener(
-                new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(@NonNull Preference preference) {
-                        //trigger update
-                        if(getContext()!=null) {
-                            DatabaseUpdate.requestDBUpdateWithWork(getContext().getApplicationContext(), true, true);
-                            Toast.makeText(getContext(),R.string.requesting_db_update,Toast.LENGTH_SHORT).show();
-                            return true;
-                        }
+                preference -> {
+                    //trigger update
+                    if(getContext()!=null) {
+                        DatabaseUpdate.requestDBUpdateWithWork(getContext().getApplicationContext(), true, true);
+                        Toast.makeText(getContext(),R.string.requesting_db_update,Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    return false;
+                }
+        );
+        //set click listener on backup item
+        final Preference backupPref = findPreference("pref_backup_open");
+        if (backupPref!=null) backupPref.setOnPreferenceClickListener(
+                preference -> {
+                    if(getActivity()!=null){
+                        startActivity( new Intent(getActivity().getApplicationContext(), ActivityBackup.class) );
+                        return true;
+                    } else {
                         return false;
                     }
                 }

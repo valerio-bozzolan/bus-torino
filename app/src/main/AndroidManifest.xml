@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -9,10 +10,11 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <!-- this is to REMOVE the permission from MQTT service -->
-    <uses-permission    tools:node="remove"
-                        android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+    <uses-permission
+            android:name="android.permission.POST_NOTIFICATIONS"/> <!-- this is to REMOVE the permission from MQTT service -->
+    <uses-permission
+            android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"
+            tools:node="remove"/>
 
     <queries>
         <intent>
@@ -41,6 +43,12 @@
             android:networkSecurityConfig="@xml/networks_security_config"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:theme="@style/AppTheme.NoActionBar">
+        <activity
+                android:name=".ActivityBackup"
+                android:label="@string/backup_activity"
+                android:parentActivityName=".ActivityPrincipal"
+                android:theme="@style/AppTheme"
+                android:exported="false"/>
         <activity
                 android:name=".ActivityIntro"
                 android:exported="false"/>

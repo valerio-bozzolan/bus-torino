@@ -304,7 +304,9 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="close_tutorial_short">Close the tutorial</string>
     <string name="grant_notification_permission">Enable notifications</string>
     <string name="notification_permission_granted">Notifications enabled</string>
-
+    <!-- BACKUP -->
+    <string name="backup_restore">Backup and restore</string>
+    <string name="backup_activity">Import/export preferences</string>
     <string name="saved_data">Data saved</string>
     <string name="btn_backup_message">Backup to file</string>
     <string name="btn_load_backup_message">Import data from backup</string>

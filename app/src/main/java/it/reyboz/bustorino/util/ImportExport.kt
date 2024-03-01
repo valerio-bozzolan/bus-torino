@@ -8,7 +8,7 @@ import org.json.JSONObject
 import java.io.*
 
 
-class Saving {
+class ImportExport {
 
     companion object{
 
@@ -87,10 +87,20 @@ class Saving {
             }
             return editor.commit()
         }
-
+        fun importJsonToSharedPreferences(sharedPreferences: SharedPreferences,
+                                          allJsonAsString: String,
+                                          ignoreKeys: Set<String>?,
+                                          ignoreKeyRegex: Regex?): Int{
+            return importJsonToSharedPreferences(sharedPreferences, allJsonAsString,
+                ignoreKeys, ignoreKeyRegex, HashSet())
+        }
 
         fun importJsonToSharedPreferences(sharedPreferences: SharedPreferences,
-                                          allJsonAsString: String, ignoreKeys: Set<String>?, ignoreKeyRegex: Regex?): Int {
+                                          allJsonAsString: String,
+                                          ignoreKeys: Set<String>?,
+                                          ignoreKeyRegex: Regex?,
+                                          mergeSetKeys: Set<String>
+                                          ): Int {
             // Parse JSON
             val jsonObject = JSONObject(allJsonAsString)
 
@@ -111,6 +121,8 @@ class Saving {
                         is String -> editor.putString(key, value)
                         is JSONArray -> { // Handle arrays
                             val set = mutableSetOf<String>()
+                            if (mergeSetKeys.contains(key))
+                                sharedPreferences.getStringSet(key, mutableSetOf())?.let { set.addAll(it) }
                             for (i in 0 until value.length()) {
                                 set.add(value.optString(i))
                             }

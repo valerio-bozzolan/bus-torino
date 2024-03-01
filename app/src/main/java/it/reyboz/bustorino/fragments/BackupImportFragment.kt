@@ -18,7 +18,7 @@ import de.siegmar.fastcsv.writer.CsvWriter
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.UserDB
-import it.reyboz.bustorino.util.Saving
+import it.reyboz.bustorino.util.ImportExport
 import java.io.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -30,10 +30,10 @@ import java.util.zip.ZipOutputStream
 
 /**
  * A simple [Fragment] subclass.
- * Use the [TestSavingFragment.newInstance] factory method to
+ * Use the [BackupImportFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class TestSavingFragment : Fragment() {
+class BackupImportFragment : Fragment() {
 
     private val saveFileLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -162,13 +162,13 @@ class TestSavingFragment : Fragment() {
             //write main preferences
             zipOutputStream.putNextEntry(ZipEntry(MAIN_PREF_NAME))
             var sharedPrefs = PreferencesHolder.getMainSharedPreferences(context)
-            var jsonPref = Saving.writeSharedPreferencesIntoJSON(sharedPrefs)
+            var jsonPref = ImportExport.writeSharedPreferencesIntoJSON(sharedPrefs)
             writeStringToZipOS(jsonPref.toString(2), zipOutputStream)
             zipOutputStream.closeEntry()
 
             zipOutputStream.putNextEntry(ZipEntry(APP_PREF_NAME))
             sharedPrefs = PreferencesHolder.getAppPreferences(context)
-            jsonPref = Saving.writeSharedPreferencesIntoJSON(sharedPrefs)
+            jsonPref = ImportExport.writeSharedPreferencesIntoJSON(sharedPrefs)
             writeStringToZipOS(jsonPref.toString(2), zipOutputStream)
             zipOutputStream.closeEntry()
             //add CSV
@@ -210,7 +210,7 @@ class TestSavingFragment : Fragment() {
                             val jsonString = readFileToString(zipstream)
                             try {
                                 val pref = PreferencesHolder.getAppPreferences(context)
-                                Saving.importJsonToSharedPreferences(pref, jsonString, null, Regex("osmdroid\\."))
+                                ImportExport.importJsonToSharedPreferences(pref, jsonString, null, Regex("osmdroid\\."))
                             } catch (e: Exception){
                                 Log.e(DEBUG_TAG, "Cannot read app preferences from file")
                                 e.printStackTrace()
@@ -223,7 +223,8 @@ class TestSavingFragment : Fragment() {
                                 val pref = PreferencesHolder.getMainSharedPreferences(context)
                                 //In the future, if we move the favorite lines to a different file,
                                 // We should check here if the key is in the jsonObject, and copy it to the other file
-                                Saving.importJsonToSharedPreferences(pref, jsonString, PreferencesHolder.IGNORE_KEYS_LOAD_MAIN, null)
+                                ImportExport.importJsonToSharedPreferences(pref, jsonString, PreferencesHolder.IGNORE_KEYS_LOAD_MAIN, null,
+                                    PreferencesHolder.KEYS_MERGE_SET)
                             } catch (e: Exception){
                                 Log.e(DEBUG_TAG, "Cannot read main preferences from file")
                                 e.printStackTrace()
@@ -279,7 +280,7 @@ class TestSavingFragment : Fragment() {
 
         @JvmStatic
         fun newInstance() =
-            TestSavingFragment().apply {
+            BackupImportFragment().apply {
                 arguments = Bundle() /*.apply {
                     putString(ARG_PARAM1, param1)
                     putString(ARG_PARAM2, param2)

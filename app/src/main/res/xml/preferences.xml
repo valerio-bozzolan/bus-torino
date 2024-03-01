@@ -100,6 +100,13 @@
             />
     </androidx.preference.PreferenceCategory>
 
+    <androidx.preference.PreferenceCategory android:title="@string/backup_restore">
+        <androidx.preference.Preference
+            android:title="@string/backup_activity"
+            android:key="pref_backup_open"
+            />
+    </androidx.preference.PreferenceCategory>
+
     <androidx.preference.PreferenceCategory
             android:title="@string/settings_experimental">
         <androidx.preference.SwitchPreferenceCompat

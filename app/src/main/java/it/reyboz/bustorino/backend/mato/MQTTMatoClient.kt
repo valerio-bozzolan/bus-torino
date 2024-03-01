@@ -24,7 +24,7 @@ class MQTTMatoClient(): MqttCallbackExtended{
     private var isStarted = false
     private var subscribedToAll = false
 
-    private lateinit var client: MqttAndroidClient
+    private var client: MqttAndroidClient? = null
     //private var clientID = ""
 
     private val respondersMap = HashMap<String, ArrayList<WeakReference<MQTTMatoListener>>>()
@@ -66,9 +66,9 @@ class MQTTMatoClient(): MqttCallbackExtended{
 
         Log.d(DEBUG_TAG,"client name: $clientID")
         //actually connect
-        client.connect(options,null, iMqttActionListener)
+        client!!.connect(options,null, iMqttActionListener)
         isStarted = true
-        client.setCallback(this)
+        client!!.setCallback(this)
 
         if (this.context ==null)
             this.context = context.applicationContext
@@ -92,8 +92,8 @@ class MQTTMatoClient(): MqttCallbackExtended{
                 disconnectedBufferOptions.bufferSize = 100
                 disconnectedBufferOptions.isPersistBuffer = false
                 disconnectedBufferOptions.isDeleteOldestMessages = false
-                client.setBufferOpts(disconnectedBufferOptions)
-                client.subscribe(topic, QoS.AtMostOnce.value)
+                client!!.setBufferOpts(disconnectedBufferOptions)
+                client!!.subscribe(topic, QoS.AtMostOnce.value)
                 isStarted = true
             }
 
@@ -122,7 +122,7 @@ class MQTTMatoClient(): MqttCallbackExtended{
                 connectTopic(topic)
                 //wait for connection
             } else {
-                client.subscribe(topic, QoS.AtMostOnce.value)
+                client!!.subscribe(topic, QoS.AtMostOnce.value)
             }
         }
 
@@ -156,7 +156,7 @@ class MQTTMatoClient(): MqttCallbackExtended{
             //if (done) break
             if (v.isEmpty()){
                 //actually unsubscribe
-                client.unsubscribe( mapTopic(line))
+                client!!.unsubscribe( mapTopic(line))
             }
             removed = done || removed
         }
@@ -227,7 +227,7 @@ class MQTTMatoClient(): MqttCallbackExtended{
                             if(elms.isEmpty())
                                 respondersMap.remove(line)
                             else {
-                                client.subscribe(topic, QoS.AtMostOnce.value, null, null)
+                                client!!.subscribe(topic, QoS.AtMostOnce.value, null, null)
                                 Log.d(DEBUG_TAG, "Resubscribed with topic $topic")
                             }
                         }
@@ -327,7 +327,7 @@ class MQTTMatoClient(): MqttCallbackExtended{
                 //try unsubscribing to all
                 if(emptyResp) {
                     Log.d(DEBUG_TAG, "Unsubscribe all")
-                    client.unsubscribe(LINES_ALL)
+                    client!!.unsubscribe(LINES_ALL)
                 }
             }
             //Log.d(DEBUG_TAG, "We have update on line $lineId, vehicle $vehicleId")
@@ -353,7 +353,7 @@ class MQTTMatoClient(): MqttCallbackExtended{
     }*/
 
     fun disconnect(){
-        client.disconnect()
+        client?.disconnect()
     }
 
 

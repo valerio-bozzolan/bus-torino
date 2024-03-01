@@ -39,6 +39,7 @@ public abstract class PreferencesHolder {
     public static final String DB_LAST_UPDATE_KEY = "NextGenDB.LastDBUpdate";
     public static final String PREF_FAVORITE_LINES = "pref_favorite_lines";
 
+    public static final Set<String> KEYS_MERGE_SET = Set.of(PREF_FAVORITE_LINES);
     public static final Set<String> IGNORE_KEYS_LOAD_MAIN = Set.of(PREF_GTFS_DB_VERSION, PREF_INTRO_ACTIVITY_RUN, DB_GTT_VERSION_KEY, DB_LAST_UPDATE_KEY);
 
     public static SharedPreferences getMainSharedPreferences(Context context){
