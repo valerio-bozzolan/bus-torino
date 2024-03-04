@@ -1,0 +1,3 @@
+Aggiunta possibilità di fare Backup / Ripristino dalle Impostazioni
+Implementata da fabio.mazza
+https://gitpull.it/T822

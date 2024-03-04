@@ -1,0 +1,3 @@
+Allow to backup / restore data from Settings
+Implemented by fabio.mazza
+https://gitpull.it/T822
