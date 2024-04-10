@@ -20,6 +20,8 @@ package it.reyboz.bustorino.viewmodels
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Response
 import it.reyboz.bustorino.backend.NetworkVolleyManager
@@ -28,9 +30,14 @@ import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.mato.MQTTMatoClient
 import it.reyboz.bustorino.data.GtfsRepository
 import it.reyboz.bustorino.data.MatoPatternsDownloadWorker
+import it.reyboz.bustorino.data.MatoTripsDownloadWorker
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 
 
 class LivePositionsViewModel(application: Application): AndroidViewModel(application) {
@@ -49,6 +56,27 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
 
     private val gtfsRtRequestRunning = MutableLiveData<Boolean>(false)
 
+    private val lastFailedTripsRequest = HashMap<String, Date>()
+    private val workManager = WorkManager.getInstance(application)
+
+    private var lastRequestedDownloadTrips = MutableLiveData<List<String>>()
+
+    var isLastWorkResultGood =  workManager
+        .getWorkInfosForUniqueWorkLiveData(MatoTripsDownloadWorker.TAG_TRIPS).map { it ->
+            if (it.isEmpty()) return@map false
+            var res = true
+            if(it[0].state == WorkInfo.State.FAILED){
+                val currDate = Date()
+                res =  false
+                lastRequestedDownloadTrips.value?.let { trips->
+                    for(tr in trips){
+                        lastFailedTripsRequest[tr] = currDate
+                    }
+                }
+
+            }
+            return@map res
+    }
     /**
      * Responder to the MQTT Client
      */
@@ -218,8 +246,42 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
         mqttClient.disconnect()
         super.onCleared()
     }
+    //Request trips download
+    fun downloadTripsFromMato(trips: List<String>): Boolean{
+        if(trips.isEmpty())
+            return false
+        var shouldContinue = false
+        val currentDateTime = Date().time
+
+        for (tr in trips){
+            if (!lastFailedTripsRequest.containsKey(tr)){
+                shouldContinue = true
+                break
+            } else{
+                //Log.i(DEBUG_TI, "Last time the trip has failed is ${lastFailedTripsRequest[tr]}")
+                if ((lastFailedTripsRequest[tr]!!.time - currentDateTime) > MAX_TIME_RETRY){
+                    shouldContinue =true
+                    break
+                }
+            }
+        }
+        if (shouldContinue) {
+            //if one trip
+            val workRequ =MatoTripsDownloadWorker.requestMatoTripsDownload(trips, getApplication(), "BusTO-MatoTripsDown")
+            workRequ?.let { req ->
+                Log.d(DEBUG_TI, "Enqueueing new work, saving work info")
+                lastRequestedDownloadTrips.postValue(trips)
+                //isLastWorkResultGood =
+            }
+        } else{
+            Log.w(DEBUG_TI, "Requested to fetch data for ${trips.size} trips but they all have failed before in the last $MAX_MINUTES_RETRY mins")
+        }
+        return shouldContinue
+    }
 
     companion object{
         private const val DEBUG_TI = "BusTO-LivePosViewModel"
+        private const val MAX_MINUTES_RETRY = 3
+        private const val MAX_TIME_RETRY = MAX_MINUTES_RETRY*60*1000 //3 minutes (in milliseconds)
     }
 }

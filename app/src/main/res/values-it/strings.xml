@@ -177,7 +177,12 @@
     <string name="default_notification_channel_description">Canale default delle notifiche</string>
     <string name="database_notification_channel">Operazioni sul database</string>
     <string name="database_notification_channel_desc">Informazioni sul database (aggiornamento)</string>
-    <string name="mqtt_notification_text">Servizio posizioni in tempo reale attivo</string>
+    <string name="live_position_service_name">BusTO - posizioni in tempo reale</string>
+
+    <string name="live_positions_notification_channel">Posizioni in tempo reale</string>
+    <string name="live_positions_notification_channel_desc">Attività del servizio delle posizioni in tempo reale</string>
+
+    <string name="mqtt_notification_text">Servizio posizioni MaTO in tempo reale attivo</string>
 
 
     <string name="db_trips_download_message">Downloading trips from MaTO server</string>

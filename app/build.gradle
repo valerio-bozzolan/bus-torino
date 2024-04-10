@@ -12,8 +12,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 34
         buildToolsVersion = '34.0.0'
-        versionCode 57
-        versionName "2.2.0"
+        versionCode 58
+        versionName "2.2.1"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
         javaCompileOptions {
@@ -70,6 +70,9 @@ dependencies {
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+
+    // Guava implementation for DBUpdateWorker
+    implementation 'com.google.guava:guava:29.0-android'
     
     implementation "androidx.fragment:fragment-ktx:$fragment_version"
     implementation "androidx.activity:activity:$activity_version"
@@ -83,7 +86,7 @@ dependencies {
     implementation "androidx.work:work-runtime-ktx:$work_version"
 
 
-    implementation "com.google.android.material:material:1.9.0"
+    implementation "com.google.android.material:material:1.11.0"
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
 
@@ -102,10 +105,8 @@ dependencies {
     implementation 'com.google.protobuf:protobuf-java:3.19.6'
     // mqtt library
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
-    implementation 'com.github.hannesa2:paho.mqtt.android:4.2'
+    implementation 'com.github.hannesa2:paho.mqtt.android:4.2.4'
     //implementation 'com.github.fabmazz:paho.mqtt.android:v0.0.1'
-
-
 
     // ViewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"

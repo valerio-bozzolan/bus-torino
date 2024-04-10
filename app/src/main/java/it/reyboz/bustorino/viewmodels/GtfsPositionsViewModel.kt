@@ -20,6 +20,7 @@ package it.reyboz.bustorino.viewmodels
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
+import androidx.work.OneTimeWorkRequest
 import com.android.volley.Response
 import it.reyboz.bustorino.backend.NetworkVolleyManager
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
@@ -166,8 +167,8 @@ class GtfsPositionsViewModel(application: Application): AndroidViewModel(applica
 
      Keep in mind that trips DO CHANGE often, and so do the Patterns
      */
-    fun downloadTripsFromMato(trips: List<String>): Boolean{
-        return MatoTripsDownloadWorker.downloadTripsFromMato(trips,getApplication(), DEBUG_TI)
+    fun downloadTripsFromMato(trips: List<String>): OneTimeWorkRequest?{
+        return MatoTripsDownloadWorker.requestMatoTripsDownload(trips,getApplication(), "BusTO-MatoTripsDown")
     }
     private fun downloadMissingPatterns(routeIds: List<String>): Boolean{
         return MatoPatternsDownloadWorker.downloadPatternsForRoutes(routeIds, getApplication())

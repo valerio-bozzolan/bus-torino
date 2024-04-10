@@ -28,29 +28,44 @@ import org.acra.config.DialogConfigurationBuilder;
 import org.acra.config.MailSenderConfigurationBuilder;
 import org.acra.data.StringFormat;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.acra.ReportField.*;
 
 
 public class BustoApp extends MultiDexApplication {
-    private static final ReportField[] REPORT_FIELDS = {REPORT_ID, APP_VERSION_CODE, APP_VERSION_NAME,
+    private static final List<ReportField> REPORT_FIELDS = List.of(REPORT_ID, APP_VERSION_CODE, APP_VERSION_NAME,
             PACKAGE_NAME, PHONE_MODEL, BRAND, PRODUCT, ANDROID_VERSION, BUILD_CONFIG, CUSTOM_DATA,
             IS_SILENT, STACK_TRACE, INITIAL_CONFIGURATION, CRASH_CONFIGURATION, DISPLAY, USER_COMMENT,
-            USER_APP_START_DATE, USER_CRASH_DATE, LOGCAT, SHARED_PREFERENCES};
+            USER_APP_START_DATE, USER_CRASH_DATE, LOGCAT, SHARED_PREFERENCES);
 
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
 
-        CoreConfigurationBuilder builder = new CoreConfigurationBuilder(this);
-        builder.setBuildConfigClass(BuildConfig.class).setReportFormat(StringFormat.JSON)
-        .setDeleteUnapprovedReportsOnApplicationStart(true);
-        builder.getPluginConfigurationBuilder(MailSenderConfigurationBuilder.class).setMailTo("gtt@succhia.cz")
-                .setReportFileName(it.reyboz.bustorino.BuildConfig.VERSION_NAME +"_report.json")
-                .setResBody(R.string.acra_email_message)
+        CoreConfigurationBuilder builder = new CoreConfigurationBuilder();
+        // mail stuff
+        MailSenderConfigurationBuilder mailConfig = new MailSenderConfigurationBuilder();
+        mailConfig.withMailTo("gtt@succhia.cz")
+                .withReportFileName(it.reyboz.bustorino.BuildConfig.VERSION_NAME +"_report.json")
+                .withBody(getString(R.string.acra_email_message))
                 .setEnabled(true);
-        builder.getPluginConfigurationBuilder(DialogConfigurationBuilder.class).setResText(R.string.message_crash)
-                .setResTheme(R.style.AppTheme)
-                .setEnabled(true);
+        //dialog stuff
+        DialogConfigurationBuilder dialogBuild = new DialogConfigurationBuilder();
+        dialogBuild.withText(getString(R.string.message_crash))
+                .withResTheme(R.style.AppTheme).setEnabled(true);
+        //Set options
+        builder.withBuildConfigClass(BuildConfig.class)
+                .withReportFormat(StringFormat.JSON)
+                .withDeleteUnapprovedReportsOnApplicationStart(true);
+        //Add plugins
+        builder.withPluginConfigurations(
+            mailConfig.build(), dialogBuild.build()
+        );
+
+
         builder.setReportContent(REPORT_FIELDS);
         if (!it.reyboz.bustorino.BuildConfig.DEBUG)
             ACRA.init(this, builder);

@@ -46,7 +46,6 @@ import androidx.preference.PreferenceManager;
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate;
 import it.reyboz.bustorino.backend.mato.MQTTMatoClient;
 import it.reyboz.bustorino.backend.utils;
-import it.reyboz.bustorino.data.MatoTripsDownloadWorker;
 import it.reyboz.bustorino.data.gtfs.MatoPattern;
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops;
 import it.reyboz.bustorino.map.*;
@@ -374,12 +373,16 @@ public class MapFragment extends ScreenBaseFragment {
             else
                 livePositionsViewModel.requestGTFSUpdates();
             //mapViewModel.testCascade();
+            livePositionsViewModel.isLastWorkResultGood().observe(this, d ->
+                    Log.d(DEBUG_TAG, "Last trip download result is "+d));
             livePositionsViewModel.getTripsGtfsIDsToQuery().observe(this, dat -> {
                 Log.i(DEBUG_TAG, "Have these trips IDs missing from the DB, to be queried: "+dat);
-                //gtfsPosViewModel.downloadTripsFromMato(dat);
-                MatoTripsDownloadWorker.Companion.downloadTripsFromMato(dat,
+                livePositionsViewModel.downloadTripsFromMato(dat);
+                /*MatoTripsDownloadWorker.Companion.requestMatoTripsDownload(dat,
                         requireContext().getApplicationContext(),
                         "BusTO-MatoTripDownload");
+
+                 */
             });
         } /*else if(gtfsPosViewModel!=null){
             gtfsPosViewModel.requestUpdates();

@@ -366,7 +366,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
         //download missing tripIDs
         liveBusViewModel.tripsGtfsIDsToQuery.observe(viewLifecycleOwner){
             //gtfsPosViewModel.downloadTripsFromMato(dat);
-            MatoTripsDownloadWorker.downloadTripsFromMato(
+            MatoTripsDownloadWorker.requestMatoTripsDownload(
                 it, requireContext().applicationContext,
                 "BusTO-MatoTripDownload"
             )

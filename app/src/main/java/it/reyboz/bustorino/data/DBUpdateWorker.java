@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static android.content.Context.MODE_PRIVATE;
 
+//TODO: Move to code to Kotlin
 public class DBUpdateWorker extends Worker{
 
 

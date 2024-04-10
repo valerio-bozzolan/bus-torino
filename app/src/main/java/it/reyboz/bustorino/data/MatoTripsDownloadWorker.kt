@@ -82,15 +82,20 @@ class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameter
         }
         requestCountDown.await()
         val tripsIDsCompleted = downloadedMatoTrips.map { trip-> trip.tripID }
-        val doInsert = (queriedMatoTrips subtract failedMatoTripsDownload).containsAll(tripsIDsCompleted)
-        Log.i(DEBUG_TAG, "Inserting missing GtfsTrips in the database, should insert $doInsert")
-        if(doInsert){
+        if (tripsIDsCompleted.isEmpty()){
+            Log.d(DEBUG_TAG, "No trips have been downloaded, set work to fail")
+            return Result.failure()
+        } else {
+            val doInsert = (queriedMatoTrips subtract failedMatoTripsDownload).containsAll(tripsIDsCompleted)
+            Log.i(DEBUG_TAG, "Inserting missing GtfsTrips in the database, should insert $doInsert")
+            if (doInsert) {
 
-            gtfsRepository.gtfsDao.insertTrips(downloadedMatoTrips)
+                gtfsRepository.gtfsDao.insertTrips(downloadedMatoTrips)
 
+            }
+
+            return Result.success()
         }
-
-        return Result.success()
     }
     override suspend fun getForegroundInfo(): ForegroundInfo {
         val notificationManager =
@@ -109,8 +114,8 @@ class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameter
 
         const val TAG_TRIPS ="gtfsTripsDownload"
 
-        fun downloadTripsFromMato(trips: List<String>, context: Context, debugTag: String): Boolean{
-            if (trips.isEmpty()) return false
+        fun requestMatoTripsDownload(trips: List<String>, context: Context, debugTag: String): OneTimeWorkRequest? {
+            if (trips.isEmpty()) return null
             val workManager = WorkManager.getInstance(context)
             val info = workManager.getWorkInfosForUniqueWork(TAG_TRIPS).get()
 
@@ -128,8 +133,8 @@ class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameter
                     .addTag(TAG_TRIPS)
                     .build()
                 workManager.enqueueUniqueWork(TAG_TRIPS, ExistingWorkPolicy.KEEP, requ)
-            }
-            return true
+                return requ
+            } else return null;
         }
     }
 }

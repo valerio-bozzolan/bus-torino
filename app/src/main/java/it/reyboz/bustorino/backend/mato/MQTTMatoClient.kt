@@ -48,12 +48,15 @@ class MQTTMatoClient(): MqttCallbackExtended{
         client = MqttAndroidClient(context,SERVER_ADDR,clientID,Ack.AUTO_ACK)
         // WE DO NOT WANT A FOREGROUND SERVICE -> it's only more mayhem
         // (and the positions need to be downloaded only when the app is shown)
-        /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+        // update, 2024-04: Google Play doesn't understand our needs, so we put back the notification
+        // and add a video of it working as Google wants
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             //we need a notification
+            Notifications.createLivePositionsChannel(context)
             val notific = Notifications.makeMQTTServiceNotification(context)
-            client.setForegroundService(notific)
+            client!!.setForegroundService(notific)
             notification=notific
-        }*/
+        }
 
 
         val options = MqttConnectOptions()

@@ -11,7 +11,7 @@ buildscript {
     }
     //kotlin
     ext.kotlin_version = '1.9.0'
-    ext.coroutines_version = "1.7.3"
+    ext.coroutines_version = "1.8.0"
     dependencies {
 
         classpath 'com.android.tools.build:gradle:8.1.4'
@@ -31,8 +31,8 @@ ext {
         preference_version = "1.2.1"
         work_version = "2.9.0"
 
-        acra_version = "5.7.0"
-        lifecycle_version = "2.4.1"
+        acra_version = "5.11.3"
+        lifecycle_version = "2.7.0"
         arch_version = "2.1.0"
         room_version = "2.5.2"
 
