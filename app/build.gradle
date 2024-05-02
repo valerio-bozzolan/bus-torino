@@ -12,8 +12,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 34
         buildToolsVersion = '34.0.0'
-        versionCode 58
-        versionName "2.2.1"
+        versionCode 59
+        versionName "2.2.2"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
         javaCompileOptions {
@@ -105,8 +105,7 @@ dependencies {
     implementation 'com.google.protobuf:protobuf-java:3.19.6'
     // mqtt library
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
-    implementation 'com.github.hannesa2:paho.mqtt.android:4.2.4'
-    //implementation 'com.github.fabmazz:paho.mqtt.android:v0.0.1'
+    implementation 'com.github.fabmazz:paho.mqtt.android:v1.0.0'
 
     // ViewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
