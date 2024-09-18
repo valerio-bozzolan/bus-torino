@@ -520,7 +520,7 @@ public class ArrivalsFragment extends ResultBaseFragment implements LoaderManage
      */
     private void updateMessage(){
         String message = null;
-        if (stopName != null && stopID != null && stopName.length() > 0) {
+        if (stopName != null && stopID != null && !stopName.isEmpty()) {
             message = (stopID.concat(" - ").concat(stopName));
         } else if(stopID!=null) {
             message = stopID;
@@ -572,7 +572,8 @@ public class ArrivalsFragment extends ResultBaseFragment implements LoaderManage
                     data.moveToFirst();
                     final String probableName = data.getString(colUserName);
                     stopIsInFavorites = true;
-                    stopName = probableName;
+                    if (probableName != null && !probableName.isEmpty())
+                        stopName = probableName; //set the stop
                     //update the message in the textview
                     updateMessage();
 
