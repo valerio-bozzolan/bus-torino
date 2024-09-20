@@ -266,7 +266,7 @@ foreach( $I18N as $lang => $msg ) {
 		}
 
 		$username_author = $author['fields']['username'];
-		$username_owner  = $owner ['fields']['username'];
+		$username_owner  = $owner ['fields']['username'] ?? null;
 		$realname_author = $author['fields']['realName'] ?? null;
 		$realname_owner  = $owner ['fields']['realName'] ?? null;
 
