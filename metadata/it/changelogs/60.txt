@@ -1,0 +1,3 @@
+Corretto il titolo vuoto delle fermate preferite
+Risolto da fabio.mazza
+https://gitpull.it/T1264

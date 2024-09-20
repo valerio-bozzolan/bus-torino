@@ -1,0 +1,3 @@
+Fix title of favorite stop not showing correctly
+Resolved by fabio.mazza
+https://gitpull.it/T1264
