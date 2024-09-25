@@ -710,6 +710,7 @@ public class MapFragment extends ScreenBaseFragment {
                 if(tripWithPatternStops != null && tripWithPatternStops.getPattern()!=null)
                     markerPattern = tripWithPatternStops.getPattern();
                 marker.setInfoWindow(new BusInfoWindow(map, update, markerPattern , false, (pattern) -> {    }));
+                marker.setInfoWindowAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
 
                 updateBusMarker(marker, update, true);

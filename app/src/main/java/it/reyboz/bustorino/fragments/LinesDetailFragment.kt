@@ -791,6 +791,7 @@ class LinesDetailFragment() : ScreenBaseFragment() {
                 }
                 //marker.infoWindow as BusInfoWindow
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                marker.setInfoWindowAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                 BusPositionUtils.updateBusPositionMarker(map,marker, update, tripMarkersAnimators,true)
                 // the overlay is null when it's not attached yet?
                 // cannot recreate it because it becomes null very soon
