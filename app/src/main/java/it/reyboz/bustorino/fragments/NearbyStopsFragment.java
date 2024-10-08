@@ -427,6 +427,10 @@ public class NearbyStopsFragment extends Fragment {
             setNoStopsLayout();
             return;
         }
+        if (location == null){
+            // we could do something better, but it's better to do this for now
+            return;
+        }
 
         double minDistance = Double.POSITIVE_INFINITY;
         for(Stop s: stops){

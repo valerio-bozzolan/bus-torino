@@ -20,6 +20,7 @@
         <item name="colorPrimary">@color/orange_500</item>
         <item name="colorPrimaryDark">@color/orange_700</item>
         <item name="colorAccent">@color/teal_500</item>
+        <item name="colorOnPrimary">@color/white</item>
         <!-- For the preferences Fragment -->
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
 

@@ -17,11 +17,14 @@
 
     <color name="blue_extra">#2F59CC</color>
     <color name="brown_mattone">#CC5E43</color>
-    <color name="green_dark">#548017</color>
+    <color name="olivegreen">#548017</color>
+    <color name="forest_green">#228b22</color>
+    <color name="green_extra">#0ABA34</color>
 
     <color name="teal_500">#009688</color>
     <color name="teal_300">#4DB6AC</color>
     <color name="teal_200">#80cbc4</color>
+    <color name="teal_900">#008175</color>
     <color name="grey_100">#F5F5F5</color>
     <color name="grey_200">#dddddd</color>
     <color name="grey_050">#f8f8f8</color>

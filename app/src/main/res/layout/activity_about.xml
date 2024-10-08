@@ -6,23 +6,168 @@
         android:gravity="center">
     <!-- The ActionBar displayed at the top -->
 
-    <include
+   <!-- <include
             layout="@layout/default_toobar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
+            -->
+    <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="0.9"
+            android:scrollbars="vertical"
+    >
+        <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingTop="10dp">
+            <TextView
+                    android:id="@+id/topTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dip"
+                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                    android:layout_marginRight="@dimen/activity_horizontal_margin"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/openTutorialButton"
+                    android:autoLink="web"
+                    android:fontFamily="@font/nevermind_compact"
+                    android:textColor="@color/grey_700"
+            />
+            <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.MaterialComponents.Button.Icon"
+                    android:id="@+id/openTutorialButton"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="5dp"
+                    app:icon="@drawable/cog_8_question_transp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/topTextView"
+                    app:iconGravity="start"
+                    android:text="@string/show_introduction"
+                    android:fontFamily="@font/pitagon_semibold"
+            />
+            <TextView
+                    android:id="@+id/telegramTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dip"
+                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                    android:layout_marginRight="@dimen/activity_horizontal_margin"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    app:layout_constraintTop_toBottomOf="@id/openTutorialButton"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:autoLink="web"
+                    android:fontFamily="@font/nevermind_compact"
+                    android:textColor="@color/grey_700"
+            />
+            <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.MaterialComponents.Button.Icon"
+                    android:id="@+id/openTelegramButton"
+                    android:paddingBottom="8dp"
+                    android:paddingTop="8dp"
+                    app:icon="@drawable/telegram_logo_white"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/telegramTextView"
+                    app:iconGravity="start"
+                    android:text="@string/open_telegram"
+                    android:fontFamily="@font/pitagon_semibold"
 
-    <TextView
-            android:id="@+id/aboutTextView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginTop="5dip"
-            android:layout_marginLeft="@dimen/activity_horizontal_margin"
-            android:layout_marginRight="@dimen/activity_horizontal_margin"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:layout_weight="0.85"
-            android:fontFamily="@font/nevermind_compact"
-            android:textColor="@color/grey_700"
-    />
+            />
+            <TextView
+                    android:id="@+id/howDoesItWorkTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dip"
+                    android:layout_marginBottom="5dip"
+                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                    android:layout_marginRight="@dimen/activity_horizontal_margin"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    app:layout_constraintTop_toBottomOf="@id/openTelegramButton"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:autoLink="web"
+                    android:fontFamily="@font/nevermind_compact"
+                    android:textColor="@color/grey_700"
+            />
+
+            <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.MaterialComponents.Button.Icon"
+                    android:id="@+id/openContributeButton"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    app:icon="@drawable/journals"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/howDoesItWorkTextView"
+                    app:iconGravity="start"
+                    android:text="@string/action_wiki"
+                    android:fontFamily="@font/pitagon_semibold"
+
+            />
+            <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.MaterialComponents.Button.Icon"
+                    android:id="@+id/openSourceButton"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    app:icon="@drawable/file_earmark_code_fill"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/openContributeButton"
+                    app:iconGravity="start"
+                    android:text="@string/action_source"
+                    android:fontFamily="@font/pitagon_semibold"
+
+            />
+            <TextView
+                android:id="@+id/bottomAboutTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dip"
+                android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                android:layout_marginRight="@dimen/activity_horizontal_margin"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                app:layout_constraintTop_toBottomOf="@id/openSourceButton"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:autoLink="web"
+                android:fontFamily="@font/nevermind_compact"
+                android:textColor="@color/grey_700"
+        /><!--android:layout_weight="0.85"-->
+
+            <!--<Button
+                    android:text="@string/open_telegram"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:layout_below="@id/aboutTextView"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:id="@+id/openTelegramButton"
+                    android:drawableEnd="@drawable/telegram_logo_50"
+                    android:fontFamily="@font/pitagon_semibold"
+                    android:backgroundTint="@color/orange_500"
+                    android:textColor="@color/white"
+                    app:layout_constraintBottom_toTopOf="@id/newTelegramButton"
+            />
+            -->
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+
     <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -31,18 +176,12 @@
             android:layout_marginRight="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginTop="2dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             android:id="@+id/theDivider"
-            android:background="@android:color/darker_gray"/>
-
-    <Button
-            android:text="@string/open_telegram"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingLeft="10dp"
-            android:id="@+id/openTelegramButton"
-            android:drawableLeft = "@drawable/telegram_logo_50"
-            android:drawableStart="@drawable/telegram_logo_50"
-            android:fontFamily="@font/pitagon_semibold"/>
+            android:background="@android:color/darker_gray"
+            app:layout_constraintBottom_toTopOf="@id/versionTextView"
+    />
 
     <TextView
             android:text="@string/app_version"
@@ -50,11 +189,13 @@
             android:layout_height="wrap_content" android:id="@+id/versionTextView"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:gravity="center_horizontal|center_vertical"
-            android:layout_margin="10dp"
             android:layout_marginLeft="20dp"
-            android:layout_marginStart="20dp"
-
-            android:textColor="@color/black"/>
-
+            android:layout_marginStart="10dp"
+            android:layout_below="@id/openTelegramButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:textColor="@color/black" android:layout_marginTop="10dp" android:layout_marginEnd="10dp"
+            android:layout_marginBottom="10dp"/>
 
 </LinearLayout>

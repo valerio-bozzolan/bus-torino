@@ -57,21 +57,26 @@
         \n<b>Tocca a lungo</b> su <b>Fonte Orari</b> per cambiare sorgente degli orari di arrivo.
     </string>
     <string name="hint_button">OK!</string>
-    <string name="about_history">
+    <string name="about_history_top">
 <![CDATA[
-        <h1>Benvenuto!</h1>
+        <h1>Benvenuto/a/ə!</h1>
         
-        <p>Grazie per aver scelto BusTO, un\'app <b>indipendente</b> da GTT/5T, per spostarsi a Torino attraverso <b>software libero</b>:</p>
-		<br>
-		<p>Perché usare BusTO?</p>
-		<p>
-        - Non sei <b>monitorato</b><br>
-        - Non ci sono <b>pubblicità</b><br>
-        - La tua <b>privacy</b> è al sicuro<br>
-        - Inoltre l\'app è molto leggera!<br>
-        </p>
+        <p>Grazie per aver scelto BusTO, un\'app <b>open source</b> e <b>indipendente</b> da GTT/5T, per spostarsi a Torino attraverso <b>software libero</b>!</p>
+        <p>BusTO rispetta la tua <b>privacy</b> non raccogliendo nessun dato sull\'utilizzo, ed è <b>leggera</b> e senza <b>pubblicità</b>!</p>
         <br>
-        <h2>Come funziona?</h2>
+        <p>Qui puoi trovare più informazioni e link riguardo al progetto.</p>
+		<br>
+        <h2>Schermata iniziale</h2>
+        <p>Se vuoi rivedere la schermata iniziale, usa il pulsante qui sotto:</b>
+     ]]></string>
+    <string name="about_channel">
+        <![CDATA[
+        <h2>Notizie e aggiornamenti</h2>
+        <p>Nel canale Telegram puoi trovare informazioni sugli ultimi aggiornamenti dell\'app</p>
+        ]]></string>
+    <string name="about_how">
+        <![CDATA[
+        <h2>Ma come funziona?</h2>
         <p>Quest\'app ottiene i passaggi dei bus, le fermate e altre informazioni utili unendo dati forniti dal sito <b>www.gtt.to.it</b>, <i>www.5t.torino.it</i>, <b>muoversiatorino.it</b> "per uso personale" e altre fonti Open Data (aperto.comune.torino.it).</p>
         <br>
 		<p>Ingredienti:<br>
@@ -83,13 +88,19 @@
 		- <b>Valerio Bozzolan</b> attuale manutentore.<br>
 		- <b>Marco Gagino</b> apprezzato ex collaboratore, ideatore icona e grafica.<br>
 		- <b>JSoup</b> libreria per "<i>web scaping</i>".<br>
-		- <b>Google</b> icone e libreria di supporto per il Material Design.<br>
+		- <b>Google</b> icone e librerie di supporto e design.<br>
+		- Altre icone da <b>Bootstrap</b>, <b>Feather</b> e <b>Hero Icons</b><br>
 		- Tutti i contributori e i beta tester!
 		</p>
         <br>
+		Se vuoi avere più informazioni tecniche e contribuire allo sviluppo, usa i pulsanti qui sotto!</b>
+
+         ]]></string>
+    <string name="about_history_bottom">
+        <![CDATA[
 		<h2>Licenze</h2>
-		<p>L\'app e il relativo codice sorgente sono distribuiti sotto la licenza <i>GNU General Public License v3+</i>.
-		Ciò <b>significa</b> che puoi usare, studiare, migliorare e ricondividere quest\'app con <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: a patto di mantenere sempre questi diritti a tua volta e di dare credito a Valerio Bozzolan.
+		<p>L\'app e il relativo codice sorgente sono distribuiti sotto la licenza <i>GNU General Public License v3</i> (https://www.gnu.org/licenses/gpl-3.0.html).
+		Ciò <b>significa</b> che puoi usare, studiare, migliorare e ricondividere quest\'app con <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: a patto di mantenere sempre questi diritti a tua volta e di dare credito a Valerio Bozzolan e agli altri autori del codice dell\'app.
 		</p>
 
 		<br>
@@ -143,7 +154,9 @@
     <!--
     Mixed button strings
     !-->
-    <string name="open_telegram"> Canale Telegram</string>
+    <string name="open_telegram">Canale telegram</string>
+    <string name="show_introduction">Mostra introduzione</string>
+
 
     <!--
     Map view buttons strings

@@ -76,11 +76,11 @@
     <string name="hint_button">GOT IT!</string>
     <string name="arrival_times">Arrival times</string>
     <string name="no_passages_title">No arrivals found for lines:</string>
-    <string name="about_history">
+    <string name="about_history_top">
         <![CDATA[
         <h1>Welcome!</h1>
 
-        <p>Thanks for using BusTO, a "politically" <b>independent</b> app useful to move around Torino using a <b>Free/Libre software</b>.</p>
+        <p>Thanks for using BusTO, an <b>open source</b> and <b>independent</b> app useful to move around Torino using a <b>Free/Libre software</b>.</p>
         <br>
         <p>Why use this app?</p>
 		<p>
@@ -90,7 +90,17 @@
         - Moreover, it\'s lightweight!<br>
         </p>
         <br>
-        <h2>How does it work?</h2>
+        <h2>Introductory tutorial</h2>
+        <p>If you want to see the introduction again, use the button below:</p>
+        ]]></string>
+    <string name="about_channel">
+        <![CDATA[
+    <h2>News and Updates</h2>
+    <p>On the Telegram channel, you can find information about the latest app updates</p>
+    ]]></string>
+    <string name="about_how">
+        <![CDATA[
+    <h2>How does it work?</h2>
         <p>This app is able to do all the amazing things it does by pulling data from <b>www.gtt.to.it</b>, <b>www.5t.torino.it</b> or <b>muoversiatorino.it</b> "for personal use", along with open data from the AperTO (aperto.comune.torino.it) website.</p>
         <br>
 		<p>The work of several people is behind this app, in particular:<br>
@@ -103,11 +113,15 @@
 		- <b>Marco Gagino</b>, contributor and first icon creator.<br>
 		- <b>JSoup</b> web scraper library.<br>
 		- <b>makovkastar</b> floating buttons.<br>
-		- <b>Google</b> Material Design icons and Volley framework.<br>
-		- <b>Android</b> app components.<br>
+        - <b>Google</b> for icons and support and design libraries.<br>
+        - Other icons from <b>Bootstrap</b>, <b>Feather</b>, and <b>Hero Icons</b>.<br>
 		- All the contributors, and the beta testers, too!
 		</p>
 		<br>
+		 If you want more technical information or to contribute to development, use the buttons below!</b>
+    ]]></string>
+    <string name="about_history_bottom">
+        <![CDATA[
 		<h2>Licenses</h2>
 		<p>The app and the related source code are released by Valerio Bozzolan and the other authors under the terms of the <i>GNU General Public License v3+</i>).
 		So everyone is allowed to use, to study, to improve and to share this app by <b>any kind of means</b> and for <b>any purpose</b>: under the conditions of maintaining this rights and of attributing the original work to Valerio Bozzolan.</p>
@@ -165,6 +179,7 @@
     Mixed button strings
     !-->
     <string name="open_telegram">Join Telegram channel</string>
+    <string name="show_introduction">Show introduction</string>
     <!--
    Map view buttons strings
    !-->

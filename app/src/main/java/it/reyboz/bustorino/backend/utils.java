@@ -46,6 +46,7 @@ import it.reyboz.bustorino.fragments.SettingsFragment;
 
 public abstract class utils {
     private static final double EARTH_RADIUS = 6371.009e3;
+    public static final String SOURCE_CODE_URL ="https://gitpull.it/source/libre-busto/";
 
 
     public static Double measuredistanceBetween(double lat1,double long1,double lat2,double long2){
