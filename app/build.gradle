@@ -96,6 +96,8 @@ dependencies {
     implementation 'com.android.volley:volley:1.2.1'
 
     implementation 'org.osmdroid:osmdroid-android:6.1.10'
+    //maplibre
+    implementation 'org.maplibre.gl:android-sdk:11.6.0'
     // remember to enable maven repo jitpack.io when wanting to use osmbonuspack
     //implementation 'com.github.MKergall:osmbonuspack:6.9.0'
     // ACRA
