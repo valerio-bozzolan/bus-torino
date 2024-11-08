@@ -702,8 +702,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     void createAndShowMapFragment(@Nullable Stop stop, boolean addToBackStack){
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        MapFragment fragment = stop == null? MapFragment.getInstance(): MapFragment.getInstance(stop);
-        ft.replace(R.id.mainActContentFrame, fragment, MapFragment.FRAGMENT_TAG);
+        MapFragmentKt fragment = stop == null? MapFragmentKt.getInstance(): MapFragmentKt.getInstance(stop);
+        ft.replace(R.id.mainActContentFrame, fragment, MapFragmentKt.FRAGMENT_TAG);
         if (addToBackStack) ft.addToBackStack(null);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();

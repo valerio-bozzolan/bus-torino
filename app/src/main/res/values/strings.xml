@@ -332,5 +332,7 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="message_check_at_least_one">Check at least one item to import!</string>
     <string name="load_file_favorites">Import favorites from backup</string>
     <string name="load_preferences">Import preferences from backup</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>
