@@ -68,12 +68,12 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
         mapReady.cameraPosition = CameraPosition.Builder().target(LatLng(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON)).zoom(9.0).build()
         activity?.run {
             //TODO: copy from TransportR
-            val mapStyle = makeStyleUrl("jawg-terrain")
+            //val mapStyle = makeStyleUrl("jawg-terrain")
             /*if (mapStyle != null && mapReady.style?.uri != mapStyle) {
                 mapReady.setStyle(mapStyle, ::onMapStyleLoaded) //callback
             }
              */
-            mapReady.setStyle(mapStyle)
+            mapReady.setStyle(makeStyleMapBoxUrl(false))
         }
     }
 
@@ -138,5 +138,10 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
             }
         private fun makeStyleUrl(style: String = "jawg-streets") =
             "${MAPLIBRE_URL+ style}.json?access-token=${ACCESS_TOKEN}"
+        private fun makeStyleMapBoxUrl(dark: Boolean) =
+             if(dark)
+                "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+            else "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
+
     }
 }
