@@ -73,7 +73,8 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
                 mapReady.setStyle(mapStyle, ::onMapStyleLoaded) //callback
             }
              */
-            mapReady.setStyle(makeStyleMapBoxUrl(false))
+            mapReady.setStyle(OPENSTREETMAP_HOT_URL )
+                //makeStyleMapBoxUrl(false))
         }
     }
 
@@ -119,6 +120,8 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
         private const val ACCESS_TOKEN="KxO8lF4U3kiO63m0c7lzqDCDrMUVg1OA2JVzRXxxmYSyjugr1xpe4W4Db5rFNvbQ"
         const val NO_POSITION_ZOOM = 17.1
         private const val MAPLIBRE_URL = "https://api.jawg.io/styles/"
+        private const val OPENSTREETMAP_URL = "https://raw.githubusercontent.com/go2garret/maps/main/src/assets/json/openStreetMap.json"
+        private const val OPENSTREETMAP_HOT_URL="https://raw.githubusercontent.com/fabmazz/maps/refs/heads/main/src/assets/json/openStreetMap-hot.json"
         /**
          * Use this factory method to create a new instance of
          * this fragment using the provided parameters.
@@ -141,7 +144,9 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
         private fun makeStyleMapBoxUrl(dark: Boolean) =
              if(dark)
                 "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
-            else "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
+            else //"https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+                "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
+
 
     }
 }
