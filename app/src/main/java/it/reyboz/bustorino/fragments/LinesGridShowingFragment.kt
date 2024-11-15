@@ -3,19 +3,22 @@ package it.reyboz.bustorino.fragments
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.animation.Animation
 import android.view.animation.LinearInterpolator
 import android.view.animation.RotateAnimation
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.adapters.RouteAdapter
 import it.reyboz.bustorino.adapters.RouteOnlyLineAdapter
+import it.reyboz.bustorino.adapters.StringListAdapter
 import it.reyboz.bustorino.backend.utils
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.GtfsRoute
@@ -40,6 +43,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
     private lateinit var urbanLinesTitle: TextView
     private lateinit var extrurbanLinesTitle: TextView
     private lateinit var touristLinesTitle: TextView
+    //private lateinit var searchBar: SearchView
 
 
     private var routesByAgency = HashMap<String, ArrayList<GtfsRoute>>()
@@ -61,6 +65,8 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
     }
     private val arrows = HashMap<String, ImageView>()
     private val durations = HashMap<String, Long>()
+    //private val recyclerViewAdapters= HashMap<String,RouteAdapter >()
+    private val lastQueryEmptyForAgency = HashMap<String, Boolean>(3)
     private var openRecyclerView = "AG_URBAN"
 
     override fun onCreateView(
@@ -78,7 +84,6 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
         urbanLinesTitle = rootView.findViewById(R.id.urbanLinesTitleView)
         extrurbanLinesTitle = rootView.findViewById(R.id.extraurbanLinesTitleView)
         touristLinesTitle = rootView.findViewById(R.id.touristLinesTitleView)
-
         arrows[AG_URBAN] = rootView.findViewById(R.id.arrowUrb)
         arrows[AG_TOUR] = rootView.findViewById(R.id.arrowTourist)
         arrows[AG_EXTRAURB] = rootView.findViewById(R.id.arrowExtraurban)
@@ -101,29 +106,42 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
         favoritesRecyclerView.layoutManager = gridLayoutManager
 
 
-        viewModel.routesLiveData.observe(viewLifecycleOwner){
+        viewModel.getLinesLiveData().observe(viewLifecycleOwner){
             //routesList = ArrayList(it)
             //routesList.sortWith(linesComparator)
             routesByAgency.clear()
+            for (k in AGENCIES){
+                routesByAgency[k] = ArrayList()
+            }
 
             for(route in it){
                 val agency = route.agencyID
-                if(!routesByAgency.containsKey(agency)){
-                    routesByAgency[agency] = ArrayList()
+                if(agency !in routesByAgency.keys){
+                    Log.e(DEBUG_TAG, "The agency $agency is not present in the predefined agencies (${routesByAgency.keys})")
                 }
                 routesByAgency[agency]?.add(route)
-
             }
 
 
-            //val adapter = RouteOnlyLineAdapter(routesByAgency.map { route-> route.shortName })
             //zip agencies and recyclerviews
             Companion.AGENCIES.zip(recViews) { ag, recView  ->
                 routesByAgency[ag]?.let { routeList ->
-                    routeList.sortWith(linesComparator)
-                    //val adapter = RouteOnlyLineAdapter(it.map { rt -> rt.shortName })
-                    val adapter = RouteAdapter(routeList,routeClickListener)
-                    recView.adapter = adapter
+                    if (routeList.size > 0) {
+                        routeList.sortWith(linesComparator)
+                        //val adapter = RouteOnlyLineAdapter(it.map { rt -> rt.shortName })
+                        val adapter = RouteAdapter(routeList, routeClickListener)
+                        val lastQueryEmpty = if(ag in lastQueryEmptyForAgency.keys) lastQueryEmptyForAgency[ag]!! else true
+                        if (lastQueryEmpty)
+                            recView.adapter = adapter
+                        else recView.swapAdapter(adapter, false)
+                        lastQueryEmptyForAgency[ag] = false
+                    } else {
+                        val messageString = if(viewModel.getLineQueryValue().isNotEmpty()) getString(R.string.no_lines_found_query) else getString(R.string.no_lines_found)
+                        val extraAdapter = StringListAdapter(listOf(messageString))
+                        recView.adapter = extraAdapter
+                        lastQueryEmptyForAgency[ag] = true
+
+                    }
                     durations[ag] = if(routeList.size < 20) ViewUtils.DEF_DURATION else 1000
                 }
             }
@@ -164,6 +182,54 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
 
         return rootView
     }
+    fun setUserSearch(textSearch:String){
+        viewModel.setLineQuery(textSearch)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val menuHost: MenuHost = requireActivity()
+
+        // Add menu items without using the Fragment Menu APIs
+        // Note how we can tie the MenuProvider to the viewLifecycleOwner
+        // and an optional Lifecycle.State (here, RESUMED) to indicate when
+        // the menu should be visible
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                // Add menu items here
+                menuInflater.inflate(R.menu.menu_search, menu)
+
+                val search = menu.findItem(R.id.searchMenuItem).actionView as SearchView
+                search.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+                    override fun onQueryTextSubmit(query: String?): Boolean {
+                        setUserSearch(query ?: "")
+                        return true
+                    }
+
+                    override fun onQueryTextChange(query: String?): Boolean {
+                        setUserSearch(query ?: "")
+                        return true
+                    }
+
+                })
+
+                search.queryHint = getString(R.string.search_box_lines_suggestion_filter)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                // Handle the menu selection
+                if (menuItem.itemId == R.id.searchMenuItem){
+                    Log.d(DEBUG_TAG, "Clicked on search menu")
+                }
+                else{
+                    Log.d(DEBUG_TAG, "Clicked on something else")
+                }
+                return false
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+
     private fun closeOpenFavorites(){
         if(favoritesRecyclerView.visibility == View.VISIBLE){
             //close it

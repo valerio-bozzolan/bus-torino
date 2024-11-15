@@ -26,6 +26,9 @@
     <string name="extraurban_lines">Linee extraurbane</string>
     <string name="turist_lines">Linee turistiche</string>
     <string name="direction_duep">Direzione:</string>
+    <string name="no_lines_found">Nessuna linea in questa categoria</string>
+    <string name="no_lines_found_query">Nessuna linea corrisponde alla ricerca</string>
+    <string name="search_box_lines_suggestion_filter">Filtra per nome</string>
 
 
     <string name="line_fill">Linea: %1$s</string>

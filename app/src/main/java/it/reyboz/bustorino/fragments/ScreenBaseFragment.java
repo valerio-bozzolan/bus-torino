@@ -3,6 +3,7 @@ package it.reyboz.bustorino.fragments;
 import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;

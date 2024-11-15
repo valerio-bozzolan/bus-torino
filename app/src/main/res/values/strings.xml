@@ -38,6 +38,9 @@
     <string name="urban_lines">Urban lines</string>
     <string name="extraurban_lines">Extra urban lines</string>
     <string name="turist_lines">Tourist lines</string>
+    <string name="no_lines_found">No lines found in this category</string>
+    <string name="no_lines_found_query">No lines match the searched name</string>
+
 
     <string name="direction_duep">Destination:</string>
     <string name="lines_fill">Lines: %1$s</string>
@@ -245,6 +248,7 @@
     <string name="donate_now">Buy us a coffee</string>
     <string name="map">Map</string>
     <string name="stop_search_view_title">Search by stop</string>
+    <string name="search_box_lines_suggestion_filter">Filter by name</string>
     <string name="requesting_db_update">Launching database update</string>
     <string name="downloading_data_mato">Downloading data from MaTO server</string>
 

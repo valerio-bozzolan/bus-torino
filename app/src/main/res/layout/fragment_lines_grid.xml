@@ -37,7 +37,7 @@
                       app:layout_constraintTop_toTopOf="parent"
                       app:layout_constraintLeft_toRightOf="@id/arrowFavorites"
                       app:layout_constraintBottom_toTopOf="@id/favoritesRecyclerView"
-                      android:layout_marginLeft="6dp"
+                      android:layout_marginStart="6dp"
                       app:layout_constraintVertical_bias="0.0"
                       app:layout_constraintVertical_chainStyle="packed"/>
             <androidx.recyclerview.widget.RecyclerView
@@ -171,6 +171,7 @@
                     app:layout_constraintVertical_bias="0.0"
 
             />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
         <!--</androidx.core.widget.NestedScrollView>-->
 </FrameLayout>
