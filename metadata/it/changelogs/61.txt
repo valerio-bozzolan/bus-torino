@@ -1,0 +1,12 @@
+Aggiunta ricerca per nome delle linee
+Proposto da Francesco Bonicelli
+Completato da fabio.mazza
+https://gitpull.it/T1199
+
+Integrate traduzioni collaborative con Weblate
+Completato da fabio.mazza
+https://gitpull.it/T1275
+
+Apertura popup mappa sopra marker del bus
+Risolto da fabio.mazza
+https://gitpull.it/T1269

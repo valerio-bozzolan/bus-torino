@@ -1,0 +1,12 @@
+Added search by bus line
+Proposed by Francesco Bonicelli
+Completed by fabio.mazza
+https://gitpull.it/T1199
+
+Integrated collaborative translations thanks to Weblate
+Completed by fabio.mazza
+https://gitpull.it/T1275
+
+Show info window in the map actually on top of bus marker
+Resolved by fabio.mazza
+https://gitpull.it/T1269
