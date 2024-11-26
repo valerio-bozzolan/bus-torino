@@ -255,10 +255,13 @@
     <!-- preferences -->
     <string name="pref_directions_capitalize">Capitalize directions</string>
     <string-array name="directions_capitalize">
-        <item>Do not change arrivals directions</item>
-        <item>Capitalize everything</item>
-        <item>Capitalize only first letter</item>
+        <item>@string/directions_capitalize_no_change</item>
+        <item>@string/directions_capitalize_everything</item>
+        <item>@string/directions_capitalize_first_letter</item>
     </string-array>
+    <string name="directions_capitalize_no_change">Do not change arrivals directions</string>
+    <string name="directions_capitalize_everything">Capitalize everything</string>
+    <string name="directions_capitalize_first_letter">Capitalize only first letter</string>
     <array name="directions_capitalize_keys">
         <item>KEEP</item>
         <item>CAPITALIZE_ALL</item>
@@ -282,10 +285,13 @@
     </array>
 
     <string name="positions_source_pref_title">Source of real time positions for buses and trams</string>
+
     <array name="positions_source_sel">
-        <item>MaTO (updated more frequently, might be offline)</item>
-        <item>GTFS RT (more stable, less frequently updated)</item>
+        <item>@string/positions_source_mato_descr</item>
+        <item>@string/positions_source_gtfsrt_descr</item>
     </array>
+    <string name="positions_source_mato_descr">MaTO (updated more frequently, might be offline)</string>
+    <string name="positions_source_gtfsrt_descr">GTFS RT (more stable, less frequently updated)</string>
 
     <string name="remove_all_trips">Remove trips data (free up space)</string>
     <string name="all_trips_removed">All GTFS trips have been removed from the database</string>
