@@ -51,10 +51,7 @@
     <string name="dialog_rename_bus_stop_username_title">Rinomina fermata</string>
     <string name="dialog_rename_bus_stop_username_reset_button">Reset</string>
     <string name="about_activity">Informazioni</string>
-    <string name="howDoesItWork"><b>Tocca la stella</b> per aggiungere la fermata ai preferiti\n\n<b>Come leggere gli orari:</b>
-        \n<b>   12:56*</b> Orario in tempo reale\n<b>   12:56</b>   Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario.
-        \n<b>Tocca a lungo</b> su <b>Fonte Orari</b> per cambiare sorgente degli orari di arrivo.
-    </string>
+    <string name="howDoesItWork"><b>Tocca la stella</b> per aggiungere la fermata ai preferiti\n\n<b>Come leggere gli orari:</b> \n<b>   12:56*</b> Orario in tempo reale\n<b>   12:56</b>   Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario. \n<b>Tocca a lungo</b> su <b>Fonte Orari</b> per cambiare sorgente degli orari di arrivo</string>
     <string name="hint_button">OK!</string>
     <string name="about_history_top">
 <![CDATA[
@@ -95,8 +92,7 @@
 		Se vuoi avere più informazioni tecniche e contribuire allo sviluppo, usa i pulsanti qui sotto!</b>
 
          ]]></string>
-    <string name="about_history_bottom">
-        <![CDATA[
+    <string name="about_history_bottom"><![CDATA[
 		<h2>Licenze</h2>
 		<p>L\'app e il relativo codice sorgente sono distribuiti sotto la licenza <i>GNU General Public License v3</i> (https://www.gnu.org/licenses/gpl-3.0.html).
 		Ciò <b>significa</b> che puoi usare, studiare, migliorare e ricondividere quest\'app con <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: a patto di mantenere sempre questi diritti a tua volta e di dare credito a Valerio Bozzolan e agli altri autori del codice dell\'app.
@@ -107,8 +103,7 @@
 		<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza NESSUNA garanzia sul suo funzionamento attuale e/o futuro.</p>
 		<p>Tutti i dati utilizzati dall\'app provengono <b>direttamente</b> da GTT o da simili agenzie pubbliche: se trovi che sono inesatti per qualche motivo, ti invitiamo a rivolgerti a loro.</p>
 		<p>Buon utilizzo! :)</p>
-    ]]>
-    </string>
+    ]]></string>
     <string name="query_too_short">Nome troppo corto, digita più caratteri e riprova</string>
     <string name="route_towards_destination">%1$s verso %2$s</string>
     <string name="route_towards_unknown">%s (destinazione sconosciuta)</string>
@@ -247,12 +242,10 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
     </string>
     <string name="close_tutorial">Capito, chiudi introduzione</string>
     <string name="close_tutorial_short">Chiudi introduzione</string>
-    <string name="tutorial_permissions">
-        <![CDATA[
+    <string name="tutorial_permissions"><![CDATA[
          L\'app usa le notifiche per fornire informazioni sullo stato delle attività.
          Tocca il bottone per abilitarle.
-        ]]>
-    </string>
+        ]]></string>
     <string name="grant_location_permission">Abilita accesso alla posizione</string>
     <string name="location_permission_granted">Accesso alla posizione abilitato</string>
     <string name="location_permission_not_granted">Accesso alla posizione non consentito dall\'utente</string>
