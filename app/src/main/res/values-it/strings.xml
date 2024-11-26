@@ -199,7 +199,6 @@
     <string name="requesting_db_update">Richiesto aggiornamento del database</string>
     <string name="downloading_data_mato">Download dati dal server MaTO</string>
     <string name="pref_directions_capitalize">Mostra direzioni in maiuscolo</string>
-
     <string name="directions_capitalize_no_change">Non cambiare</string>
     <string name="directions_capitalize_everything">Tutto in maiuscolo</string>
     <string name="directions_capitalize_first_letter">Solo prima lettera maiuscola</string>
@@ -208,7 +207,6 @@
     <string name="pref_shown_startup">Schermata da mostrare all\'avvio</string>
     <string name="pref_shown_startup_def_desc">Tocca per cambiare</string>
     <string name="positions_source_pref_title">Fonte posizioni in tempo reale di bus e tram</string>
-
     <string name="positions_source_mato_descr">MaTO (aggiornate più spesso, può non funzionare)</string>
     <string name="positions_source_gtfsrt_descr">GTFS RT (più stabile)</string>
     <string name="favorites_line_add">Linea aggiunta ai preferiti</string>
