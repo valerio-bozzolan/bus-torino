@@ -1,2 +1,228 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="grant_location_permission">Geef locatietoestemming</string>
+    <string name="backup_activity">Importeer/exporteer voorkeuren</string>
+    <string name="tutorial_permissions"><![CDATA[De app heeft toestemming nodig voor <b>Notificaties</b>  om informatie te laten zien over achtergrondprocessen.
+         Druk op de knop hieronder om deze toestemming te geven]]></string>
+    <string name="location_permission_not_granted">Locatie toestemming is niet verleend</string>
+    <string name="notification_permission_granted">Notificaties ingeschakeld</string>
+    <string name="saved_data">Data opgeslagen</string>
+    <string name="backup_restore">Backup en herstel</string>
+    <string name="btn_backup_message">Backup naar bestand</string>
+    <string name="message_check_at_least_one">Vink tenminste één item om te importeren!</string>
+    <string name="btn_load_backup_message">Importeer data vanuit backup</string>
+    <string name="data_imported_backup">Backup is geïmporteerd</string>
+    <string name="howDoesItWork"><b>Druk op de ster</b> om de bushalte toe te voegen aan de favorieten\n\n<b>Hoe lees je de tijdslijnen:</b>\n<b>   12:56*</b> Real-time aankomsten\n<b>   12:56</b>  Geplande aankomsten\n\n<b>Veeg naar beneden om het rooster te verversen</b>\n <b>Houd ingedrukt om de aankomsttijdenbron te veranderen</b></string>
+    <string name="about_history_top"><![CDATA[
+        <h1>Welkom!</h1>
+
+        <p>Dank voor het gebruiken van BusTO, een <b>open source</b> en <b>onafhankelijke</b> app die handig is om je te verplaatsen door Turijn met <b>Free/Libre software</b>.</p>
+        <br>
+        <p>Waarom deze app gebruiken?</p>
+		<p>
+        - Je wordt nooit <b>gevolgd</b><br>
+        - Je ziet nooit vervelende <b>reclames</b><br>
+        - We zullen altijd je <b>privacy</b> respecteren<br>
+        - Tot slot, het is lichtgewicht!<br>
+        </p>
+        <br>
+        <h2>Introductie tutorial</h2>
+        <p>Als je nog een keer de introductie wilt zien, gebruik dan de knop hieronder:</p>
+        ]]></string>
+    <string name="search">Zoeken</string>
+    <string name="qrcode">Scan QR Code</string>
+    <string name="app_description">Wanneer het op privacy respecteren aankomt, maak je gebruik van de laatste inzichten.</string>
+    <string name="insert_bus_stop_number">Bushalte nummer</string>
+    <string name="insert_bus_stop_name_error">Voer bushalte naam in</string>
+    <string name="route_towards_destination">%1$s richting %2$s</string>
+    <string name="route_towards_unknown">%s (onbekende bestemming)</string>
+    <string name="no_bus_stop_have_this_name">Het lijkt erop dat er geen bushalte met deze naam is</string>
+    <string name="no_arrivals_stop">Geen aankomsten voor deze halte</string>
+    <string name="parsing_error">Fout bij het parsen van de 5T/GTT website</string>
+    <string name="results">Kies de bushalte…</string>
+    <string name="line">Lijn</string>
+    <string name="lines">Lijnen</string>
+    <string name="urban_lines">Stadslijnen</string>
+    <string name="extraurban_lines">Lijnen naar buiten de stad</string>
+    <string name="turist_lines">Toeristenlijnen</string>
+    <string name="no_lines_found">Geen lijnen gevonden in deze categorie</string>
+    <string name="no_lines_found_query">Geen lijnen gevonden met deze naam</string>
+    <string name="direction_duep">Bestemming:</string>
+    <string name="line_fill">Lijn: %1$s</string>
+    <string name="no_passages">Geen rooster gevonden</string>
+    <string name="no_qrcode">Geen QR code gevonden, probeer het met een andere app</string>
+    <string name="internal_error">Onverwachte interne fout, kan geen data halen van de GTT/5T website</string>
+    <string name="action_help">Hulp</string>
+    <string name="action_about">Over de app</string>
+    <string name="action_wiki">Draag bij</string>
+    <string name="action_source">Broncode</string>
+    <string name="action_licence">Licentie</string>11
+    <string name="action_author">Ontmoet de maker</string>
+    <string name="added_in_favorites">Bushalte is nu in je favorieten</string>
+    <string name="removed_from_favorites">Bushalte is verwijderd uit je favorieten</string>
+    <string name="favorites_line_add">Lijn toegevoegd aan favorieten</string>
+    <string name="favorites_line_remove">Verwijder lijn uit favorieten</string>
+    <string name="favorites_lines">Favorieten</string>
+    <string name="action_favorites">Favorieten</string>
+    <string name="tip_add_favorite">Geen favorieten? Druk op een bushalte ster om deze toe te voegen</string>
+    <string name="action_remove_from_favourites">Verwijder</string>
+    <string name="action_rename_bus_stop_username">Hernoem</string>
+    <string name="about_activity">Over de app</string>
+    <string name="arrival_times">Aankomsttijden</string>
+    <string name="hint_button">Ik snap het!</string>
+    <string name="action_view_on_map">Bekijk op de kaart</string>
+    <string name="cannot_show_on_map_no_activity">Kan geen applicatie vinden om in te weergeven</string>
+    <string name="cannot_show_on_map_no_position">Kan de positie van de halte niet vinden</string>
+    <string name="nearby_stops_message">Haltes in de buurt</string>
+    <string name="nearby_arrivals_message">Verbindingen dichtbij</string>
+    <string name="position_searching_message">Locatie vinden</string>
+    <string name="no_stops_nearby">Geen haltes in de buurt</string>
+    <string name="main_menu_pref">Voorkeuren</string>
+    <string name="action_settings">Instellingen</string>
+    <string name="settings_search_radius">Maximale afstand (meters)</string>
+    <string name="settings_group_general">Algemene instellingen</string>
+    <string name="enable_position_message_map">Toegang tot locatie toestaan om te laten zien op de kaart</string>
+    <string name="enable_position_message_nearby">Toegang tot locatie toestaan om haltes in de buurt te weergeven</string>
+    <string name="enableGpsText">Schakel aub de locatie in op het apparaat</string>
+    <string name="database_update_msg_inapp">Database update gaande…</string>
+    <string name="database_update_msg_notif">Database aan het updaten</string>
+    <string name="database_update_req">Forceer database update</string>
+    <string name="database_update_req_descr">Klik om de database van de app te updaten</string>
+    <string name="bus_arriving_at">arriveert om</string>
+    <string name="arrivals_card_at_the_stop">bij de halte</string>
+    <string name="show_arrivals">Geef aankomsten weer</string>
+    <string name="show_stops">Geef haltes weer</string>
+    <string name="open_telegram">Word lid van het Telegramkanaal</string>
+    <string name="show_introduction">Laat introductie zien</string>
+    <string name="bt_center_map_description">Centreer op mijn locatie</string>
+    <string name="bt_follow_me_description">Volg mij</string>
+    <string name="enable_position">Schakel locatie in of uit</string>
+    <string name="location_enabled">Locatie ingeschakeld</string>
+    <string name="location_disabled">Locatie uitgeschakeld</string>
+    <string name="map_location_disabled_device">Locatie is uitgeschakeld op dit apparaat</string>
+    <string name="times_source_fmt">Aankomsten bron: %1$s</string>
+    <string name="fivetapifetcher">GTT Applicatie</string>
+    <string name="gttjsonfetcher">GTT Website</string>
+    <string name="fivetscraper">5T Torino website</string>
+    <string name="source_mato">Muoversi a Torino app</string>
+    <string name="undetermined_source">Onbepaald</string>
+    <string name="change_arrivals_source_message">Ingedrukt houden om aankomsten bron te veranderen</string>
+    <string name="arrival_times_choice_title">Bronnen van aankomsttijden</string>
+    <string name="arrival_times_choice_explanation">Selecteer welke bronnen voor aankomsttijden je wilt gebruiken</string>
+    <string name="database_notification_channel">Database handelingen</string>
+    <string name="live_positions_notification_channel_desc">Laat activiteit zien gerelateerd aan de live positie service</string>
+    <string name="db_trips_download_message">Download reizen van de MaTO server</string>
+    <string name="too_many_permission_asks">Te vaak om %1$s toestemming gevraagd</string>
+    <string name="permission_storage_maps_msg">Kan de kaart niet gebruiken zonder opslagtoestemming</string>
+    <string name="acra_email_message">De applicatie is gecrasht en het crashrapport is toegevoegd aan de bijlagen. Beschrijf alsjeblieft wat je aan het doen was voordat de crash zich voordeed:</string>
+    <string name="nav_map_text">Kaart</string>
+    <string name="nav_favorites_text">Favorieten</string>
+    <string name="drawer_open">Open navigatiebalk</string>
+    <string name="drawer_close">Sluit navigatiebalk</string>
+    <string name="donate_now">Geef ons een koffie</string>
+    <string name="map">Kaart</string>
+    <string name="stop_search_view_title">Zoek op halte</string>
+    <string name="downloading_data_mato">Download data van de MaTO server</string>
+    <string name="pref_directions_capitalize">Kapitaliseer routebeschrijving</string>
+    <string name="pref_experimental_msg">Schakel experimenten in</string>
+    <string name="long_press_stop_4_options">Houd halte ingedrukt voor opties</string>
+    <string name="positions_source_pref_title">Bron van realtime posities voor bussen en trams</string>
+    <string name="all_trips_removed">Alle GTFS reizen zijn verwijderd van de database</string>
+    <string name="tutorial_search"><![CDATA[Je kunt zoeken op aankomsttijden bij de bushalte door het nummer van de halte in te voeren, of een QR code te scannen als je bij de halte staat.
+        raak hiervoor het icoon links aan ]]></string>
+    <string name="tutorial_arrivals"><![CDATA[Als je een bushalte hebt gevonden, kun je hem in de <b>favorites</b> door op de ster bij de naam te drukken]]></string>
+    <string name="tutorial_stops"><![CDATA[Je kunt de haltes dicht bij je zien direct op het hoofdscherm...]]></string>
+    <string name="close_tutorial">OK, sluit de tutorial</string>
+    <string name="close_tutorial_short">Sluit de tutorial</string>
+    <string name="grant_notification_permission">Notificaties inschakelen</string>
+    <string name="load_preferences">Importeer voorkeuren vanuit backup</string>
+    <string name="next">Volgende</string>
+    <string name="insert_bus_stop_number_error">Voer bushalte nummer in</string>
+    <string name="network_error">Check je internetverbinding!</string>
+    <string name="query_too_short">Te korte naam, typ meer karakters en probeer opnieuw</string>
+    <string name="passages">Aankomsten om: %1$s</string>
+    <string name="lines_fill">Lijnen: %1$s</string>
+    <string name="action_about_more">Meer over</string>
+    <string name="title_activity_favorites">Favorieten</string>
+    <string name="title_activity_map">Kaart</string>
+    <string name="dialog_rename_bus_stop_username_reset_button">Reset</string>
+    <string name="dialog_rename_bus_stop_username_title">Hernoem bushalte</string>
+    <string name="previous">Vorige</string>
+    <string name="no">Nee</string>
+    <string name="message_install_barcode_scanner">Deze applicatie vereist een app om de QR codes te scannen. Wil je nu een Barcode Scanner installeren?</string>
+    <string name="insert_bus_stop_name">Bushalte naam</string>
+    <string name="yes">Ja</string>
+    <string name="title_barcode_scanner_install">Installeer Barcode Scanner?</string>
+    <string name="no_passages_title">Geen aankomsten gevonden voor deze lijnen:</string>
+    <string name="about_channel"><![CDATA[
+    <h2>Nieuws en Updates</h2>
+    <p>Op het Telegramkanaal vind je meer informatie over de laatste app updates</p>
+    ]]></string>
+    <string name="cant_add_to_favorites">Kan niet aan favorieten toevoegen (opslag vol of corrupte database?)!</string>
+    <string name="app_version">App versie</string>
+    <string name="invalid_number">Ongeldige waarde, vul een geldig getal in</string>
+    <string name="num_stops_nearby_not_number">Het aantal haltes dat wordt weergegeven in recente haltes is ongeldig</string>
+    <string name="pref_recents_group_title">Recente haltes</string>
+    <string name="general_settings">Algemeen</string>
+    <string name="pref_num_elements">Minimaal aantal haltes</string>
+    <string name="title_activity_settings">Instellingen</string>
+    <string name="settings_experimental">Experimentele functies</string>
+    <string name="settings_group_database">Databasebeheer</string>
+    <string name="settings_reset_database">Start handmatige database update</string>
+    <string name="default_notification_channel_description">Standaardkanaal voor notificaties</string>
+    <string name="database_notification_channel_desc">Updates van de app database</string>
+    <string name="live_position_service_name">BusTO - live positie service</string>
+    <string name="mqtt_notification_text">MaTO live buspositie service draait</string>
+    <string name="live_positions_notification_channel">Live posities</string>
+    <string name="storage_permission">opslag</string>
+    <string name="message_crash">De applicatie is gecrashed omdat je een bug tegenkwam.\nAls je wilt, kun je de ontwikkelaars helpen door een crashrapport te versturen per email. \nZorg ervoor dat er geen gevoelige data in het rapport is opgenomen, enkel de informatie over je telefoon en app instellingen is hiervoor nodig.</string>
+    <string name="arrival_source_changing">Verander aankomsttijden bron…</string>
+    <string name="pref_shown_startup">Startscherm</string>
+    <string name="nav_arrivals_text">Aankomsten</string>
+    <string name="tutorial_menu"><![CDATA[Je kunt alles terugvinden in het zijmenu.
+Kijk in de <b>Instellingen</b> om het gedrag van de app aan te passen, en in <b>Over de app</b> als je meer wilt weten over de app en de ontwikkelaars.]]></string>
+    <string name="pref_shown_startup_def_desc">Raak aan om te wijzigen</string>
+    <string name="requesting_db_update">Lanceer databaseupdate</string>
+    <string name="pref_lines_click_msg">Laat aankomsten zien bij de halte</string>
+    <string name="remove_all_trips">Verwijder reisdata (maak ruimte vrij)</string>
+    <string name="tutorial_action">Laat tutorial zien</string>
+    <string name="tutorial_map"><![CDATA[...of je kunt ze vinden op de kaart, tegelijk met de real-time posities van de bussen die door de stad rijden (in het <font color="#2F59CC">blauw</font>)]]></string>
+    <string name="tutorial_line"><![CDATA[Je kunt ook kijken naar de lijn die je zoekt en zien welke haltes er zijn, samen met de voertuigen die de lijn op dat moment aandoen. Onthoud hierbij dat je de juiste richting kiest!]]></string>
+    <string name="experiments">Experimenten</string>
+    <string name="search_box_lines_suggestion_filter">Filter op naam</string>
+    <string name="tutorial_first"><![CDATA[Dank voor het installeren van BusTO, de gratis en <b>open source</b> app voor Turijns openbaar vervoer. Dit is een <b>onafhankelijke</b> app, zonder reclame en zonder tracking.]]></string>
+    <string name="location_permission_granted">Locatietoestemming gegeven</string>
+    <string name="load_file_favorites">Importeer favorieten vanuit backup</string>
+    <string name="about_how"><![CDATA[
+    <h2>Deze app is mede mogelijk gemaakt door</h2>
+        <p>De app werkt dankzij de data te gebruiken van <b>www.gtt.to.it</b>, <b>www.5t.torino.it</b> of <b>muoversiatorino.it</b> "voor persoonlijke doeleinden", tezamen met de open data van de AperTO (aperto.comune.torino.it) website.</p>
+        <br>
+		<p>Het werk van diverse mensen achter deze app, in het bijzonder:<br>
+		- <b>Fabio Mazza</b>, huidige senior rockstar developer.<br>
+        - <b>Andrea Ugo</b>, huidige junior rockstar developer.<br>
+		- <b>Silviu Chiriac</b>, ontwerper van het 2021 logo.<br>
+		- <b>Marco M</b>, rockstar tester en bug hunter.<br>
+		- <b>Ludovico Pavesi</b>, vorige senior rockstar developer (asd).<br>
+		- <b>Valerio Bozzolan</b>, maintainer en infrastructuur (sponsor).<br>
+		- <b>Marco Gagino</b>, bijdrager en ontwerper van het eerste logo.<br>
+		- <b>JSoup</b> web schraper bibliotheek.<br>
+		- <b>makovkastar</b> zwevende knoppen.<br>
+        - <b>Google</b> for iconen en ondersteuning en ontwerpbibliotheken.<br>
+        - Andere iconen van  <b>Bootstrap</b>, <b>Feather</b>, en <b>Hero Icons</b>.<br>
+		- Alle bijdragers en tevens de betatesters!
+		</p>
+		<br>
+		 Als je meer technische informatie wilt of zelf wilt bijdragen aan de ontwikkeling, gebruik dan de knoppen hieronder!</b>
+    ]]></string>
+    <string name="about_history_bottom"><![CDATA[
+		<h2>Licenties</h2>
+		<p>De app en de bijbehorende broncode is gepubliceerd door Valerio Bozzolan en andere ontwikkelaars onder de voorwaarden van de <i>GNU General Public License v3+</i>).
+		Iedereen staat het vrij om de app te gebruiken, te bestuderen, te verbeteren en te delen op <b>iedere mogelijke manier</b> en voor <b>ieder doeleinde</b>: onder de voorwaarden dat de beheren van de rechten en het toeschrijven van het originele werk aan Valerio Bozzolan.</p>
+        <br>
+		<h2>Notities</h2>
+		<p>Deze app is ontwikkeld met de <b>hoop bruikbaar te zijn voor iedereen</b>, maar komt zonder enige vorm van garantie.</p>
+		<p>De data van de app komt <b>direct</b> van GTT en andere publieke vertegenwoordige: als je fouten vindt, geef die bij hen aan, en niet bij ons.</p>
+		<p>De vertaling is met plezier geleverd door Riccardo Caniato, Marco Gagino, Fabio Mazza en Wouter van Straalen</p>
+		<p>Nu kan ook jij het openbare vervoer hacken! :)</p>
+    ]]></string>
+</resources>
