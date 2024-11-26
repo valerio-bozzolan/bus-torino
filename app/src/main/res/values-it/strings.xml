@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-
     <string name="app_description">Stai utilizzando l\'ultimo ritrovato in materia di rispetto della tua privacy.</string>
     <string name="search">Cerca</string>
-    <string name="qrcode">QR Code</string>
+    <string name="qrcode">Codice QR</string>
     <string name="yes">Si</string>
     <string name="no">No</string>
     <string name="next">Prossimo</string>
@@ -29,8 +27,6 @@
     <string name="no_lines_found">Nessuna linea in questa categoria</string>
     <string name="no_lines_found_query">Nessuna linea corrisponde alla ricerca</string>
     <string name="search_box_lines_suggestion_filter">Filtra per nome</string>
-
-
     <string name="line_fill">Linea: %1$s</string>
     <string name="lines_fill">Linee: %1$s</string>
     <string name="results">Scegli la fermata…</string>
@@ -56,7 +52,7 @@
     <string name="dialog_rename_bus_stop_username_reset_button">Reset</string>
     <string name="about_activity">Informazioni</string>
     <string name="howDoesItWork"><b>Tocca la stella</b> per aggiungere la fermata ai preferiti\n\n<b>Come leggere gli orari:</b>
-        \n<b>&#160;&#160;&#160;12:56*</b> Orario in tempo reale\n<b>&#160;&#160;&#160;12:56</b> &#160; Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario.
+        \n<b>   12:56*</b> Orario in tempo reale\n<b>   12:56</b>   Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario.
         \n<b>Tocca a lungo</b> su <b>Fonte Orari</b> per cambiare sorgente degli orari di arrivo.
     </string>
     <string name="hint_button">OK!</string>
@@ -120,13 +116,11 @@
     <string name="action_view_on_map">Visualizza sulla mappa</string>
     <string name="cannot_show_on_map_no_activity">Non trovo un\'applicazione dove mostrarla</string>
     <string name="cannot_show_on_map_no_position">Posizione della fermata non trovata</string>
-
-
     <string name="nearby_stops_message">Fermate vicine</string>
     <string name="position_searching_message">Ricerca della posizione</string>
     <string name="no_stops_nearby">Nessuna fermata nei dintorni</string>
     <string name="main_menu_pref">Preferenze</string>
-    <string name="database_update_msg_inapp">Aggiornamento del database&#8230;</string>
+    <string name="database_update_msg_inapp">Aggiornamento del database…</string>
     <string name="database_update_msg_notif">Aggiornamento del database</string>
     <string name="database_update_req">Aggiornamento database forzato</string>
     <string name="database_update_req_descr">Tocca per aggiornare ora il database</string>
@@ -142,11 +136,8 @@
     <string name="settings_group_general">Impostazioni generali</string>
     <string name="settings_group_database">Gestione del database</string>
     <string name="settings_reset_database">Comincia aggiornamento manuale del database</string>
-
-
     <string name="enable_position_message_map">Consenti l\'accesso alla posizione per mostrarla sulla mappa</string>
     <string name="enable_position_message_nearby">Consenti l\'accesso alla posizione per mostrare le fermate vicine</string>
-
     <string name="enableGpsText">Abilitare il GPS</string>
     <string name="bus_arriving_at">arriva alle</string>
     <string name="arrivals_card_at_the_stop">alla fermata</string>
@@ -159,8 +150,6 @@
     !-->
     <string name="open_telegram">Canale telegram</string>
     <string name="show_introduction">Mostra introduzione</string>
-
-
     <!--
     Map view buttons strings
     !-->
@@ -170,7 +159,6 @@
     <string name="location_enabled">Posizione attivata</string>
     <string name="location_disabled">Posizione disattivata</string>
     <string name="map_location_disabled_device">La posizione è disabilitata sul dispositivo</string>
-
     <!--
     Arrival times sources
     !-->
@@ -180,38 +168,27 @@
     <string name="fivetscraper">Sito 5T Torino</string>
     <string name="source_mato">App Muoversi a Torino</string>
     <string name="undetermined_source">Sconosciuta</string>
-
     <string name="arrival_times_choice_title">Fonti orari di arrivo</string>
     <string name="arrival_times_choice_explanation">Scegli le fonti di orari da usare</string>
-
     <string name="arrival_source_changing">Cambiamento sorgente orari…</string>
     <string name="change_arrivals_source_message">Premi a lungo per cambiare la sorgente degli orari</string>
     <string name="no_passages_title">Nessun passaggio per le linee:</string>
-
-
-
     <string name="default_notification_channel_description">Canale default delle notifiche</string>
     <string name="database_notification_channel">Operazioni sul database</string>
     <string name="database_notification_channel_desc">Informazioni sul database (aggiornamento)</string>
     <string name="live_position_service_name">BusTO - posizioni in tempo reale</string>
-
     <string name="live_positions_notification_channel">Posizioni in tempo reale</string>
     <string name="live_positions_notification_channel_desc">Attività del servizio delle posizioni in tempo reale</string>
-
     <string name="mqtt_notification_text">Servizio posizioni MaTO in tempo reale attivo</string>
-
-
-    <string name="db_trips_download_message">Downloading trips from MaTO server</string>
-
-
+    <string name="db_trips_download_message">Download dei trip dal server MaTO</string>
     <string name="too_many_permission_asks">Chiesto troppe volte per il permesso %1$s</string>
-    <string name="permission_storage_maps_msg">Non si può usare questa funzionalità senza il permesso di archivio</string>
+    <string name="permission_storage_maps_msg">Non si può usare questa funzionalità senza il permesso di archivio!</string>
     <string name="storage_permission">di archivio</string>
     <string name="message_crash">Un bug ha fatto crashare l\'app!
         \nPremi \"OK\" per inviare il report agli sviluppatori via email, così potranno scovare e risolvere il tuo bug!
         \nIl report contiene piccole informazioni non sensibili sulla configurazione del tuo telefono e sullo stato dell\'app al momento del crash.
     </string>
-    <string name="acra_email_message">L\'applicazione è crashata, e il crash report è stato messo negli allegati. Se vuoi, descrivi cosa stavi facendo prima che si interrompesse: \n</string>
+    <string name="acra_email_message">L\'applicazione è crashata, e il crash report è stato messo negli allegati. Se vuoi, descrivi cosa stavi facendo prima che si interrompesse:</string>
     <string name="nav_arrivals_text">Arrivi</string>
     <string name="nav_map_text">Mappa</string>
     <string name="nav_favorites_text">Preferiti</string>
@@ -223,13 +200,9 @@
     <string name="stop_search_view_title">Ricerca fermate</string>
     <string name="app_version">Versione app</string>
     <string name="arrival_times">Orari di arrivo</string>
-
     <!--  Preferences -->
     <string name="requesting_db_update">Richiesto aggiornamento del database</string>
     <string name="downloading_data_mato">Download dati dal server MaTO</string>
-
-
-
     <string name="pref_directions_capitalize">Mostra direzioni in maiuscolo</string>
     <string-array name="directions_capitalize">
         <item>Non cambiare</item>
@@ -240,27 +213,21 @@
     <string name="pref_experimental_msg">Abilita esperimenti</string>
     <string name="pref_shown_startup">Schermata da mostrare all\'avvio</string>
     <string name="pref_shown_startup_def_desc">Tocca per cambiare</string>
-
     <string name="positions_source_pref_title">Fonte posizioni in tempo reale di bus e tram</string>
     <array name="positions_source_sel">
         <item>MaTO (aggiornate più spesso, può non funzionare)</item>
         <item>GTFS RT (più stabile)</item>
     </array>
-
     <string name="favorites_line_add">Linea aggiunta ai preferiti</string>
     <string name="favorites_line_remove">Linea rimossa dai preferiti</string>
     <string name="favorites_lines">Preferite</string>
-
     <!-- lines -->
     <string name="long_press_stop_4_options">Tocca a lungo la fermata per le opzioni</string>
     <string name="remove_all_trips">Rimuovi i dati dei trip (libera spazio)</string>
     <string name="all_trips_removed">Tutti i trip GTFS sono rimossi dal database</string>
-
     <!-- tutorial -->
     <string name="tutorial_action">Mostra introduzione</string>
-    <string name="tutorial_first">
-        <![CDATA[Grazie per aver installato BusTO, l\'app gratuita, libera e <b>open source</b> per il trasporto pubblico di Torino. Stai usando un\'app <b>indipendente</b>, senza pubblicità e senza nessun tracciamento.
-]]> </string>
+    <string name="tutorial_first"><![CDATA[Grazie per aver installato BusTO, l\'app gratuita, libera e <b>open source</b> per il trasporto pubblico di Torino. Stai usando un\'app <b>indipendente</b>, senza pubblicità e senza nessun tracciamento.]]></string>
     <string name="tutorial_search"><![CDATA[Puoi cercare gli orari d\'arrivo ad una fermata inserendo il numero nella casella di ricerca.<br>
 Se ti trovi a una fermata, puoi scansionare il codice QR presente sulla palina toccando l\'icona a sinistra della barra di ricerca.]]>
     </string>
@@ -288,14 +255,11 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
          Tocca il bottone per abilitarle.
         ]]>
     </string>
-
     <string name="grant_location_permission">Abilita accesso alla posizione</string>
     <string name="location_permission_granted">Accesso alla posizione abilitato</string>
     <string name="location_permission_not_granted">Accesso alla posizione non consentito dall\'utente</string>
-
     <string name="grant_notification_permission">Abilita notifiche</string>
     <string name="notification_permission_granted">Notifiche abilitate</string>
-
     <!-- BACKUP -->
     <string name="backup_restore">Backup e ripristino</string>
     <string name="backup_activity">Importa / esporta dati</string>
@@ -303,10 +267,7 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
     <string name="btn_backup_message">Salva backup</string>
     <string name="btn_load_backup_message">Importa i dati dal backup</string>
     <string name="data_imported_backup">Backup importato</string>
-
     <string name="message_check_at_least_one">Seleziona almeno un elemento da importare!</string>
     <string name="load_file_favorites">Importa preferiti dal backup</string>
     <string name="load_preferences">Importa preferenze dal backup</string>
-
-
 </resources>
