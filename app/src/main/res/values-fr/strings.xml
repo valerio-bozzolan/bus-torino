@@ -166,4 +166,5 @@
     <string name="pref_directions_capitalize">Majuscules pour les directions</string>
     <string name="tutorial_action">Afficher le tutoriel</string>
     <string name="saved_data">Données sauvegardées</string>
+    <string name="no">Non</string>
 </resources>
