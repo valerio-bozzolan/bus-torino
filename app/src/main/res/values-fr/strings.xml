@@ -11,12 +11,12 @@
     <string name="route_towards_unknown">%s (destination inconnue)</string>
     <string name="network_error">Vérifiez votre connexion Internet !</string>
     <string name="query_too_short">Nom trop court, tapez davantage de caractères et réessayez</string>
-    <string name="parsing_error">Erreur lors de l\'analyse du site 5T/GTT (foutu site !)</string>
+    <string name="parsing_error">Erreur lors de l\'analyse du site 5T/GTT (foutu site!)</string>
     <string name="results">Sélectionner l\'arrêt de bus…</string>
     <string name="line">Ligne</string>
-    <string name="lines_fill">Lignes : %1$s</string>
+    <string name="lines_fill">Lignes: %1$s</string>
     <string name="extraurban_lines">Lignes interurbaines</string>
-    <string name="direction_duep">Destination :</string>
+    <string name="direction_duep">Destination:</string>
     <string name="no_passages">Aucun planning trouvé</string>
     <string name="hack_url">https://gitpull.it/w/librebusto/en/</string>
     <string name="action_source">Code source</string>
@@ -41,7 +41,7 @@
     <string name="message_check_at_least_one">Vérifiez cocher au moins un élément à importer !</string>
     <string name="load_file_favorites">Importer les favoris depuis une sauvegarde</string>
     <string name="load_preferences">Importer les préférences depuis une sauvegarde</string>
-    <string name="passages">Arrivées à : %1$s</string>
+    <string name="passages">Arrivées à: %1$s</string>
     <string name="action_about_more">En savoir plus</string>
     <string name="action_author">Rencontrer l\'auteur</string>
     <string name="action_help">Aide</string>
@@ -55,7 +55,7 @@
     <string name="removed_from_favorites">Arrêt de bus retiré de vos favoris</string>
     <string name="favorites_line_add">Ligne ajoutée à vos favoris</string>
     <string name="title_activity_favorites">Favoris</string>
-    <string name="no_passages_title">Aucune arrivée trouvée pour les lignes :</string>
+    <string name="no_passages_title">Aucune arrivée trouvée pour les lignes:</string>
     <string name="action_rename_bus_stop_username">Renommer</string>
     <string name="cannot_show_on_map_no_position">Impossible de trouver la position de l\'arrêt</string>
     <string name="settings_search_radius">Distance maximale (en mètres)</string>
@@ -101,7 +101,7 @@
     <string name="action_about">À propos de l\'application</string>
     <string name="no_lines_found">Aucune ligne trouvée dans cette catégorie</string>
     <string name="no_lines_found_query">Aucune ligne ne correspond à la recherche</string>
-    <string name="line_fill">Ligne : %1$s</string>
+    <string name="line_fill">Ligne: %1$s</string>
     <string name="internal_error">Erreur interne inattendue, impossible d\'extraire les données depuis le site GTT/5T</string>
     <string name="action_favorites">Favoris</string>
     <string name="title_activity_map">Carte</string>
@@ -109,7 +109,7 @@
     <string name="dialog_rename_bus_stop_username_title">Renommer l\'arrêt de bus</string>
     <string name="tip_add_favorite">Aucun favori ? Ah ! Appuyez sur l\'étoile au niveau d\'un arrêt de bus pour en ajouter !</string>
     <string name="dialog_rename_bus_stop_username_reset_button">Réinitialiser</string>
-    <string name="hint_button">J\'AI COMPRIS !</string>
+    <string name="hint_button">J\'AI COMPRIS!</string>
     <string name="action_view_on_map">Voir sur la carte</string>
     <string name="nearby_stops_message">Arrêts à proximité</string>
     <string name="app_version">Version de l\'application</string>
