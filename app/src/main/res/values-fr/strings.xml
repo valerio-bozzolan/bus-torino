@@ -5,12 +5,12 @@
     <string name="search">Rechercher</string>
     <string name="insert_bus_stop_number">Numéro de l\'arrêt de bus</string>
     <string name="insert_bus_stop_number_error">Insérer le numéro de l\'arrêt de bus</string>
-    <string name="message_install_barcode_scanner">Cette application nécessite une autre application pour scanner les codes QR. Souhaitez-vous installer Barcode Scanner maintenant?</string>
+    <string name="message_install_barcode_scanner">Cette application nécessite une autre application pour scanner les codes QR. Souhaitez-vous installer Barcode Scanner maintenant ?</string>
     <string name="insert_bus_stop_name_error">Insérer le nom de l\'arrêt de bus</string>
 
     <string name="route_towards_destination">%1$s vers %2$s</string>
     <string name="route_towards_unknown">%s (destination inconnue)</string>
-    <string name="network_error">Vérifiez votre connexion Internet!</string>
+    <string name="network_error">Vérifiez votre connexion Internet !</string>
     <string name="query_too_short">Nom trop court, tapez davantage de caractères et réessayez</string>
     <string name="parsing_error">Erreur lors de l\'analyse du site 5T/GTT (foutu site!)</string>
     <string name="results">Sélectionner l\'arrêt de bus…</string>
@@ -39,10 +39,9 @@
     <string name="location_permission_not_granted">Permission d\'accès à la localisation refusée</string>
     <string name="close_tutorial">OK, fermer le tutoriel</string>
     <string name="backup_restore">Sauvegarder et restaurer</string>
-
     <string name="backup_activity">Importer/Exporter les préférences</string>
     <string name="data_imported_backup">La sauvegarde a été importée</string>
-    <string name="message_check_at_least_one">Vérifiez cocher au moins un élément à importer!</string>
+    <string name="message_check_at_least_one">Vérifiez cocher au moins un élément à importer !</string>
     <string name="load_file_favorites">Importer les favoris depuis une sauvegarde</string>
     <string name="load_preferences">Importer les préférences depuis une sauvegarde</string>
     <string name="passages">Arrivées à: %1$s</string>
@@ -93,7 +92,7 @@
     <string name="grant_notification_permission">Activer les notifications</string>
     <string name="notification_permission_granted">Notifications activées</string>
     <string name="btn_load_backup_message">Importer depuis une sauvegarde</string>
-    <string name="title_barcode_scanner_install">Installer Barcode Scanner?</string>
+    <string name="title_barcode_scanner_install">Installer Barcode Scanner ?</string>
     <string name="howDoesItWork"><b>Appuyez sur l\'étoile</b> pour ajouter l\'arrêt de bus à vos favoris\n\n<b>Pour lire les fiches horaires:</b>\n  <b>12:56*</b> Heures d\'arrivée en temps réel\n
           <b>12:56</b> Heures d\'arrivée programmées\n\n<b>Tirez vers le bas pour actualiser</b> la fiche \n <b>Appui long sur la source des arrivées</b> pour la modifier</string>
     <string name="about_channel"><![CDATA[
@@ -115,9 +114,9 @@
     <string name="title_activity_map">Carte</string>
     <string name="action_remove_from_favourites">Supprimer</string>
     <string name="dialog_rename_bus_stop_username_title">Renommer l\'arrêt de bus</string>
-    <string name="tip_add_favorite">Aucun favori? Ah! Appuyez sur l\'étoile au niveau d\'un arrêt de bus pour en ajouter!</string>
+    <string name="tip_add_favorite">Aucun favori ? Ah ! Appuyez sur l\'étoile au niveau d\'un arrêt de bus pour en ajouter !</string>
     <string name="dialog_rename_bus_stop_username_reset_button">Réinitialiser</string>
-    <string name="hint_button">J\'ai compris!</string>
+    <string name="hint_button">J\'AI COMPRIS !</string>
     <string name="action_view_on_map">Voir sur la carte</string>
     <string name="nearby_stops_message">Arrêts à proximité</string>
     <string name="app_version">Version de l\'application</string>
@@ -145,7 +144,7 @@
     <string name="location_enabled">Localisation activée</string>
     <string name="location_disabled">Localisation désactivée</string>
     <string name="map_location_disabled_device">La localisation est désactivée sur l\'appareil</string>
-    <string name="times_source_fmt">Source des arrivées: %1$s</string>
+    <string name="times_source_fmt">Source des arrivées : %1$s</string>
     <string name="fivetapifetcher">Application GTT</string>
     <string name="gttjsonfetcher">Site Web de GTT</string>
     <string name="fivetscraper">Site Web de 5T Torino</string>
@@ -162,8 +161,8 @@
     <string name="live_positions_notification_channel_desc">Affichage de l\'activité associée au service de localisation en temps réel</string>
     <string name="db_trips_download_message">Téléchargement des trajets depuis le serveur de MaTO</string>
     <string name="too_many_permission_asks">Permission pour %1$s demandée à de trop nombreuses reprises</string>
-    <string name="permission_storage_maps_msg">Impossible d\'utiliser la carte sans la permission d\'accès au stockage!</string>
-    <string name="acra_email_message">L\'application a planté et le rapport de plantage se trouve en pièce-jointe. Veuillez décrire ce que vous faisiez avant le plantage:</string>
+    <string name="permission_storage_maps_msg">Impossible d\'utiliser la carte sans la permission d\'accès au stockage !</string>
+    <string name="acra_email_message">L\'application a planté et le rapport de plantage se trouve en pièce-jointe. Veuillez décrire ce que vous faisiez avant le plantage :</string>
     <string name="nav_arrivals_text">Arrivées</string>
     <string name="nav_map_text">Carte</string>
     <string name="nav_favorites_text">Favoris</string>
