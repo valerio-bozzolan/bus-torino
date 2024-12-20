@@ -27,15 +27,18 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -433,14 +436,24 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     private void createDefaultSnackbar() {
 
         View baseView = null;
+        boolean showSnackbar = true;
         final Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainActContentFrame);
         if (frag instanceof ScreenBaseFragment){
             baseView = ((ScreenBaseFragment) frag).getBaseViewForSnackBar();
+            showSnackbar = ((ScreenBaseFragment) frag).showSnackbarOnDBUpdate();
         }
         if (baseView == null) baseView = findViewById(R.id.mainActContentFrame);
-        if (baseView == null) Log.e(DEBUG_TAG, "baseView null for default snackbar, probably exploding now");
-        snackbar = Snackbar.make(baseView, R.string.database_update_msg_inapp, Snackbar.LENGTH_INDEFINITE);
-        snackbar.show();
+        //if (baseView == null) Log.e(DEBUG_TAG, "baseView null for default snackbar, probably exploding now");
+        if (baseView !=null && showSnackbar) {
+            this.snackbar = Snackbar.make(baseView, R.string.database_update_msg_inapp, Snackbar.LENGTH_INDEFINITE);
+            if (frag instanceof ScreenBaseFragment){
+                ((ScreenBaseFragment) frag).setSnackbarPropertiesBeforeShowing(this.snackbar);
+            }
+            this.snackbar.show();
+
+        } else{
+            Log.e(DEBUG_TAG, "Asked to show the snackbar but the baseView is null");
+        }
     }
 
     /**

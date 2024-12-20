@@ -256,7 +256,7 @@ public class FavoritesFragment extends ScreenBaseFragment {
         // If no data is found show a friendly message
         if(BuildConfig.DEBUG)
             Log.d("BusTO - Favorites", "We have "+busStops.size()+" favorites in the list");
-        if (busStops.size() == 0) {
+        if (busStops.isEmpty()) {
             favoriteRecyclerView.setVisibility(View.INVISIBLE);
            // TextView favoriteTipTextView = (TextView) findViewById(R.id.favoriteTipTextView);
             //assert favoriteTipTextView != null;
@@ -298,7 +298,7 @@ public class FavoritesFragment extends ScreenBaseFragment {
             String oldUserName = busStop.getStopUserName();
 
             // changed to none
-            if(busStopUsername.length() == 0) {
+            if(busStopUsername.isEmpty()) {
                 // unless it was already empty, set new
                 if(oldUserName != null) {
                     busStop.setStopUserName(null);
@@ -330,4 +330,14 @@ public class FavoritesFragment extends ScreenBaseFragment {
                         //Toast.makeText(getApplicationContext(), R.string.tip_add_favorite, Toast.LENGTH_SHORT).show();
                     }).execute(busStop);
     }
+    /*
+    THIS LOOKS TERRIBLE
+    @Override
+    public void setSnackbarPropertiesBeforeShowing(Snackbar snackbar) {
+        final View view = snackbar.getView();
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
+        params.gravity = Gravity.TOP;
+        view.setLayoutParams(params);
+    }
+     */
 }

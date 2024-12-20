@@ -15,6 +15,25 @@
                 android:layout_width="match_parent" android:layout_height="match_parent"
                 android:animateLayoutChanges="true"
         >
+            <TextView
+                    android:text="@string/database_update_msg_inapp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/updateMessageTextView"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:layout_margin="5dp"
+
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:textColor="@color/grey_200"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:background="@drawable/backgroud_box_round"
+                    android:visibility="gone"
+
+                    app:layout_constraintBottom_toTopOf="@id/favoritesTitleView"
+                    app:layout_constraintEnd_toEndOf="parent"/>
             <ImageView
                     android:src="@drawable/baseline_chevron_right_24"
                     android:layout_width="wrap_content"
@@ -34,7 +53,7 @@
                       android:textColor="@color/black_900"
                       android:gravity="center"
                       android:id="@+id/favoritesTitleView"
-                      app:layout_constraintTop_toTopOf="parent"
+                      app:layout_constraintTop_toBottomOf="@id/updateMessageTextView"
                       app:layout_constraintLeft_toRightOf="@id/arrowFavorites"
                       app:layout_constraintBottom_toTopOf="@id/favoritesRecyclerView"
                       android:layout_marginStart="6dp"
@@ -171,6 +190,7 @@
                     app:layout_constraintVertical_bias="0.0"
 
             />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
         <!--</androidx.core.widget.NestedScrollView>-->

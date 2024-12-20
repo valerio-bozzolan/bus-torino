@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
@@ -14,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.snackbar.Snackbar;
 import it.reyboz.bustorino.BuildConfig;
 
 import java.util.Map;
@@ -58,6 +60,17 @@ public abstract class ScreenBaseFragment extends Fragment {
      */
     @Nullable
     public abstract View getBaseViewForSnackBar();
+
+    /**
+     * Empty method to override properties of the Snackbar before showing it
+     * @param snackbar the Snackbar to be possibly modified
+     */
+    public void setSnackbarPropertiesBeforeShowing(Snackbar snackbar){
+
+    }
+    public boolean showSnackbarOnDBUpdate() {
+        return true;
+    }
 
     public static boolean getOption(Context context, String optionName, boolean optDefault){
         SharedPreferences preferences = context.getSharedPreferences(PREF_FILE, MODE_PRIVATE);

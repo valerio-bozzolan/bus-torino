@@ -15,11 +15,14 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.adapters.RouteAdapter
 import it.reyboz.bustorino.adapters.RouteOnlyLineAdapter
 import it.reyboz.bustorino.adapters.StringListAdapter
 import it.reyboz.bustorino.backend.utils
+import it.reyboz.bustorino.data.DBUpdateWorker
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.GtfsRoute
 import it.reyboz.bustorino.middleware.AutoFitGridLayoutManager
@@ -43,6 +46,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
     private lateinit var urbanLinesTitle: TextView
     private lateinit var extrurbanLinesTitle: TextView
     private lateinit var touristLinesTitle: TextView
+    private lateinit var updateMessageTextView: TextView
     //private lateinit var searchBar: SearchView
 
 
@@ -69,6 +73,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
     private val lastQueryEmptyForAgency = HashMap<String, Boolean>(3)
     private var openRecyclerView = "AG_URBAN"
 
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -79,6 +84,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
         urbanRecyclerView = rootView.findViewById(R.id.urbanLinesRecyclerView)
         extraurbanRecyclerView = rootView.findViewById(R.id.extraurbanLinesRecyclerView)
         touristRecyclerView = rootView.findViewById(R.id.touristLinesRecyclerView)
+        updateMessageTextView = rootView.findViewById(R.id.updateMessageTextView)
 
         favoritesTitle = rootView.findViewById(R.id.favoritesTitleView)
         urbanLinesTitle = rootView.findViewById(R.id.urbanLinesTitleView)
@@ -177,6 +183,24 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
         for(k in Companion.AGENCIES){
             //k is either AG_TOUR, AG_EXTRAURBAN, AG_URBAN
             arrows[k]?.setOnClickListener { openLinesAndCloseOthersIfNeeded(k) }
+        }
+        // watch for the db update
+        WorkManager.getInstance(requireContext()).getWorkInfosForUniqueWorkLiveData(DBUpdateWorker.DEBUG_TAG).observe(viewLifecycleOwner){
+            workInfoList ->
+            if (workInfoList == null || workInfoList.isEmpty()) {
+                return@observe
+            }
+
+            var showProgress = false
+            for (workInfo in workInfoList) {
+                if (workInfo.state == WorkInfo.State.RUNNING) {
+                    updateMessageTextView.visibility = View.VISIBLE
+
+                } else{
+                    updateMessageTextView.visibility = View.GONE
+                }
+                break
+            }
         }
 
 
@@ -400,4 +424,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
         }
     }
 
+    override fun showSnackbarOnDBUpdate(): Boolean {
+        return false
+    }
 }
