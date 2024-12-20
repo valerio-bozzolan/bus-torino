@@ -1,2 +1,4 @@
 BusTO fornisce informazioni in tempo reale sul trasporto pubblico di Torino e provincia.
-Inserisci il numero della fermata del pullman di qualsiasi veicolo della rete 5T/GTT per sapere i passaggi pianificati ed in tempo reale.
+Inserisci il numero della fermata del bus della rete 5T/GTT per sapere i passaggi pianificati ed in tempo reale.
+Trova le posizioni dei bus in tempo reale sulla mappa.
+Scopri il percorso e le fermate delle linee del trasporto pubblico di Torino.

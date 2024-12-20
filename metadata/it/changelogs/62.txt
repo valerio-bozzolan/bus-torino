@@ -1,0 +1,12 @@
+Traduzione dell'applicazione in olandese da Wouter su Weblate
+
+Traduzione dell'applicazione in francese da Nathan su Weblate
+
+Correzioni nella traduzione da Fabio Mazza e Ludovico Pavesi
+
+Mostra le informazioni sull'utilizzo delle fermate sotto il titolo della fermata
+Completato da Fabio Mazza
+
+Mostra un messaggio chiaro nella schermata Linee quando il database è in aggiornamento
+Completato da Fabio Mazza
+https://gitpull.it/T1282

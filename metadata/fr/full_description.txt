@@ -1,0 +1,4 @@
+BusTO fournit des informations en temps réel sur les transports publics de Turin et de sa province.
+Saisissez le numéro d’arrêt de bus du réseau 5T/GTT pour connaître les passages prévus et en temps réel.
+Trouvez les positions des bus en temps réel sur la carte.
+Découvrez le trajet et les arrêts des lignes de transport public de Turin.

@@ -1,0 +1,12 @@
+App translation in Dutch by wouter on Weblate
+
+App translation in French by Nathan on Weblate
+
+Fixes in translation by Fabio Mazza and Ludovico Pavesi
+
+Show stop arrivals usage information below the stop title
+Completed by Fabio Mazza
+
+Show clear message in the Lines screen when DB is updating
+Completed by Fabio Mazza
+https://gitpull.it/T1282
