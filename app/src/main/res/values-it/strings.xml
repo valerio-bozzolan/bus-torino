@@ -53,9 +53,8 @@
     <string name="about_activity">Informazioni</string>
     <string name="howDoesItWork"><b>Tocca la stella</b> per aggiungere la fermata ai preferiti\n\n<b>Come leggere gli orari:</b> \n<b>12:56*</b> Orario in tempo reale\n<b>12:56</b>  Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario. \n<b>Tocca a lungo</b> su <b>Fonte Orari</b> per cambiare sorgente degli orari di arrivo</string>
     <string name="hint_button">OK!</string>
-    <string name="about_history_top">
-<![CDATA[
-        <h1>Benvenuto/a/ə!</h1>
+    <string name="about_history_top"><![CDATA[
+        <h1>Benvenuto!</h1>
         
         <p>Grazie per aver scelto BusTO, un\'app <b>open source</b> e <b>indipendente</b> da GTT/5T, per spostarsi a Torino attraverso <b>software libero</b>!</p>
         <p>BusTO rispetta la tua <b>privacy</b> non raccogliendo nessun dato sull\'utilizzo, ed è <b>leggera</b> e senza <b>pubblicità</b>!</p>
