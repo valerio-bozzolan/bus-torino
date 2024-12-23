@@ -7,14 +7,12 @@
     <string name="insert_bus_stop_number_error">Insérer le numéro de l\'arrêt de bus</string>
     <string name="message_install_barcode_scanner">Cette application nécessite une autre application pour scanner les codes QR. Souhaitez-vous installer Barcode Scanner maintenant ?</string>
     <string name="insert_bus_stop_name_error">Insérer le nom de l\'arrêt de bus</string>
-
     <string name="route_towards_destination">%1$s vers %2$s</string>
     <string name="route_towards_unknown">%s (destination inconnue)</string>
     <string name="network_error">Vérifiez votre connexion Internet !</string>
     <string name="query_too_short">Nom trop court, tapez davantage de caractères et réessayez</string>
     <string name="parsing_error">Erreur lors de l\'analyse du site 5T/GTT (foutu site!)</string>
     <string name="results">Sélectionner l\'arrêt de bus…</string>
-
     <string name="line">Ligne</string>
     <string name="lines_fill">Lignes: %1$s</string>
     <string name="extraurban_lines">Lignes interurbaines</string>
@@ -27,7 +25,6 @@
     <string name="favorites_lines">Favoris</string>
     <string name="about_activity">À propos de l\'application</string>
     <string name="close_tutorial_short">Fermer le tutoriel</string>
-
     <string name="directions_capitalize_everything">Majuscules partout</string>
     <string name="pref_shown_startup_def_desc">Appuyez pour modifier</string>
     <string name="pref_lines_click_msg">Afficher les arrivées à l\'appui sur un arrêt</string>
@@ -52,8 +49,6 @@
     <string name="urban_lines">Lignes urbaines</string>
     <string name="turist_lines">Lignes touristiques</string>
     <string name="no_qrcode">Aucun code QR trouvé, essayez d\'utiliser une autre application pour le scanner</string>
-
-
     <string name="action_wiki">Contribuer</string>
     <string name="favorites_line_remove">Ligne retirée de vos favoris</string>
     <string name="arrival_times">Heures d\'arrivée</string>
@@ -93,8 +88,7 @@
     <string name="notification_permission_granted">Notifications activées</string>
     <string name="btn_load_backup_message">Importer depuis une sauvegarde</string>
     <string name="title_barcode_scanner_install">Installer Barcode Scanner ?</string>
-    <string name="howDoesItWork"><b>Appuyez sur l\'étoile</b> pour ajouter l\'arrêt de bus à vos favoris\n\n<b>Pour lire les fiches horaires:</b>\n  <b>12:56*</b> Heures d\'arrivée en temps réel\n
-          <b>12:56</b> Heures d\'arrivée programmées\n\n<b>Tirez vers le bas pour actualiser</b> la fiche \n <b>Appui long sur la source des arrivées</b> pour la modifier</string>
+    <string name="howDoesItWork"><b>Appuyez sur l\'étoile</b> pour ajouter l\'arrêt de bus à vos favoris\n\n<b>Pour lire les fiches horaires:</b>\n <b>12:56*</b> Heures d\'arrivée en temps réel\n <b>12:56</b> Heures d\'arrivée programmées\n\n<b>Tirez vers le bas pour actualiser</b> la fiche \n <b>Appui long sur la source des arrivées</b> pour la modifier</string>
     <string name="about_channel"><![CDATA[
     <h2>Actualités et mises à jour</h2>
     <p>Sur le canal Telegram, vous pouvez retrouver des informations sur les dernières mises à jour de l\'application</p>
