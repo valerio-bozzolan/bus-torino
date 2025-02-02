@@ -1,17 +1,40 @@
 package it.reyboz.bustorino.fragments
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.res.ResourcesCompat
+import androidx.fragment.app.viewModels
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import it.reyboz.bustorino.R
+import it.reyboz.bustorino.backend.Stop
+import it.reyboz.bustorino.map.Styles
+import it.reyboz.bustorino.viewmodels.StopsMapViewModel
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.location.LocationComponent
+import org.maplibre.android.location.LocationComponentActivationOptions
+import org.maplibre.android.location.LocationComponentOptions
+import org.maplibre.android.location.engine.LocationEngineRequest
+import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.OnMapReadyCallback
+import org.maplibre.android.maps.Style
+import org.maplibre.android.style.layers.PropertyFactory
+import org.maplibre.android.style.layers.SymbolLayer
+import org.maplibre.android.style.sources.GeoJsonSource
+import org.maplibre.geojson.Feature
+import org.maplibre.geojson.FeatureCollection
+import org.maplibre.geojson.Point
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -25,12 +48,22 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 class MapLibreFragment : Fragment(), OnMapReadyCallback {
-    // TODO: Rename and change types of parameters
+
     //private var param1: String? = null
     //private var param2: String? = null
     // Declare a variable for MapView
     private lateinit var mapView: MapView
+    private lateinit var locationComponent: LocationComponent
+    private var lastLocation: Location? = null
+    private val stopsViewModel: StopsMapViewModel by viewModels()
+    private val gson = Gson()
+    private var stopsShowing = ArrayList<Stop>(0)
+
+
     protected var map: MapLibreMap? = null
+    // Sources for stops and buses
+    private lateinit var stopsSource: GeoJsonSource
+    private lateinit var busesSource: GeoJsonSource
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +82,8 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        val rootView =  inflater.inflate(R.layout.fragment_map_libre, container, false)
+        val rootView =  inflater.inflate(R.layout.fragment_map_libre,
+            container, false)
 
 
 
@@ -65,17 +99,128 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(mapReady: MapLibreMap) {
         this.map = mapReady
-        mapReady.cameraPosition = CameraPosition.Builder().target(LatLng(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON)).zoom(9.0).build()
+        mapReady.cameraPosition = CameraPosition.Builder().target(LatLng(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON)).zoom(
+            15.0).build()
         activity?.run {
-            //TODO: copy from TransportR
-            //val mapStyle = makeStyleUrl("jawg-terrain")
-            /*if (mapStyle != null && mapReady.style?.uri != mapStyle) {
-                mapReady.setStyle(mapStyle, ::onMapStyleLoaded) //callback
+            mapReady.setStyle(Styles.CARTO_VOYAGER ) { style ->
+                setupSources(style)
+                setupLayers(style)
+
+                // Start observing data
+                observeViewModels()
+                initLocation(style, mapReady, requireContext())
             }
-             */
-            mapReady.setStyle(OPENSTREETMAP_HOT_URL )
+
+            mapReady.addOnCameraIdleListener {
+                map?.let {
+                    stopsViewModel.loadStopsInLatLngBounds(it.projection.visibleRegion.latLngBounds)
+                }
+
+            }
                 //makeStyleMapBoxUrl(false))
+
         }
+
+    }
+    @SuppressLint("MissingPermission")
+    private fun initLocation(style: Style, map: MapLibreMap, context: Context){
+        locationComponent = map.locationComponent
+        val locationComponentOptions =
+            LocationComponentOptions.builder(context)
+                .pulseEnabled(true)
+                .build()
+        val locationComponentActivationOptions =
+            buildLocationComponentActivationOptions(style, locationComponentOptions, context)
+        locationComponent.activateLocationComponent(locationComponentActivationOptions)
+        locationComponent.isLocationComponentEnabled = true
+        locationComponent.cameraMode = CameraMode.TRACKING //CameraMode.TRACKING
+        locationComponent.forceLocationUpdate(lastLocation)
+    }
+    private fun buildLocationComponentActivationOptions(
+        style: Style,
+        locationComponentOptions: LocationComponentOptions,
+        context: Context
+    ): LocationComponentActivationOptions {
+        return LocationComponentActivationOptions
+            .builder(context, style)
+            .locationComponentOptions(locationComponentOptions)
+            .useDefaultLocationEngine(true)
+            .locationEngineRequest(
+                LocationEngineRequest.Builder(750)
+                    .setFastestInterval(750)
+                    .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+                    .build()
+            )
+            .build()
+    }
+
+    /**
+     * Setup the Map Layers
+     */
+    private fun setupLayers(style: Style) {
+        // add icon
+        ResourcesCompat.getDrawable(resources,R.drawable.bus_stop, activity?.theme)
+            ?.let { style.addImage(STOP_IMAGE_ID, it) }
+        // Stops layer
+        val stopsLayer = SymbolLayer(STOPS_LAYER_ID, STOPS_SOURCE_ID).apply {
+            withProperties(
+                PropertyFactory.iconImage(STOP_IMAGE_ID),
+                PropertyFactory.iconAllowOverlap(true),
+                PropertyFactory.iconIgnorePlacement(true)
+
+            )
+        }
+        style.addLayer(stopsLayer)
+
+        /*
+        // TODO when adding the buses
+        // Buses layer
+        val busesLayer = SymbolLayer(BUSES_LAYER_ID, BUSES_SOURCE_ID).apply {
+            withProperties(
+                PropertyFactory.iconImage("bus"),
+                PropertyFactory.iconSize(1.0f),
+                PropertyFactory.iconAllowOverlap(true),
+                PropertyFactory.iconRotate(Expression.get("bearing"))
+            )
+        }
+        style.addLayer(busesLayer)
+
+         */
+    }
+
+    /**
+     * Setup data sources for the map
+     */
+    private fun setupSources(style: Style) {
+        // Stops source
+        stopsSource = GeoJsonSource(STOPS_SOURCE_ID,)
+        style.addSource(stopsSource)
+
+        // Buses source
+        // TODO when adding the buses
+        //busesSource = GeoJsonSource(BUSES_SOURCE_ID)
+        //style.addSource(busesSource)
+    }
+
+
+    /**
+     * Incremental updates of the layers
+     */
+    fun updateLayerIncrementally(newPoints: List<Point>, layerSourceId: String) {
+        val source = map?.style?.getSourceAs<GeoJsonSource>(layerSourceId) ?: return
+
+        //source.querySourceFeatures(null)
+        // Get existing features
+        val existingFeatures = source.querySourceFeatures(null).toMutableList()
+
+        // Add new features
+        val newFeatures = newPoints.map { point ->
+            Feature.fromGeometry(point)
+        }
+        existingFeatures.addAll(newFeatures)
+
+        // Update source
+        source.setGeoJson(FeatureCollection.fromFeatures(existingFeatures))
     }
 
     override fun onStart() {
@@ -113,15 +258,52 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
         mapView.onSaveInstanceState(outState)
     }
 
+    private fun observeViewModels() {
+        // Observe stops
+        stopsViewModel.stopsToShow.observe(viewLifecycleOwner) { stops ->
+            stopsShowing = stops
+            displayStops(stops)
+        }
+    }
+
+    /**
+     * Add the stops to the layers
+     */
+    private fun displayStops(stops: List<Stop>?) {
+        if (stops == null) return
+
+        val features = stops.mapNotNull { stop ->
+            stop.latitude?.let { lat ->
+                stop.longitude?.let { lon ->
+                    Feature.fromGeometry(
+                        Point.fromLngLat(lat, lon),
+                        JsonObject().apply {
+                            addProperty("id", stop.ID)
+                            addProperty("name", stop.stopDefaultName)
+                            addProperty("routes", stop.routesThatStopHereToString()) // Add routes array to JSON object
+                        }
+                        )
+                }
+            }
+        }
+        Log.d("MapLibreFrag","Have put ${features.size} stops to display")
+
+        stopsSource.setGeoJson(FeatureCollection.fromFeatures(features))
+    }
+
     companion object {
+        private const val STOPS_SOURCE_ID = "stops-source"
+        private const val STOPS_LAYER_ID = "stops-layer"
+        private const val BUSES_SOURCE_ID = "buses-source"
+        private const val BUSES_LAYER_ID = "buses-layer"
+        private const val STOP_IMAGE_ID ="bus-stop-icon"
         private const val DEFAULT_CENTER_LAT = 45.0708
         private const val DEFAULT_CENTER_LON = 7.6858
-        private const val POSITION_FOUND_ZOOM = 18.3
+        private const val POSITION_FOUND_ZOOM = 16.5
+        private const val NO_POSITION_ZOOM = 17.1
         private const val ACCESS_TOKEN="KxO8lF4U3kiO63m0c7lzqDCDrMUVg1OA2JVzRXxxmYSyjugr1xpe4W4Db5rFNvbQ"
-        const val NO_POSITION_ZOOM = 17.1
         private const val MAPLIBRE_URL = "https://api.jawg.io/styles/"
-        private const val OPENSTREETMAP_URL = "https://raw.githubusercontent.com/go2garret/maps/main/src/assets/json/openStreetMap.json"
-        private const val OPENSTREETMAP_HOT_URL="https://raw.githubusercontent.com/fabmazz/maps/refs/heads/main/src/assets/json/openStreetMap-hot.json"
+
         /**
          * Use this factory method to create a new instance of
          * this fragment using the provided parameters.
@@ -147,6 +329,9 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
             else //"https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
                 "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
 
+        const val OPENFREEMAP_LIBERY = "https://tiles.openfreemap.org/styles/liberty"
+
+        const val OPENFREEMAP_BRIGHT = "https://tiles.openfreemap.org/styles/bright"
 
     }
 }
