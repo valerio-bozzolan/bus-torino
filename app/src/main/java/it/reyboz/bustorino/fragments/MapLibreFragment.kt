@@ -2,6 +2,7 @@ package it.reyboz.bustorino.fragments
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
@@ -21,6 +22,7 @@ import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.location.LocationComponent
 import org.maplibre.android.location.LocationComponentActivationOptions
 import org.maplibre.android.location.LocationComponentOptions
@@ -64,6 +66,10 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
     // Sources for stops and buses
     private lateinit var stopsSource: GeoJsonSource
     private lateinit var busesSource: GeoJsonSource
+    private var isStopsLayerStarted = false
+    private var lastStopsSizeShown = 0
+    private var lastBBox = LatLngBounds.from(2.0, 2.0, 1.0,1.0)
+    private lateinit var mapStyle: Style
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -103,7 +109,7 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
             15.0).build()
         activity?.run {
             mapReady.setStyle(Styles.CARTO_VOYAGER ) { style ->
-                setupSources(style)
+                mapStyle = style
                 setupLayers(style)
 
                 // Start observing data
@@ -113,7 +119,13 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
 
             mapReady.addOnCameraIdleListener {
                 map?.let {
-                    stopsViewModel.loadStopsInLatLngBounds(it.projection.visibleRegion.latLngBounds)
+                    val newBbox = it.projection.visibleRegion.latLngBounds
+                    if ((newBbox.center==lastBBox.center) && (newBbox.latitudeSpan==lastBBox.latitudeSpan) && (newBbox.longitudeSpan==lastBBox.latitudeSpan)){
+                        //do nothing
+                    } else {
+                        stopsViewModel.loadStopsInLatLngBounds(newBbox)
+                        lastBBox = newBbox
+                    }
                 }
 
             }
@@ -154,23 +166,38 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
             .build()
     }
 
+    private fun startLayerStops(style: Style, features:FeatureCollection){
+
+        stopsSource = GeoJsonSource(STOPS_SOURCE_ID,features)
+        style.addSource(stopsSource)
+
+        // add icon
+        style.addImage(STOP_IMAGE_ID,
+            ResourcesCompat.getDrawable(resources,R.drawable.bus_stop, activity?.theme)!!)
+        // Stops layer
+        val stopsLayer = SymbolLayer(STOPS_LAYER_ID, STOPS_SOURCE_ID)
+        stopsLayer.withProperties(
+                PropertyFactory.iconImage(STOP_IMAGE_ID),
+                PropertyFactory.iconAllowOverlap(true),
+                PropertyFactory.iconIgnorePlacement(true)
+            )
+
+        style.addLayerBelow(stopsLayer, "label_country_1")
+
+        isStopsLayerStarted = true
+    }
+
     /**
      * Setup the Map Layers
      */
     private fun setupLayers(style: Style) {
-        // add icon
-        ResourcesCompat.getDrawable(resources,R.drawable.bus_stop, activity?.theme)
-            ?.let { style.addImage(STOP_IMAGE_ID, it) }
-        // Stops layer
-        val stopsLayer = SymbolLayer(STOPS_LAYER_ID, STOPS_SOURCE_ID).apply {
-            withProperties(
-                PropertyFactory.iconImage(STOP_IMAGE_ID),
-                PropertyFactory.iconAllowOverlap(true),
-                PropertyFactory.iconIgnorePlacement(true)
+        // Stops source
 
-            )
-        }
-        style.addLayer(stopsLayer)
+
+        // Buses source
+        // TODO when adding the buses
+        //busesSource = GeoJsonSource(BUSES_SOURCE_ID)
+        //style.addSource(busesSource)
 
         /*
         // TODO when adding the buses
@@ -186,20 +213,6 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
         style.addLayer(busesLayer)
 
          */
-    }
-
-    /**
-     * Setup data sources for the map
-     */
-    private fun setupSources(style: Style) {
-        // Stops source
-        stopsSource = GeoJsonSource(STOPS_SOURCE_ID,)
-        style.addSource(stopsSource)
-
-        // Buses source
-        // TODO when adding the buses
-        //busesSource = GeoJsonSource(BUSES_SOURCE_ID)
-        //style.addSource(busesSource)
     }
 
 
@@ -270,13 +283,18 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
      * Add the stops to the layers
      */
     private fun displayStops(stops: List<Stop>?) {
-        if (stops == null) return
+        if (stops.isNullOrEmpty()) return
+
+        if (stops.size==lastStopsSizeShown){
+            Log.d(DEBUG_TAG, "Not updating, we have the same stop (can only increase!)")
+            return
+        }
 
         val features = stops.mapNotNull { stop ->
             stop.latitude?.let { lat ->
                 stop.longitude?.let { lon ->
                     Feature.fromGeometry(
-                        Point.fromLngLat(lat, lon),
+                        Point.fromLngLat(lon, lat),
                         JsonObject().apply {
                             addProperty("id", stop.ID)
                             addProperty("name", stop.stopDefaultName)
@@ -286,9 +304,16 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
                 }
             }
         }
-        Log.d("MapLibreFrag","Have put ${features.size} stops to display")
+        Log.d(DEBUG_TAG,"Have put ${features.size} stops to display")
 
-        stopsSource.setGeoJson(FeatureCollection.fromFeatures(features))
+        if (isStopsLayerStarted) {
+            stopsSource.setGeoJson(FeatureCollection.fromFeatures(features))
+            lastStopsSizeShown = features.size
+        } else
+            map?.let { startLayerStops(mapStyle, FeatureCollection.fromFeatures(features))
+                Log.d(DEBUG_TAG,"Started stops layer on map")
+                lastStopsSizeShown = features.size
+            }
     }
 
     companion object {
@@ -303,6 +328,7 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
         private const val NO_POSITION_ZOOM = 17.1
         private const val ACCESS_TOKEN="KxO8lF4U3kiO63m0c7lzqDCDrMUVg1OA2JVzRXxxmYSyjugr1xpe4W4Db5rFNvbQ"
         private const val MAPLIBRE_URL = "https://api.jawg.io/styles/"
+        private const val DEBUG_TAG = "BusTO-MapLibreFrag"
 
         /**
          * Use this factory method to create a new instance of

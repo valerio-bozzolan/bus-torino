@@ -44,7 +44,7 @@ class StopsMapViewModel(application: Application): AndroidViewModel(application)
                 }
 
                 stopsToShow.postValue(stopsAdd)
-                Log.d(DEBUG_TAG, "Loaded ${stopsAdd.size} stops in total")
+                //Log.d(DEBUG_TAG, "Loaded ${stopsAdd.size} stops in total")
             }
         }
 
