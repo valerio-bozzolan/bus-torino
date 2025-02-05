@@ -34,6 +34,7 @@ import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.res.ResourcesCompat
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import it.reyboz.bustorino.R
@@ -81,10 +82,10 @@ open class MapFragmentKt : ScreenBaseFragment() {
     private var followingLocation = false
 
     //the ViewModel from which we get the stop to display in the map
-    private var stopsViewModel: StopsMapViewModel? = null
+    private val stopsViewModel: StopsMapViewModel by viewModels()
 
     //private GtfsPositionsViewModel gtfsPosViewModel; //= new ViewModelProvider(this).get(MapViewModel.class);
-    private var livePositionsViewModel: LivePositionsViewModel? = null
+    private val livePositionsViewModel: LivePositionsViewModel by viewModels()
     private var useMQTTViewModel = true
     private val busPositionMarkersByTrip = HashMap<String, Marker>()
     private var busPositionsOverlay: FolderOverlay? = null
@@ -112,7 +113,9 @@ open class MapFragmentKt : ScreenBaseFragment() {
             ActivityResultCallback { result ->
                 if (result == null) {
                     Log.w(DEBUG_TAG, "Got asked permission but request is null, doing nothing?")
-                } else if (java.lang.Boolean.TRUE == result[Manifest.permission.ACCESS_COARSE_LOCATION] && java.lang.Boolean.TRUE == result[Manifest.permission.ACCESS_FINE_LOCATION]) {
+                } else if (java.lang.Boolean.TRUE == result[Manifest.permission.ACCESS_COARSE_LOCATION]
+                    && java.lang.Boolean.TRUE == result[Manifest.permission.ACCESS_FINE_LOCATION]) {
+                    // We can use the position, restart location overlay
                     map.overlays.remove(mLocationOverlay)
                     startLocationOverlay(true, map)
                     if (context == null || requireContext().getSystemService(Context.LOCATION_SERVICE) == null)
@@ -208,10 +211,6 @@ open class MapFragmentKt : ScreenBaseFragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        val provider = ViewModelProvider(this)
-        //gtfsPosViewModel = provider.get(GtfsPositionsViewModel.class);
-        livePositionsViewModel = provider.get(LivePositionsViewModel::class.java)
-        stopsViewModel = provider.get(StopsMapViewModel::class.java)
         listenerMain = if (context is FragmentListenerMain) {
             context
         } else {
@@ -225,9 +224,7 @@ open class MapFragmentKt : ScreenBaseFragment() {
     override fun onDetach() {
         super.onDetach()
         listenerMain = null
-        //stop animations
 
-        //    setupOnAttached = true;
         Log.w(DEBUG_TAG, "Fragment detached")
     }
 

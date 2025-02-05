@@ -17,6 +17,7 @@ import com.google.gson.JsonObject
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.map.Styles
+import it.reyboz.bustorino.util.ViewUtils
 import it.reyboz.bustorino.viewmodels.StopsMapViewModel
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
@@ -107,8 +108,10 @@ class MapLibreFragment : Fragment(), OnMapReadyCallback {
         this.map = mapReady
         mapReady.cameraPosition = CameraPosition.Builder().target(LatLng(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON)).zoom(
             15.0).build()
+        val mjson = Styles.getJsonStyleFromAsset(requireContext(), "map_style_good_noshops.json")//ViewUtils.loadJsonFromAsset(requireContext(),"map_style_good.json")
         activity?.run {
-            mapReady.setStyle(Styles.CARTO_VOYAGER ) { style ->
+
+            mapReady.setStyle(Style.Builder().fromJson(mjson!!)) { style ->
                 mapStyle = style
                 setupLayers(style)
 

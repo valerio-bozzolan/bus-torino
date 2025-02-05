@@ -12,6 +12,7 @@ import android.view.animation.Animation
 import android.view.animation.Transformation
 import androidx.annotation.ColorInt
 import androidx.core.widget.NestedScrollView
+import java.io.IOException
 
 
 class ViewUtils {
@@ -103,6 +104,15 @@ class ViewUtils {
             theme.resolveAttribute(resId, typedValue, true)
             val color = typedValue.data
             return color
+        }
+
+        fun loadJsonFromAsset(context: Context, fileName: String): String? {
+            return try {
+                context.assets.open(fileName).bufferedReader().use { it.readText() }
+            } catch (e: IOException) {
+                e.printStackTrace()
+                null
+            }
         }
 
     }
