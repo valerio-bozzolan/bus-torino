@@ -54,7 +54,7 @@ public class ActivityExperiments extends GeneralActivity implements CommonFragme
 
                     //.add(R.id.fragment_container_view, LinesDetailFragment.class,
                     //        LinesDetailFragment.Companion.makeArgs("gtt:4U"))
-                    .add(R.id.fragment_container_view, BackupImportFragment.class, null)
+                    .add(R.id.fragment_container_view, CrashFragment.class, null)
                     .commit();
         }
     }
