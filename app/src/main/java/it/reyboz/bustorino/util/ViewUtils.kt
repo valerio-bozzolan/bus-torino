@@ -1,17 +1,24 @@
 package it.reyboz.bustorino.util
 
-import android.R
 import android.content.Context
+import android.content.Intent
 import android.content.res.Resources.Theme
 import android.graphics.Rect
+import android.net.Uri
+import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.Transformation
-import androidx.annotation.ColorInt
+import android.widget.Toast
 import androidx.core.widget.NestedScrollView
+import it.reyboz.bustorino.R
+import it.reyboz.bustorino.backend.Stop
+import it.reyboz.bustorino.fragments.LinesDetailFragment
+import it.reyboz.bustorino.fragments.LinesDetailFragment.Companion
+import java.io.IOException
 
 
 class ViewUtils {
@@ -105,5 +112,48 @@ class ViewUtils {
             return color
         }
 
+        fun loadJsonFromAsset(context: Context, fileName: String): String? {
+            return try {
+                context.assets.open(fileName).bufferedReader().use { it.readText() }
+            } catch (e: IOException) {
+                e.printStackTrace()
+                null
+            }
+        }
+        @JvmStatic
+        fun insertSpaces(input: String): String {
+            return input.replace(Regex("(?<=[A-Za-z])(?=[0-9])|(?<=[0-9])(?=[A-Za-z])"), " ")
+        }
+
+        @JvmStatic
+        fun mergeBundles(bundle1: Bundle?, bundle2: Bundle?): Bundle {
+            if (bundle1 == null) {
+                return if (bundle2 == null) Bundle() else Bundle(bundle2) // Return a copy to avoid modification
+            }
+            if (bundle2 != null) {
+                bundle1.putAll(bundle2)
+            }
+            return bundle1
+        }
+        @JvmStatic
+        fun openStopInOutsideApp(stop: Stop, context: Context?){
+            if(stop.latitude==null || stop.longitude==null){
+                Log.e(DEBUG_TAG, "Navigate to stop but longitude and/or latitude are null")
+            }else{
+                val stopName = stop.stopUserName ?: stop.stopDefaultName
+
+                val uri = "geo:?q=${stop.latitude},${stop.longitude}(${stop.ID} - $stopName)"
+                //This below is the full URI, in the correct format. However it seems that apps accept the above one
+                //val uri_real = "geo:${stop.latitude},${stop.longitude}?q=${stop.latitude},${stop.longitude}(${stop.ID} - $stopName)"
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
+                context?.run{
+                    if(intent.resolveActivity(packageManager)!=null){
+                        startActivity(intent)
+                    } else{
+                        Toast.makeText(this, R.string.no_map_app_to_show_stop, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
     }
 }

@@ -213,6 +213,9 @@
     <string name="favorites_lines">Preferite</string>
     <!-- lines -->
     <string name="long_press_stop_4_options">Tocca a lungo la fermata per le opzioni</string>
+    <string name="map_style_pref_title">Stile della mappa</string>
+    <string name="map_style_versatiles">Versatiles (vettoriale)</string>
+    <string name="map_style_legacy_raster">OSM Legacy (raster, più leggera)</string>
     <string name="remove_all_trips">Rimuovi i dati dei trip (libera spazio)</string>
     <string name="all_trips_removed">Tutti i trip GTFS sono rimossi dal database</string>
     <!-- tutorial -->
@@ -258,4 +261,7 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
     <string name="message_check_at_least_one">Seleziona almeno un elemento da importare!</string>
     <string name="load_file_favorites">Importa preferiti dal backup</string>
     <string name="load_preferences">Importa preferenze dal backup</string>
+
+    <string name="no_map_app_to_show_stop">Nessuna app disponibile per mostrare la fermata!</string>
+    <string name="destination_unknown">Destinazione sconosciuta</string>
 </resources>

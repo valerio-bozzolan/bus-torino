@@ -17,9 +17,7 @@
  */
 package it.reyboz.bustorino.backend.gtfs
 
-import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.VehiclePosition
-import com.google.transit.realtime.GtfsRealtime.VehiclePosition.OccupancyStatus
 
 data class LivePositionUpdate(
     val tripID: String, //tripID WITHOUT THE "gtt:" prefix
@@ -28,10 +26,10 @@ data class LivePositionUpdate(
     val routeID: String,
     val vehicle: String,
 
-    val latitude: Double,
-    val longitude: Double,
-    val bearing: Float?,
-
+    var latitude: Double,
+    var longitude: Double,
+    var bearing: Float?,
+    //the timestamp IN SECONDS
     val timestamp: Long,
 
     val nextStop: String?,
@@ -40,6 +38,7 @@ data class LivePositionUpdate(
     val occupancyStatus: OccupancyStatus?,
     val scheduleRelationship: ScheduleRelationship?
      */
+    //var tripInfo: TripAndPatternWithStops?,
 ){
     constructor(position: VehiclePosition) : this(
         position.trip.tripId,
@@ -60,6 +59,17 @@ data class LivePositionUpdate(
  )
 
   */
+    /*fun withNewPositionAndBearing(latitude: Double, longitude: Double, bearing: Float) =
+        LivePositionUpdate(this.tripID, this.startTime, this.startTime,
+            this.routeID, this.vehicle, latitude, longitude, bearing,
+            this.timestamp,this.nextStop)
+
+    fun withNewPosition(latitude: Double, longitude: Double) =
+        LivePositionUpdate(this.tripID, this.startTime, this.startTime,
+            this.routeID, this.vehicle, latitude, longitude, this.bearing,
+            this.timestamp,this.nextStop)
+
+     */
 }
 
 

@@ -24,7 +24,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -260,7 +259,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         onCreateComplete = true;
 
         //last but not least, set the good default values
-        manageDefaultValuesForSettings();
+        setDefaultSettingsValuesWhenMissing();
 
         //check if first run activity (IntroActivity) has been started once or not
         boolean hasIntroRun = theShPr.getBoolean(PreferencesHolder.PREF_INTRO_ACTIVITY_RUN,false);
@@ -498,7 +497,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     private void requestMapFragment(final boolean allowReturn){
         // starting from Android 11, we don't need to have the STORAGE permission anymore for the map cache
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+        /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
             //nothing to do
             Log.d(DEBUG_TAG, "Build codes allow the showing of the map");
             createAndShowMapFragment(null, allowReturn);
@@ -520,6 +519,10 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 String text = getString(R.string.too_many_permission_asks,  storage_perm);
                 Toast.makeText(getApplicationContext(),text, Toast.LENGTH_LONG).show();
         }
+
+         */
+        //The permissions are handled in the MapLibreFragment instead
+        createAndShowMapFragment(null, allowReturn);
     }
 
     private static void checkAndShowFavoritesFragment(FragmentManager fragmentManager,  boolean addToBackStack){
@@ -676,13 +679,13 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         mNavView.setCheckedItem(R.id.nav_arrivals);
     }
     @Override
-    public void showLineOnMap(String routeGtfsId){
+    public void showLineOnMap(String routeGtfsId, @Nullable String stopIDFrom){
 
         readyGUIfor(FragmentKind.LINES);
 
         FragmentTransaction tr = getSupportFragmentManager().beginTransaction();
         tr.replace(R.id.mainActContentFrame, LinesDetailFragment.class,
-                LinesDetailFragment.Companion.makeArgs(routeGtfsId));
+                LinesDetailFragment.Companion.makeArgs(routeGtfsId, stopIDFrom));
         tr.addToBackStack("LineonMap-"+routeGtfsId);
         tr.commit();
 
@@ -713,10 +716,10 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     //Map Fragment stuff
     void createAndShowMapFragment(@Nullable Stop stop, boolean addToBackStack){
-        FragmentManager fm = getSupportFragmentManager();
-        FragmentTransaction ft = fm.beginTransaction();
-        MapFragment fragment = stop == null? MapFragment.getInstance(): MapFragment.getInstance(stop);
-        ft.replace(R.id.mainActContentFrame, fragment, MapFragment.FRAGMENT_TAG);
+        final FragmentManager fm = getSupportFragmentManager();
+        final FragmentTransaction ft = fm.beginTransaction();
+        final MapLibreFragment fragment = MapLibreFragment.Companion.newInstance(stop);
+        ft.replace(R.id.mainActContentFrame, fragment, MapFragmentKt.FRAGMENT_TAG);
         if (addToBackStack) ft.addToBackStack(null);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();
@@ -765,7 +768,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     /**
      * Adjust setting to match the default ones
      */
-    private void manageDefaultValuesForSettings(){
+    private void setDefaultSettingsValuesWhenMissing(){
         SharedPreferences mainSharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = mainSharedPref.edit();
         //Main fragment to show
@@ -788,6 +791,13 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         if(positionsSource.isEmpty()){
             String[] defaultVals = getResources().getStringArray(R.array.positions_source_values);
             editor.putString(keySourcePositions, defaultVals[0]);
+            edit=true;
+        }
+        //Map style
+        final String mapStylePref = mainSharedPref.getString(SettingsFragment.LIBREMAP_STYLE_PREF_KEY, "");
+        if(mapStylePref.isEmpty()){
+            final String[] defaultVals = getResources().getStringArray(R.array.map_style_pref_values);
+            editor.putString(SettingsFragment.LIBREMAP_STYLE_PREF_KEY, defaultVals[0]);
             edit=true;
         }
         if (edit){

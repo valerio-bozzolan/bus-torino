@@ -6,7 +6,6 @@ import androidx.core.content.res.ResourcesCompat
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.data.gtfs.MatoPattern
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
-import it.reyboz.bustorino.fragments.MapFragment
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
@@ -35,7 +34,8 @@ class BusPositionUtils {
                 position = GeoPoint(posUpdate.latitude, posUpdate.longitude)
                 marker!!.position = position
             }
-            if (posUpdate.bearing != null) marker.rotation = posUpdate.bearing * -1f
+            //if (posUpdate.bearing != null) marker.rotation = posUpdate.bearing * -1f
+            marker.rotation = posUpdate.bearing?.let { it*-1f } ?: 0.0f
         }
     }
 }

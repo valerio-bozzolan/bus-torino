@@ -19,11 +19,14 @@ package it.reyboz.bustorino.data;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import androidx.annotation.NonNull;
 import it.reyboz.bustorino.R;
 
 import static android.content.Context.MODE_PRIVATE;
 
 import androidx.preference.PreferenceManager;
+import it.reyboz.bustorino.fragments.SettingsFragment;
+import it.reyboz.bustorino.map.MapLibreUtils;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -87,8 +90,19 @@ public abstract class PreferencesHolder {
         return modified;
     }
 
-    public static HashSet<String> getFavoritesLinesGtfsIDs(Context con){
+    public static HashSet<String> getFavoritesLinesGtfsIDs(@NonNull Context con){
         final SharedPreferences pref = getMainSharedPreferences(con);
         return new HashSet<>(pref.getStringSet(PREF_FAVORITE_LINES, new HashSet<>()));
+    }
+
+    public static String getMapLibreStyleFile(Context con){
+        final SharedPreferences pref = getAppPreferences(con);
+        final String mapStyle_val = pref.getString(SettingsFragment.LIBREMAP_STYLE_PREF_KEY, "");
+        return switch (mapStyle_val) {
+            //MUST MATCH IN keys.xml ->  map_style_pref_values
+            case "versatiles_c" -> MapLibreUtils.STYLE_VERSATILES_COLORFUL_JSON;
+            case "osm_legacy" -> MapLibreUtils.STYLE_OSM_RASTER;
+            default -> MapLibreUtils.getDefaultStyleJson();
+        };
     }
 }

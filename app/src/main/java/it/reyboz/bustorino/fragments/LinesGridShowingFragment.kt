@@ -65,7 +65,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
     }
 
     private val routeClickListener = RouteAdapter.ItemClicker {
-        fragmentListener.showLineOnMap(it.gtfsId)
+        fragmentListener.showLineOnMap(it.gtfsId, null)
     }
     private val arrows = HashMap<String, ImageView>()
     private val durations = HashMap<String, Long>()
@@ -158,7 +158,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
             //create new item click listener every time
             val adapter = RouteOnlyLineAdapter(routesNames){  pos, _ ->
                 val r = routes[pos]
-                fragmentListener.showLineOnMap(r.gtfsId)
+                fragmentListener.showLineOnMap(r.gtfsId, null)
             }
             favoritesRecyclerView.adapter = adapter
         }

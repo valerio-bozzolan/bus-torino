@@ -19,6 +19,7 @@
 package it.reyboz.bustorino.backend;
 
 import android.location.Location;
+import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -26,6 +27,7 @@ import it.reyboz.bustorino.util.LinesNameSorter;
 import org.osmdroid.api.IGeoPoint;
 
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -121,6 +123,14 @@ public class Stop implements Comparable<Stop> {
 
     protected void setRoutesThatStopHereString(String routesStopping){
         this.routesThatStopHereString = routesStopping;
+    }
+
+    public int getNumRoutesStopping(){
+        if(this.routesThatStopHere == null) {
+            return 0;
+        } else {
+            return this.routesThatStopHere.size();
+        }
     }
 
     @Nullable
@@ -287,6 +297,11 @@ public class Stop implements Comparable<Stop> {
         return url;
     }
 
+    @Override
+    public String toString(){
+        return "id:"+ID+" { name: "+this.name+", lines: "+this.routesThatStopHereToString()+"}";
+    }
+
     @Nullable
     public Double getLatitude() {
         return lat;
@@ -305,4 +320,41 @@ public class Stop implements Comparable<Stop> {
         if(this.lat!=null && this.lon !=null)
             return utils.measuredistanceBetween(this.lat,this.lon,latitude, longitude);
         else return Double.POSITIVE_INFINITY;
-    }}
+    }
+
+    public Bundle toBundle(Bundle bundle) {
+        //Bundle bundle = new Bundle();
+        if(bundle==null) return null;
+        bundle.putString("ID", ID);
+        bundle.putString("name", name);
+        bundle.putString("username", username);
+        bundle.putString("location", location);
+        bundle.putString("type", (type != null) ? type.name() : null);
+        bundle.putStringArrayList("routesThatStopHere", (routesThatStopHere != null) ? new ArrayList<>(routesThatStopHere) : null);
+        if (lat != null) bundle.putDouble("lat", lat);
+        if (lon != null) bundle.putDouble("lon", lon);
+        if (gtfsID !=null) bundle.putString("gtfsID", gtfsID);
+        return bundle;
+    }
+
+    public Bundle toBundle(){
+        return toBundle(new Bundle());
+    }
+
+    @Nullable
+    public static Stop fromBundle(Bundle bundle) {
+        String ID = bundle.getString("ID");
+        if (ID == null) return null; //throw new IllegalArgumentException("ID cannot be null");
+        String name = bundle.getString("name");
+        String username = bundle.getString("username");
+        String location = bundle.getString("location");
+        String typeStr = bundle.getString("type");
+        Route.Type type = (typeStr != null) ? Route.Type.valueOf(typeStr) : null;
+        List<String> routesThatStopHere = bundle.getStringArrayList("routesThatStopHere");
+        Double lat = bundle.containsKey("lat") ? bundle.getDouble("lat") : null;
+        Double lon = bundle.containsKey("lon") ? bundle.getDouble("lon") : null;
+        String gtfsId = bundle.getString("gtfsID");
+
+        return new Stop(ID, name, username, location, type, routesThatStopHere, lat, lon, gtfsId);
+    }
+}

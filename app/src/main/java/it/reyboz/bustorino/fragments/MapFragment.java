@@ -218,8 +218,8 @@ public class MapFragment extends ScreenBaseFragment {
         // add ability to zoom with 2 fingers
         map.setMultiTouchControls(true);
 
-        btCenterMap = root.findViewById(R.id.icon_center_map);
-        btFollowMe = root.findViewById(R.id.icon_follow);
+        btCenterMap = root.findViewById(R.id.centerMapImageButton);
+        btFollowMe = root.findViewById(R.id.followUserImageButton);
         coordLayout = root.findViewById(R.id.coord_layout);
 
         //setup FolderOverlay

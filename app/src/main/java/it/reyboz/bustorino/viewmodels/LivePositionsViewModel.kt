@@ -26,11 +26,13 @@ import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Response
 import it.reyboz.bustorino.backend.NetworkVolleyManager
 import it.reyboz.bustorino.backend.gtfs.GtfsRtPositionsRequest
+import it.reyboz.bustorino.backend.gtfs.GtfsUtils
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.mato.MQTTMatoClient
 import it.reyboz.bustorino.data.GtfsRepository
 import it.reyboz.bustorino.data.MatoPatternsDownloadWorker
 import it.reyboz.bustorino.data.MatoTripsDownloadWorker
+import it.reyboz.bustorino.data.gtfs.MatoPattern
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -39,13 +41,15 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
+typealias FullPositionUpdatesMap = HashMap<String, Pair<LivePositionUpdate, TripAndPatternWithStops?>>
+typealias FullPositionUpdate = Pair<LivePositionUpdate, TripAndPatternWithStops?>
 
 class LivePositionsViewModel(application: Application): AndroidViewModel(application) {
 
     private val gtfsRepo = GtfsRepository(application)
 
     //private val updates = UpdatesMap()
-    private val updatesLiveData = MutableLiveData<ArrayList<LivePositionUpdate>>()
+    private val positionsToBeMatchedLiveData = MutableLiveData<ArrayList<LivePositionUpdate>>()
     private val netVolleyManager = NetworkVolleyManager.getInstance(application)
 
 
@@ -60,6 +64,13 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
     private val workManager = WorkManager.getInstance(application)
 
     private var lastRequestedDownloadTrips = MutableLiveData<List<String>>()
+
+    //INPUT FILTER FOR LINE
+    private var gtfsLineToFilterPos = MutableLiveData<Pair<String,MatoPattern?>>()
+
+    fun setGtfsLineToFilterPos(line: String, pattern: MatoPattern?){
+        gtfsLineToFilterPos.value = Pair(line, pattern)
+    }
 
     var isLastWorkResultGood =  workManager
         .getWorkInfosForUniqueWorkLiveData(MatoTripsDownloadWorker.TAG_TRIPS).map { it ->
@@ -99,14 +110,14 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
         }
         val time = System.currentTimeMillis()
         if(lastTimeReceived == (0.toLong()) || (time-lastTimeReceived)>500){
-            updatesLiveData.postValue(mupds)
+            positionsToBeMatchedLiveData.postValue(mupds)
             lastTimeReceived = time
         }
 
     }
 
     //find the trip IDs in the updates
-    private val tripsIDsInUpdates = updatesLiveData.map { it ->
+    private val tripsIDsInUpdates = positionsToBeMatchedLiveData.map { it ->
         //Log.d(DEBUG_TI, "Updates map has keys ${upMap.keys}")
         it.map { pos -> "gtt:"+pos.tripID  }
 
@@ -132,11 +143,11 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
     // unify trips with updates
     val updatesWithTripAndPatterns = gtfsTripsPatternsInDB.map { tripPatterns->
         Log.i(DEBUG_TI, "Mapping trips and patterns")
-        val mdict = HashMap<String,Pair<LivePositionUpdate, TripAndPatternWithStops?>>()
+        val mdict = HashMap<String,FullPositionUpdate>()
         //missing patterns
         val routesToDownload = HashSet<String>()
-        if(updatesLiveData.value!=null)
-            for(update in updatesLiveData.value!!){
+        if(positionsToBeMatchedLiveData.value!=null)
+            for(update in positionsToBeMatchedLiveData.value!!){
 
                 val trID:String = update.tripID
                 var found = false
@@ -169,6 +180,63 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
         return@map mdict
     }
 
+    //OBSERVE THIS TO GET THE LOCATION UPDATES FILTERED
+    val filteredLocationUpdates = MediatorLiveData<Pair<FullPositionUpdatesMap, List<String>>>()
+    init {
+        filteredLocationUpdates.addSource(updatesWithTripAndPatterns){
+            filteredLocationUpdates.value = filterUpdatesForGtfsLine(it, gtfsLineToFilterPos.value!!)
+        }
+
+        filteredLocationUpdates.addSource(gtfsLineToFilterPos){
+            updatesWithTripAndPatterns.value?.let{ ups-> filteredLocationUpdates.value = filterUpdatesForGtfsLine(ups, it)}
+        }
+
+    }
+
+    private fun filterUpdatesForGtfsLine(updates: FullPositionUpdatesMap,
+                                         linePatt: Pair<String, MatoPattern?>):
+            Pair<HashMap<String,FullPositionUpdate>, List<String>>{
+        val gtfsLineId = linePatt.first
+        val pattern = linePatt.second
+
+
+        val filtdLineID = GtfsUtils.stripGtfsPrefix(gtfsLineId)
+        //filter buses with direction, show those only with the same direction
+        val updsForTripId = HashMap<String, Pair<LivePositionUpdate, TripAndPatternWithStops?>>()
+        val directionId = pattern?.directionId ?: -100
+        val numUpds = updates.entries.size
+        Log.d(DEBUG_TI, "Got $numUpds updates, current pattern is: ${pattern?.name}, directionID: ${pattern?.directionId}")
+        // cannot understand where this is used
+        //val patternsDirections = HashMap<String,Int>()
+        val vehicleOnWrongDirection = mutableListOf<String>()
+        for((tripId, pair) in updates.entries){
+            //remove trips with wrong line
+            val posUp = pair.first
+            val vehicle = pair.first.vehicle
+            if(pair.first.routeID!=filtdLineID)
+                continue
+
+            if(directionId!=-100 && pair.second!=null && pair.second?.pattern !=null){
+                val dir = pair.second!!.pattern!!.directionId
+
+                if(dir == directionId){
+                    //add the trip
+                    updsForTripId[tripId] = pair
+                } else{
+                    vehicleOnWrongDirection.add(vehicle)
+                }
+                //patternsDirections[tripId] = dir ?: -10
+            } else{
+                updsForTripId[tripId] = pair
+                //Log.d(DEBUG_TAG, "No pattern for tripID: $tripId")
+                //patternsDirections[tripId] = -10
+            }
+        }
+        Log.d(DEBUG_TI, " Filtered updates are ${updsForTripId.keys.size}") // Original updates directs: $patternsDirections\n
+
+        return  Pair(updsForTripId, vehicleOnWrongDirection)
+    }
+
 
     fun requestMatoPosUpdates(line: String){
         lineListening = line
@@ -191,8 +259,8 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
     }
 
     fun retriggerPositionUpdate(){
-        if(updatesLiveData.value!=null){
-            updatesLiveData.postValue(updatesLiveData.value)
+        if(positionsToBeMatchedLiveData.value!=null){
+            positionsToBeMatchedLiveData.postValue(positionsToBeMatchedLiveData.value)
         }
     }
     //Gtfs Real time
@@ -206,7 +274,7 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
                 }
                 else {
                     //Log.i(DEBUG_TI, "Posting value to positionsLiveData")
-                    viewModelScope.launch { updatesLiveData.postValue(it) }
+                    viewModelScope.launch { positionsToBeMatchedLiveData.postValue(it) }
 
                 }
             }

@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/MapTheme"
+    tools:context=".fragments.MapLibreFragment">
+
+    <org.maplibre.android.maps.MapView
+            android:id="@+id/libreMapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+    />
+
+    <!-- Bottom Sheet for details -->
+    <RelativeLayout
+        android:id="@+id/bottom_sheet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:orientation="vertical"
+        android:background="@drawable/bottom_sheet_background"
+        android:elevation="8dp"
+        android:padding="10dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:behavior_hideable="true"
+        app:behavior_peekHeight="4dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+                android:id="@+id/stopNumberTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/arrivalsCardButton"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="2dp"
+                android:fontFamily="@font/pitagon_semibold"
+
+        />
+        <TextView
+            android:id="@+id/stopTitleTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_below="@id/stopNumberTextView"
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@id/arrivalsCardButton"
+            android:layout_marginBottom="5dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:fontFamily="@font/pitagon_regular"
+        />
+        <TextView
+                android:id="@+id/linesPassingTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:layout_below="@id/stopTitleTextView"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/arrivalsCardButton"
+                android:layout_marginBottom="5dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+        />
+        <androidx.cardview.widget.CardView
+                android:id="@+id/arrivalsCardButton"
+                android:layout_width="50sp"
+                android:layout_height="50sp"
+                android:layout_margin="5sp"
+                app:cardCornerRadius="25sp"
+                app:cardElevation="2dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_alignParentTop="true"
+                android:layout_toStartOf="@id/directionsCardButton"
+                android:backgroundTint="?android:attr/colorAccent"
+                android:foreground="?selectableItemBackground">
+
+            <ImageView
+                    android:layout_width="30sp"
+                    android:layout_height="30sp"
+                    android:layout_gravity="center"
+                    android:tint="?colorOnPrimary"
+                    app:srcCompat="@drawable/ic_baseline_departure_board_24" />
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+                android:id="@+id/directionsCardButton"
+                android:layout_width="50sp"
+                android:layout_height="50sp"
+                android:layout_margin="5sp"
+                app:cardCornerRadius="25sp"
+                app:cardElevation="2dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:foreground="?selectableItemBackground"
+                android:backgroundTint="?android:attr/colorAccent"
+        >
+
+            <ImageView
+                    android:layout_width="30sp"
+                    android:layout_height="30sp"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/navigation_right" />
+
+        </androidx.cardview.widget.CardView>
+
+
+        <!-- Additional details -->
+
+        <!-- Close button -->
+        <ImageView
+            android:layout_width="30sp"
+            android:layout_height="30sp"
+            app:srcCompat="@drawable/baseline_close_16"
+            android:tint="@color/red_darker"
+            android:id="@+id/btnClose"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_below="@id/directionsCardButton"
+            android:layout_alignParentEnd="true"
+            app:layout_constraintHorizontal_bias="0.5"
+            android:foreground="?selectableItemBackground"
+            />
+    </RelativeLayout>
+
+    <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:pointerIcon="none">
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="6dp"
+
+           >
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/locationEnableIcon"
+                    android:src="@drawable/location_circlew_grey"
+
+                    android:background="#00ffffff"
+                    android:contentDescription="@string/enable_position"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="4dp"
+
+                    android:cropToPadding="true"/>
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/centerMapImageButton"
+                    android:src="@drawable/ic_center_map"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/locationEnableIcon"
+                    android:layout_marginTop="6dp"
+                    android:background="#00ffffff"
+                    android:contentDescription="@string/bt_center_map_description"
+                    android:cropToPadding="true" />
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/followUserImageButton"
+                    android:src="@drawable/ic_follow_me"
+                    android:background="#00ffffff"
+                    android:contentDescription="@string/bt_follow_me_description"
+                    android:cropToPadding="true"
+                    android:layout_below="@+id/centerMapImageButton"
+                    android:layout_alignStart="@+id/centerMapImageButton"
+                    android:layout_marginTop="6dp" />
+
+    </RelativeLayout>
+    </FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

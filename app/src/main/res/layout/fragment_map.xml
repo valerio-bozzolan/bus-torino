@@ -19,7 +19,7 @@
     <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/icon_center_map"
+            android:id="@+id/centerMapImageButton"
             android:src="@drawable/ic_center_map"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
@@ -33,13 +33,13 @@
     <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/icon_follow"
+            android:id="@+id/followUserImageButton"
             android:src="@drawable/ic_follow_me"
             android:background="#00ffffff"
             android:contentDescription="@string/bt_follow_me_description"
             android:cropToPadding="true"
-            android:layout_below="@+id/icon_center_map"
-            android:layout_alignLeft="@+id/icon_center_map"
-            android:layout_alignStart="@+id/icon_center_map"
+            android:layout_below="@+id/centerMapImageButton"
+            android:layout_alignLeft="@+id/centerMapImageButton"
+            android:layout_alignStart="@+id/centerMapImageButton"
             android:layout_marginTop="10dp" />
 </RelativeLayout>

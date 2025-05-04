@@ -11,12 +11,27 @@
             android:summary="%s"
             />
 
+    </androidx.preference.PreferenceCategory>
+
+    <androidx.preference.PreferenceCategory
+            android:title="@string/map"
+    >
+        <androidx.preference.ListPreference
+                android:key="libremap_style_1"
+                android:title="@string/map_style_pref_title"
+                android:entries="@array/map_style_pref_categories"
+                android:entryValues="@array/map_style_pref_values"
+                android:summary="%s"
+        />
         <androidx.preference.ListPreference
                 android:key="@string/pref_positions_source"
                 android:entries="@array/positions_source_sel"
                 android:entryValues="@array/positions_source_values"
                 android:title="@string/positions_source_pref_title"
-            />
+                android:summary="%s"
+
+        />
+
     </androidx.preference.PreferenceCategory>
 
     <androidx.preference.PreferenceCategory

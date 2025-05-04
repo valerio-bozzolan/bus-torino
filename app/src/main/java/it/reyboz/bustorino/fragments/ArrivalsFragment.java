@@ -132,11 +132,11 @@ public class ArrivalsFragment extends ResultBaseFragment implements LoaderManage
             public void requestShowingRoute(Route route) {
                 Log.d(DEBUG_TAG, "Need to show line for route:\ngtfsID "+route.getGtfsId()+ " name "+route.getName());
                 if(route.getGtfsId()!=null){
-                    mListener.showLineOnMap(route.getGtfsId());
+                    mListener.showLineOnMap(route.getGtfsId(), stopID);
                 } else {
                     String gtfsID = FiveTNormalizer.getGtfsRouteID(route);
                     Log.d(DEBUG_TAG, "GtfsID for route is: " + gtfsID);
-                    mListener.showLineOnMap(gtfsID);
+                    mListener.showLineOnMap(gtfsID, stopID);
                 }
             }
     };

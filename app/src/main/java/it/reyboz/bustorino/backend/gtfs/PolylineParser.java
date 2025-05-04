@@ -1,6 +1,6 @@
 package it.reyboz.bustorino.backend.gtfs;
 
-import org.osmdroid.util.GeoPoint;
+import org.maplibre.android.geometry.LatLng;
 
 import java.util.ArrayList;
 
@@ -12,8 +12,8 @@ public abstract class PolylineParser {
      * @param initial_capacity for the list
      * @return the list of points correspoding to the polyline
      */
-    public static ArrayList<GeoPoint> decodePolyline(String encodedPolyline, int initial_capacity) {
-        ArrayList<GeoPoint> points = new ArrayList<>(initial_capacity);
+    public static ArrayList<LatLng> decodePolyline(String encodedPolyline, int initial_capacity) {
+        ArrayList<LatLng> points = new ArrayList<>(initial_capacity);
         int truck = 0;
         int carriage_q = 0;
         int longit=0, latit=0;
@@ -36,7 +36,7 @@ public abstract class PolylineParser {
                     is_lat = false;
                 } else{
                     longit += truck;
-                    points.add(new GeoPoint((double)latit/1e5,(double)longit/1e5));
+                    points.add(new LatLng((double)latit/1e5,(double)longit/1e5));
                     is_lat=true;
                 }
                 carriage_q = 0;

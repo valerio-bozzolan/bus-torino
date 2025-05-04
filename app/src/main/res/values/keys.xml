@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools"
            tools:ignore="MissingTranslation">
-    <string name="pref_layout">layout_pref</string>
-    <string name="pref_update_db_now">pref_update_db_now</string>
-    
+    <string name="pref_layout" translatable="false">layout_pref</string>
+    <string name="pref_update_db_now" translatable="false">pref_update_db_now</string>
+
     <array name="first_screen_values">
         <item>arrivals</item>
         <item>favorites</item>
@@ -28,6 +28,12 @@
     <array name="positions_source_values">
         <item>mqtt</item>
         <item>gtfsrt</item>
+    </array>
+
+    <!-- MapLibre Preferences -->
+    <array name="map_style_pref_values">
+        <item>versatiles_c</item>
+        <item>osm_legacy</item>
     </array>
 
 </resources>

@@ -69,8 +69,8 @@ class MQTTMatoClient(): MqttCallbackExtended{
 
         Log.d(DEBUG_TAG,"client name: $clientID")
         //actually connect
-        client!!.connect(options,null, iMqttActionListener)
         isStarted = true
+        client!!.connect(options,null, iMqttActionListener)
         client!!.setCallback(this)
 
         if (this.context ==null)
@@ -159,7 +159,7 @@ class MQTTMatoClient(): MqttCallbackExtended{
             //if (done) break
             if (v.isEmpty()){
                 //actually unsubscribe
-                client!!.unsubscribe( mapTopic(line))
+                client?.unsubscribe( mapTopic(line))
             }
             removed = done || removed
         }

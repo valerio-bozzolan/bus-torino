@@ -19,6 +19,7 @@ package it.reyboz.bustorino;
 
 import android.os.Bundle;
 import android.util.Log;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.fragment.app.FragmentTransaction;
 import it.reyboz.bustorino.backend.Stop;
@@ -54,7 +55,7 @@ public class ActivityExperiments extends GeneralActivity implements CommonFragme
 
                     //.add(R.id.fragment_container_view, LinesDetailFragment.class,
                     //        LinesDetailFragment.Companion.makeArgs("gtt:4U"))
-                    .add(R.id.fragment_container_view, BackupImportFragment.class, null)
+                    .add(R.id.fragment_container_view, MapLibreFragment.class, null)
                     .commit();
         }
     }
@@ -79,12 +80,12 @@ public class ActivityExperiments extends GeneralActivity implements CommonFragme
 
     }
     @Override
-    public void showLineOnMap(String routeGtfsId){
+    public void showLineOnMap(String routeGtfsId, @Nullable String stopIDFrom){
 
         readyGUIfor(FragmentKind.LINES);
         FragmentTransaction tr = getSupportFragmentManager().beginTransaction();
         tr.replace(R.id.fragment_container_view, LinesDetailFragment.class,
-                LinesDetailFragment.Companion.makeArgs(routeGtfsId));
+                LinesDetailFragment.Companion.makeArgs(routeGtfsId, stopIDFrom));
         tr.addToBackStack("LineonMap-"+routeGtfsId);
         tr.commit();
 

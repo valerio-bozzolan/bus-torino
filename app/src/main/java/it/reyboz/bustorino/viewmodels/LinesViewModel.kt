@@ -12,6 +12,7 @@ import it.reyboz.bustorino.data.gtfs.GtfsDatabase
 import it.reyboz.bustorino.data.gtfs.GtfsRoute
 import it.reyboz.bustorino.data.gtfs.MatoPatternWithStops
 import it.reyboz.bustorino.data.gtfs.PatternStop
+import org.maplibre.android.geometry.LatLng
 import java.util.concurrent.Executors
 
 class LinesViewModel(application: Application) : AndroidViewModel(application) {
@@ -98,6 +99,26 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
         }
         requestStopsForGTFSIDs(gtfsIDs)
     }
+
+    fun getStopByID(id:String) : Stop?{
+        //var stop : Stop? = null
+        val stop = stopsForPatternLiveData.value?.let { stops ->
+            for (s in stops){
+                if(s.ID == id)
+                    return@let s
+            }
+            return@let null
+        }
+        return stop
+    }
+
+    private var lastMapPos: Pair<LatLng, Float>? = null
+
+    fun saveMapPos(latLng: LatLng, zoom: Float){
+        lastMapPos = Pair(latLng, zoom)
+    }
+
+    fun getLastMapPos(): Pair<LatLng,Float>? = lastMapPos
 
 
     /*fun getLinesGTT(): MutableLiveData<List<GtfsRoute>> {

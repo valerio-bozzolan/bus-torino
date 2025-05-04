@@ -292,6 +292,15 @@
     </array>
     <string name="positions_source_mato_descr">MaTO (updated more frequently, might be offline)</string>
     <string name="positions_source_gtfsrt_descr">GTFS RT (more stable, less frequently updated)</string>
+    <string name="map_style_pref_title">Style of the map</string>
+    <string name="map_style_versatiles">Versatiles (vector)</string>
+    <string name="map_style_legacy_raster">OSM legacy (raster, lighter)</string>
+    <array name="map_style_pref_categories">
+        <item>@string/map_style_versatiles</item>
+        <item>@string/map_style_legacy_raster</item>
+    </array>
+    <string name="positions_source_mato_descr">MaTO (updated more frequently, might be offline)</string>
+    <string name="positions_source_gtfsrt_descr">GTFS RT (more stable, less frequently updated)</string>
 
     <string name="remove_all_trips">Remove trips data (free up space)</string>
     <string name="all_trips_removed">All GTFS trips have been removed from the database</string>
@@ -342,5 +351,12 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="message_check_at_least_one">Check at least one item to import!</string>
     <string name="load_file_favorites">Import favorites from backup</string>
     <string name="load_preferences">Import preferences from backup</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="no_map_app_to_show_stop">No map app present to show the stop!</string>
+    <string name="showing_same_direction">Direction is already shown</string>
+    <string name="destination_loading">Loading destination…</string>
+    <string name="destination_unknown">Destination unknown</string>
 
 </resources>

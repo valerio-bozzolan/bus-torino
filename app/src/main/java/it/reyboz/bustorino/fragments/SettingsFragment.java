@@ -51,9 +51,11 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
             "androidx.preference.PreferenceFragment.DIALOG";
     //private static final
     Handler mHandler;
+    // Matching preferences.xml
     public final static String PREF_KEY_STARTUP_SCREEN="startup_screen_to_show";
     public final static String KEY_ARRIVALS_FETCHERS_USE = "arrivals_fetchers_use_setting";
     public final static String LIVE_POSITIONS_PREF_MQTT_VALUE="mqtt";
+    public final static String LIBREMAP_STYLE_PREF_KEY = "libremap_style_1";
 
     private boolean setSummaryStartupPref = false;
 
@@ -90,7 +92,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
 
         Preference dbUpdateNow = findPreference("pref_db_update_now");
         if (dbUpdateNow!=null)
-        dbUpdateNow.setOnPreferenceClickListener(
+            dbUpdateNow.setOnPreferenceClickListener(
                 preference -> {
                     //trigger update
                     if(getContext()!=null) {

@@ -4,6 +4,8 @@ import android.location.Location;
 import android.view.View;
 import it.reyboz.bustorino.backend.Stop;
 
+import javax.annotation.Nullable;
+
 public interface CommonFragmentListener {
 
 
@@ -41,5 +43,5 @@ public interface CommonFragmentListener {
      * We want to show the line in detail for route
      * @param routeGtfsId the route gtfsID (eg, "gtt:10U")
      */
-    void showLineOnMap(String routeGtfsId);
+    void showLineOnMap(String routeGtfsId,@Nullable String fromStopID);
 }
