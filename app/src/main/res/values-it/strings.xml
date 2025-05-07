@@ -30,6 +30,7 @@
     <string name="search_box_lines_suggestion_filter">Filtra per nome</string>
     <string name="line_fill">Linea: %1$s</string>
     <string name="lines_fill">Linee: %1$s</string>
+    <string name="stop_fill">Fermata %1$s</string>
     <string name="results">Scegli la fermata…</string>
     <string name="no_passages">Nessun passaggio</string>
     <string name="no_qrcode">Nessun QR code trovato, prova ad usare un\'altra app</string>

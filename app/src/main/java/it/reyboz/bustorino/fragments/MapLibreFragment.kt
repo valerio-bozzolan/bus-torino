@@ -535,7 +535,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             //lay.findViewById<TextView>(R.id.stopTitleTextView).text ="${stop.ID} - ${stop.stopDefaultName}"
             val stopName = stop.stopUserName ?: stop.stopDefaultName
             stopTitleTextView.text = stopName//stop.stopDefaultName
-            stopNumberTextView.text = stop.ID
+            stopNumberTextView.text = getString(R.string.stop_fill,stop.ID)
             val string_show = if (stop.numRoutesStopping==0) ""
                 else if (stop.numRoutesStopping <= 1)
                 requireContext().getString(R.string.line_fill, stop.routesThatStopHereToString())

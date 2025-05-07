@@ -45,6 +45,7 @@
     <string name="direction_duep">Destination:</string>
     <string name="lines_fill">Lines: %1$s</string>
     <string name="line_fill">Line: %1$s</string>
+    <string name="stop_fill">Stop %1$s</string>
     <string name="no_passages">No timetable found</string>
     <string name="no_qrcode">No QR code found, try using another app to scan</string>
     <string name="internal_error">Unexpected internal error, cannot extract data from GTT/5T website</string>
