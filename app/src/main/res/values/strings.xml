@@ -285,13 +285,13 @@
     </array>
 
     <string name="positions_source_pref_title">Source of real time positions for buses and trams</string>
-
+    <string name="positions_source_mato_descr">MaTO (updated more frequently, might be offline)</string>
+    <string name="positions_source_gtfsrt_descr">GTFS RT (more stable, less frequently updated)</string>
     <array name="positions_source_sel">
         <item>@string/positions_source_mato_descr</item>
         <item>@string/positions_source_gtfsrt_descr</item>
     </array>
-    <string name="positions_source_mato_descr">MaTO (updated more frequently, might be offline)</string>
-    <string name="positions_source_gtfsrt_descr">GTFS RT (more stable, less frequently updated)</string>
+
     <string name="map_style_pref_title">Style of the map</string>
     <string name="map_style_versatiles">Versatiles (vector)</string>
     <string name="map_style_legacy_raster">OSM legacy (raster, lighter)</string>
@@ -299,8 +299,6 @@
         <item>@string/map_style_versatiles</item>
         <item>@string/map_style_legacy_raster</item>
     </array>
-    <string name="positions_source_mato_descr">MaTO (updated more frequently, might be offline)</string>
-    <string name="positions_source_gtfsrt_descr">GTFS RT (more stable, less frequently updated)</string>
 
     <string name="remove_all_trips">Remove trips data (free up space)</string>
     <string name="all_trips_removed">All GTFS trips have been removed from the database</string>
@@ -358,5 +356,6 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="showing_same_direction">Direction is already shown</string>
     <string name="destination_loading">Loading destination…</string>
     <string name="destination_unknown">Destination unknown</string>
+
 
 </resources>

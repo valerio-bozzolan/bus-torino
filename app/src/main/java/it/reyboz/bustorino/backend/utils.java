@@ -50,6 +50,8 @@ public abstract class utils {
 
 
     public static Double measuredistanceBetween(double lat1,double long1,double lat2,double long2){
+
+
         final double phi1 = Math.toRadians(lat1);
         final double phi2 = Math.toRadians(lat2);
 

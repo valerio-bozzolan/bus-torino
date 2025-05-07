@@ -97,8 +97,6 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.15.3'
     implementation 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
     implementation 'com.android.volley:volley:1.2.1'
-
-    implementation 'org.osmdroid:osmdroid-android:6.1.18'
     //maplibre
     implementation 'org.maplibre.gl:android-sdk:11.8.6'
     implementation 'org.maplibre.gl:android-sdk-turf:6.0.1'

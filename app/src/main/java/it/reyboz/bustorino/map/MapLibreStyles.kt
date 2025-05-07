@@ -3,7 +3,7 @@ import android.content.Context
 import it.reyboz.bustorino.util.ViewUtils
 import org.maplibre.android.maps.Style
 
-object Styles {
+object MapLibreStyles {
     const val DEMOTILES = "https://demotiles.maplibre.org/style.json"
 
     const val VERSATILES = "https://tiles.versatiles.org/assets/styles/colorful.json"

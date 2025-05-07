@@ -9,7 +9,6 @@ import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.data.NextGenDB
 import it.reyboz.bustorino.data.OldDataRepository
 import org.maplibre.android.geometry.LatLngBounds
-import org.osmdroid.util.BoundingBox
 import java.util.concurrent.Executors
 import kotlin.collections.ArrayList
 
@@ -60,12 +59,14 @@ class StopsMapViewModel(application: Application): AndroidViewModel(application)
         return ArrayList(allStopsLoaded.values)
     }
 
-    fun requestStopsInBoundingBox(bb: BoundingBox) {
+    /*fun requestStopsInBoundingBox(bb: BoundingBox) {
         bb.let {
             Log.d(DEBUG_TAG, "Launching stop request")
             oldRepo.requestStopsInArea(it.latSouth, it.latNorth, it.lonWest, it.lonEast, callback)
         }
     }
+
+     */
     fun requestStopsInLatLng(bb: LatLngBounds) {
         bb.let {
             Log.d(DEBUG_TAG, "Launching stop request")

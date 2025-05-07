@@ -21,11 +21,7 @@ import android.location.Location;
 import androidx.core.util.Pair;
 import android.util.Log;
 
-import it.reyboz.bustorino.backend.Passaggio;
-import it.reyboz.bustorino.backend.Route;
-import it.reyboz.bustorino.backend.Stop;
-import it.reyboz.bustorino.backend.utils;
-import org.osmdroid.api.IGeoPoint;
+import it.reyboz.bustorino.backend.*;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,7 +35,7 @@ public class RoutePositionSorter implements Comparator<Pair<Stop, Route>> {
         latPos = latitude;
         longPos = longitude;
     }
-    public RoutePositionSorter(IGeoPoint position){
+    public RoutePositionSorter(GPSPoint position){
         this(position.getLatitude(), position.getLongitude());
     }
 

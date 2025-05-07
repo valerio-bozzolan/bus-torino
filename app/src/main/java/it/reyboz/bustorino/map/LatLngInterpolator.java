@@ -3,7 +3,8 @@ package it.reyboz.bustorino.map;
 /* Copyright 2013 Google Inc.
    Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0.html */
 
-import org.osmdroid.util.GeoPoint;
+
+import org.maplibre.android.geometry.LatLng;
 
 import static java.lang.Math.asin;
 import static java.lang.Math.atan2;
@@ -14,21 +15,21 @@ import static java.lang.Math.sqrt;
 import static java.lang.Math.toDegrees;
 import static java.lang.Math.toRadians;
 
-public interface GeoPointInterpolator {
-    public GeoPoint interpolate(float fraction, GeoPoint a, GeoPoint b);
+public interface LatLngInterpolator {
+    public LatLng interpolate(float fraction, LatLng a, LatLng b);
 
-    public class Linear implements GeoPointInterpolator {
+    public class Linear implements LatLngInterpolator {
         @Override
-        public GeoPoint interpolate(float fraction, GeoPoint a, GeoPoint b) {
+        public LatLng interpolate(float fraction, LatLng a, LatLng b) {
             double lat = (b.getLatitude() - a.getLatitude()) * fraction + a.getLatitude();
             double lng = (b.getLongitude() - a.getLongitude()) * fraction + a.getLongitude();
-            return new GeoPoint(lat, lng);
+            return new LatLng(lat, lng);
         }
     }
 
-    public class LinearFixed implements GeoPointInterpolator {
+    public class LinearFixed implements LatLngInterpolator {
         @Override
-        public GeoPoint interpolate(float fraction, GeoPoint a, GeoPoint b) {
+        public LatLng interpolate(float fraction, LatLng a, LatLng b) {
             double lat = (b.getLatitude() - a.getLatitude()) * fraction + a.getLatitude();
             double lngDelta = b.getLongitude() - a.getLongitude();
 
@@ -37,15 +38,15 @@ public interface GeoPointInterpolator {
                 lngDelta -= Math.signum(lngDelta) * 360;
             }
             double lng = lngDelta * fraction + a.getLongitude();
-            return new GeoPoint(lat, lng);
+            return new LatLng(lat, lng);
         }
     }
 
-    public class Spherical implements GeoPointInterpolator {
+    public class Spherical implements LatLngInterpolator {
 
         /* From github.com/googlemaps/android-maps-utils */
         @Override
-        public GeoPoint interpolate(float fraction, GeoPoint from, GeoPoint to) {
+        public LatLng interpolate(float fraction, LatLng from, LatLng to) {
             // http://en.wikipedia.org/wiki/Slerp
             double fromLat = toRadians(from.getLatitude());
             double fromLng = toRadians(from.getLongitude());
@@ -71,7 +72,7 @@ public interface GeoPointInterpolator {
             // Converts interpolated vector back to polar.
             double lat = atan2(z, sqrt(x * x + y * y));
             double lng = atan2(y, x);
-            return new GeoPoint(toDegrees(lat), toDegrees(lng));
+            return new LatLng(toDegrees(lat), toDegrees(lng));
         }
 
         private double computeAngleBetween(double fromLat, double fromLng, double toLat, double toLng) {

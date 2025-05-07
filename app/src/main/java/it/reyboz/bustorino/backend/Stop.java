@@ -24,7 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import it.reyboz.bustorino.util.LinesNameSorter;
-import org.osmdroid.api.IGeoPoint;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -313,7 +313,7 @@ public class Stop implements Comparable<Stop> {
     }
 
 
-    public Double getDistanceFromLocation(IGeoPoint loc){
+    public Double getDistanceFromLocation(@NotNull GPSPoint loc){
         return getDistanceFromLocation(loc.getLatitude(), loc.getLongitude());
     }
     public Double getDistanceFromLocation(double latitude, double longitude){

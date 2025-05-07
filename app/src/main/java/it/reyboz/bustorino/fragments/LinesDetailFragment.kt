@@ -514,7 +514,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         this.map = mapReady
 
         val context = requireContext()
-        val mjson = Styles.getJsonStyleFromAsset(context, PreferencesHolder.getMapLibreStyleFile(context))        //ViewUtils.loadJsonFromAsset(requireContext(),"map_style_good.json")
+        val mjson = MapLibreStyles.getJsonStyleFromAsset(context, PreferencesHolder.getMapLibreStyleFile(context))        //ViewUtils.loadJsonFromAsset(requireContext(),"map_style_good.json")
 
         activity?.run {
             val builder = Style.Builder().fromJson(mjson!!)

@@ -7,12 +7,10 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -32,7 +30,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.gson.Gson
 import com.google.gson.JsonObject
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.Stop
@@ -42,12 +39,11 @@ import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
 import it.reyboz.bustorino.fragments.SettingsFragment.LIVE_POSITIONS_PREF_MQTT_VALUE
 import it.reyboz.bustorino.map.MapLibreUtils
-import it.reyboz.bustorino.map.Styles
+import it.reyboz.bustorino.map.MapLibreStyles
 import it.reyboz.bustorino.util.Permissions
 import it.reyboz.bustorino.util.ViewUtils
 import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
 import it.reyboz.bustorino.viewmodels.StopsMapViewModel
-import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
@@ -56,14 +52,9 @@ import org.maplibre.android.location.LocationComponent
 import org.maplibre.android.location.LocationComponentOptions
 import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.maps.MapLibreMap
-import org.maplibre.android.maps.MapView
-import org.maplibre.android.maps.OnMapReadyCallback
 import org.maplibre.android.maps.Style
 import org.maplibre.android.plugins.annotation.Symbol
-import org.maplibre.android.plugins.annotation.SymbolManager
-import org.maplibre.android.plugins.annotation.SymbolOptions
 import org.maplibre.android.style.expressions.Expression
-import org.maplibre.android.style.layers.Property
 import org.maplibre.android.style.layers.Property.*
 import org.maplibre.android.style.layers.PropertyFactory
 import org.maplibre.android.style.layers.SymbolLayer
@@ -289,7 +280,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     override fun onMapReady(mapReady: MapLibreMap) {
         this.map = mapReady
         val context = requireContext()
-        val mjson = Styles.getJsonStyleFromAsset(context, PreferencesHolder.getMapLibreStyleFile(context))
+        val mjson = MapLibreStyles.getJsonStyleFromAsset(context, PreferencesHolder.getMapLibreStyleFile(context))
         //ViewUtils.loadJsonFromAsset(requireContext(),"map_style_good.json")
 
         activity?.run {
@@ -1124,6 +1115,8 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
         private const val DEBUG_TAG = "BusTO-MapLibreFrag"
         private const val STOP_ACTIVE_IMG = "Stop-active"
+
+        const val FRAGMENT_TAG = "BusTOMapFragment"
 
         private const val LOCATION_PERMISSION_REQUEST_CODE = 981202
 

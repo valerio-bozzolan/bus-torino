@@ -718,8 +718,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     void createAndShowMapFragment(@Nullable Stop stop, boolean addToBackStack){
         final FragmentManager fm = getSupportFragmentManager();
         final FragmentTransaction ft = fm.beginTransaction();
-        final MapLibreFragment fragment = MapLibreFragment.Companion.newInstance(stop);
-        ft.replace(R.id.mainActContentFrame, fragment, MapFragmentKt.FRAGMENT_TAG);
+        final MapLibreFragment fragment = MapLibreFragment.newInstance(stop);
+        ft.replace(R.id.mainActContentFrame, fragment, MapLibreFragment.FRAGMENT_TAG);
         if (addToBackStack) ft.addToBackStack(null);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();

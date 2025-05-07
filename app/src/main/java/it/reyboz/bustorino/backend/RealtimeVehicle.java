@@ -1,24 +1,23 @@
 package it.reyboz.bustorino.backend;
 
-import org.osmdroid.util.GeoPoint;
 
 public class RealtimeVehicle {
 
-    private final GeoPoint location;
+    private final GPSPoint location;
     private final float bearing;
     public final int updateTimestamp;
 
     private final String vehicleLabel;
     private String routeID;
 
-    public RealtimeVehicle(GeoPoint location, float bearing, int updateTimestamp, String vehicleLabel) {
+    public RealtimeVehicle(GPSPoint location, float bearing, int updateTimestamp, String vehicleLabel) {
         this.location = location;
         this.bearing = bearing;
         this.updateTimestamp = updateTimestamp;
         this.vehicleLabel = vehicleLabel;
     }
 
-    public GeoPoint getLocation() {
+    public GPSPoint getLocation() {
         return location;
     }
 

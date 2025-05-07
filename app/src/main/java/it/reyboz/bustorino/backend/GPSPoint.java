@@ -1,8 +1,7 @@
 package it.reyboz.bustorino.backend;
 
-import org.osmdroid.api.IGeoPoint;
 
-public class GPSPoint implements IGeoPoint {
+public class GPSPoint {
 
     public final double latitude;
     public final double longitude;
@@ -12,22 +11,18 @@ public class GPSPoint implements IGeoPoint {
         this.longitude = longitude;
     }
 
-    @Override
     public int getLatitudeE6() {
         return (int) (latitude*1e6d);
     }
 
-    @Override
     public int getLongitudeE6() {
         return (int) (longitude*1e6d);
     }
 
-    @Override
     public double getLatitude() {
         return latitude;
     }
 
-    @Override
     public double getLongitude() {
         return longitude;
     }
