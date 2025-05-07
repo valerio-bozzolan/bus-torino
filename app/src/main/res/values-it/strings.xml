@@ -17,7 +17,6 @@
     <string name="no_bus_stop_have_this_name">Sembra che nessuna fermata abbia questo nome</string>
     <string name="no_arrivals_stop">Nessun passaggio trovato alla fermata</string>
     <string name="searching_arrivals_fmt">Ricerca arrivi da %1$s</string>
-
     <string name="parsing_error">Errore di lettura del sito 5T/GTT (dannato sito!)</string>
     <string name="passages">Fermata: %1$s</string>
     <string name="line">Linea</string>
@@ -53,7 +52,7 @@
     <string name="dialog_rename_bus_stop_username_title">Rinomina fermata</string>
     <string name="dialog_rename_bus_stop_username_reset_button">Reset</string>
     <string name="about_activity">Informazioni</string>
-    <string name="howDoesItWork"><b>Tocca la stella</b> per aggiungere la fermata ai preferiti\n\n<b>Come leggere gli orari:</b> \n<b>12:56*</b> Orario in tempo reale\n<b>12:56</b>  Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario. \n<b>Tocca a lungo</b> su <b>Fonte Orari</b> per cambiare sorgente degli orari di arrivo</string>
+    <string name="howDoesItWork"><b>Tocca la stella</b> per aggiungere la fermata ai preferiti\n\n<b>Come leggere gli orari:</b> \n<b>12:56*</b> Orario in tempo reale\n<b>12:56</b> Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario. \n<b>Tocca a lungo</b> su <b>Fonte Orari</b> per cambiare sorgente degli orari di arrivo</string>
     <string name="hint_button">OK!</string>
     <string name="about_history_top"><![CDATA[
         <h1>Benvenuto!</h1>
@@ -263,7 +262,6 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
     <string name="message_check_at_least_one">Seleziona almeno un elemento da importare!</string>
     <string name="load_file_favorites">Importa preferiti dal backup</string>
     <string name="load_preferences">Importa preferenze dal backup</string>
-
     <string name="no_map_app_to_show_stop">Nessuna app disponibile per mostrare la fermata!</string>
     <string name="destination_unknown">Destinazione sconosciuta</string>
 </resources>
