@@ -20,6 +20,8 @@ package it.reyboz.bustorino.backend;
 
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -32,7 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-public class Stop implements Comparable<Stop> {
+public class Stop implements Comparable<Stop>, Parcelable {
 
 
     // remove "final" in case you need to set these from outside the parser\scrapers\fetchers
@@ -357,4 +359,71 @@ public class Stop implements Comparable<Stop> {
 
         return new Stop(ID, name, username, location, type, routesThatStopHere, lat, lon, gtfsId);
     }
+
+    /// ----- Parcelable implementation ----
+    protected Stop(Parcel in) {
+        ID = in.readString();
+        name = in.readByte() == 0 ? null : in.readString();
+        username = in.readByte() == 0 ? null : in.readString();
+        location = in.readByte() == 0 ? null : in.readString();
+        type = in.readByte() == 0 ? null : Route.Type.valueOf(in.readString());
+        routesThatStopHere = in.readByte() == 0 ? null : in.createStringArrayList();
+        lat = in.readByte() == 0 ? null : in.readDouble();
+        lon = in.readByte() == 0 ? null : in.readDouble();
+        routesThatStopHereString = in.readByte() == 0 ? null : in.readString();
+        absurdGTTPlaceName = in.readByte() == 0 ? null : in.readString();
+        gtfsID = in.readByte() == 0 ? null : in.readString();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(ID);
+        dest.writeByte((byte) (name == null ? 0 : 1));
+        if (name != null) dest.writeString(name);
+
+        dest.writeByte((byte) (username == null ? 0 : 1));
+        if (username != null) dest.writeString(username);
+
+        dest.writeByte((byte) (location == null ? 0 : 1));
+        if (location != null) dest.writeString(location);
+
+        dest.writeByte((byte) (type == null ? 0 : 1));
+        if (type != null) dest.writeString(type.name());
+
+        dest.writeByte((byte) (routesThatStopHere == null ? 0 : 1));
+        if (routesThatStopHere != null) dest.writeStringList(routesThatStopHere);
+
+        dest.writeByte((byte) (lat == null ? 0 : 1));
+        if (lat != null) dest.writeDouble(lat);
+
+        dest.writeByte((byte) (lon == null ? 0 : 1));
+        if (lon != null) dest.writeDouble(lon);
+
+        dest.writeByte((byte) (routesThatStopHereString == null ? 0 : 1));
+        if (routesThatStopHereString != null) dest.writeString(routesThatStopHereString);
+
+        dest.writeByte((byte) (absurdGTTPlaceName == null ? 0 : 1));
+        if (absurdGTTPlaceName != null) dest.writeString(absurdGTTPlaceName);
+
+        dest.writeByte((byte) (gtfsID == null ? 0 : 1));
+        if (gtfsID != null) dest.writeString(gtfsID);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Stop> CREATOR = new Creator<>() {
+        @Override
+        public Stop createFromParcel(Parcel in) {
+            return new Stop(in);
+        }
+
+        @Override
+        public Stop[] newArray(int size) {
+            return new Stop[size];
+        }
+    };
+
 }

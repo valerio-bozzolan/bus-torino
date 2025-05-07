@@ -53,7 +53,6 @@ import it.reyboz.bustorino.middleware.BarcodeScanOptions;
 import it.reyboz.bustorino.middleware.BarcodeScanUtils;
 import it.reyboz.bustorino.util.LocationCriteria;
 import it.reyboz.bustorino.util.Permissions;
-import org.jetbrains.annotations.NotNull;
 
 import static it.reyboz.bustorino.backend.utils.getBusStopIDFromUri;
 import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSIONS;
@@ -113,9 +112,10 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                     Log.e("BusTO-RefreshStop", "Asking for refresh when there is no fragment");
                     // AsyncDataDownload(fragmentHelper, arrivalsFetchers,getContext()).execute();
                 } else{
-                    String stopName = fragment.getStopID();
+                    //String stopName = fragment.getStopID();
 
-                    new AsyncArrivalsSearcher(fragmentHelper, fragment.getCurrentFetchersAsArray(), getContext()).execute(stopName);
+                    //new AsyncArrivalsSearcher(fragmentHelper, fragment.getCurrentFetchersAsArray(), getContext()).execute(stopName);
+                    fragment.requestArrivalsForTheFragment();
                 }
             } else //we create a new fragment, which is WRONG
                 new AsyncArrivalsSearcher(fragmentHelper, arrivalsFetchers, getContext()).execute();
@@ -650,7 +650,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     }
 
 
-    private void prepareGUIForBusLines() {
+    private void prepareGUIForArrivals() {
         swipeRefreshLayout.setEnabled(true);
         swipeRefreshLayout.setVisibility(View.VISIBLE);
         //actionHelpMenuItem.setVisible(true);
@@ -710,7 +710,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         else
             switch (fragmentType) {
                 case ARRIVALS:
-                    prepareGUIForBusLines();
+                    prepareGUIForArrivals();
                     break;
                 case STOPS:
                     prepareGUIForBusStops();
@@ -763,16 +763,19 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             if (fragment != null && fragment.getStopID() != null && fragment.getStopID().equals(ID)){
                 // Run with previous fetchers
                 //fragment.getCurrentFetchers().toArray()
-                new AsyncArrivalsSearcher(fragmentHelper,fragment.getCurrentFetchersAsArray(), getContext()).execute(ID);
+                fragment.requestArrivalsForTheFragment();
             } else{
-                new AsyncArrivalsSearcher(fragmentHelper, fetchers, getContext()).execute(ID);
+                //SHOW NEW ARRIVALS FRAGMENT
+                //new AsyncArrivalsSearcher(fragmentHelper, fetchers, getContext()).execute(ID);
+                fragmentHelper.createOrUpdateStopFragment(new Palina(ID), true);
             }
         }
         else {
             Log.d(DEBUG_TAG, "This is probably the first arrivals search, preparing GUI");
-            prepareGUIForBusLines();
-            new AsyncArrivalsSearcher(fragmentHelper,fetchers, getContext()).execute(ID);
-            Log.d(DEBUG_TAG, "Started search for arrivals of stop " + ID);
+            //prepareGUIForArrivals();
+            //new AsyncArrivalsSearcher(fragmentHelper,fetchers, getContext()).execute(ID);
+            fragmentHelper.createOrUpdateStopFragment(new Palina(ID), true);
+
         }
     }
 

@@ -30,6 +30,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.util.*;
 
+import androidx.annotation.Nullable;
 import de.siegmar.fastcsv.reader.CloseableIterator;
 import de.siegmar.fastcsv.reader.CsvReader;
 import de.siegmar.fastcsv.reader.CsvRow;
@@ -189,7 +190,7 @@ public class UserDB extends SQLiteOpenHelper {
      * @param stopID stop ID
      * @return name set by user, or null if not set\not found
      */
-    public static String getStopUserName(SQLiteDatabase db, String stopID) {
+    public static @Nullable String getStopUserName(SQLiteDatabase db, String stopID) {
         String username = null;
 
         try {
@@ -201,7 +202,9 @@ public class UserDB extends SQLiteOpenHelper {
                     username = c.getString(userNameIndex);
             }
             c.close();
-        } catch(SQLiteException ignored) {}
+        } catch(SQLiteException e) {
+            Log.e("BusTO-UserDB","Cannot get stop User name for stop "+stopID+":\n"+e);
+        }
 
         return username;
     }

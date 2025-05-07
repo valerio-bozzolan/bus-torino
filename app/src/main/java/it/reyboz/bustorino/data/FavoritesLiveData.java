@@ -24,6 +24,7 @@ import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -171,7 +172,7 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
 
             List<Stop> result = NextGenDB.getStopsFromCursorAllFields(cursor);
             cursor.close();
-            if (result.size() < 1){
+            if (result.isEmpty()){
                 // stop is not in the DB
                 finalStop = stopUpdate;
             } else {
@@ -205,7 +206,7 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
             extends ContentObserver {
 
         public ForceLoadContentObserver() {
-            super(new Handler());
+            super(new Handler(Looper.myLooper()));
         }
 
         @Override

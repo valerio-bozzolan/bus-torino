@@ -18,11 +18,14 @@
 
 package it.reyboz.bustorino.backend;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -37,7 +40,7 @@ import it.reyboz.bustorino.util.LinesNameSorter;
  * Apparently "palina" and a bunch of other terms can't really be translated into English.<br>
  * Not in a way that makes sense and keeps the code readable, at least.
  */
-public class Palina extends Stop {
+public class Palina extends Stop implements Parcelable {
     private ArrayList<Route> routes = new ArrayList<>();
     private boolean routesModified = false;
     private Passaggio.Source allSource = null;
@@ -414,4 +417,59 @@ public class Palina extends Stop {
         return  mList;
     }
     //private void mergeRoute
+
+    /// ------- Parcelable stuff ---
+    protected Palina(Parcel in) {
+        super(in);
+        routes = in.createTypedArrayList(Route.CREATOR);
+        routesModified = in.readByte() != 0;
+        allSource = in.readByte() == 0 ? null : Passaggio.Source.valueOf(in.readString());
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        super.writeToParcel(dest, flags);
+        dest.writeTypedList(routes);
+        dest.writeByte((byte) (routesModified ? 1 : 0));
+        if (allSource == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeString(allSource.name());
+        }
+    }
+
+    public static final Creator<Palina> CREATOR = new Creator<Palina>() {
+        @Override
+        public Palina createFromParcel(Parcel in) {
+            return new Palina(in);
+        }
+
+        @Override
+        public Palina[] newArray(int size) {
+            return new Palina[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+    // Methods using the parcelable
+    public byte[] asByteArray(){
+        final Parcel p = Parcel.obtain();
+        writeToParcel(p,0);
+        final byte[] b = p.marshall();
+        p.recycle();
+        return b;
+    }
+
+    public static Palina fromByteArray(byte[] data){
+        final Parcel p = Parcel.obtain();
+        p.unmarshall(data, 0, data.length);
+        p.setDataPosition(0);
+        final Palina palina = Palina.CREATOR.createFromParcel(p);
+        p.recycle();
+        return palina;
+    }
 }

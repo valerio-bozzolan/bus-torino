@@ -26,7 +26,7 @@
     <string name="route_towards_destination">%1$s towards %2$s</string>
     <string name="route_towards_unknown">%s (unknown destination)</string>
     <string name="network_error">Verify your Internet connection!</string>
-    <string name="no_bus_stop_have_this_name">Seems that no bus stop have this name</string>
+    <string name="no_bus_stop_have_this_name">Seems that no bus stop has this name</string>
     <string name="no_arrivals_stop">No arrivals found for this stop</string>
     <string name="parsing_error">Error parsing the 5T/GTT website (damn site!)</string>
     <string name="query_too_short">Name too short, type more characters and retry
@@ -197,6 +197,7 @@
     Arrival times sources
     !-->
     <string name="times_source_fmt">Arrivals source: %1$s</string>
+    <string name="searching_arrivals_fmt">Loading arrivals from %1$s</string>
     <string name="fivetapifetcher">GTT App</string>
     <string name="gttjsonfetcher">GTT Website</string>
     <string name="fivetscraper">5T Torino website</string>

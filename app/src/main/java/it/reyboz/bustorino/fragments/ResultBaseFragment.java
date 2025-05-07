@@ -4,7 +4,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-public abstract class ResultBaseFragment extends Fragment {
+public abstract class ResultBaseFragment extends ScreenBaseFragment {
 
     protected FragmentListenerMain mListener;
     protected static final String MESSAGE_TEXT_VIEW = "message_text_view";

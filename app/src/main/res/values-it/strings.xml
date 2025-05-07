@@ -16,6 +16,8 @@
     <string name="network_error">Verifica l\'accesso ad Internet!</string>
     <string name="no_bus_stop_have_this_name">Sembra che nessuna fermata abbia questo nome</string>
     <string name="no_arrivals_stop">Nessun passaggio trovato alla fermata</string>
+    <string name="searching_arrivals_fmt">Ricerca arrivi da %1$s</string>
+
     <string name="parsing_error">Errore di lettura del sito 5T/GTT (dannato sito!)</string>
     <string name="passages">Fermata: %1$s</string>
     <string name="line">Linea</string>

@@ -18,6 +18,8 @@
 
 package it.reyboz.bustorino.backend;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -28,9 +30,9 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
-public class Route implements Comparable<Route> {
+public class Route implements Comparable<Route>, Parcelable {
     final static int[] reduced_week = {Calendar.MONDAY,Calendar.TUESDAY,Calendar.WEDNESDAY,Calendar.THURSDAY,Calendar.FRIDAY};
-    final static int[] feriali = {Calendar.MONDAY,Calendar.TUESDAY,Calendar.WEDNESDAY,Calendar.THURSDAY,Calendar.FRIDAY,Calendar.SATURDAY};
+    //final static int[] feriali = {Calendar.MONDAY,Calendar.TUESDAY,Calendar.WEDNESDAY,Calendar.THURSDAY,Calendar.FRIDAY,Calendar.SATURDAY};
     final static int[] weekend = {Calendar.SUNDAY,Calendar.SATURDAY};
     private final static int BRANCHID_MISSING = -1;
 
@@ -63,22 +65,15 @@ public class Route implements Comparable<Route> {
         }
         @Nullable
         public static Type fromCode(int i){
-            switch (i){
-                case 1:
-                    return BUS;
-                case 2:
-                    return LONG_DISTANCE_BUS;
-                case 3:
-                    return METRO;
-                case 4:
-                    return RAILWAY;
-                case 5:
-                    return TRAM;
-                case -2:
-                    return UNKNOWN;
-                default:
-                    return null;
-            }
+            return switch (i) {
+                case 1 -> BUS;
+                case 2 -> LONG_DISTANCE_BUS;
+                case 3 -> METRO;
+                case 4 -> RAILWAY;
+                case 5 -> TRAM;
+                case -2 -> UNKNOWN;
+                default -> null;
+            };
         }
     }
     public enum FestiveInfo{
@@ -93,16 +88,12 @@ public class Route implements Comparable<Route> {
             return code;
         }
         public static FestiveInfo fromCode(int i){
-            switch (i){
-                case -2:
-                    return UNKNOWN;
-                case 0:
-                    return FERIALE;
-                case 1:
-                    return FESTIVO;
-                default:
-                    return UNKNOWN;
-            }
+            return switch (i) {
+                case -2 -> UNKNOWN;
+                case 0 -> FERIALE;
+                case 1 -> FESTIVO;
+                default -> UNKNOWN;
+            };
         }
     }
     /**
@@ -360,8 +351,7 @@ public class Route implements Comparable<Route> {
 
     @Override
     public boolean equals(Object obj) {
-         if(obj instanceof Route){
-             Route r = (Route) obj;
+         if(obj instanceof Route r){
              boolean result  = false;
              if(this.name.equals(r.name) && this.branchid == r.branchid){
                  if(description!=null && r.description!=null)
@@ -443,4 +433,69 @@ public class Route implements Comparable<Route> {
          return adjusted;
     }
 
+    // ---- Parcelable implem ---
+    protected Route(Parcel in) {
+        name = in.readString();
+        displayCode = in.readByte() == 0 ? null : in.readString();
+        destinazione = in.readString();
+        passaggi = in.createTypedArrayList(Passaggio.CREATOR);
+        type = Type.valueOf(in.readString());
+        description = in.readString();
+        if (in.readByte() == 0) {
+            stopsList = null;
+        } else {
+            stopsList = in.createStringArrayList();
+        }
+        branchid = in.readInt();
+        serviceDays = in.createIntArray();
+        festivo = FestiveInfo.valueOf(in.readString());
+        gtfsId = in.readByte() == 0 ? null : in.readString();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(name);
+        if (displayCode == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeString(displayCode);
+        }
+        dest.writeString(destinazione);
+        dest.writeTypedList(passaggi);
+        dest.writeString(type.name());
+        dest.writeString(description);
+        if (stopsList == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeStringList(stopsList);
+        }
+        dest.writeInt(branchid);
+        dest.writeIntArray(serviceDays);
+        dest.writeString(festivo.name());
+        if (gtfsId == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeString(gtfsId);
+        }
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Parcelable.Creator<Route> CREATOR = new Creator<>() {
+        @Override
+        public Route createFromParcel(Parcel in) {
+            return new Route(in);
+        }
+
+        @Override
+        public Route[] newArray(int size) {
+            return new Route[size];
+        }
+    };
 }

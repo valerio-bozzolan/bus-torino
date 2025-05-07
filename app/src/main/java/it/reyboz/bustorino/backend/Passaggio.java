@@ -18,6 +18,8 @@
 
 package it.reyboz.bustorino.backend;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -25,7 +27,7 @@ import android.util.Log;
 
 import java.util.Locale;
 
-public final class Passaggio implements Comparable<Passaggio> {
+public final class Passaggio implements Comparable<Passaggio>, Parcelable {
 
     private static final int UNKNOWN_TIME = -3;
     private static final String DEBUG_TAG = "BusTO-Passaggio";
@@ -172,6 +174,51 @@ public final class Passaggio implements Comparable<Passaggio> {
         return diff;
     }
 
+
+    protected Passaggio(Parcel in) {
+        passaggioGTT = in.readString();
+        hh = in.readInt();
+        mm = in.readInt();
+        if (in.readByte() == 0) {
+            realtimeDifference = null;
+        } else {
+            realtimeDifference = in.readInt();
+        }
+        isInRealTime = in.readByte() != 0;
+        source = Source.valueOf(in.readString());
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(passaggioGTT);
+        dest.writeInt(hh);
+        dest.writeInt(mm);
+        if (realtimeDifference == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeInt(realtimeDifference);
+        }
+        dest.writeByte((byte) (isInRealTime ? 1 : 0));
+        dest.writeString(source.name());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Passaggio> CREATOR = new Creator<Passaggio>() {
+        @Override
+        public Passaggio createFromParcel(Parcel in) {
+            return new Passaggio(in);
+        }
+
+        @Override
+        public Passaggio[] newArray(int size) {
+            return new Passaggio[size];
+        }
+    };
 
 //
 //    @Override

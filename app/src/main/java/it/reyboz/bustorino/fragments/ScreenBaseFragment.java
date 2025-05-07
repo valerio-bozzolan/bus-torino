@@ -41,7 +41,9 @@ public abstract class ScreenBaseFragment extends Fragment {
 
     protected void showToastMessage(int messageID, boolean short_lenght) {
         final int length = short_lenght ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG;
-        Toast.makeText(getContext(), messageID, length).show();
+        final Context context = getContext();
+        if(context!=null)
+            Toast.makeText(context, messageID, length).show();
     }
 
     public void hideKeyboard() {
@@ -101,4 +103,5 @@ public abstract class ScreenBaseFragment extends Fragment {
     public interface LocationRequestListener{
         void onPermissionResult(boolean isCoarseGranted, boolean isFineGranted);
     }
+
 }

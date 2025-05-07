@@ -24,7 +24,9 @@ import it.reyboz.bustorino.backend.utils
 import java.util.ArrayList
 import java.util.concurrent.Executor
 
-class OldDataRepository(private val executor: Executor, private val nextGenDB: NextGenDB) {
+class OldDataRepository(private val executor: Executor,
+                        private val nextGenDB: NextGenDB,
+    ) {
 
     constructor(executor: Executor, context: Context): this(executor, NextGenDB.getInstance(context))
     fun requestStopsWithGtfsIDs(
