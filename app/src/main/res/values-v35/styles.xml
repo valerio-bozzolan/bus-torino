@@ -1,0 +1,10 @@
+<resources>
+    <style name="AppBaseTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!--
+            This forces the app to not use Edge-to-Edge. However, on API 36 it will be ignored!
+        -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+
+    </style>
+
+</resources>

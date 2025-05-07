@@ -86,7 +86,7 @@ class MatoPatternsDownloadWorker(appContext: Context, workerParams: WorkerParame
 
             Log.d(DEBUG_TAG, "Request to download and insert patterns for ${routesIds.size} routes, proceed: $runNewWork, workstate: $addDat")
             if(runNewWork){
-                val routeIdsArray = routesIds.toTypedArray()
+                val routeIdsArray: Array<String?> = routesIds.toTypedArray()
                 val dataBuilder = Data.Builder().putStringArray(ROUTES_KEYS,routeIdsArray)
 
                 val requ = OneTimeWorkRequest.Builder(MatoPatternsDownloadWorker::class.java)

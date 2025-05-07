@@ -22,10 +22,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.graphics.Rect;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.os.Build;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.annotation.Nullable;
@@ -169,4 +167,25 @@ public abstract class GeneralActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
     }
+
+    protected void setSystemBarAppearance(boolean isSystemInDarkTheme) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (isSystemInDarkTheme) {
+                if (getWindow() != null && getWindow().getInsetsController() != null) {
+                    getWindow().getInsetsController().setSystemBarsAppearance(
+                            0,
+                            android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    );
+                }
+            } else {
+                if (getWindow() != null && getWindow().getInsetsController() != null) {
+                    getWindow().getInsetsController().setSystemBarsAppearance(
+                            android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                            android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    );
+                }
+            }
+        }
+    }
+
 }

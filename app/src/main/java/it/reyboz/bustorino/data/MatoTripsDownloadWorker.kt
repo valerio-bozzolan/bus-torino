@@ -125,7 +125,7 @@ class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameter
                 null else  info[0].state
             Log.d(debugTag, "Request to download and insert ${trips.size} trips, proceed: $runNewWork, workstate: $addDat")
             if(runNewWork) {
-                val tripsArr = trips.toTypedArray()
+                val tripsArr: Array<String?> = trips.toTypedArray()
                 val dataBuilder = Data.Builder().putStringArray(TRIPS_KEYS, tripsArr)
                 //build()
                 val requ = OneTimeWorkRequest.Builder(MatoTripsDownloadWorker::class.java)

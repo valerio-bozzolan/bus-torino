@@ -86,7 +86,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
 
     // Sources for stops and buses are in GeneralMapLibreFragment
-
+    private var isUserMovingCamera = false
     private var stopsLayerStarted = false
     private var lastStopsSizeShown = 0
     private var lastBBox = LatLngBounds.from(2.0, 2.0, 1.0,1.0)
@@ -113,30 +113,37 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     private var pendingLocationActivation = false
     private var ignoreCameraMovementForFollowing = true
     private var enablingPositionFromClick = false
-    private val positionRequestLauncher =
-        registerForActivityResult<Array<String>, Map<String, Boolean>>(
-            ActivityResultContracts.RequestMultiplePermissions(),
-            ActivityResultCallback { result ->
+    private val positionRequestLauncher = registerForActivityResult<Array<String>, Map<String, Boolean>>(
+            ActivityResultContracts.RequestMultiplePermissions(), ActivityResultCallback { result ->
                 if (result == null) {
                     Log.w(DEBUG_TAG, "Got asked permission but request is null, doing nothing?")
+                }else if(!pendingLocationActivation){
+                    /// SHOULD DO NOTHING HERE
+                    Log.d(DEBUG_TAG, "Requested location but now there is no pendingLocationActivation")
                 } else if (java.lang.Boolean.TRUE == result[Manifest.permission.ACCESS_COARSE_LOCATION]
                     && java.lang.Boolean.TRUE == result[Manifest.permission.ACCESS_FINE_LOCATION]) {
                     // We can use the position, restart location overlay
                     Log.d(DEBUG_TAG, "HAVE THE PERMISSIONS")
                     if (context == null || requireContext().getSystemService(Context.LOCATION_SERVICE) == null)
                         return@ActivityResultCallback ///@registerForActivityResult
-                    val locationManager =
-                        requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                    @SuppressLint("MissingPermission") val userLocation =
-                        locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                    if (userLocation != null) {
-                        if(LatLng(userLocation.latitude, userLocation.longitude).distanceTo(DEFAULT_LATLNG) >= MAX_DIST_KM*1000){
+                    val locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                    var lastLoc = stopsViewModel.lastUserLocation
+                    @SuppressLint("MissingPermission")
+                    if(lastLoc==null)  lastLoc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                    else Log.d(DEBUG_TAG, "Got last location from cache")
+
+                    if (lastLoc != null) {
+                        if(LatLng(lastLoc.latitude, lastLoc.longitude).distanceTo(DEFAULT_LATLNG) <= MAX_DIST_KM*1000){
+                            Log.d(DEBUG_TAG, "Showing the user position")
                             setMapLocationEnabled(true, true, false)
+                        } else{
+                            setMapLocationEnabled(false, false,false)
+                            context?.let{Toast.makeText(it,R.string.too_far_not_showing_location, Toast.LENGTH_SHORT).show()}
                         }
                     } else requestInitialUserLocation()
 
                 } else{
-                    Toast.makeText(requireContext(),"User location disabled", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(),R.string.location_disabled, Toast.LENGTH_SHORT).show()
                     Log.w(DEBUG_TAG, "No location permission")
                 }
             })
@@ -259,7 +266,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 Toast.makeText(activity, R.string.enable_position_message_map, Toast.LENGTH_SHORT)
                     .show()
             }
-            positionRequestLauncher.launch(Permissions.LOCATION_PERMISSIONS)
         }
 
 
@@ -283,92 +289,103 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         val mjson = MapLibreStyles.getJsonStyleFromAsset(context, PreferencesHolder.getMapLibreStyleFile(context))
         //ViewUtils.loadJsonFromAsset(requireContext(),"map_style_good.json")
 
-        activity?.run {
-            val builder = Style.Builder().fromJson(mjson!!)
 
-            mapReady.setStyle(builder) { style ->
+        val builder = Style.Builder().fromJson(mjson!!)
 
-                mapStyle = style
-                //setupLayers(style)
+        mapReady.setStyle(builder) { style ->
 
-                // Start observing data
-                observeStops()
-                initMapLocation(style, mapReady, requireContext())
-                //init stop layer with this
-                val stopsInCache = stopsViewModel.getAllStopsLoaded()
-                if(stopsInCache.isEmpty())
-                    initStopsLayer(style, FeatureCollection.fromFeatures(ArrayList<Feature>()))
-                else
-                    displayStops(stopsInCache)
-                if(showBusLayer) setupBusLayer(style)
+            mapStyle = style
+            //setupLayers(style)
 
-
-                /*symbolManager = SymbolManager(mapView,mapReady,style, null, "symbol-transit-airfield")
-                symbolManager.iconAllowOverlap = true
-                symbolManager.textAllowOverlap = false
-                symbolManager.textIgnorePlacement =true
+            // Start observing data
+            observeStops()
+            initMapLocation(style, mapReady, requireContext())
+            //init stop layer with this
+            val stopsInCache = stopsViewModel.getAllStopsLoaded()
+            if(stopsInCache.isEmpty())
+                initStopsLayer(style, FeatureCollection.fromFeatures(ArrayList<Feature>()))
+            else
+                displayStops(stopsInCache)
+            if(showBusLayer) setupBusLayer(style)
 
 
-                 */
-                /*symbolManager.addClickListener{ _ ->
-                    if (stopActiveSymbol!=null){
-                        hideStopBottomSheet()
+            /*symbolManager = SymbolManager(mapView,mapReady,style, null, "symbol-transit-airfield")
+            symbolManager.iconAllowOverlap = true
+            symbolManager.textAllowOverlap = false
+            symbolManager.textIgnorePlacement =true
 
-                        return@addClickListener true
-                    } else
-                        return@addClickListener false
+
+             */
+            /*symbolManager.addClickListener{ _ ->
+                if (stopActiveSymbol!=null){
+                    hideStopBottomSheet()
+
+                    return@addClickListener true
+                } else
+                    return@addClickListener false
+            }
+
+             */
+
+        }
+
+
+        mapReady.addOnCameraIdleListener {
+            isUserMovingCamera = false
+            map?.let {
+                val newBbox = it.projection.visibleRegion.latLngBounds
+                if ((newBbox.center==lastBBox.center) && (newBbox.latitudeSpan==lastBBox.latitudeSpan) && (newBbox.longitudeSpan==lastBBox.latitudeSpan)){
+                    //do nothing
+                } else {
+                    stopsViewModel.loadStopsInLatLngBounds(newBbox)
+                    lastBBox = newBbox
+
                 }
 
-                 */
-
             }
 
-            mapReady.addOnCameraIdleListener {
-                map?.let {
-                    val newBbox = it.projection.visibleRegion.latLngBounds
-                    if ((newBbox.center==lastBBox.center) && (newBbox.latitudeSpan==lastBBox.latitudeSpan) && (newBbox.longitudeSpan==lastBBox.latitudeSpan)){
-                        //do nothing
-                    } else {
-                        stopsViewModel.loadStopsInLatLngBounds(newBbox)
-                        lastBBox = newBbox
-
-                    }
-
-                }
-
-            }
-            mapReady.addOnCameraMoveStartedListener {
-
-                map?.let { setFollowingUser(it.locationComponent.cameraMode == CameraMode.TRACKING) }
-            //setFollowingUser()
-
-            }
-
-            mapReady.addOnMapClickListener { point ->
-               onMapClickReact(point)
-            }
-
-            mapInitCompleted = true
-            // we start requesting the bus positions now
-            startRequestingPositions()
         }
-        savedMapStateOnPause?.let{
-            restoreMapStateFromBundle(it)
-            pendingLocationActivation = false
-            Log.d(DEBUG_TAG, "Restored map state from the saved bundle")
+        mapReady.addOnCameraMoveStartedListener { v->
+            if(v== MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE){
+                //the user is moving the map
+                isUserMovingCamera = true
+            }
+            map?.let { setFollowingUser(it.locationComponent.cameraMode == CameraMode.TRACKING) }
+        //setFollowingUser()
+
         }
+
+        mapReady.addOnMapClickListener { point ->
+           onMapClickReact(point)
+        }
+
+        mapInitCompleted = true
+        // we start requesting the bus positions now
+        startRequestingPositions()
+
+        //Restoring data
+        var boundsRestored = false
+        pendingLocationActivation = true
+        stopsViewModel.savedState?.let{
+            boundsRestored = restoreMapStateFromBundle(it)
+            //why are we disabling it?
+            pendingLocationActivation = it.getBoolean(KEY_LOCATION_ENABLED,true)
+            Log.d(DEBUG_TAG, "Restored map state from the saved bundle: ")
+        }
+        if(pendingLocationActivation)
+            positionRequestLauncher.launch(Permissions.LOCATION_PERMISSIONS)
+
         //reset saved State at the end
-        if( savedMapStateOnPause == null) {
+        if((!boundsRestored)) {
             //set initial position
-            val zoom = 15.0
             //center position
             val latlngTarget = initialStopToShow?.let {
                 LatLng(it.latitude!!, it.longitude!!)
             } ?: LatLng(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON)
-            mapReady.cameraPosition = CameraPosition.Builder().target(latlngTarget).zoom(zoom).build()
+            mapReady.cameraPosition = CameraPosition.Builder().target(latlngTarget).zoom(DEFAULT_ZOOM).build()
         }
         //reset saved state
-        savedMapStateOnPause = null
+        stopsViewModel.savedState = null
     }
 
     private fun onMapClickReact(point: LatLng): Boolean{
@@ -575,6 +592,13 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     override fun onStart() {
         super.onStart()
         mapView.onStart()
+
+        //restore state from viewModel
+        stopsViewModel.savedState?.let {
+            restoreMapStateFromBundle(it)
+            //reset state
+            stopsViewModel.savedState = null
+        }
     }
 
     override fun onResume() {
@@ -602,6 +626,8 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         }
 
         fragmentListener?.readyGUIfor(FragmentKind.MAP)
+        //restore saved state
+        savedMapStateOnPause?.let { restoreMapStateFromBundle(it) }
     }
 
     override fun onPause() {
@@ -622,6 +648,11 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             mapView.onSaveInstanceState(it)
             it
         }
+        //save last location
+        map?.locationComponent?.lastKnownLocation?.let{
+            stopsViewModel.lastUserLocation = it
+        }
+
 
     }
 
@@ -807,8 +838,8 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 val samePosition = oldPos?.let { (oldPos.latitude==pos.latitude)&&(oldPos.longitude == pos.longitude) }?:false
                 if(!samePosition) {
                     val isPositionInBounds = isInsideVisibleRegion(
-                        pos.latitude, pos.longitude, true
-                    ) || (oldPos?.let { isInsideVisibleRegion(it.latitude,it.longitude,true) } ?: false)
+                        pos.latitude, pos.longitude, false
+                    ) || (oldPos?.let { isInsideVisibleRegion(it.latitude,it.longitude, false) } ?: false)
                     if (isPositionInBounds) {
                         //animate = true
                         //this moves both the icon and the label
@@ -931,7 +962,9 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     private fun updatePositionsIcons(){
         //avoid frequent updates
         val currentTime = System.currentTimeMillis()
-        if(currentTime - lastUpdateTime < 60){
+        //throttle updates when user is moving camera
+        val interval = if(isUserMovingCamera) 150 else 60
+        if(currentTime - lastUpdateTime < interval){
             //DO NOT UPDATE THE MAP
             return
         }
@@ -975,7 +1008,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         //provider.let {
         setLocationIconEnabled(true)
         Toast.makeText(requireContext(), R.string.position_searching_message, Toast.LENGTH_SHORT).show()
-        pendingLocationActivation = true
         locationManager.requestSingleUpdate(provider, object : LocationListener {
             override fun onLocationChanged(location: Location) {
                 val userLatLng = LatLng(location.latitude, location.longitude)
@@ -988,7 +1020,8 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                             setMapLocationEnabled(true, true, false)
                     }
                 } else {
-                    Toast.makeText(context, "You are too far, not showing the position", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, R.string.too_far_not_showing_location, Toast.LENGTH_SHORT).show()
+                    setMapLocationEnabled(false,false, false)
                 }
             }
 
@@ -1033,7 +1066,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             val permissionOk = assumePermissions || Permissions.bothLocationPermissionsGranted(requireContext())
 
             if (permissionOk) {
-                Log.d(DEBUG_TAG, "Permission OK, starting location component, assumed: $assumePermissions")
+                Log.d(DEBUG_TAG, "Permission OK, starting location component, assumed: $assumePermissions, fromClick: $fromClick")
                 locationComponent.isLocationComponentEnabled = true
                 if (initialStopToShow==null) {
                     locationComponent.cameraMode = CameraMode.TRACKING //CameraMode.TRACKING
@@ -1041,6 +1074,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 }
                 setLocationIconEnabled(true)
                 if (fromClick) Toast.makeText(context, R.string.location_enabled, Toast.LENGTH_SHORT).show()
+                pendingLocationActivation =false
             } else {
                 if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
                     //TODO: show dialog for permission rationale
@@ -1093,8 +1127,10 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     private fun switchUserLocationStatus(view: View?){
         if(pendingLocationActivation || locationComponent.isLocationComponentEnabled) setMapLocationEnabled(false, false, true)
         else{
+            pendingLocationActivation = true
             Log.d(DEBUG_TAG, "Request enable location")
             setMapLocationEnabled(true, false, true)
+
         }
     }
 
@@ -1109,6 +1145,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         const val DEFAULT_CENTER_LAT = 45.0708
         const val DEFAULT_CENTER_LON = 7.6858
         private val DEFAULT_LATLNG = LatLng(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON)
+        private val DEFAULT_ZOOM = 14.3
         private const val POSITION_FOUND_ZOOM = 16.5
         private const val NO_POSITION_ZOOM = 17.1
         private const val MAX_DIST_KM = 90.0

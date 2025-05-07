@@ -14,7 +14,18 @@
     android:layout_gravity="start">
     </fragment>
     -->
+
+    <include
+            layout="@layout/default_toobar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"/>
     <FrameLayout
+            android:layout_below="@id/default_toolbar"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
             android:id="@+id/setting_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

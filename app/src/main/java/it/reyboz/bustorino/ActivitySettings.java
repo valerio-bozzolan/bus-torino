@@ -1,6 +1,7 @@
 package it.reyboz.bustorino;
 
 import android.os.Bundle;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.appcompat.app.ActionBar;
@@ -14,10 +15,11 @@ public class ActivitySettings extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-
+        Toolbar mToolbar = findViewById(R.id.default_toolbar);
+        setSupportActionBar(mToolbar);
         ActionBar ab = getSupportActionBar();
         if(ab!=null) {
-            ab.setIcon(R.drawable.ic_launcher);
+            //ab.setIcon(R.drawable.ic_launcher);
             ab.setDisplayHomeAsUpEnabled(true);
         } else {
             Log.e("SETTINGS_ACTIV","ACTION BAR IS NULL");

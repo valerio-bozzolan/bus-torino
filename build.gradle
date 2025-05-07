@@ -9,12 +9,13 @@ buildscript {
 
 
     }
+    //TODO: Migrate tfrom kapt to KSP
     //kotlin
-    ext.kotlin_version = '1.9.21'
-    ext.coroutines_version = "1.8.0"
+    ext.kotlin_version = '2.1.10'
+    ext.coroutines_version = "1.10.2"
     dependencies {
 
-        classpath 'com.android.tools.build:gradle:8.5.2'
+        classpath 'com.android.tools.build:gradle:8.6.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -27,7 +28,7 @@ ext {
         //libraries versions
         fragment_version = "1.6.1"
         activity_version = "1.7.2"
-        appcompat_version = "1.6.1"
+        appcompat_version = "1.7.0"
         preference_version = "1.2.1"
         work_version = "2.9.0"
 

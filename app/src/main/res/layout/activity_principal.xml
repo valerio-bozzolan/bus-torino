@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/drawer_layout"
     android:layout_height="match_parent">
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -13,16 +13,24 @@
         <include
             layout="@layout/default_toobar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"/>
         <!-- The main content view where fragments are loaded -->
 
         <FrameLayout
             android:id="@+id/mainActContentFrame"
+            android:layout_below="@id/default_toolbar"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+        />
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <com.google.android.material.navigation.NavigationView
 
@@ -38,5 +46,7 @@
         app:itemTextColor="@color/black_900"
         android:fitsSystemWindows="true"
         app:menu="@menu/drawer_main" />
+
+
 
 </androidx.drawerlayout.widget.DrawerLayout>

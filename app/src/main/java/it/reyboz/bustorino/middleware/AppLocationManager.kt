@@ -178,6 +178,7 @@ class AppLocationManager private constructor(context: Context) : LocationListene
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
         //IF ANOTHER LOCATION SOURCE IS READY, USE IT
         //OTHERWISE, SIGNAL THAT WE HAVE NO LOCATION

@@ -1,6 +1,7 @@
 package it.reyboz.bustorino.viewmodels
 
 import android.app.Application
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
@@ -82,6 +83,7 @@ class StopsMapViewModel(application: Application): AndroidViewModel(application)
     }
 
     var savedState: Bundle? = null
+    var lastUserLocation: Location? = null
 
     companion object{
         private const val DEBUG_TAG = "BusTOStopMapViewModel"

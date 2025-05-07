@@ -143,23 +143,27 @@ class MQTTMatoClient(): MqttCallbackExtended{
 
     fun stopMatoRequests(responder: MQTTMatoListener){
         var removed = false
-        for ((line,v)in respondersMap.entries){
+        for ((linekey,responderList)in respondersMap.entries){
             var done = false
-            for (el in v){
+            for (el in responderList){
                 if (el.get()==null){
-                    v.remove(el)
+                    responderList.remove(el)
                 } else if(el.get() == responder){
-                    v.remove(el)
+                    responderList.remove(el)
                     done = true
                 }
                 if (done)
                     break
             }
-            if(done) Log.d(DEBUG_TAG, "Removed one listener for line $line, listeners: $v")
+            if(done) Log.d(DEBUG_TAG, "Removed one listener for line $linekey, listeners: $responderList")
             //if (done) break
-            if (v.isEmpty()){
+            if (responderList.isEmpty()){
                 //actually unsubscribe
-                client?.unsubscribe( mapTopic(line))
+                try {
+                    client?.unsubscribe(mapTopic(linekey))
+                } catch (e: Exception){
+                    Log.e(DEBUG_TAG, "Tried unsubscribing but there was an error in the client library:\n$e")
+                }
             }
             removed = done || removed
         }

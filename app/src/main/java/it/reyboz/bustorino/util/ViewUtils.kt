@@ -13,18 +13,41 @@ import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.Transformation
 import android.widget.Toast
+import androidx.core.view.OnApplyWindowInsetsListener
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.NestedScrollView
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.Stop
-import it.reyboz.bustorino.fragments.LinesDetailFragment
-import it.reyboz.bustorino.fragments.LinesDetailFragment.Companion
 import java.io.IOException
 
 
 class ViewUtils {
 
     companion object{
+
         const val DEBUG_TAG="BusTO:ViewUtils"
+
+        /**
+         * This should help in setting the padding of the last component down
+         */
+        @JvmStatic
+        fun doOnApplyWindowInsetsForNavigationBars(view: View, listener: OnNavigationBarInsetsAppliedListener) {
+            ViewCompat.setOnApplyWindowInsetsListener(
+                view,
+                OnApplyWindowInsetsListener { v: View?, insets: WindowInsetsCompat? ->
+                    val navigationBarsInsetsBottom = insets!!.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+                    listener.onInsetsApplied(v, navigationBarsInsetsBottom)
+                    insets
+                })
+            view.requestApplyInsets()
+        }
+
+
+        interface OnNavigationBarInsetsAppliedListener {
+            fun onInsetsApplied(view: View?, navigationBarHeight: Int)
+        }
+
         fun isViewFullyVisibleInScroll(view: View, scrollView: NestedScrollView): Boolean {
             val scrollBounds = Rect()
             scrollView.getDrawingRect(scrollBounds)

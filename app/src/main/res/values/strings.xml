@@ -292,7 +292,7 @@
         <item>@string/positions_source_mato_descr</item>
         <item>@string/positions_source_gtfsrt_descr</item>
     </array>
-
+    <string name="too_far_not_showing_location">"You are too far, not showing your position</string>
     <string name="map_style_pref_title">Style of the map</string>
     <string name="map_style_versatiles">Versatiles (vector)</string>
     <string name="map_style_legacy_raster">OSM legacy (raster, lighter)</string>

@@ -24,6 +24,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -39,6 +40,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.ViewCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -84,6 +86,10 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         super.onCreate(savedInstanceState);
         Log.d(DEBUG_TAG, "onCreate, savedInstanceState is: "+savedInstanceState);
         setContentView(R.layout.activity_principal);
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            getWindow().setNavigationBarContrastEnforced(false);
+        }
+         */
         boolean showingArrivalsFromIntent = false;
 
         Toolbar mToolbar = findViewById(R.id.default_toolbar);
@@ -93,7 +99,6 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         else Log.w(DEBUG_TAG, "NO ACTION BAR");
 
         mToolbar.setOnMenuItemClickListener(new ToolbarItemClickListener(this));
-
 
         mDrawer = findViewById(R.id.drawer_layout);
         drawerToggle = setupDrawerToggle(mToolbar);

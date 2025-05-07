@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.preference.PreferenceManager
 import com.google.gson.JsonObject
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.data.PreferencesHolder
@@ -76,6 +75,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onLowMemory() {
         super.onLowMemory()
         mapView.onLowMemory()
@@ -104,25 +104,32 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     //For extra stuff to do when the map is destroyed
     abstract fun onMapDestroy()
 
-    protected fun restoreMapStateFromBundle(bundle: Bundle){
+    protected fun restoreMapStateFromBundle(bundle: Bundle): Boolean{
         val nullDouble = -10_000.0
-        val latCenter = bundle.getDouble("center_map_lat", -10.0)
-        val lonCenter = bundle.getDouble("center_map_lon",-10.0)
-        val zoom = bundle.getDouble("map_zoom", -10.0)
+        var boundsRestored =false
+        val latCenter = bundle.getDouble("center_map_lat", nullDouble)
+        val lonCenter = bundle.getDouble("center_map_lon",nullDouble)
+        val zoom = bundle.getDouble("map_zoom", nullDouble)
         val bearing = bundle.getDouble("map_bearing", nullDouble)
         val tilt = bundle.getDouble("map_tilt", nullDouble)
-        if(lonCenter>=0 &&latCenter>=0) map?.let {
-            val newPos = CameraPosition.Builder().target(LatLng(latCenter,lonCenter))
+        if(lonCenter!=nullDouble &&latCenter!=nullDouble) map?.let {
+            val center = LatLng(latCenter, lonCenter)
+            val newPos = CameraPosition.Builder().target(center)
             if(zoom>0) newPos.zoom(zoom)
             if(bearing!=nullDouble) newPos.bearing(bearing)
             if(tilt != nullDouble) newPos.tilt(tilt)
             it.cameraPosition=newPos.build()
 
+            Log.d(DEBUG_TAG, "Restored map state from Bundle, center: $center, zoom: $zoom, bearing $bearing, tilt $tilt")
+            boundsRestored =true
+        } else{
+            Log.d(DEBUG_TAG, "Not restoring map state, center: $latCenter,$lonCenter; zoom: $zoom, bearing: $bearing, tilt $tilt")
         }
         val mStop = bundle.getBundle("shown_stop")?.let {
             Stop.fromBundle(it)
         }
         mStop?.let { openStopInBottomSheet(it) }
+        return boundsRestored
     }
 
     protected fun saveMapStateBeforePause(bundle: Bundle){
@@ -136,6 +143,10 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             it.cameraPosition.zoom.let { z-> bundle.putDouble("map_zoom",z) }
             bundle.putDouble("map_bearing",cp.bearing)
             bundle.putDouble("map_tilt", cp.tilt)
+
+            val locationComponent = it.locationComponent
+            bundle.putBoolean(KEY_LOCATION_ENABLED,locationComponent.isLocationComponentEnabled)
+            bundle.putParcelable("last_location", locationComponent.lastKnownLocation)
         }
         shownStopInBottomSheet?.let {
             bundle.putBundle("shown_stop", it.toBundle())
@@ -167,5 +178,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
 
         const val SEL_STOP_SOURCE="selected-stop-source"
         const val SEL_STOP_LAYER = "selected-stop-layer"
+
+        const val KEY_LOCATION_ENABLED="location_enabled"
     }
 }

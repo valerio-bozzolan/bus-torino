@@ -4,14 +4,14 @@ apply plugin: 'com.android.application'
 
 
 android {
-    compileSdk 34
+    compileSdk 35
     namespace "it.reyboz.bustorino"
 
     defaultConfig {
         applicationId "it.reyboz.bustorino"
         minSdkVersion 21
-        targetSdkVersion 34
-        buildToolsVersion = '34.0.0'
+        targetSdkVersion 35
+        buildToolsVersion = '35.0.1'
         versionCode 62
         versionName "2.3.1"
         vectorDrawables.useSupportLibrary = true
@@ -65,6 +65,10 @@ android {
     androidResources {
         generateLocaleConfig true
     }
+
+    buildFeatures{
+        buildConfig = true
+    }
 }
 
 dependencies {
@@ -112,8 +116,7 @@ dependencies {
     implementation 'com.google.protobuf:protobuf-java:3.19.6'
     // mqtt library
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
-    implementation 'com.github.fabmazz:paho.mqtt.android:v1.0.0'
-
+    implementation 'com.github.hannesa2:paho.mqtt.android:4.4'
     // ViewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     // LiveData
