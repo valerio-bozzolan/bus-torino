@@ -12,6 +12,13 @@
             backward-compatibility can go here.
         -->
     </style>
+    <style name="AppMaterialTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+
+    </style>
+    <style name="AppMaterialTheme.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar">
+
+    </style>
+
 
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">

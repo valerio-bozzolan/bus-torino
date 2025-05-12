@@ -7,4 +7,11 @@
 
     </style>
 
+    <style name="AppMaterialTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <!--
+            This forces the app to not use Edge-to-Edge. However, on API 36 it will be ignored!
+        -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+
 </resources>

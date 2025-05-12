@@ -7,7 +7,7 @@
         <item name="colorAccent">@color/teal_500</item>
     </style>
 
-    <style name="AboutTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+    <style name="AboutTheme" parent="AppMaterialTheme">
         <item name="colorPrimary">@color/teal_500</item>
         <item name="colorPrimaryDark">@color/teal_900</item>
         <item name="colorAccent">@color/blue_700</item>

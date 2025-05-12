@@ -14,7 +14,7 @@ buildscript {
     ext.kotlin_version = '2.1.10'
     ext.coroutines_version = "1.10.2"
     dependencies {
-
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.9.4' // or latest
         classpath 'com.android.tools.build:gradle:8.6.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
