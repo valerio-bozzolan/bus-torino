@@ -73,7 +73,7 @@ android {
         buildConfig = true
     }
 
-    /*splits{
+    splits{
         abi{
             enable true
             reset()
@@ -83,7 +83,6 @@ android {
         }
     }
 
-     */
 }
 
 protobuf {
