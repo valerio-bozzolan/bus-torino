@@ -1,0 +1,19 @@
+- Apertura dettagli della linea dagli arrivi nella direzione corretta (https://gitpull.it/T1216)
+    * Risolto da fabio.mazza
+
+- Nuova funzionalità: navigazione verso la fermata (https://gitpull.it/T897)
+    * Segnalato da marcoM32
+    * Risolto da fabio.mazza
+
+- Sostituzione della libreria di mappe OsmDroid con MapLibre per una maggiore velocità e funzionalità (https://gitpull.it/T1225)
+    * Risolto da fabio.mazza
+
+- Abilitazione della selezione della lingua dell'app dalle impostazioni di Android
+    * Risolto da fabio.mazza
+
+- Migliore visualizzazione della direzione della singola linea sulla mappa
+   * Risolto da fabio.mazza
+
+- Aggiornamento delle librerie per evitare bug di sicurezza
+
+- Build per Android 15 (API 35)

@@ -1,0 +1,19 @@
+- Opening line details from arrivals in the correct direction (https://gitpull.it/T1216)
+    * Resolved by fabio.mazza
+
+- New feature: navigation to the stop (https://gitpull.it/T897)
+    * Reported by marcoM32
+    * Resolved by fabio.mazza
+
+- Replaced OsmDroid map library with MapLibre for increased speed and functionality (https://gitpull.it/T1225)
+    * Resolved by fabio.mazza
+
+- Enabling app language selection from Android settings.
+    * Resolved by fabio.mazza
+
+- Improved display of single line direction on the map.
+    * Resolved by fabio.mazza
+
+- Updated libraries to avoid security bugs
+
+- Build for Android 15 (API 35)
