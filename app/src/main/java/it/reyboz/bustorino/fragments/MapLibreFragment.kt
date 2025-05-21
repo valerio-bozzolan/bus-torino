@@ -297,8 +297,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             mapStyle = style
             //setupLayers(style)
 
-            // Start observing data
-            observeStops()
             initMapLocation(style, mapReady, requireContext())
             //init stop layer with this
             val stopsInCache = stopsViewModel.getAllStopsLoaded()
@@ -308,25 +306,8 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 displayStops(stopsInCache)
             if(showBusLayer) setupBusLayer(style)
 
-
-            /*symbolManager = SymbolManager(mapView,mapReady,style, null, "symbol-transit-airfield")
-            symbolManager.iconAllowOverlap = true
-            symbolManager.textAllowOverlap = false
-            symbolManager.textIgnorePlacement =true
-
-
-             */
-            /*symbolManager.addClickListener{ _ ->
-                if (stopActiveSymbol!=null){
-                    hideStopBottomSheet()
-
-                    return@addClickListener true
-                } else
-                    return@addClickListener false
-            }
-
-             */
-
+            // Start observing data now that everything is set up
+            observeStops()
         }
 
 
@@ -683,7 +664,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             displayStops(stopsShowing)
             initialStopToShow?.let{ s->
                 //show the stop in the bottom sheet
-                if(!initialStopShown) {
+                if(!initialStopShown && (s.ID in stopsShowing.map { it.ID })) {
                     openStopInBottomSheet(s)
                     initialStopShown = true
                 }

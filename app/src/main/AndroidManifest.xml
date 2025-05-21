@@ -132,7 +132,7 @@
                 android:name=".ActivitySettings"
                 android:label="@string/title_activity_settings"
                 android:parentActivityName=".ActivityPrincipal"
-                android:theme="@style/AppTheme">
+                android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="it.reyboz.bustorino.ActivityPrincipal"/>
