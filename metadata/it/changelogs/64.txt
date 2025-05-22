@@ -1,0 +1,7 @@
+Risolto crash mostrando la fermata dai Preferiti
+Risolto da fabio.mazza
+https://gitpull.it/T1303
+
+Risolto crash aprendo le impostazioni
+Risolto da fabio.mazza
+https://gitpull.it/T1302

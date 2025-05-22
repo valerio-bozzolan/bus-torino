@@ -1,0 +1,7 @@
+Fix crash when showing the stop in the map from Favorites
+Resolved by fabio.mazza
+https://gitpull.it/T1303
+
+Fix crash when opening the Settings
+Resolved by fabio.mazza
+https://gitpull.it/T1302
