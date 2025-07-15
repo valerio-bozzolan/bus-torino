@@ -196,6 +196,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     private lateinit var locationComponent: LocationComponent
     private lateinit var polylineSource: GeoJsonSource
     private lateinit var polyArrowSource: GeoJsonSource
+    private lateinit var selectedBusSource: GeoJsonSource
 
     private var savedCameraPosition: CameraPosition? = null
     private var vehShowing = ""
@@ -699,8 +700,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             stopTitleTextView.visibility = View.VISIBLE
 
             val string_show = if (stop.numRoutesStopping==0) ""
-            else if (stop.numRoutesStopping <= 1)
-                requireContext().getString(R.string.line_fill, stop.routesThatStopHereToString())
             else requireContext().getString(R.string.lines_fill, stop.routesThatStopHereToString())
             linesPassingTextView.text = string_show
 
@@ -710,6 +709,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             }
 
             arrivalsCard.visibility = View.VISIBLE
+            directionsCard.visibility = View.VISIBLE
 
             directionsCard.setOnClickListener {
                 ViewUtils.openStopInOutsideApp(stop, context)
@@ -750,7 +750,11 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
         //reset states
         shownStopInBottomSheet = null
-        vehShowing = ""
+        if (vehShowing!=""){
+            //we are hiding a vehicle
+            vehShowing = ""
+            updatePositionsIcons(true)
+        }
 
     }
 
@@ -764,39 +768,48 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         bottomLayout?.let {
             val lineName = FiveTNormalizer.fixShortNameForDisplay(
                 GtfsUtils.getLineNameFromGtfsID(data.posUpdate.routeID), true)
-            stopNumberTextView.text = requireContext().getString(R.string.line_fill, lineName)
             val pat = data.pattern
             if (pat!=null){
+                //WE HAVE THE DIRECTIONS DATA
                 stopTitleTextView.text = pat.headsign
                 stopTitleTextView.visibility = View.VISIBLE
                 Log.d(DEBUG_TAG, "Showing headsign ${pat.headsign} for vehicle $veh")
+                stopNumberTextView.text = requireContext().getString(R.string.line_fill_towards, lineName)
+
+                bottomrightImage.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_magnifying_glass,  activity?.theme))
+                directionsCard.setOnClickListener {
+                    data.pattern?.let {
+
+                        if(patternShown?.pattern?.code == it.code){
+                            context?.let { c->Toast.makeText(c, R.string.showing_same_direction, Toast.LENGTH_SHORT).show() }
+                        }else
+                            showPatternWithCode(it.code)
+                    } //TODO
+                    // ?: {
+                    //    context?.let { ctx -> Toast.makeText(ctx,"") }
+                    //}
+                }
+                //set color
+                val colorBlue = ResourcesCompat.getColor(resources,R.color.blue_500,activity?.theme)
+                ViewCompat.setBackgroundTintList(directionsCard, ColorStateList.valueOf(colorBlue))
+                directionsCard.visibility = View.VISIBLE
             } else {
                 //stopTitleTextView.text = "NN"
                 stopTitleTextView.visibility = View.GONE
+                stopNumberTextView.text = requireContext().getString(R.string.line_fill, lineName)
+                directionsCard.visibility = View.GONE
+
             }
-            linesPassingTextView.text = data.posUpdate.vehicle
+            linesPassingTextView.text = requireContext().getString(R.string.vehicle_fill, data.posUpdate.vehicle)
         }
 
         arrivalsCard.visibility=View.GONE
-        bottomrightImage.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_magnifying_glass,  activity?.theme))
-        directionsCard.setOnClickListener {
-            data.pattern?.let {
-
-                if(patternShown?.pattern?.code == it.code){
-                    context?.let { c->Toast.makeText(c, R.string.showing_same_direction, Toast.LENGTH_SHORT).show() }
-                }else
-                    showPatternWithCode(it.code)
-            } //TODO
-            // ?: {
-            //    context?.let { ctx -> Toast.makeText(ctx,"") }
-            //}
-        }
-        //set color
-        val colorBlue = ResourcesCompat.getColor(resources,R.color.blue_620,activity?.theme)
-        ViewCompat.setBackgroundTintList(directionsCard, ColorStateList.valueOf(colorBlue))
 
         vehShowing = veh
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+
+        //call update position to color the bus special
+        updatePositionsIcons(true)
         //isBottomSheetShowing = true
         Log.d(DEBUG_TAG, "Shown vehicle $veh in bottom layout")
     }
@@ -878,6 +891,10 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         style.addSource(busesSource)
         style.addImage("bus_symbol",ResourcesCompat.getDrawable(resources, R.drawable.map_bus_position_icon, activity?.theme)!!)
 
+        selectedBusSource = GeoJsonSource("sel_bus_source")
+        style.addSource(selectedBusSource)
+        style.addImage("sel_bus_symbol", ResourcesCompat.getDrawable(resources, R.drawable.map_bus_position_icon_sel, activity?.theme)!!)
+
         // Buses layer
         val busesLayer = SymbolLayer(BUSES_LAYER_ID, BUSES_SOURCE_ID).apply {
             withProperties(
@@ -891,6 +908,17 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             )
         }
         style.addLayerAbove(busesLayer, STOPS_LAYER_ID)
+
+        val selectedBusLayer = SymbolLayer("sel_bus_layer", "sel_bus_source").withProperties(
+            PropertyFactory.iconImage("sel_bus_symbol"),
+            //PropertyFactory.iconSize(1.2f),
+            PropertyFactory.iconAllowOverlap(true),
+            PropertyFactory.iconIgnorePlacement(true),
+            PropertyFactory.iconRotate(Expression.get("bearing")),
+            PropertyFactory.iconRotationAlignment(ICON_ROTATION_ALIGNMENT_MAP)
+
+        )
+        style.addLayerAbove(selectedBusLayer, BUSES_LAYER_ID)
 
     }
 
@@ -1198,9 +1226,9 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         var countUpds = 0
         //val symbolsToUpdate = ArrayList<Symbol>()
         for (upsWithTrp in incomingData.values){
-            val pos = upsWithTrp.first
+            val newPos = upsWithTrp.first
             val patternStops = upsWithTrp.second
-            val vehID = pos.vehicle
+            val vehID = newPos.vehicle
             var animate = false
             if (vehsOld.contains(vehID)){
                 //changing the location of an existing bus
@@ -1210,10 +1238,10 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                 var avoidShowingUpdateBecauseIsImpossible = false
                 oldPos?.let{
 
-                    if(it.routeID!=pos.routeID) {
-                        val dist = LatLng(it.latitude, it.longitude).distanceTo(LatLng(pos.latitude, pos.longitude))
-                        val speed = dist*3.6 / (pos.timestamp - it.timestamp) //this should be in km/h
-                        Log.w(DEBUG_TAG, "Vehicle $vehID changed route from ${oldPos.routeID} to ${pos.routeID}, distance: $dist, speed: $speed")
+                    if(it.routeID!=newPos.routeID) {
+                        val dist = LatLng(it.latitude, it.longitude).distanceTo(LatLng(newPos.latitude, newPos.longitude))
+                        val speed = dist*3.6 / (newPos.timestamp - it.timestamp) //this should be in km/h
+                        Log.w(DEBUG_TAG, "Vehicle $vehID changed route from ${oldPos.routeID} to ${newPos.routeID}, distance: $dist, speed: $speed")
                         if (speed > 120 || speed < 0){
                             avoidShowingUpdateBecauseIsImpossible = true
                         }
@@ -1225,26 +1253,25 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                     continue
                 }
 
-                val samePosition = oldPos?.let { (it.latitude==pos.latitude)&&(it.longitude == pos.longitude) }?:false
+                val samePosition = oldPos?.let { (it.latitude==newPos.latitude)&&(it.longitude == newPos.longitude) }?:false
                 val setPattern =  (oldPattern==null) && (patternStops!=null)
                 if((!samePosition)|| setPattern) {
-                    //THIS PART C
-                    /*val isPositionInBounds = isInsideVisibleRegion(
-                        pos.latitude, pos.longitude, true
-                     ) || (oldPos?.let { isInsideVisibleRegion(it.latitude,it.longitude,true) } ?: false)
 
-                     */
-                    val skip = true
-                    if (skip) {
-                        //animate = true
-                        // set the pattern data too
-                        updatesByVehDict[vehID]!!.pattern = patternStops!!.pattern
+                    val newOrOldPosInBounds = isPointInsideVisibleRegion(
+                        newPos.latitude, newPos.longitude, true
+                     ) || (oldPos?.let { isPointInsideVisibleRegion(it.latitude,it.longitude,true) } ?: false)
+
+
+                    //val skip = true
+                    if (newOrOldPosInBounds) {
+                        // update the pattern data, the position will be updated with the animation
+                        patternStops?.let { updatesByVehDict[vehID]!!.pattern = it.pattern}
                         //this moves both the icon and the label
-                        animateNewPositionMove(pos)
+                        animateNewPositionMove(newPos)
 
                     } else {
                         //update
-                        updatesByVehDict[vehID] = LivePositionTripPattern(pos,patternStops!!.pattern)
+                        updatesByVehDict[vehID] = LivePositionTripPattern(newPos,patternStops?.pattern)
                         /*busLabelSymbolsByVeh[vehID]?.let {
                             it.latLng = LatLng(pos.latitude, pos.longitude)
                             symbolsToUpdate.add(it)
@@ -1259,7 +1286,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             else{
                 //not inside
                 // update it simply
-                updatesByVehDict[vehID] = LivePositionTripPattern(pos, patternStops?.pattern)
+                updatesByVehDict[vehID] = LivePositionTripPattern(newPos, patternStops?.pattern)
                 //createLabelForVehicle(pos)
                 //if(vehShowing==vehID)
                 //    map?.animateCamera(CameraUpdateFactory.newLatLng(LatLng(pos.latitude, pos.longitude)),500)
@@ -1379,24 +1406,26 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             return
         }
 
-        val features = ArrayList<Feature>()//stops.mapNotNull { stop ->
-        //stop.latitude?.let { lat ->
-        //    stop.longitude?.let { lon ->
+        val busFeatures = ArrayList<Feature>()
+        val selectedBusFeatures = ArrayList<Feature>()
         for (dat in updatesByVehDict.values){
             //if (s.latitude!=null && s.longitude!=null)
             val pos = dat.posUpdate
             val point = Point.fromLngLat(pos.longitude, pos.latitude)
-            features.add(
-                Feature.fromGeometry(
-                    point,
-                    JsonObject().apply {
-                        addProperty("veh", pos.vehicle)
-                        addProperty("trip", pos.tripID)
-                        addProperty("bearing", pos.bearing ?:0.0f)
-                        addProperty("line", pos.routeID)
-                    }
-                )
+
+            val newFeature = Feature.fromGeometry(
+                point,
+                JsonObject().apply {
+                    addProperty("veh", pos.vehicle)
+                    addProperty("trip", pos.tripID)
+                    addProperty("bearing", pos.bearing ?:0.0f)
+                    addProperty("line", pos.routeID)
+                }
             )
+            if (vehShowing == dat.posUpdate.vehicle)
+                selectedBusFeatures.add(newFeature)
+            else
+                busFeatures.add(newFeature)
             /*busLabelSymbolsByVeh[pos.vehicle]?.let {
                 it.latLng = LatLng(pos.latitude, pos.longitude)
                 symbolsToUpdate.add(it)
@@ -1404,7 +1433,8 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
              */
         }
-        busesSource.setGeoJson(FeatureCollection.fromFeatures(features))
+        busesSource.setGeoJson(FeatureCollection.fromFeatures(busFeatures))
+        selectedBusSource.setGeoJson(FeatureCollection.fromFeatures(selectedBusFeatures))
         //update labels, clear cache to be used
         //symbolManager.update(symbolsToUpdate)
         //symbolsToUpdate.clear()

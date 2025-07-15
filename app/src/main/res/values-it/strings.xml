@@ -28,10 +28,12 @@
     <string name="no_lines_found">Nessuna linea in questa categoria</string>
     <string name="no_lines_found_query">Nessuna linea corrisponde alla ricerca</string>
     <string name="search_box_lines_suggestion_filter">Filtra per nome</string>
-    <string name="line_fill">Linea: %1$s</string>
+    <string name="line_fill">Linea %1$s</string>
     <string name="lines_fill">Linee: %1$s</string>
+    <string name="line_fill_towards">Linea %1$s, direzione:</string>
     <string name="stop_fill">Fermata %1$s</string>
     <string name="results">Scegli la fermata…</string>
+    <string name="vehicle_fill">Matricola %1$s</string>
     <string name="no_passages">Nessun passaggio</string>
     <string name="no_qrcode">Nessun QR code trovato, prova ad usare un\'altra app</string>
     <string name="action_favorites">Preferiti</string>

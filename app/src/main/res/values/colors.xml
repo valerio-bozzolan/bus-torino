@@ -44,6 +44,7 @@
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="black_900">#1c1c1c</color>
+    <color name="black_800">#3f3f3f</color>
 
     <color name="line_pattern_color">@color/blue_mid_2</color><!-- 2e8df0-->
 

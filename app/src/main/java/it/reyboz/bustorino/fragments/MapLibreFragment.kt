@@ -518,8 +518,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             stopTitleTextView.text = stopName//stop.stopDefaultName
             stopNumberTextView.text = getString(R.string.stop_fill,stop.ID)
             val string_show = if (stop.numRoutesStopping==0) ""
-                else if (stop.numRoutesStopping <= 1)
-                requireContext().getString(R.string.line_fill, stop.routesThatStopHereToString())
             else requireContext().getString(R.string.lines_fill, stop.routesThatStopHereToString())
             linesPassingTextView.text = string_show
 

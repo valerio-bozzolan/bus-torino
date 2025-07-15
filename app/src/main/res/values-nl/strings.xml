@@ -48,7 +48,7 @@
     <string name="no_lines_found">Geen lijnen gevonden in deze categorie</string>
     <string name="no_lines_found_query">Geen lijnen gevonden met deze naam</string>
     <string name="direction_duep">Bestemming:</string>
-    <string name="line_fill">Lijn: %1$s</string>
+    <string name="line_fill">Lijn %1$s</string>
     <string name="no_passages">Geen rooster gevonden</string>
     <string name="no_qrcode">Geen QR code gevonden, probeer het met een andere app</string>
     <string name="internal_error">Onverwachte interne fout, kan geen data halen van de GTT/5T website</string>

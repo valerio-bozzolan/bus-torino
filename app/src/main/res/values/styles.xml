@@ -31,6 +31,8 @@
         <!-- For the preferences Fragment -->
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
 
+        <item name="android:textColor">@color/grey_700</item>
+
     </style>
 
     <style name="Widget.MyApp.Button" parent="Widget.MaterialComponents.Button">

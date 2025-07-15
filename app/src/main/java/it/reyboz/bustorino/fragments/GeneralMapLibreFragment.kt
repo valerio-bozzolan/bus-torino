@@ -169,6 +169,19 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             }
         )
     }
+    protected fun isPointInsideVisibleRegion(p: LatLng, other: Boolean): Boolean{
+        val bounds = map?.projection?.visibleRegion?.latLngBounds
+        var inside = other
+        bounds?.let { inside = it.contains(p) }
+        return inside
+    }
+
+    protected fun isPointInsideVisibleRegion(lat: Double, lon: Double, other: Boolean): Boolean{
+        val p = LatLng(lat, lon)
+        return isPointInsideVisibleRegion(p, other)
+    }
+
+
 
     companion object{
         private const val DEBUG_TAG="GeneralMapLibreFragment"
