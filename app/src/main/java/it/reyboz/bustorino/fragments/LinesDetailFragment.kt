@@ -1172,8 +1172,16 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
     private fun removeVehiclesData(vehs: List<String>){
         for(v in vehs){
-            if (updatesByVehDict.contains(v))
+            if (updatesByVehDict.contains(v)) {
                 updatesByVehDict.remove(v)
+                if (animatorsByVeh.contains(v)){
+                    animatorsByVeh[v]?.cancel()
+                    animatorsByVeh.remove(v)
+                }
+            }
+            if (vehShowing==v){
+                hideStopBottomSheet()
+            }
         }
     }
 
@@ -1195,6 +1203,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             val vehID = pos.vehicle
             var animate = false
             if (vehsOld.contains(vehID)){
+                //changing the location of an existing bus
                 //update position only if the starting or the stopping position of the animation are in the view
                 val oldPos = updatesByVehDict[vehID]?.posUpdate
                 val oldPattern = updatesByVehDict[vehID]?.pattern
@@ -1219,7 +1228,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                 val samePosition = oldPos?.let { (it.latitude==pos.latitude)&&(it.longitude == pos.longitude) }?:false
                 val setPattern =  (oldPattern==null) && (patternStops!=null)
                 if((!samePosition)|| setPattern) {
-                    //TODO RESTORE THIS PART
+                    //THIS PART C
                     /*val isPositionInBounds = isInsideVisibleRegion(
                         pos.latitude, pos.longitude, true
                      ) || (oldPos?.let { isInsideVisibleRegion(it.latitude,it.longitude,true) } ?: false)
@@ -1229,13 +1238,13 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                     if (skip) {
                         //animate = true
                         // set the pattern data too
-                        updatesByVehDict[vehID]!!.pattern = patternStops?.pattern
+                        updatesByVehDict[vehID]!!.pattern = patternStops!!.pattern
                         //this moves both the icon and the label
                         animateNewPositionMove(pos)
 
                     } else {
                         //update
-                        updatesByVehDict[vehID] = LivePositionTripPattern(pos,patternStops?.pattern)
+                        updatesByVehDict[vehID] = LivePositionTripPattern(pos,patternStops!!.pattern)
                         /*busLabelSymbolsByVeh[vehID]?.let {
                             it.latLng = LatLng(pos.latitude, pos.longitude)
                             symbolsToUpdate.add(it)
@@ -1269,7 +1278,12 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         for(vehID in vehsOld){
             //remove after 2 minutes of inactivity
             if (updatesByVehDict[vehID]!!.posUpdate.timestamp - currentTimeStamp > 2*60){
+                //remove the bus
                 updatesByVehDict.remove(vehID)
+                if(vehID in animatorsByVeh){
+                    animatorsByVeh[vehID]?.cancel()
+                    animatorsByVeh.remove(vehID)
+                }
                 //removeVehicleLabel(vehID)
             }
         }
@@ -1299,11 +1313,14 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                 override fun onAnimationUpdate(animation: ValueAnimator) {
                     latLng = animation.animatedValue as LatLng
                     //update position on animation
-                    val update = updatesByVehDict[positionUpdate.vehicle]!!
-                    latLng?.let { ll->
+                    val update = updatesByVehDict[positionUpdate.vehicle]
+                    if(update!=null) latLng?.let { ll->
                         update.posUpdate.latitude = ll.latitude
                         update.posUpdate.longitude = ll.longitude
                         updatePositionsIcons(false)
+                    } else{
+                        //The update is null
+                        Log.w(DEBUG_TAG, "The bus position to animate has been removed, but the animator is still running!")
                     }
                 }
             })
@@ -1337,6 +1354,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             //set the new position as the current one but with the old lat and lng
             positionUpdate.latitude = posUp.latitude
             positionUpdate.longitude = posUp.longitude
+            //this might be null if the updates dict does not contain the vehID
             updatesByVehDict[vehID]!!.posUpdate = positionUpdate
             valueAnimator.duration = 300
             valueAnimator.interpolator = LinearInterpolator()

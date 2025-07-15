@@ -45,7 +45,6 @@ import it.reyboz.bustorino.data.AppDataProvider
 import it.reyboz.bustorino.data.NextGenDB
 import it.reyboz.bustorino.data.UserDB
 import it.reyboz.bustorino.middleware.AsyncStopFavoriteAction
-import it.reyboz.bustorino.middleware.SearchRequestType
 import it.reyboz.bustorino.util.LinesNameSorter
 import it.reyboz.bustorino.viewmodels.ArrivalsViewModel
 import java.util.*
@@ -69,7 +68,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
     protected lateinit var timesSourceTextView: TextView
     protected lateinit var messageTextView: TextView
     protected lateinit  var arrivalsRecyclerView: RecyclerView
-    private lateinit var mListAdapter: PalinaAdapter
+    private var mListAdapter: PalinaAdapter? = null
 
     private lateinit var resultsLayout : LinearLayout
     private lateinit var loadingMessageTextView: TextView
@@ -135,11 +134,11 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        stopID = arguments!!.getString(KEY_STOP_ID) ?: ""
+        stopID = requireArguments().getString(KEY_STOP_ID) ?: ""
         DEBUG_TAG = DEBUG_TAG_ALL + " " + stopID
 
         //this might really be null
-        stopName = arguments!!.getString(KEY_STOP_NAME)
+        stopName = requireArguments().getString(KEY_STOP_NAME)
         val arrivalsFragment = this
         listener = object : OnDBUpdateStatusChangeListener {
             override fun onDBStatusChanged(updating: Boolean) {
@@ -159,7 +158,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
                 return true
             }
         }
-        prefs = DBStatusManager(context!!.applicationContext, listener)
+        prefs = DBStatusManager(requireContext().applicationContext, listener)
         justCreated = true
     }
 
@@ -178,7 +177,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         loadingMessageTextView = root.findViewById(R.id.loadingMessageTextView)
         progressBar = root.findViewById(R.id.circularProgressBar)
 
-        hideHintButton.setOnClickListener(View.OnClickListener { v: View? -> this.onHideHint(v) })
+        hideHintButton.setOnClickListener { v: View? -> this.onHideHint(v) }
 
         //theScrollView = root.findViewById(R.id.arrivalsScrollView);
         // recyclerview holding the arrival times
@@ -217,7 +216,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             toggleLastStopToFavorites()
         })
 
-        val displayName = arguments!!.getString(STOP_TITLE)
+        val displayName = requireArguments().getString(STOP_TITLE)
         if (displayName != null) setTextViewMessage(
             String.format(
                 getString(R.string.passages), displayName
@@ -225,7 +224,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         )
 
 
-        val probablemessage = arguments!!.getString(MESSAGE_TEXT_VIEW)
+        val probablemessage = requireArguments().getString(MESSAGE_TEXT_VIEW)
         if (probablemessage != null) {
             //Log.d("BusTO fragment " + this.getTag(), "We have a possible message here in the savedInstaceState: " + probablemessage);
             messageTextView.setText(probablemessage)
@@ -333,7 +332,8 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         }*/
         mListener.readyGUIfor(FragmentKind.ARRIVALS)
 
-        resetListAdapter(mListAdapter)
+        //fix bug when the list adapter is null
+        mListAdapter?.let { resetListAdapter(it) }
         if (noArrivalsAdapter != null) {
             noArrivalsRecyclerView.adapter = noArrivalsAdapter
         }
@@ -402,28 +402,22 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
 
     // HINT "HOW TO USE"
     private fun showHints() {
-        howDoesItWorkTextView!!.visibility = View.VISIBLE
-        hideHintButton!!.visibility = View.VISIBLE
+        howDoesItWorkTextView.visibility = View.VISIBLE
+        hideHintButton.visibility = View.VISIBLE
         //actionHelpMenuItem.setVisible(false);
     }
 
     private fun hideHints() {
-        howDoesItWorkTextView!!.visibility = View.GONE
-        hideHintButton!!.visibility = View.GONE
+        howDoesItWorkTextView.visibility = View.GONE
+        hideHintButton.visibility = View.GONE
         //actionHelpMenuItem.setVisible(true);
     }
 
     fun onHideHint(v: View?) {
         hideHints()
-        ScreenBaseFragment.setOption(requireContext(), OPTION_SHOW_LEGEND, false)
+        setOption(requireContext(), OPTION_SHOW_LEGEND, false)
     }
 
-    val currentFetchers: ArrayList<Fetcher?>
-        /**
-         * Give the fetchers
-         * @return the list of the fetchers
-         */
-        get() = ArrayList(this.fetchers)
     /*val currentFetchersAsArray: Array<ArrivalsFetcher?>
         get() {
             val arr = arrayOfNulls<ArrivalsFetcher>(fetchers!!.size)
@@ -434,7 +428,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
      */
 
     fun getCurrentFetchersAsArray(): Array<out ArrivalsFetcher?> {
-        val r= fetchers.toTypedArray() ?:  emptyArray<ArrivalsFetcher>()
+        val r= fetchers.toTypedArray()
             //?: emptyArray<ArrivalsFetcher>()
         return r
     }
@@ -470,12 +464,10 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             } else {
                 Collections.sort(routesWithNoPassages, LinesNameSorter())
                 noArrivalsAdapter = RouteOnlyLineAdapter(routesWithNoPassages, null)
-                if (noArrivalsRecyclerView != null) {
-                    noArrivalsRecyclerView!!.adapter = noArrivalsAdapter
+                noArrivalsRecyclerView!!.adapter = noArrivalsAdapter
 
-                    noArrivalsRecyclerView!!.visibility = View.VISIBLE
-                    noArrivalsTitleView!!.visibility = View.VISIBLE
-                }
+                noArrivalsRecyclerView!!.visibility = View.VISIBLE
+                noArrivalsTitleView!!.visibility = View.VISIBLE
             }
 
 
@@ -500,21 +492,21 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         val updatedFetchers = adjustFetchersToSource(source)
         if (!updatedFetchers) Log.w(DEBUG_TAG, "Tried to update the source fetcher but it didn't work")
         val base_message = getString(R.string.times_source_fmt, source_txt)
-        timesSourceTextView!!.text = base_message
-        timesSourceTextView!!.visibility = View.VISIBLE
+        timesSourceTextView.text = base_message
+        timesSourceTextView.visibility = View.VISIBLE
 
         if (p.totalNumberOfPassages > 0) {
-            timesSourceTextView!!.visibility = View.VISIBLE
+            timesSourceTextView.visibility = View.VISIBLE
         } else {
-            timesSourceTextView!!.visibility = View.INVISIBLE
+            timesSourceTextView.visibility = View.INVISIBLE
         }
         fetchersChangeRequestPending = false
     }
 
-    protected fun adjustFetchersToSource(source: Passaggio.Source?): Boolean {
+    protected fun adjustFetchersToSource(source: Source?): Boolean {
         if (source == null) return false
         var count = 0
-        if (source != Passaggio.Source.UNDETERMINED) while (source != fetchers!![0]!!.sourceForFetcher && count < 200) {
+        if (source != Source.UNDETERMINED) while (source != fetchers[0]!!.sourceForFetcher && count < 200) {
             //we need to update the fetcher that is requested
             rotateFetchers()
             count++
@@ -534,15 +526,15 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
      * It may eventually change the "Add to Favorite" icon
      */
     private fun updateMessage() {
-        var message: String? = null
-        if (stopName != null && stopID != null && !stopName!!.isEmpty()) {
+        var message = ""
+        if (stopName != null && !stopName!!.isEmpty()) {
             message = ("$stopID - $stopName")
         } else if (stopID != null) {
             message = stopID
         } else {
             Log.e("ArrivalsFragm$tag", "NO ID FOR THIS FRAGMENT - something went horribly wrong")
         }
-        if (message != null) {
+        if (message.isNotEmpty()) {
             setTextViewMessage(getString(R.string.passages, message))
         }
 
@@ -559,19 +551,19 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         when (id) {
             loaderFavId -> {
                 builder.appendPath("favorites").appendPath(stopID)
-                cl = CursorLoader(context!!, builder.build(), UserDB.getFavoritesColumnNamesAsArray, null, null, null)
+                cl = CursorLoader(requireContext(), builder.build(), UserDB.getFavoritesColumnNamesAsArray, null, null, null)
             }
 
             loaderStopId -> {
                 builder.appendPath("stop").appendPath(stopID)
                 cl = CursorLoader(
-                    context!!, builder.build(), arrayOf(NextGenDB.Contract.StopsTable.COL_NAME),
+                    requireContext(), builder.build(), arrayOf(NextGenDB.Contract.StopsTable.COL_NAME),
                     null, null, null
                 )
             }
 
             else -> {
-                cl = CursorLoader(context!!, builder.build(), null, null,null,null)
+                cl = CursorLoader(requireContext(), builder.build(), null, null,null,null)
                 Log.d(DEBUG_TAG, "This is probably going to crash")
             }
         }
@@ -638,8 +630,8 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
      * @param message the whole message to write in the textView
      */
     fun setTextViewMessage(message: String?) {
-        messageTextView!!.text = message
-        messageTextView!!.visibility = View.VISIBLE
+        messageTextView.text = message
+        messageTextView.visibility = View.VISIBLE
     }
 
     fun toggleLastStopToFavorites() {
@@ -648,7 +640,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             // toggle the status in background
 
             AsyncStopFavoriteAction(
-                context!!.applicationContext, AsyncStopFavoriteAction.Action.TOGGLE
+                requireContext().applicationContext, AsyncStopFavoriteAction.Action.TOGGLE
             ) { v: Boolean -> updateStarIconFromLastBusStop(v) }.execute(stop)
         } else {
             // this case have no sense, but just immediately update the favorite icon
@@ -690,25 +682,25 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
 
         // check if there is a last Stop
 
-        if (stopID == null) {
-            addToFavorites!!.visibility = View.INVISIBLE
+        if (stopID.isEmpty()) {
+            addToFavorites.visibility = View.INVISIBLE
         } else {
             // filled or outline?
             if (stopIsInFavorites) {
-                addToFavorites!!.setImageResource(R.drawable.ic_star_filled)
+                addToFavorites.setImageResource(R.drawable.ic_star_filled)
             } else {
-                addToFavorites!!.setImageResource(R.drawable.ic_star_outline)
+                addToFavorites.setImageResource(R.drawable.ic_star_outline)
             }
 
-            addToFavorites!!.visibility = View.VISIBLE
+            addToFavorites.visibility = View.VISIBLE
         }
     }
 
     override fun onDestroyView() {
         //arrivalsRecyclerView = null
         if (arguments != null) {
-            arguments!!.putString(SOURCES_TEXT, timesSourceTextView!!.text.toString())
-            arguments!!.putString(MESSAGE_TEXT_VIEW, messageTextView!!.text.toString())
+            requireArguments().putString(SOURCES_TEXT, timesSourceTextView.text.toString())
+            requireArguments().putString(MESSAGE_TEXT_VIEW, messageTextView.text.toString())
         }
         super.onDestroyView()
     }
@@ -783,11 +775,11 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         @JvmStatic
         fun getDisplayArrivalsSource(source: Source, context: Context): String{
             return when (source) {
-                Passaggio.Source.GTTJSON -> context.getString(R.string.gttjsonfetcher)
-                Passaggio.Source.FiveTAPI -> context.getString(R.string.fivetapifetcher)
-                Passaggio.Source.FiveTScraper -> context.getString(R.string.fivetscraper)
-                Passaggio.Source.MatoAPI -> context.getString(R.string.source_mato)
-                Passaggio.Source.UNDETERMINED ->                 //Don't show the view
+                Source.GTTJSON -> context.getString(R.string.gttjsonfetcher)
+                Source.FiveTAPI -> context.getString(R.string.fivetapifetcher)
+                Source.FiveTScraper -> context.getString(R.string.fivetscraper)
+                Source.MatoAPI -> context.getString(R.string.source_mato)
+                Source.UNDETERMINED ->                 //Don't show the view
                     context.getString(R.string.undetermined_source)
 
             }
