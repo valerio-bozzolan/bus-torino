@@ -1,0 +1,9 @@
+Risolto crash nell'animazione dei bus.
+Segnalato da Simone. Risolto da Fabio Mazza. 
+https://gitpull.it/T1323
+
+Fix crash nella schermata degli arrivi
+Segnalato da Solomon Mimmo & Igor Calì. Risolto da Fabio Mazza. 
+https://gitpull.it/T1312
+
+Ritocchi estetici alla mappa

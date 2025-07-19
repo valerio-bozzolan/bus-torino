@@ -1,0 +1,9 @@
+Fix crash related to the animation in buses
+Reported by Simone and others. Resolved by Fabio Mazza. 
+https://gitpull.it/T1323
+
+Fix crash in displaying the arrivals
+Reported by Solomon Mimmo & Igor Calì. Resolved by Fabio Mazza.
+https://gitpull.it/T1312
+
+Style adjustments mostly in the map
