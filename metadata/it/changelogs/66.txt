@@ -1,0 +1,2 @@
+Risolto crash delle posizioni dei bus in tempo reale (causato dalla libreria MQTT)
+Segnalato da Rosto e Elena Toni. Risolto da Fabio Mazza.

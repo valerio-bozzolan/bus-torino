@@ -1,0 +1,2 @@
+Fix realtime bus positions crashing caused by MQTT library
+Reported by Rosto and Elena Toni. Resolved by Fabio Mazza.
