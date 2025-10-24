@@ -27,10 +27,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
+import android.view.*;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
@@ -39,8 +36,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.view.GravityCompat;
-import androidx.core.view.ViewCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.*;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -92,7 +89,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
          */
         boolean showingArrivalsFromIntent = false;
 
-        Toolbar mToolbar = findViewById(R.id.default_toolbar);
+        final Toolbar mToolbar = findViewById(R.id.default_toolbar);
         setSupportActionBar(mToolbar);
         if (getSupportActionBar()!=null)
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -265,6 +262,54 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
         //last but not least, set the good default values
         setDefaultSettingsValuesWhenMissing();
+        // handle the device "insets"
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootRelativeLayout), (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // Apply the insets as a margin to the view. This solution sets only the
+            // bottom, left, and right dimensions, but you can apply whichever insets are
+            // appropriate to your layout. You can also update the view padding if that's
+            // more appropriate.
+            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            mlp.leftMargin = insets.left;
+            mlp.bottomMargin = insets.bottom;
+            mlp.rightMargin = insets.right;
+            v.setLayoutParams(mlp);
+            //set for toolbar
+            //mlp = (ViewGroup.MarginLayoutParams) mToolbar.getLayoutParams();
+            //mlp.topMargin = insets.top;
+            //mToolbar.setLayoutParams(mlp);
+            mToolbar.setPadding(0, insets.top, 0, 0);
+
+            // Return CONSUMED if you don't want the window insets to keep passing
+            // down to descendant views.
+            return WindowInsetsCompat.CONSUMED;
+        });
+
+        /*
+        ViewCompat.setOnApplyWindowInsetsListener(mToolbar, (v, windowInsets) -> {
+            Insets statusBarInsets = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars());
+            // Apply the insets as a margin to the view.
+            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            mlp.topMargin = statusBarInsets.top;
+            v.setLayoutParams(mlp);
+            v.setPadding(0, statusBarInsets.top, 0, 0);
+
+            // Return CONSUMED if you don't want the window insets to keep passing
+            // down to descendant views.
+            return WindowInsetsCompat.CONSUMED;
+        });
+
+         */
+        //to properly handle IME
+        WindowInsetsControllerCompat insetsController =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+
+        if (insetsController != null) {
+            insetsController.setSystemBarsBehavior(
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            );
+        }
+
 
         //check if first run activity (IntroActivity) has been started once or not
         boolean hasIntroRun = theShPr.getBoolean(PreferencesHolder.PREF_INTRO_ACTIVITY_RUN,false);

@@ -24,6 +24,11 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.os.Build;
+import android.view.ViewGroup;
+import androidx.core.graphics.Insets;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.annotation.Nullable;
@@ -187,5 +192,39 @@ public abstract class GeneralActivity extends AppCompatActivity {
             }
         }
     }
+
+    protected OnApplyWindowInsetsListener applyBottomAndBordersInsetsListener = (v, windowInsets) -> {
+        Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+        // Apply the insets as a margin to the view. This solution sets only the
+        // bottom, left, and right dimensions, but you can apply whichever insets are
+        // appropriate to your layout. You can also update the view padding if that's
+        // more appropriate.
+        ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+        mlp.leftMargin = insets.left;
+        mlp.bottomMargin = insets.bottom;
+        mlp.rightMargin = insets.right;
+        v.setLayoutParams(mlp);
+        //set for toolbar
+
+        // Return CONSUMED if you don't want the window insets to keep passing
+        // down to descendant views.
+        return WindowInsetsCompat.CONSUMED;
+    };
+
+    protected OnApplyWindowInsetsListener applyBottomInsetsListener = (v, windowInsets) -> {
+        Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+        // Apply the insets as a margin to the view. This solution sets only the
+        // bottom, left, and right dimensions, but you can apply whichever insets are
+        // appropriate to your layout. You can also update the view padding if that's
+        // more appropriate.
+        ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+        mlp.bottomMargin = insets.bottom;
+        v.setLayoutParams(mlp);
+        //set for toolbar
+
+        // Return CONSUMED if you don't want the window insets to keep passing
+        // down to descendant views.
+        return WindowInsetsCompat.CONSUMED;
+    };
 
 }

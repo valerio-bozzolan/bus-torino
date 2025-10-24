@@ -39,7 +39,8 @@ import androidx.room.migration.Migration
     version = GtfsDatabase.VERSION,
     autoMigrations = [
         AutoMigration(from=2,to=3)
-    ]
+    ],
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class GtfsDatabase : RoomDatabase() {

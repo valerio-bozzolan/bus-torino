@@ -51,11 +51,13 @@
                 android:name=".ActivityBackup"
                 android:label="@string/backup_activity"
                 android:parentActivityName=".ActivityPrincipal"
-                android:theme="@style/AppTheme"
+                android:theme="@style/MapTheme"
                 android:exported="false"/>
         <activity
                 android:name=".ActivityIntro"
-                android:exported="false"/>
+                android:exported="false"
+                android:theme="@style/AppTheme.NoActionBar.Light"
+        />
         <activity
                 android:name=".ActivityExperiments"
                 android:label="@string/experiments"

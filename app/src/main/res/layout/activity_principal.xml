@@ -5,6 +5,7 @@
     android:id="@+id/drawer_layout"
     android:layout_height="match_parent">
     <RelativeLayout
+            android:id="@+id/rootRelativeLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -24,7 +25,7 @@
             android:layout_below="@id/default_toolbar"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_alignParentBottom="true"
             android:layout_alignParentStart="true"
             android:layout_alignParentEnd="true"
@@ -44,7 +45,7 @@
         app:itemIconTint="@color/teal_500"
         app:itemTextAppearance="?android:attr/textAppearanceMedium"
         app:itemTextColor="@color/black_900"
-        android:fitsSystemWindows="true"
+        android:fitsSystemWindows="false"
         app:menu="@menu/drawer_main" />
 
 

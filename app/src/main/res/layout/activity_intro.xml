@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context=".ActivityIntro"
+>
 <androidx.constraintlayout.widget.ConstraintLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/theConstraintLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".ActivityIntro">
-
+        android:layout_height="match_parent">
+    <!-- Maybe the three bottom element could be grouped together into a single layout? -->
     <ImageButton
             android:src="@drawable/arrow_forward_white"
             android:rotation="180"
@@ -15,7 +19,8 @@
             android:backgroundTint="?colorAccent"
             android:textColor="@color/white"
             android:contentDescription="@string/previous"
-            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent"/>
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
     <ImageButton
             android:src="@drawable/arrow_forward_white"
             android:layout_width="wrap_content"
@@ -25,7 +30,8 @@
             app:circularflow_radiusInDP="5dp"
             android:contentDescription="@string/next"
 
-            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
     <ImageButton
             android:src="@drawable/close_white_large"
@@ -57,3 +63,4 @@
             app:layout_constraintRight_toLeftOf="@id/btnNext"
     />
 </androidx.constraintlayout.widget.ConstraintLayout>
+</RelativeLayout>

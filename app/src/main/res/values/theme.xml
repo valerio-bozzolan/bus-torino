@@ -1,29 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="FavTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="FavTheme" parent="AppMaterialTheme.NoActionBar">
         <item name="colorPrimary">@color/blue_500</item>
         <item name="colorPrimaryDark">@color/blue_700</item>
         <item name="colorAccent">@color/teal_500</item>
     </style>
 
-    <style name="AboutTheme" parent="AppMaterialTheme">
+    <style name="AboutTheme" parent="AppMaterialTheme.NoActionBar">
         <item name="colorPrimary">@color/teal_500</item>
         <item name="colorPrimaryDark">@color/teal_900</item>
         <item name="colorAccent">@color/blue_700</item>
         <item name="colorOnPrimary">@color/white</item>
-
     </style>
 
-    <style name="MapTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="MapTheme" parent="AppMaterialTheme.NoActionBar">
         <item name="colorPrimary">@color/orange_500</item>
         <item name="colorPrimaryDark">@color/orange_700</item>
         <item name="colorAccent">@color/teal_500</item>
         <item name="colorOnPrimary">@color/white</item>
-
     </style>
 
     <style name="preferenceTheme" parent="PreferenceThemeOverlay"></style>
+
+    <style name="AppTheme.NoActionBar.Light" parent="AppTheme.NoActionBar">
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
 
 
 

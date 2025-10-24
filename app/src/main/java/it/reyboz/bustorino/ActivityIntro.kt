@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.ImageButton
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -99,6 +100,10 @@ class ActivityIntro : GeneralActivity(), IntroFragment.IntroListener {
         closeBottomButton.setOnClickListener {
             closeIntroduction()
         }
+        ViewCompat.setOnApplyWindowInsetsListener(
+            findViewById<View>(R.id.theConstraintLayout),
+            this.applyBottomAndBordersInsetsListener
+        )
     }
 
 

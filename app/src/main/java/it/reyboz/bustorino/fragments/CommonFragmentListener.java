@@ -1,10 +1,7 @@
 package it.reyboz.bustorino.fragments;
 
-import android.location.Location;
-import android.view.View;
+import androidx.annotation.Nullable;
 import it.reyboz.bustorino.backend.Stop;
-
-import javax.annotation.Nullable;
 
 public interface CommonFragmentListener {
 

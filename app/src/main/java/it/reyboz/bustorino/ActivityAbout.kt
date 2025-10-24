@@ -24,9 +24,15 @@ import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.core.view.OnApplyWindowInsetsListener
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import it.reyboz.bustorino.backend.utils
 import it.reyboz.bustorino.middleware.BarcodeScanUtils
 
@@ -59,11 +65,14 @@ class ActivityAbout : AppCompatActivity() {
         setSupportActionBar(mToolbar);
 
          */
+        val mToolbar = findViewById<Toolbar>(R.id.default_toolbar)
+        setSupportActionBar(mToolbar)
+
         if (supportActionBar != null) supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-        val versionText = findViewById<TextView>(R.id.versionTextView)
-        Log.d("BusTO About", "The version text view is: $versionText")
-        versionText.text = resources.getText(R.string.app_version).toString() + ": " + BuildConfig.VERSION_NAME
+        val versionTextView = findViewById<TextView>(R.id.versionTextView)
+        Log.d("BusTO About", "The version text view is: $versionTextView")
+        versionTextView.text = resources.getText(R.string.app_version).toString() + ": " + BuildConfig.VERSION_NAME
 
         val openTelegramButton = findViewById<Button>(R.id.openTelegramButton)
         openTelegramButton.setOnClickListener { view: View? ->
@@ -86,6 +95,29 @@ class ActivityAbout : AppCompatActivity() {
         val openTutorialButton = findViewById<Button>(R.id.openTutorialButton)
         openTutorialButton.setOnClickListener {
             startIntroductionActivity()
+        }
+
+        // handle the device "insets"
+        ViewCompat.setOnApplyWindowInsetsListener(versionTextView,
+            OnApplyWindowInsetsListener { v: View?, windowInsets: WindowInsetsCompat? ->
+                val insets = windowInsets!!.getInsets(WindowInsetsCompat.Type.systemBars())
+                // Apply the insets as a margin to the view. This solution sets only the
+                // bottom, left, and right dimensions, but you can apply whichever insets are
+                // appropriate to your layout. You can also update the view padding if that's
+                // more appropriate.
+                val mlp = v!!.layoutParams as MarginLayoutParams
+                mlp.leftMargin = insets.left
+                mlp.bottomMargin = insets.bottom
+                mlp.rightMargin = insets.right
+                v.layoutParams = mlp
+
+                WindowInsetsCompat.CONSUMED
+            })
+
+        ViewCompat.setOnApplyWindowInsetsListener(mToolbar) { v: View?, windowInsets: WindowInsetsCompat? ->
+            val insets = windowInsets!!.getInsets(WindowInsetsCompat.Type.systemBars())
+            v?.updatePadding(top=insets.top)
+            windowInsets
         }
     }
 
