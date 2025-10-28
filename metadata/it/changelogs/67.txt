@@ -1,0 +1,11 @@
+Adattata l'app alla modalità "edge-to-edge" richiesta da Android 15.
+https://gitpull.it/T1293
+
+Aggiunto supporto ad Android 16 Baklava (SDK 36).
+
+Aggiunto supporto colori gradienti nella barra degli strumenti.
+
+Tutto implementato dal vostro Fabio Mazza!
+
+DONA A FABIO 100€ al mese \o/
+https://liberapay.com/Libre_BusTO/

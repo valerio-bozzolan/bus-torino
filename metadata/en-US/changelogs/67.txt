@@ -1,0 +1,11 @@
+Adapt to "edge-to-edge" mode required since Android 15.
+https://gitpull.it/T1293
+
+Add support to Android 16 Baklava (SDK 36).
+
+Introduce gradient in the toolbars.
+
+Everything implemented by your Fabio Mazza!
+
+DONATE 100 EUR/month TO FABIO \o/
+https://liberapay.com/Libre_BusTO/
