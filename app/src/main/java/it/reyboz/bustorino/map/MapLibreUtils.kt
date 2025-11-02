@@ -3,6 +3,7 @@ package it.reyboz.bustorino.map
 import android.animation.TypeEvaluator
 import android.content.Context
 import android.util.Log
+import it.reyboz.bustorino.BuildConfig
 import it.reyboz.bustorino.backend.Stop
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.location.LocationComponentActivationOptions
@@ -99,7 +100,8 @@ class MapLibreUtils {
 
                 //check if sum is above dist
                 if (distFromLastPoint >= distanceIcon){
-                    Log.d(DEBUG_TAG, "Add between stop ${stops[i-1]} and stop ${stops[i]}, distance between: $dd")
+                    if(BuildConfig.DEBUG)
+                        Log.d(DEBUG_TAG, "Add between stop ${stops[i-1]} and stop ${stops[i]}, distance between: $dd")
                     if(dd>100) {
                         val imid = findIndexMidPoint(polyPoints, pi, newi, dd / 2)
                         pointsOutput.add(imid)

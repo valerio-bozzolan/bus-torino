@@ -9,6 +9,7 @@ import com.hivemq.client.mqtt.lifecycle.MqttClientAutoReconnect
 import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient
 import com.hivemq.client.mqtt.mqtt3.Mqtt3ClientBuilder
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish
+import it.reyboz.bustorino.BuildConfig
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import org.json.JSONArray
 import org.json.JSONException
@@ -78,7 +79,7 @@ class MQTTMatoClient(){
     }
 
      */
-    private fun subscribeTopic(topic: String){
+    private fun subscribeMQTTTopic(topic: String){
         if(context==null){
             Log.e(DEBUG_TAG, "Trying to connect but context is null")
             return
@@ -99,24 +100,31 @@ class MQTTMatoClient(){
 
     }
 
+    private fun subscribeTopicAddResponder(topic: String, responderWR: WeakReference<MQTTMatoListener>, lineId: String){
+        if (!respondersMap.contains(lineId)){
+            respondersMap[lineId] = ArrayList()
+        }
+        respondersMap[lineId]!!.add(responderWR)
+        subscribeMQTTTopic(topic)
+    }
+
     fun startAndSubscribe(lineId: String, responder: MQTTMatoListener, context: Context): Boolean{
         //start the client, and then subscribe to the topic
         val topic = mapTopic(lineId)
+        val vrResp = WeakReference(responder)
         this.context = context.applicationContext
 
         synchronized(this) {
-            if(!isStarted){
+            if(!isStarted || (client == null)){
 
                 connect(context.applicationContext) {
                     //when connection is done, run this
-                    if (!respondersMap.contains(lineId)){
-                        respondersMap[lineId] = ArrayList()
-                    }
-                    respondersMap[lineId]!!.add(WeakReference(responder))
-                    subscribeTopic(topic)
+                    subscribeTopicAddResponder(topic, vrResp, lineId)
 
                 }
                 //wait for connection
+            } else {
+              subscribeTopicAddResponder(topic, vrResp, lineId)
             }
             //recheck if it is started
         }
@@ -265,7 +273,8 @@ class MQTTMatoClient(){
 
         val  messString = String(message.payloadAsBytes)
 
-        Log.d(DEBUG_TAG, "Received message on topic: $topic")
+        if(BuildConfig.DEBUG)
+            Log.d(DEBUG_TAG, "Received message on topic: $topic")
         try {
             val jsonList = JSONArray(messString)
 
