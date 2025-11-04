@@ -163,18 +163,20 @@
                     android:contentDescription="@string/enable_position"
                     android:layout_alignParentTop="true"
                     android:layout_alignParentEnd="true"
-                    android:layout_marginEnd="4dp"
+                    android:layout_marginEnd="1dp"
 
                     android:cropToPadding="true"/>
             <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/centerMapImageButton"
-                    android:src="@drawable/ic_center_map"
+                    android:src="@drawable/crosshair_circle_grey"
                     android:layout_alignParentRight="true"
                     android:layout_alignParentEnd="true"
                     android:layout_below="@id/locationEnableIcon"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="7dp"
+                    android:layout_marginEnd="1dp"
+
                     android:background="#00ffffff"
                     android:contentDescription="@string/bt_center_map_description"
                     android:cropToPadding="true" />
@@ -187,9 +189,11 @@
                     android:background="#00ffffff"
                     android:contentDescription="@string/bt_follow_me_description"
                     android:cropToPadding="true"
+                    android:layout_marginEnd="1dp"
+
                     android:layout_below="@+id/centerMapImageButton"
                     android:layout_alignStart="@+id/centerMapImageButton"
-                    android:layout_marginTop="6dp" />
+                    android:layout_marginTop="7dp" />
 
     </RelativeLayout>
     </FrameLayout>

@@ -1,5 +1,5 @@
-<vector android:height="40sp"
-        android:width="40sp"
+<vector android:height="@dimen/map_toolbar_icon_size"
+        android:width="@dimen/map_toolbar_icon_size"
         android:viewportHeight="48"
         android:viewportWidth="48"
          xmlns:android="http://schemas.android.com/apk/res/android">

@@ -12,4 +12,6 @@
     <dimen name="margin_arr">5dp</dimen>
     <dimen name="subtitle_size">28sp</dimen>
 
+    <dimen name="map_toolbar_icon_size">43dp</dimen>
+
 </resources>

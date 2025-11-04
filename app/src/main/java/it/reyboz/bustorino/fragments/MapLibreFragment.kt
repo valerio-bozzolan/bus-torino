@@ -1089,9 +1089,9 @@ class MapLibreFragment : GeneralMapLibreFragment() {
      */
     private fun updateFollowingIcon(enabled: Boolean){
         if(enabled)
-            followUserButton.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_follow_me_on))
+            followUserButton.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.walk_circle_active))
         else
-            followUserButton.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_follow_me))
+            followUserButton.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.walk_circle_inactive))
 
     }
     private fun setFollowingUser(following: Boolean){

@@ -1,9 +1,9 @@
-<vector android:height="40sp"
-        android:width="40sp"
+<vector android:height="@dimen/map_toolbar_icon_size"
+        android:width="@dimen/map_toolbar_icon_size"
         android:viewportHeight="48"
         android:viewportWidth="48"
          xmlns:android="http://schemas.android.com/apk/res/android">
-    <path android:fillAlpha="0.7"
+    <path android:fillAlpha="0.75"
           android:fillColor="#f15000"
         android:pathData="M24.064,23.98m-23.21,0a23.21,23.21 0,1 1,46.42 0a23.21,23.21 0,1 1,-46.42 0"
         android:strokeColor="#333333" android:strokeLineJoin="round"
