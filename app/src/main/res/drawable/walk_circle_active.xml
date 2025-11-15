@@ -1,7 +1,7 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:autoMirrored="true"
         android:height="@dimen/map_toolbar_icon_size" android:width="@dimen/map_toolbar_icon_size" android:viewportHeight="48" android:viewportWidth="48" >
       
-    <path android:fillAlpha="0.75" android:fillColor="#f15000" android:pathData="M24.064,23.98m-23.21,0a23.21,23.21 0,1 1,46.42 0a23.21,23.21 0,1 1,-46.42 0"
+    <path android:fillAlpha="0.75" android:fillColor="@color/map_icon_background_active" android:pathData="M24.064,23.98m-23.21,0a23.21,23.21 0,1 1,46.42 0a23.21,23.21 0,1 1,-46.42 0"
           android:strokeColor="#333333" android:strokeLineJoin="round" android:strokeWidth="1.4"/>
       
     <path android:fillColor="#333" android:pathData="m16.428,18.116 l5.384,-3.912c0.591,-0.431 1.321,-0.669 2.088,-0.643 1.867,0.046 3.507,1.27 4.077,3.057 0.313,0.981 0.598,1.643 0.856,1.986C30.366,20.641 32.804,21.959 35.55,21.959l0,3.36c-3.653,0 -6.917,-1.666 -9.074,-4.279l-1.172,6.645 3.462,2.905 3.735,10.261L29.344,42 25.917,32.585 20.222,27.806C19.302,27.063 18.804,25.855 19.024,24.608L19.878,19.762 18.741,20.588 15.168,25.506 12.45,23.531 16.399,18.095ZM26.311,12.72c-1.856,0 -3.36,-1.504 -3.36,-3.36 0,-1.856 1.504,-3.36 3.36,-3.36 1.855,0 3.36,1.504 3.36,3.36 0,1.856 -1.504,3.36 -3.36,3.36zM21.319,34.863 L15.92,41.297 13.346,39.137 18.344,33.181 19.598,29.518 22.607,32.038Z"/>

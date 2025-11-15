@@ -1,0 +1,19 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="@dimen/map_toolbar_icon_size"
+    android:height="@dimen/map_toolbar_icon_size"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+  <path
+      android:pathData="M0.495,24a23.505,23.505 0,1 0,47.009 0a23.505,23.505 0,1 0,-47.009 0z"
+      android:strokeLineJoin="round"
+      android:strokeWidth="1"
+      android:fillColor="@color/map_icon_background_active"
+      android:strokeColor="#222"
+      android:fillAlpha="0.715968"/>
+  <path
+      android:pathData="M23.309,11.417L23.309,14.366L12.985,14.366l0,13.273l20.647,0l0,-2.95l2.95,0l0,11.798l-1.475,0l0,1.475c0,0.815 -0.66,1.475 -1.475,1.475l-1.475,0c-0.815,0 -1.475,-0.66 -1.475,-1.475L30.683,36.488L15.935,36.488l0,1.475c0,0.815 -0.66,1.475 -1.475,1.475L12.985,39.437C12.171,39.437 11.511,38.777 11.511,37.963L11.511,36.488L10.036,36.488L10.036,24.69L8.561,24.69L8.561,18.79L10.036,18.79L10.036,14.366C10.036,12.737 11.356,11.417 12.985,11.417ZM18.884,30.589L12.985,30.589l0,2.95l5.899,0zM33.632,30.589l-5.899,0l0,2.95l5.899,0z"
+      android:fillColor="#222"/>
+  <path
+      android:pathData="M33.296,23.052C28.74,23.052 25.046,19.359 25.046,14.802 25.046,10.246 28.74,6.552 33.296,6.552c4.556,0 8.25,3.694 8.25,8.25 0,4.556 -3.694,8.25 -8.25,8.25zM32.171,17.277l0,1.65l2.25,0l0,-1.65zM32.171,10.377l0,5.15l2.25,0L34.421,10.377Z"
+      android:fillColor="#222"/>
+</vector>

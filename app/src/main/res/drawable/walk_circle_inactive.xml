@@ -3,8 +3,8 @@
         android:height="@dimen/map_toolbar_icon_size" android:width="@dimen/map_toolbar_icon_size"
         android:viewportHeight="48" android:viewportWidth="48" >
       
-    <path android:fillAlpha="0.65"
-          android:fillColor="#c6c6c6"
+    <path android:fillAlpha="0.75"
+          android:fillColor="@color/map_icon_background_inactive"
           android:pathData="M0.449,24.048a23.505,23.505 0,1 0,47.009 0a23.505,23.505 0,1 0,-47.009 0z" android:strokeColor="#333333" android:strokeLineJoin="round"
           android:strokeWidth="1.4"/>
       

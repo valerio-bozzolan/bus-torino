@@ -40,6 +40,7 @@ import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -244,7 +245,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
     private val tripMarkersAnimators = HashMap<String, ObjectAnimator>()
 
-    private val liveBusViewModel: LivePositionsViewModel by viewModels()
+    private val liveBusViewModel: LivePositionsViewModel by activityViewModels()
 
     //extra items to use the LibreMap
     private lateinit var symbolManager : SymbolManager

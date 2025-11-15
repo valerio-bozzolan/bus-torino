@@ -21,6 +21,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
 import androidx.work.*
+import com.android.volley.toolbox.ClearCacheRequest
 import it.reyboz.bustorino.backend.Notifications
 import it.reyboz.bustorino.data.gtfs.GtfsTrip
 import java.util.concurrent.CountDownLatch
@@ -30,19 +31,20 @@ class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameter
 
 
     override suspend fun doWork(): Result {
-        return downloadGtfsTrips()
-    }
-
-    /**
-     * Download GTFS Trips from Mato
-     */
-    private fun downloadGtfsTrips():Result{
         val tripsList = inputData.getStringArray(TRIPS_KEYS)
 
         if (tripsList== null){
             Log.e(DEBUG_TAG,"trips list given is null")
             return Result.failure()
         }
+        return downloadGtfsTrips(tripsList!!)
+    }
+
+    /**
+     * Download GTFS Trips from Mato
+     */
+    private fun downloadGtfsTrips(tripsList: Array<String>):Result{
+
         val gtfsRepository = GtfsRepository(applicationContext)
         val matoRepository = MatoRepository(applicationContext)
         //clear the matoTrips
@@ -52,7 +54,7 @@ class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameter
         val failedMatoTripsDownload = HashSet<String>()
 
 
-        Log.i(DEBUG_TAG, "Requesting download for the trips")
+        Log.i(DEBUG_TAG, "Requesting download for ${tripsList.size} trips")
         val requestCountDown = CountDownLatch(tripsList.size);
         for(trip in tripsList){
             queriedMatoTrips.add(trip)
@@ -82,6 +84,8 @@ class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameter
         }
         requestCountDown.await()
         val tripsIDsCompleted = downloadedMatoTrips.map { trip-> trip.tripID }
+        //clear cache to avoid tripping memory
+        matoRepository.clearVolleyCache()
         if (tripsIDsCompleted.isEmpty()){
             Log.d(DEBUG_TAG, "No trips have been downloaded, set work to fail")
             return Result.failure()

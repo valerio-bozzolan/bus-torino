@@ -24,19 +24,23 @@ import com.android.volley.VolleyError
 import com.android.volley.toolbox.HttpHeaderParser
 
 import com.google.transit.realtime.GtfsRealtime
+import it.reyboz.bustorino.backend.Fetcher
 
 class GtfsRtPositionsRequest(
-                             errorListener: Response.ErrorListener?,
+                             errorListener: ErrorListener,
                              val listener: RequestListener) :
     Request<ArrayList<LivePositionUpdate>>(Method.GET, URL_POSITION, errorListener) {
 
     override fun parseNetworkResponse(response: NetworkResponse?): Response<ArrayList<LivePositionUpdate>> {
         if (response == null){
-            return Response.error(VolleyError("Null response"))
+            return Response.error(RequestError(Fetcher.Result.PARSER_ERROR))
         }
-
-        if (response.statusCode != 200)
-            return Response.error(VolleyError("Error code is ${response.statusCode}"))
+        if (response.statusCode == 404){
+            return Response.error(RequestError(Fetcher.Result.SERVER_ERROR_404))
+        }
+        else if (response.statusCode != 200){
+            return Response.error(RequestError(Fetcher.Result.SERVER_ERROR))
+        }
 
         val gtfsreq = GtfsRealtime.FeedMessage.parseFrom(response.data)
 
@@ -58,16 +62,22 @@ class GtfsRtPositionsRequest(
         listener.onResponse(response)
     }
 
+    override fun parseNetworkError(volleyError: VolleyError?): VolleyError? {
+        return super.parseNetworkError(volleyError)
+    }
+
     companion object{
         const val URL_POSITION =  "http://percorsieorari.gtt.to.it/das_gtfsrt/vehicle_position.aspx"
 
         const val URL_TRIP_UPDATES ="http://percorsieorari.gtt.to.it/das_gtfsrt/trip_update.aspx"
         const val URL_ALERTS = "http://percorsieorari.gtt.to.it/das_gtfsrt/alerts.aspx"
 
-        public interface RequestListener{
+        interface RequestListener{
             fun onResponse(response: ArrayList<LivePositionUpdate>?)
         }
+        fun interface ErrorListener: Response.ErrorListener
     }
 
+    class RequestError(val result: Fetcher.Result): VolleyError()
 
 }

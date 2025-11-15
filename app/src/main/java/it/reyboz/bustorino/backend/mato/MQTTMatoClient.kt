@@ -10,6 +10,7 @@ import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient
 import com.hivemq.client.mqtt.mqtt3.Mqtt3ClientBuilder
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish
 import it.reyboz.bustorino.BuildConfig
+import it.reyboz.bustorino.backend.LivePositionsServiceStatus
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import org.json.JSONArray
 import org.json.JSONException
@@ -198,13 +199,31 @@ class MQTTMatoClient(){
                 responders.remove(wrD)
             }
             else {
-                wrD.get()!!.onUpdateReceived(currentPositions)
+                val resp  = wrD.get()!!
+                resp.onStatusUpdate(LivePositionsServiceStatus.OK)
+                resp.onUpdateReceived(currentPositions)
                 //sent = true
                 count++
             }
         }
 
         return count
+    }
+    private fun sendStatusToResponders(status: LivePositionsServiceStatus){
+        val responders = respondersMap
+        for (els in respondersMap.values)
+        for (wrD in els) {
+
+            if (wrD.get() == null) {
+                Log.d(DEBUG_TAG, "Removing weak reference")
+                els.remove(wrD)
+            }
+            else {
+                wrD.get()!!.onStatusUpdate(status)
+                //sent = true
+            }
+        }
+
     }
 
     /*override fun connectionLost(cause: Throwable?) {
@@ -269,7 +288,7 @@ class MQTTMatoClient(){
         val vals = topic.split("/")
         val lineId = vals[1]
         val vehicleId = vals[2]
-        val timestamp = (System.currentTimeMillis() / 1000 ) as Long
+        val timestamp = makeUnixTimestamp()
 
         val  messString = String(message.payloadAsBytes)
 
@@ -280,6 +299,7 @@ class MQTTMatoClient(){
 
             if(jsonList.get(4)==null){
                 Log.d(DEBUG_TAG, "We have null tripId: line $lineId veh $vehicleId: $jsonList")
+                sendStatusToResponders(LivePositionsServiceStatus.NO_POSITIONS)
                 return
             }
             val posUpdate = LivePositionUpdate(
@@ -334,10 +354,30 @@ class MQTTMatoClient(){
             //Log.d(DEBUG_TAG, "We have update on line $lineId, vehicle $vehicleId")
         } catch (e: JSONException){
             Log.w(DEBUG_TAG,"Cannot decipher message on topic $topic, line $lineId, veh $vehicleId (bad JSON)")
+            sendStatusToResponders(LivePositionsServiceStatus.ERROR_PARSING_RESPONSE)
+
 
         } catch (e: Exception){
             Log.e(DEBUG_TAG, "Exception occurred", e)
+            sendStatusToResponders(LivePositionsServiceStatus.ERROR_PARSING_RESPONSE)
         }
+    }
+
+    /**
+     * Remove positions older than `timeMins` minutes
+     */
+    fun clearOldPositions(timeMins: Int){
+        val currentTimeStamp = makeUnixTimestamp()
+        var c = 0
+        for((k, manyp) in currentPositions.entries){
+            for ((t, p) in manyp.entries){
+                if (currentTimeStamp - p.timestamp > timeMins*60){
+                    manyp.remove(t)
+                    c+=1
+                }
+            }
+        }
+        Log.d(DEBUG_TAG, "Removed $c positions older than $timeMins minutes")
     }
 
 
@@ -382,9 +422,11 @@ class MQTTMatoClient(){
         }
 
 
-        fun interface MQTTMatoListener{
+        interface MQTTMatoListener{
             //positionsMap is a dict with line -> vehicle -> Update
             fun onUpdateReceived(posUpdates: PositionsMap)
+
+            fun onStatusUpdate(status: LivePositionsServiceStatus)
         }
         fun getHTTPHeaders(): HashMap<String,String> {
             val headers = HashMap<String,String>()
@@ -411,6 +453,10 @@ class MQTTMatoClient(){
                     .applyWebSocketConfig()
             //.webSocketWithDefaultConfig()
             return r
+        }
+        private fun makeUnixTimestamp(): Long{
+            val timestamp = (System.currentTimeMillis() / 1000 )
+            return timestamp
         }
 
 

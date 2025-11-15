@@ -289,8 +289,8 @@
     </array>
 
     <string name="positions_source_pref_title">Source of real time positions for buses and trams</string>
-    <string name="positions_source_mato_descr">MaTO (updated more frequently, might be offline)</string>
-    <string name="positions_source_gtfsrt_descr">GTFS RT (more stable, less frequently updated)</string>
+    <string name="positions_source_mato_descr">MaTO (updated more frequently, might have errors)</string>
+    <string name="positions_source_gtfsrt_descr">GTFS RT (less frequently updated, more accurate)</string>
     <array name="positions_source_sel">
         <item>@string/positions_source_mato_descr</item>
         <item>@string/positions_source_gtfsrt_descr</item>
@@ -360,6 +360,17 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="showing_same_direction">Direction is already shown</string>
     <string name="destination_loading">Loading destination…</string>
     <string name="destination_unknown">Destination unknown</string>
-
+    <!-- LIVE POSITIONS DIALOG -->
+    <string name="live_positions_msg_ok">Service for positions working normally</string>
+    <string name="live_positions_msg_no_positions">No positions received</string>
+    <string name="live_positions_msg_connection_error">Error connecting to the server</string>
+    <string name="live_positions_msg_parsing_error">Error parsing the server response</string>
+    <string name="live_positions_msg_network_error">Error: network response is not as expected</string>
+    <string name="live_positions_msg_connecting">Connecting...</string>
+    <string name="positions_source_mato_short">MaTO</string>
+    <string name="positions_source_gtfsrt_short">GTFS RT</string>
+    <string name="live_positions_dialog_provider_text">Live positions source:</string>
+    <string name="live_positions_switch_provider">Switch source</string>
+    <string name="live_positions_preference_switch_clear_title">Clear bus positions when switching live positions source</string>
 
 </resources>

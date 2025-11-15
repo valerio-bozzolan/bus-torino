@@ -27,23 +27,27 @@ import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.JsonObject
 import it.reyboz.bustorino.R
+import it.reyboz.bustorino.backend.LivePositionsServiceStatus
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.mato.MQTTMatoClient
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
-import it.reyboz.bustorino.fragments.SettingsFragment.LIVE_POSITIONS_PREF_MQTT_VALUE
 import it.reyboz.bustorino.map.MapLibreUtils
 import it.reyboz.bustorino.map.MapLibreStyles
 import it.reyboz.bustorino.util.Permissions
 import it.reyboz.bustorino.util.ViewUtils
 import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
 import it.reyboz.bustorino.viewmodels.StopsMapViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
@@ -163,8 +167,9 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             })
 
     //BUS POSITIONS
-    private var useMQTTViewModel = true
-    private val livePositionsViewModel : LivePositionsViewModel by viewModels()
+    private var usingMQTTPositions = true // THIS IS INSIDE VIEW MODEL NOW
+    private val livePositionsViewModel : LivePositionsViewModel by activityViewModels()
+    private lateinit var busPositionsIconButton: ImageButton
 
     private val positionsByVehDict = HashMap<String, LivePositionUpdate>(5)
     private val animatorsByVeh = HashMap<String, ValueAnimator>()
@@ -174,6 +179,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
     private var initialStopToShow : Stop? = null
     private var initialStopShown = false
+    private var waitingDelayedBusUpdate = false
 
     //shown stuff
     //private var savedStateOnStop : Bundle? = null
@@ -226,6 +232,10 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         showUserPositionButton.setOnClickListener(this::switchUserLocationStatus)
         followUserButton = rootView.findViewById(R.id.followUserImageButton)
         centerUserButton = rootView.findViewById(R.id.centerMapImageButton)
+        busPositionsIconButton = rootView.findViewById(R.id.busPositionsImageButton)
+        busPositionsIconButton.setOnClickListener {
+            LivePositionsDialogFragment().show(parentFragmentManager, "LivePositionsDialog")
+        }
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
 
@@ -272,6 +282,42 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         // Setup close button
         rootView.findViewById<View>(R.id.btnClose).setOnClickListener {
             hideStopBottomSheet()
+        }
+        livePositionsViewModel.serviceStatus.observe(viewLifecycleOwner){ status ->
+            //if service is active, update the bus positions icon
+            when(status) {
+                LivePositionsServiceStatus.OK ->
+                    setBusPositionsIcon(true, error = false)
+
+                LivePositionsServiceStatus.NO_POSITIONS -> setBusPositionsIcon(true, error = true)
+
+                else -> setBusPositionsIcon(true, error = true)
+            }
+        }
+        livePositionsViewModel.useMQTTPositionsLiveData.observe(viewLifecycleOwner){ useMQTT->
+            if (showBusLayer && isResumed) {
+                if(useMQTT!=usingMQTTPositions){
+                    // we have to switch
+                    val clearPos = PreferenceManager.getDefaultSharedPreferences(requireContext()).getBoolean("positions_clear_on_switch_pref", true)
+                    livePositionsViewModel.clearOldPositionsUpdates()
+                    if(useMQTT){
+                        //switching to MQTT, the GTFS positions are disabled automatically
+                        livePositionsViewModel.requestMatoPosUpdates(MQTTMatoClient.LINES_ALL)
+                    } else{
+                        //switching to GTFS RT: stop Mato, launch first request
+                        livePositionsViewModel.stopMatoUpdates()
+                        livePositionsViewModel.requestGTFSUpdates()
+                    }
+                    if (clearPos) {
+                        livePositionsViewModel.clearAllPositions()
+                        //force clear of the viewed data
+                        clearAllBusPositionsInMap()
+                    }
+
+                }
+            }
+            usingMQTTPositions = useMQTT
+
         }
 
         Log.d(DEBUG_TAG, "Fragment View Created!")
@@ -342,7 +388,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
         mapInitCompleted = true
         // we start requesting the bus positions now
-        startRequestingPositions()
+        observeBusPositionUpdates()
 
         //Restoring data
         var boundsRestored = false
@@ -584,14 +630,19 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         super.onResume()
         mapView.onResume()
 
-        val keySourcePositions = getString(R.string.pref_positions_source)
+        //val keySourcePositions = getString(R.string.pref_positions_source)
         if(showBusLayer) {
-            useMQTTViewModel = PreferenceManager.getDefaultSharedPreferences(requireContext())
-                .getString(keySourcePositions, LIVE_POSITIONS_PREF_MQTT_VALUE)
-                .contentEquals(LIVE_POSITIONS_PREF_MQTT_VALUE)
+            //first, clean up all the old positions
+            livePositionsViewModel.clearOldPositionsUpdates()
 
-            if (useMQTTViewModel) livePositionsViewModel.requestMatoPosUpdates(MQTTMatoClient.LINES_ALL)
-            else livePositionsViewModel.requestGTFSUpdates()
+            if (livePositionsViewModel.useMQTTPositionsLiveData.value!!){
+                livePositionsViewModel.requestMatoPosUpdates(MQTTMatoClient.LINES_ALL)
+                usingMQTTPositions = true
+            }
+            else {
+                livePositionsViewModel.requestGTFSUpdates()
+                usingMQTTPositions = false
+            }
             //mapViewModel.testCascade();
             livePositionsViewModel.isLastWorkResultGood.observe(this) { d: Boolean ->
                 Log.d(
@@ -615,7 +666,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         Log.d(DEBUG_TAG, "Fragment paused")
 
         savedMapStateOnPause = saveMapStateInBundle()
-        if (useMQTTViewModel) livePositionsViewModel.stopMatoUpdates()
+        if (livePositionsViewModel.useMQTTPositionsLiveData.value!!) livePositionsViewModel.stopMatoUpdates()
 
     }
 
@@ -736,14 +787,14 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     /**
      * Start requesting position updates
      */
-    private fun startRequestingPositions() {
+    private fun observeBusPositionUpdates() {
         livePositionsViewModel.updatesWithTripAndPatterns.observe(viewLifecycleOwner) { data: HashMap<String, Pair<LivePositionUpdate, TripAndPatternWithStops?>> ->
             Log.d(
                 DEBUG_TAG,
                 "Have " + data.size + " trip updates, has Map start finished: " + mapInitCompleted
             )
             if (mapInitCompleted) updateBusPositionsInMap(data)
-            if (!isDetached && !useMQTTViewModel) livePositionsViewModel.requestDelayedGTFSUpdates(
+            if (!isDetached && !livePositionsViewModel.useMQTTPositionsLiveData.value!!) livePositionsViewModel.requestDelayedGTFSUpdates(
                 3000
             )
         }
@@ -943,8 +994,13 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         val currentTime = System.currentTimeMillis()
         //throttle updates when user is moving camera
         val interval = if(isUserMovingCamera) 150 else 60
-        if(currentTime - lastUpdateTime < interval){
-            //DO NOT UPDATE THE MAP
+        val shouldDelayUpdateDraw = currentTime - lastUpdateTime < interval
+        if(shouldDelayUpdateDraw){
+            //Defer map update
+            viewLifecycleOwner.lifecycleScope.launch {
+                delay(200)
+                updatePositionsIcons()
+            }
             return
         }
         val features = ArrayList<Feature>()//stops.mapNotNull { stop ->
@@ -953,17 +1009,17 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         for (pos in positionsByVehDict.values){
             //if (s.latitude!=null && s.longitude!=null)
             val point = Point.fromLngLat(pos.longitude, pos.latitude)
-                features.add(
-                    Feature.fromGeometry(
-                        point,
-                        JsonObject().apply {
-                            addProperty("veh", pos.vehicle)
-                            addProperty("trip", pos.tripID)
-                            addProperty("bearing", pos.bearing ?:0.0f)
-                            addProperty("line", pos.routeID.substringBeforeLast('U'))
-                        }
-                    )
+            features.add(
+                Feature.fromGeometry(
+                    point,
+                    JsonObject().apply {
+                        addProperty("veh", pos.vehicle)
+                        addProperty("trip", pos.tripID)
+                        addProperty("bearing", pos.bearing ?:0.0f)
+                        addProperty("line", pos.routeID.substringBeforeLast('U'))
+                    }
                 )
+            )
             /*busLabelSymbolsByVeh[pos.vehicle]?.let {
                 it.latLng = LatLng(pos.latitude, pos.longitude)
                 symbolsToUpdate.add(it)
@@ -1014,6 +1070,18 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     }
 
     /**
+     * Clear all buses from the map
+     */
+    private fun clearAllBusPositionsInMap(){
+        for ((k, anim) in animatorsByVeh){
+            anim.cancel()
+        }
+        animatorsByVeh.clear()
+        positionsByVehDict.clear()
+        updatePositionsIcons()
+    }
+
+    /**
      * Initialize the map location, but do not enable the component
      */
     @SuppressLint("MissingPermission")
@@ -1054,6 +1122,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 setLocationIconEnabled(true)
                 if (fromClick) Toast.makeText(context, R.string.location_enabled, Toast.LENGTH_SHORT).show()
                 pendingLocationActivation =false
+                //locationComponent.locationEngine.requestLocationUpdates()
             } else {
                 if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
                     //TODO: show dialog for permission rationale
@@ -1087,6 +1156,17 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     /**
      * Helper method for GUI
      */
+    private fun setBusPositionsIcon(enabled: Boolean, error: Boolean){
+        val ctx = requireContext()
+        if(!enabled)
+            busPositionsIconButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.drawable.bus_pos_circle_inactive))
+        else if(error)
+            busPositionsIconButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.drawable.bus_pos_circle_notworking))
+        else
+            busPositionsIconButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.drawable.bus_pos_circle_active))
+
+    }
+
     private fun updateFollowingIcon(enabled: Boolean){
         if(enabled)
             followUserButton.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.walk_circle_active))

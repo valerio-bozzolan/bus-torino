@@ -185,14 +185,25 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/followUserImageButton"
-                    android:src="@drawable/ic_follow_me"
+                    android:src="@drawable/walk_circle_inactive"
                     android:background="#00ffffff"
                     android:contentDescription="@string/bt_follow_me_description"
-                    android:cropToPadding="true"
                     android:layout_marginEnd="1dp"
 
                     android:layout_below="@+id/centerMapImageButton"
                     android:layout_alignStart="@+id/centerMapImageButton"
+                    android:layout_marginTop="7dp" />
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/busPositionsImageButton"
+                    android:src="@drawable/bus_pos_circle_inactive"
+                    android:background="#00ffffff"
+                    android:contentDescription="@string/bt_follow_me_description"
+                    android:layout_marginEnd="1dp"
+
+                    android:layout_below="@+id/followUserImageButton"
+                    android:layout_alignStart="@+id/followUserImageButton"
                     android:layout_marginTop="7dp" />
 
     </RelativeLayout>

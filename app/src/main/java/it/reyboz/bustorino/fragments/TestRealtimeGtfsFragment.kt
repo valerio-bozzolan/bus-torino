@@ -11,7 +11,9 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.viewModels
 import it.reyboz.bustorino.R
+import it.reyboz.bustorino.backend.LivePositionsServiceStatus
 import it.reyboz.bustorino.backend.mato.MQTTMatoClient
+import it.reyboz.bustorino.backend.mato.PositionsMap
 import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
 
 
@@ -49,10 +51,16 @@ class TestRealtimeGtfsFragment : Fragment() {
     }
      */
 
-    private val listener = MQTTMatoClient.Companion.MQTTMatoListener{
+    private val listener = object : MQTTMatoClient.Companion.MQTTMatoListener{
+        override fun onUpdateReceived(it: PositionsMap) {
+            messageTextView.text = "Update: ${it}"
+            Log.d("BUSTO-TestMQTT", "Received update $it")        }
 
-        messageTextView.text = "Update: ${it}"
-        Log.d("BUSTO-TestMQTT", "Received update $it")
+        override fun onStatusUpdate(status: LivePositionsServiceStatus) {
+            Log.d(DEBUG_TAG, "Status changed into $status")
+        }
+
+
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -120,5 +128,7 @@ class TestRealtimeGtfsFragment : Fragment() {
         fun newInstance() =
             TestRealtimeGtfsFragment().apply {
             }
+
+        private const val DEBUG_TAG = "BusTO-TestGTFSRTPos"
     }
 }

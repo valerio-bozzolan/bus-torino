@@ -20,15 +20,19 @@ package it.reyboz.bustorino.viewmodels
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
+import androidx.preference.PreferenceManager
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.android.volley.DefaultRetryPolicy
-import com.android.volley.Response
+import it.reyboz.bustorino.R
+import it.reyboz.bustorino.backend.Fetcher
+import it.reyboz.bustorino.backend.LivePositionsServiceStatus
 import it.reyboz.bustorino.backend.NetworkVolleyManager
 import it.reyboz.bustorino.backend.gtfs.GtfsRtPositionsRequest
 import it.reyboz.bustorino.backend.gtfs.GtfsUtils
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.mato.MQTTMatoClient
+import it.reyboz.bustorino.backend.mato.PositionsMap
 import it.reyboz.bustorino.data.GtfsRepository
 import it.reyboz.bustorino.data.MatoPatternsDownloadWorker
 import it.reyboz.bustorino.data.MatoTripsDownloadWorker
@@ -40,6 +44,8 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
+import androidx.core.content.edit
+import androidx.lifecycle.MutableLiveData
 
 typealias FullPositionUpdatesMap = HashMap<String, Pair<LivePositionUpdate, TripAndPatternWithStops?>>
 typealias FullPositionUpdate = Pair<LivePositionUpdate, TripAndPatternWithStops?>
@@ -48,7 +54,8 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
 
     private val gtfsRepo = GtfsRepository(application)
 
-    //private val updates = UpdatesMap()
+    //chain of LiveData objects: raw positions -> tripsIDs -> tripsAndPatternsInDB -> positions with patterns
+    //this contains the raw positions updates received from the service
     private val positionsToBeMatchedLiveData = MutableLiveData<ArrayList<LivePositionUpdate>>()
     private val netVolleyManager = NetworkVolleyManager.getInstance(application)
 
@@ -56,7 +63,7 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
     private var mqttClient = MQTTMatoClient()
 
     private var lineListening = ""
-    private var lastTimeReceived: Long = 0
+    private var lastTimeMQTTUpdatedPositions: Long = 0
 
     private val gtfsRtRequestRunning = MutableLiveData<Boolean>(false)
 
@@ -68,6 +75,51 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
     //INPUT FILTER FOR LINE
     private var gtfsLineToFilterPos = MutableLiveData<Pair<String,MatoPattern?>>()
 
+    var serviceStatus = MutableLiveData(LivePositionsServiceStatus.CONNECTING)
+
+    private val sharedPrefs =  PreferenceManager.getDefaultSharedPreferences(application)
+    private val keySourcePositions = application.getString(R.string.pref_positions_source)
+    private val LIVE_POS_PREF_MQTT : String
+    private val LIVE_POS_PREF_GTFSRT :String
+    val useMQTTPositionsLiveData: MutableLiveData<Boolean>
+
+    init {
+        sharedPrefs.registerOnSharedPreferenceChangeListener { shp, key ->
+            if(key == keySourcePositions) {
+                val newV = shp.getString(keySourcePositions, LIVE_POS_PREF_MQTT)
+                useMQTTPositionsLiveData.postValue(newV.equals(LIVE_POS_PREF_MQTT))
+                Log.d(DEBUG_TI, "Changed position source to: $newV")
+            }
+
+        }
+        LIVE_POS_PREF_MQTT = application.getString(R.string.positions_source_mqtt)
+        LIVE_POS_PREF_GTFSRT = application.getString(R.string.positions_source_gtfsrt)
+        useMQTTPositionsLiveData = MutableLiveData(isMQTTPositionsSelected())
+    }
+
+    private fun isMQTTPositionsSelected(): Boolean{
+        val source = sharedPrefs.getString(keySourcePositions, LIVE_POS_PREF_MQTT)
+        val useMQTT=source == LIVE_POS_PREF_MQTT
+        Log.d(DEBUG_TI, "Init positions, source: $source, isMQTT: $useMQTT")
+        return useMQTT
+    }
+
+    /**
+     * Switch provider of live positions from MQTT to GTFSRT and viceversa
+     */
+    fun switchPositionsSource(){
+        val usingMQTT = useMQTTPositionsLiveData.value!!
+        //code that was in the MapLibreFragment
+        useMQTTPositionsLiveData.value = !usingMQTT
+        sharedPrefs.edit(commit = true) {
+            putString(
+                keySourcePositions,
+                if (usingMQTT) LIVE_POS_PREF_GTFSRT else LIVE_POS_PREF_MQTT
+            )
+        }
+        Log.d(DEBUG_TI, "Switched positions source in ViewModel, using MQTT: ${!usingMQTT}")
+        serviceStatus.value = LivePositionsServiceStatus.CONNECTING
+    }
     fun setGtfsLineToFilterPos(line: String, pattern: MatoPattern?){
         gtfsLineToFilterPos.value = Pair(line, pattern)
     }
@@ -91,27 +143,36 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
     /**
      * Responder to the MQTT Client
      */
-    private val matoPositionListener = MQTTMatoClient.Companion.MQTTMatoListener{
+    private val matoPositionListener = object: MQTTMatoClient.Companion.MQTTMatoListener{
 
-        val mupds = ArrayList<LivePositionUpdate>()
-        if(lineListening==MQTTMatoClient.LINES_ALL){
-            for(sdic in it.values){
-                for(update in sdic.values){
-                    mupds.add(update)
+        override fun onUpdateReceived(it: PositionsMap) {
+            val mupds = ArrayList<LivePositionUpdate>()
+            if(lineListening==MQTTMatoClient.LINES_ALL){
+                for(sdic in it.values){
+                    for(update in sdic.values){
+                        mupds.add(update)
+                    }
+                }
+            } else{
+                //we're listening to one
+                if (it.containsKey(lineListening.trim()) ){
+                    for(up in it[lineListening]?.values!!){
+                        mupds.add(up)
+                    }
                 }
             }
-        } else{
-            //we're listening to one
-            if (it.containsKey(lineListening.trim()) ){
-                for(up in it[lineListening]?.values!!){
-                    mupds.add(up)
-                }
+            //avoid updating the positions too often (limit to 0.5 seconds)
+            val time = System.currentTimeMillis()
+            if(lastTimeMQTTUpdatedPositions == (0.toLong()) || (time-lastTimeMQTTUpdatedPositions)>500){
+                positionsToBeMatchedLiveData.postValue(mupds)
+                lastTimeMQTTUpdatedPositions = time
             }
+            //we have received an update, so set the status to OK
+            serviceStatus.postValue(LivePositionsServiceStatus.OK)
         }
-        val time = System.currentTimeMillis()
-        if(lastTimeReceived == (0.toLong()) || (time-lastTimeReceived)>500){
-            positionsToBeMatchedLiveData.postValue(mupds)
-            lastTimeReceived = time
+
+        override fun onStatusUpdate(status: LivePositionsServiceStatus) {
+            serviceStatus.postValue(status)
         }
 
     }
@@ -140,8 +201,11 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
         }
     }
 
-    // unify trips with updates
+    /**
+     * This livedata object contains the final updates with patterns present in the DB
+     */
     val updatesWithTripAndPatterns = gtfsTripsPatternsInDB.map { tripPatterns->
+        //TODO: Change the mapping in the final updates, I don't know why the key is the tripID and not the vehicle ID
         Log.i(DEBUG_TI, "Mapping trips and patterns")
         val mdict = HashMap<String,FullPositionUpdate>()
         //missing patterns
@@ -171,13 +235,35 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
                 }
             }
         //have to request download of missing Patterns
-        if (routesToDownload.size > 0){
+        if (routesToDownload.isNotEmpty()){
             Log.d(DEBUG_TI, "Have ${routesToDownload.size} missing patterns from the DB: $routesToDownload")
             //downloadMissingPatterns (ArrayList(routesToDownload))
             MatoPatternsDownloadWorker.downloadPatternsForRoutes(routesToDownload.toList(), getApplication())
         }
 
         return@map mdict
+    }
+
+    fun clearOldPositionsUpdates(){
+        //RETURN if the map is null
+        val positionsOld = positionsToBeMatchedLiveData.value ?: return
+
+        val currentTimeSecs = (System.currentTimeMillis() / 1000 )
+        val updatedList = ArrayList<LivePositionUpdate>()
+        for (up in positionsOld){
+            //If the time has passed, remove it
+            if (currentTimeSecs - up.timestamp <= MAX_MINUTES_CLEAR_POSITIONS*60) //TODO decide time limit in minutes
+                updatedList.add(up)
+        }
+        val diff = positionsOld.size - updatedList.size
+        Log.d(DEBUG_TI, "Removed ${diff} positions marked as old")
+        // Re-trigger all the LiveData chain
+        positionsToBeMatchedLiveData.value = updatedList
+    }
+
+    fun clearAllPositions(){
+        positionsToBeMatchedLiveData.postValue(ArrayList())
+        Log.d(DEBUG_TI, "Cleared all positions in LivePositionsViewModel")
     }
 
     //OBSERVE THIS TO GET THE LOCATION UPDATES FILTERED
@@ -242,6 +328,8 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
         lineListening = line
         viewModelScope.launch {
             mqttClient.startAndSubscribe(line,matoPositionListener, getApplication())
+            //clear old positions (useful when we are coming back to the map after some time)
+            mqttClient.clearOldPositions(MAX_MINUTES_CLEAR_POSITIONS)
         }
 
 
@@ -267,25 +355,44 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
     private val gtfsPositionsReqListener = object: GtfsRtPositionsRequest.Companion.RequestListener{
         override fun onResponse(response: ArrayList<LivePositionUpdate>?) {
             Log.i(DEBUG_TI,"Got response from the GTFS RT server")
-            response?.let {it:ArrayList<LivePositionUpdate> ->
+            if (response == null){
+                serviceStatus.postValue(LivePositionsServiceStatus.ERROR_CONNECTION)
+            }
+            else response.let { it:ArrayList<LivePositionUpdate> ->
+                val ss: LivePositionsServiceStatus
                 if (it.size == 0) {
                     Log.w(DEBUG_TI,"No position updates from the GTFS RT server")
-                    return
-                }
-                else {
+                    ss = LivePositionsServiceStatus.NO_POSITIONS
+                } else {
                     //Log.i(DEBUG_TI, "Posting value to positionsLiveData")
                     viewModelScope.launch { positionsToBeMatchedLiveData.postValue(it) }
-
+                    ss = LivePositionsServiceStatus.OK
                 }
+                serviceStatus.postValue(ss)
             }
             gtfsRtRequestRunning.postValue(false)
-
         }
 
     }
-    private val positionRequestErrorListener = Response.ErrorListener {
+
+    /**
+     * Listener for the errors in downloading positions from GTFS RT
+     */
+    private val positionRequestErrorListener = GtfsRtPositionsRequest.Companion.ErrorListener {
         Log.e(DEBUG_TI, "Could not download the update", it)
         gtfsRtRequestRunning.postValue(false)
+        if(it is GtfsRtPositionsRequest.RequestError){
+            val status = when(it.result) {
+                Fetcher.Result.OK -> LivePositionsServiceStatus.OK
+                Fetcher.Result.PARSER_ERROR -> LivePositionsServiceStatus.ERROR_PARSING_RESPONSE
+                Fetcher.Result.SERVER_ERROR_404 -> LivePositionsServiceStatus.ERROR_NETWORK_RESPONSE
+                Fetcher.Result.SERVER_ERROR -> LivePositionsServiceStatus.ERROR_NETWORK_RESPONSE
+                Fetcher.Result.CONNECTION_ERROR -> LivePositionsServiceStatus.ERROR_CONNECTION
+                else -> LivePositionsServiceStatus.ERROR_CONNECTION
+            }
+            serviceStatus.postValue(status)
+        } else
+            serviceStatus.postValue(LivePositionsServiceStatus.ERROR_NETWORK_RESPONSE)
     }
 
     fun requestGTFSUpdates(){
@@ -351,5 +458,7 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
         private const val DEBUG_TI = "BusTO-LivePosViewModel"
         private const val MAX_MINUTES_RETRY = 3
         private const val MAX_TIME_RETRY = MAX_MINUTES_RETRY*60*1000 //3 minutes (in milliseconds)
+
+        public const val MAX_MINUTES_CLEAR_POSITIONS = 8
     }
 }

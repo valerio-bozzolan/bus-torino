@@ -31,6 +31,13 @@
                 android:summary="%s"
 
         />
+        <!-- NEVER EVER CHANGE THE KEY PROPERTIES -->
+        <androidx.preference.CheckBoxPreference
+            android:defaultValue="true"
+            android:key="positions_clear_on_switch_pref"
+            android:title="@string/live_positions_preference_switch_clear_title"
+            app:singleLineTitle="false"
+            />
 
     </androidx.preference.PreferenceCategory>
 

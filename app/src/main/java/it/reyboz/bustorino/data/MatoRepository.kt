@@ -20,6 +20,7 @@ package it.reyboz.bustorino.data
 import android.content.Context
 import android.util.Log
 import com.android.volley.Response
+import com.android.volley.toolbox.ClearCacheRequest
 import it.reyboz.bustorino.backend.NetworkVolleyManager
 import it.reyboz.bustorino.backend.Result
 import it.reyboz.bustorino.backend.mato.MatoQueries
@@ -48,6 +49,13 @@ class MatoRepository(val mContext: Context) {
             },
             errorListener
         ))
+    }
+
+    fun clearVolleyCache(){
+        val clearReq = ClearCacheRequest(netVolleyManager.requestQueue.cache){
+            Log.d(DEBUG_TAG, "Volley cache is cleared")
+        }
+        netVolleyManager.addToRequestQueue(clearReq)
     }
 
     fun interface Callback<T> {

@@ -3,6 +3,9 @@
            tools:ignore="MissingTranslation">
     <string name="pref_layout" translatable="false">layout_pref</string>
     <string name="pref_update_db_now" translatable="false">pref_update_db_now</string>
+    <string name="positions_source_mqtt" translatable="false">mqtt</string>
+    <string name="positions_source_gtfsrt" translatable="false">gtfsrt</string>
+
 
     <array name="first_screen_values">
         <item>arrivals</item>
@@ -26,8 +29,8 @@
 
     <string name="pref_positions_source">pref_positions_source</string>
     <array name="positions_source_values">
-        <item>mqtt</item>
-        <item>gtfsrt</item>
+        <item>@string/positions_source_mqtt</item>
+        <item>@string/positions_source_gtfsrt</item>
     </array>
 
     <!-- MapLibre Preferences -->

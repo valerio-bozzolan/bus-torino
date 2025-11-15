@@ -22,6 +22,8 @@ import android.util.Log
 import androidx.lifecycle.*
 import androidx.work.OneTimeWorkRequest
 import com.android.volley.Response
+import it.reyboz.bustorino.backend.Fetcher
+import it.reyboz.bustorino.backend.LivePositionsServiceStatus
 import it.reyboz.bustorino.backend.NetworkVolleyManager
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.gtfs.GtfsRtPositionsRequest
@@ -62,10 +64,13 @@ class GtfsPositionsViewModel(application: Application): AndroidViewModel(applica
         }
 
     }
-    private val positionRequestErrorListener = Response.ErrorListener {
-        Log.e(DEBUG_TI, "Could not download the update, error:\n"+it.stackTrace)
-    }
+    /**
+     * Listener for the errors in downloading positions from GTFS RT
+     */
+    private val positionRequestErrorListener = GtfsRtPositionsRequest.Companion.ErrorListener {
+        Log.e(DEBUG_TI, "Could not download the update", it)
 
+    }
     fun requestUpdates(){
         if(positionsRequestRunning.value == null || !positionsRequestRunning.value!!) {
             val request = GtfsRtPositionsRequest(positionRequestErrorListener, positionRequestListener)

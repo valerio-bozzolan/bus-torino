@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:padding="15dp"
+              android:orientation="vertical">
+
+
+        <!-- Label fissa (SX) -->
+        <TextView
+                android:id="@+id/tvTitleFixed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/live_positions_dialog_provider_text"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:fontFamily="@font/lato_bold"
+                android:textColor="@color/black_900"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Label variabile (DX) -->
+    <TextView
+            android:id="@+id/providerNameTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Valore"
+            android:textSize="18sp"
+            app:layout_constraintTop_toTopOf="@+id/tvTitleFixed"
+            app:layout_constraintStart_toEndOf="@id/tvTitleFixed"
+            app:layout_constraintBottom_toTopOf="@id/statusCard"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="6dp"
+            android:textColor="@color/black"
+            android:fontFamily="@font/lato_regular"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display3"/>
+
+
+    <!-- BOX del messaggio di stato -->
+    <androidx.cardview.widget.CardView
+            android:id="@+id/statusCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:layout_constraintTop_toBottomOf="@+id/providerNameTextView"
+            app:layout_constraintBottom_toTopOf="@id/btnSwitch"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+
+            android:padding="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="1dp"
+            app:strokeWidth="1dp"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="@color/grey_200"
+            app:strokeColor="@color/grey_050">
+
+        <TextView
+                android:id="@+id/statusMessageTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Messaggio di stato..."
+                android:fontFamily="@font/lato_regular"
+                android:textSize="16sp"
+                android:textColor="@color/black"
+                android:padding="8dp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Pulsanti -->
+
+
+        <Button
+                android:id="@+id/btnSwitch"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:layout_constraintTop_toBottomOf="@+id/statusCard"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:backgroundTint="?colorPrimaryDark"
+                android:textColor="@color/white"
+                android:text="@string/live_positions_switch_provider" />
+
+        <ImageButton
+                android:id="@+id/btnClose"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:src="@drawable/close_white_large"
+                android:backgroundTint="?colorPrimaryDark"
+                android:contentDescription="close"
+
+        />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

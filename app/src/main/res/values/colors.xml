@@ -10,6 +10,7 @@
     <color name="blue_620">#2a65e8</color>
     <color name="blue_700">#2060dd</color>
     <color name="brown_vd">#8A4247</color><!-- #1976D2 -->
+    <color name="dialog_background">#FFF3E0</color>
 
     <color name="blue_mid_2">#2378e8</color>
     <color name="blue_c_or_700">#0079f5</color>
@@ -29,6 +30,8 @@
     <color name="grey_100">#F5F5F5</color>
     <color name="grey_200">#dddddd</color>
     <color name="grey_050">#f8f8f8</color>
+    <color name="grey_400">#bababa</color>
+    <color name="grey_500">#acacac</color>
     <color name="grey_600">#757575</color>
     <color name="grey_700">#444</color>
     <color name="grey_800">#353535</color>
@@ -40,6 +43,9 @@
     <color name="red_darker">#b30000</color>
     <color name="red_orange">#dd441f</color>
     <color name="red_dark">#b30d0d</color>
+    <color name="orange_icons">#f15000</color>
+    <color name="orange_icons_10light">#f2621a</color>
+    <color name="orange_icons_20light">#f47333</color>
     <color name="blue_extraurbano">#2060DD</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
@@ -63,4 +69,6 @@
     <color name="urban_bus_bg">@color/orange_500</color>
     <color name="extraurban_bus_bg">@color/blue_extraurbano</color>
     <color name="metro_bg">@color/metro_red</color>
+    <color name="map_icon_background_active">@color/orange_icons_10light</color>
+    <color name="map_icon_background_inactive">@color/grey_400</color>
 </resources>
