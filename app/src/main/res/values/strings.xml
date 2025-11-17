@@ -367,8 +367,8 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="live_positions_msg_parsing_error">Error parsing the server response</string>
     <string name="live_positions_msg_network_error">Error: network response is not as expected</string>
     <string name="live_positions_msg_connecting">Connecting...</string>
-    <string name="positions_source_mato_short">MaTO</string>
-    <string name="positions_source_gtfsrt_short">GTFS RT</string>
+    <string name="positions_source_mato_short" translatable="false">MaTO</string>
+    <string name="positions_source_gtfsrt_short" translatable="false">GTFS RT</string>
     <string name="live_positions_dialog_provider_text">Live positions source:</string>
     <string name="live_positions_switch_provider">Switch source</string>
     <string name="live_positions_preference_switch_clear_title">Clear bus positions when switching live positions source</string>
