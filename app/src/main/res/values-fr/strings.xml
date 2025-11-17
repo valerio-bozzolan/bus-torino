@@ -81,7 +81,7 @@
     <string name="pref_shown_startup">Section à afficher au démarrage</string>
     <string name="positions_source_pref_title">"Source de la localisation en temps réel pour les bus et les trams"</string>
     <string name="long_press_stop_4_options">Appui long sur l\'arrêt pour afficher les options</string>
-    <string name="positions_source_gtfsrt_descr">"GTFS RT (plus stable, moins fréquemment mis à jour)"</string>
+    <string name="positions_source_gtfsrt_descr">GTFS RT (plus stable, moins fréquemment mis à jour)</string>
     <string name="all_trips_removed">Tous les trajets GTFS ont été supprimés de la base de données</string>
     <string name="btn_backup_message">Sauvegarde dans un fichier</string>
     <string name="grant_notification_permission">Activer les notifications</string>
