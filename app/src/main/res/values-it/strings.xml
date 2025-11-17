@@ -55,7 +55,7 @@
     <string name="dialog_rename_bus_stop_username_title">Rinomina fermata</string>
     <string name="dialog_rename_bus_stop_username_reset_button">Reset</string>
     <string name="about_activity">Informazioni</string>
-    <string name="howDoesItWork"><b>Tocca la stella</b> per aggiungere la fermata ai preferiti\n\n<b>Come leggere gli orari:</b> \n<b>12:56*</b> Orario in tempo reale\n<b>12:56</b> Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario. \n<b>Tocca a lungo</b> su <b>Fonte Orari</b> per cambiare sorgente degli orari di arrivo</string>
+    <string name="howDoesItWork"><b>Tocca la stella</b> per aggiungere la fermata ai preferiti\n\n<b>Come leggere gli orari:</b>\n<b> 12:56*</b> Orario in tempo reale\n<b> 12:56</b> Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario. \n<b>Tocca a lungo</b> su <b>Fonte Orari</b> per cambiare sorgente degli orari di arrivo</string>
     <string name="hint_button">OK!</string>
     <string name="about_history_top"><![CDATA[
         <h1>Benvenuto!</h1>
