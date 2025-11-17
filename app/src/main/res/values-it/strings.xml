@@ -210,8 +210,8 @@
     <string name="pref_shown_startup">Schermata da mostrare all\'avvio</string>
     <string name="pref_shown_startup_def_desc">Tocca per cambiare</string>
     <string name="positions_source_pref_title">Fonte posizioni in tempo reale di bus e tram</string>
-    <string name="positions_source_mato_descr">MaTO (aggiornate più spesso, può non funzionare)</string>
-    <string name="positions_source_gtfsrt_descr">GTFS RT (più stabile)</string>
+    <string name="positions_source_mato_descr">MaTO (aggiornate più spesso, può avere errori)</string>
+    <string name="positions_source_gtfsrt_descr">GTFS RT (aggiornato meno frequentemente, posizioni più controllate)</string>
     <string name="favorites_line_add">Linea aggiunta ai preferiti</string>
     <string name="favorites_line_remove">Linea rimossa dai preferiti</string>
     <string name="favorites_lines">Preferite</string>
@@ -270,4 +270,14 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
     <string name="showing_same_direction">Direzione già selezionata</string>
     <string name="too_far_not_showing_location">Sei troppo lontano, posizione nascosta</string>
     <string name="destination_loading">Caricamento destinazione…</string>
+    <string name="hello_blank_fragment">Ciao fragment vuoto</string>
+    <string name="live_positions_msg_ok">Il servizio delle posizioni funziona normalmente</string>
+    <string name="live_positions_msg_no_positions">Nessuna posizione ricevuta</string>
+    <string name="live_positions_msg_connection_error">Errore nella connessione al server</string>
+    <string name="live_positions_msg_parsing_error">Errore nel parsing della risposta</string>
+    <string name="live_positions_msg_network_error">Errore: risposta dal server inaspettata</string>
+    <string name="live_positions_msg_connecting">In connessione...</string>
+    <string name="live_positions_dialog_provider_text">Fonte posizioni in tempo reale:</string>
+    <string name="live_positions_switch_provider">Cambia fonte</string>
+    <string name="live_positions_preference_switch_clear_title">Rimuovi posizioni sulla mappa quando si cambia fonte delle posizioni in tempo reale</string>
 </resources>
