@@ -270,11 +270,15 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
     val filteredLocationUpdates = MediatorLiveData<Pair<FullPositionUpdatesMap, List<String>>>()
     init {
         filteredLocationUpdates.addSource(updatesWithTripAndPatterns){
-            filteredLocationUpdates.value = filterUpdatesForGtfsLine(it, gtfsLineToFilterPos.value!!)
+            filteredLocationUpdates.postValue(filterUpdatesForGtfsLine(it, gtfsLineToFilterPos.value!!))
         }
 
         filteredLocationUpdates.addSource(gtfsLineToFilterPos){
-            updatesWithTripAndPatterns.value?.let{ ups-> filteredLocationUpdates.value = filterUpdatesForGtfsLine(ups, it)}
+            //Log.d(DEBUG_TI, "line to filter change to: ${gtfsLineToFilterPos.value}")
+            updatesWithTripAndPatterns.value?.let{
+                ups-> filteredLocationUpdates.postValue(filterUpdatesForGtfsLine(ups, it))
+                //Log.d(DEBUG_TI, "Set ${ups.size} updates as new value for filteredLocation")
+            }
         }
 
     }
@@ -284,41 +288,52 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
             Pair<HashMap<String,FullPositionUpdate>, List<String>>{
         val gtfsLineId = linePatt.first
         val pattern = linePatt.second
-
-
-        val filtdLineID = GtfsUtils.stripGtfsPrefix(gtfsLineId)
-        //filter buses with direction, show those only with the same direction
         val updsForTripId = HashMap<String, Pair<LivePositionUpdate, TripAndPatternWithStops?>>()
-        val directionId = pattern?.directionId ?: -100
-        val numUpds = updates.entries.size
-        Log.d(DEBUG_TI, "Got $numUpds updates, current pattern is: ${pattern?.name}, directionID: ${pattern?.directionId}")
-        // cannot understand where this is used
-        //val patternsDirections = HashMap<String,Int>()
         val vehicleOnWrongDirection = mutableListOf<String>()
-        for((tripId, pair) in updates.entries){
-            //remove trips with wrong line
-            val posUp = pair.first
-            val vehicle = pair.first.vehicle
-            if(pair.first.routeID!=filtdLineID)
-                continue
 
-            if(directionId!=-100 && pair.second!=null && pair.second?.pattern !=null){
-                val dir = pair.second!!.pattern!!.directionId
-
-                if(dir == directionId){
-                    //add the trip
-                    updsForTripId[tripId] = pair
-                } else{
-                    vehicleOnWrongDirection.add(vehicle)
-                }
-                //patternsDirections[tripId] = dir ?: -10
-            } else{
+        //supporting the eventual null case when there is no need to filter
+        if (gtfsLineId == "ALL"){
+            //copy the dict
+            for ((tripId, pair) in updates.entries) {
                 updsForTripId[tripId] = pair
-                //Log.d(DEBUG_TAG, "No pattern for tripID: $tripId")
-                //patternsDirections[tripId] = -10
+            }
+        } else {
+
+            val filtdLineID = GtfsUtils.stripGtfsPrefix(gtfsLineId)
+            //filter buses with direction, show those only with the same direction
+            val directionId = pattern?.directionId ?: -100
+            val numUpds = updates.entries.size
+            Log.d(
+                DEBUG_TI,
+                "Got $numUpds updates, current pattern is: ${pattern?.name}, directionID: ${pattern?.directionId}"
+            )
+            // cannot understand where this is used
+            //val patternsDirections = HashMap<String,Int>()
+            for ((tripId, pair) in updates.entries) {
+                //remove trips with wrong line
+                val posUp = pair.first
+                val vehicle = pair.first.vehicle
+                if (pair.first.routeID != filtdLineID)
+                    continue
+
+                if (directionId != -100 && pair.second != null && pair.second?.pattern != null) {
+                    val dir = pair.second!!.pattern!!.directionId
+
+                    if (dir == directionId) {
+                        //add the trip
+                        updsForTripId[tripId] = pair
+                    } else {
+                        vehicleOnWrongDirection.add(vehicle)
+                    }
+                    //patternsDirections[tripId] = dir ?: -10
+                } else {
+                    updsForTripId[tripId] = pair
+                    //Log.d(DEBUG_TAG, "No pattern for tripID: $tripId")
+                    //patternsDirections[tripId] = -10
+                }
             }
         }
-        Log.d(DEBUG_TI, " Filtered updates are ${updsForTripId.keys.size}") // Original updates directs: $patternsDirections\n
+        Log.d(DEBUG_TI, "Filtered updates are ${updsForTripId.keys.size}") // Original updates directs: $patternsDirections\n
 
         return  Pair(updsForTripId, vehicleOnWrongDirection)
     }

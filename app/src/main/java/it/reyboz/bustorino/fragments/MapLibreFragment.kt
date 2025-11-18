@@ -842,18 +842,18 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
         val symbolsToUpdate = ArrayList<Symbol>()
         for (upsWithTrp in incomingData.values){
-            val pos = upsWithTrp.first
-            val vehID = pos.vehicle
-            var animate = false
+            val newPos = upsWithTrp.first
+            val vehID = newPos.vehicle
+            //var animate = false
             if (vehsOld.contains(vehID)){
                 //update position only if the starting or the stopping position of the animation are in the view
                 val oldPos = positionsByVehDict[vehID]
                 var avoidShowingUpdateBecauseIsImpossible = false
                 oldPos?.let{
-                    if(oldPos.routeID!=pos.routeID) {
-                        val dist = LatLng(it.latitude, it.longitude).distanceTo(LatLng(pos.latitude, pos.longitude))
-                        val speed = dist*3.6 / (pos.timestamp - it.timestamp) //this should be in km/h
-                        Log.w(DEBUG_TAG, "Vehicle $vehID changed route from ${oldPos.routeID} to ${pos.routeID}, distance: $dist, speed: $speed")
+                    if(oldPos.routeID!=newPos.routeID) {
+                        val dist = LatLng(it.latitude, it.longitude).distanceTo(LatLng(newPos.latitude, newPos.longitude))
+                        val speed = dist*3.6 / (newPos.timestamp - it.timestamp) //this should be in km/h
+                        Log.w(DEBUG_TAG, "Vehicle $vehID changed route from ${oldPos.routeID} to ${newPos.routeID}, distance: $dist, speed: $speed")
                         if (speed > 120 || speed < 0){
                             avoidShowingUpdateBecauseIsImpossible = true
                         }
@@ -865,17 +865,23 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                     continue
                 }
 
-                val samePosition = oldPos?.let { (oldPos.latitude==pos.latitude)&&(oldPos.longitude == pos.longitude) }?:false
+                val samePosition = oldPos?.let { (oldPos.latitude==newPos.latitude)&&(oldPos.longitude == newPos.longitude) }?:false
+
                 if(!samePosition) {
                     val isPositionInBounds = isInsideVisibleRegion(
-                        pos.latitude, pos.longitude, false
+                        newPos.latitude, newPos.longitude, false
                     ) || (oldPos?.let { isInsideVisibleRegion(it.latitude,it.longitude, false) } ?: false)
+                    if ((newPos.bearing==null && oldPos?.bearing!=null)){
+                        //copy old bearing
+                        newPos.bearing = oldPos.bearing
+                    }
                     if (isPositionInBounds) {
                         //animate = true
                         //this moves both the icon and the label
-                        moveVehicleToNewPosition(pos)
+                        moveVehicleToNewPosition(newPos)
                     } else {
-                        positionsByVehDict[vehID] = pos
+
+                        positionsByVehDict[vehID] = newPos
                         /*busLabelSymbolsByVeh[vehID]?.let {
                             it.latLng = LatLng(pos.latitude, pos.longitude)
                             symbolsToUpdate.add(it)
@@ -885,13 +891,13 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                     }
                 }
             }
-            else if(pos.latitude>0 && pos.longitude>0) {
+            else if(newPos.latitude>0 && newPos.longitude>0) {
                     //we should not have to check for this
                     // update it simply
-                    positionsByVehDict[vehID] = pos
+                    positionsByVehDict[vehID] = newPos
                     //createLabelForVehicle(pos)
                 }else{
-                    Log.w(DEBUG_TAG, "Update ignored for veh $vehID on line ${pos.routeID}, lat: ${pos.latitude}, lon ${pos.longitude}")
+                    Log.w(DEBUG_TAG, "Update ignored for veh $vehID on line ${newPos.routeID}, lat: ${newPos.latitude}, lon ${newPos.longitude}")
                 }
 
         }
@@ -907,7 +913,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 //removeVehicleLabel(vehID)
             }
         }
-        //update UI
+        //finally, update UI
         updatePositionsIcons()
     }
 

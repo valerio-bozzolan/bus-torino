@@ -17,6 +17,8 @@ import org.json.JSONException
 import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 typealias PositionsMap = HashMap<String, HashMap<String, LivePositionUpdate> >
 
@@ -31,6 +33,7 @@ class MQTTMatoClient(){
     private val respondersMap = HashMap<String, ArrayList<WeakReference<MQTTMatoListener>>>()
 
     private val currentPositions = PositionsMap()
+    private val positionsLock = ReentrantLock()
 
     private lateinit var lifecycle: LifecycleOwner
     //TODO: remove class reference to context (always require context in all methods)
@@ -177,9 +180,7 @@ class MQTTMatoClient(){
         }
         Log.d(DEBUG_TAG, "Removed: $removed, respondersMap: $respondersMap")
     }
-    fun getPositions(): PositionsMap{
-        return currentPositions
-    }
+
 
     /**
      * Cancel the notification
@@ -201,7 +202,9 @@ class MQTTMatoClient(){
             else {
                 val resp  = wrD.get()!!
                 resp.onStatusUpdate(LivePositionsServiceStatus.OK)
-                resp.onUpdateReceived(currentPositions)
+                positionsLock.withLock {
+                    resp.onUpdateReceived(currentPositions)
+                }
                 //sent = true
                 count++
             }
@@ -316,12 +319,14 @@ class MQTTMatoClient(){
             )
 
             //add update
-            var valid = false
-            if(!currentPositions.contains(lineId))
-                currentPositions[lineId] = HashMap()
-            currentPositions[lineId]?.let{
-                it[vehicleId] = posUpdate
-                valid = true
+            //var valid = false
+            positionsLock.withLock {
+                if (!currentPositions.contains(lineId))
+                    currentPositions[lineId] = HashMap()
+                currentPositions[lineId]!!.let {
+                    it[vehicleId] = posUpdate
+                    //valid = true
+                }
             }
             //sending
             //Log.d(DEBUG_TAG, "Parsed update on topic $topic, line $lineId, responders $respondersMap")
@@ -369,11 +374,13 @@ class MQTTMatoClient(){
     fun clearOldPositions(timeMins: Int){
         val currentTimeStamp = makeUnixTimestamp()
         var c = 0
-        for((k, manyp) in currentPositions.entries){
-            for ((t, p) in manyp.entries){
-                if (currentTimeStamp - p.timestamp > timeMins*60){
-                    manyp.remove(t)
-                    c+=1
+        positionsLock.withLock{
+            for ((k, manyp) in currentPositions.entries) {
+                for ((t, p) in manyp.entries) {
+                    if (currentTimeStamp - p.timestamp > timeMins * 60) {
+                        manyp.remove(t)
+                        c += 1
+                    }
                 }
             }
         }

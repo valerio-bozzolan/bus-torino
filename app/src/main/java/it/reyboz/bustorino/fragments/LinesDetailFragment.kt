@@ -42,6 +42,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -69,6 +70,8 @@ import it.reyboz.bustorino.util.ViewUtils
 import it.reyboz.bustorino.viewmodels.LinesViewModel
 import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
 import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
@@ -531,11 +534,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
                 //if(!stopsLayerStarted)
                 initStopsPolyLineLayers(style, FeatureCollection.fromFeatures(ArrayList<Feature>()), null, null)
-                /*if(!stopsLayerStarted) {
-                    Log.d(DEBUG_TAG, "Stop layer is not started yet")
-                    initStopsPolyLineLayers(style, FeatureCollection.fromFeatures(ArrayList<Feature>()), null)
-                }
-                 */
+
                 setupBusLayer(style)
 
                 symbolManager = SymbolManager(mapView,mapReady,style)
@@ -1225,6 +1224,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         Log.d(DEBUG_TAG, "In fragment, have ${incomingData.size} updates to show")
 
         var countUpds = 0
+        var createdVehs = 0
         //val symbolsToUpdate = ArrayList<Symbol>()
         for (upsWithTrp in incomingData.values){
             val newPos = upsWithTrp.first
@@ -1256,6 +1256,10 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
                 val samePosition = oldPos?.let { (it.latitude==newPos.latitude)&&(it.longitude == newPos.longitude) }?:false
                 val setPattern =  (oldPattern==null) && (patternStops!=null)
+                if(newPos.bearing == null && oldPos?.bearing != null){
+                    //copy old bearing
+                    newPos.bearing = oldPos.bearing
+                }
                 if((!samePosition)|| setPattern) {
 
                     val newOrOldPosInBounds = isPointInsideVisibleRegion(
@@ -1291,6 +1295,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                 //createLabelForVehicle(pos)
                 //if(vehShowing==vehID)
                 //    map?.animateCamera(CameraUpdateFactory.newLatLng(LatLng(pos.latitude, pos.longitude)),500)
+                createdVehs +=1
             }
             if (vehID == vehShowing){
                 //update the data
@@ -1299,7 +1304,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         }
         //symbolManager.update(symbolsToUpdate)
         //remove old positions
-        Log.d(DEBUG_TAG, "Updated $countUpds vehicles")
+        Log.d(DEBUG_TAG, "Updated $countUpds vehicles, created $createdVehs vehicles")
         vehsOld.removeAll(vehsNew)
         //now vehsOld contains the vehicles id for those that have NOT been updated
         val currentTimeStamp = System.currentTimeMillis() /1000
@@ -1342,10 +1347,11 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                     latLng = animation.animatedValue as LatLng
                     //update position on animation
                     val update = updatesByVehDict[positionUpdate.vehicle]
-                    if(update!=null) latLng?.let { ll->
+                    if(update!=null){ latLng?.let { ll ->
                         update.posUpdate.latitude = ll.latitude
                         update.posUpdate.longitude = ll.longitude
                         updatePositionsIcons(false)
+                    }
                     } else{
                         //The update is null
                         Log.w(DEBUG_TAG, "The bus position to animate has been removed, but the animator is still running!")
@@ -1395,7 +1401,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             //updatesByVehDict[positionUpdate.vehicle] = positionUpdate
         }
     }
-
+    //TODO: MERGE THIS CODE WITH MapLibreFragment ONE
     /**
      * Update the bus positions displayed on the map, from the existing data
      */
@@ -1404,6 +1410,10 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         val currentTime = System.currentTimeMillis()
         if(!forced && currentTime - lastUpdateTime < 60){
             //DO NOT UPDATE THE MAP
+            viewLifecycleOwner.lifecycleScope.launch {
+                delay(200)
+                updatePositionsIcons(forced)
+            }
             return
         }
 
