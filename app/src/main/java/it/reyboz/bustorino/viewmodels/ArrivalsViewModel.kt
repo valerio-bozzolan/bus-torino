@@ -51,7 +51,7 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
 
         // Equivalente del doInBackground nell'AsyncTask
         val recursionHelper = RecursionHelper(fetchers.toTypedArray())
-        var resultPalina = Palina(stopId)
+        var resultPalina : Palina? = null
 
         val stringBuilder = StringBuilder()
         for (f in fetchers) {

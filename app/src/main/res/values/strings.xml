@@ -54,7 +54,7 @@
     <string name="action_help">Help</string>
     <string name="action_about">About the app</string>
     <string name="action_about_more">More about</string>
-    <string name="action_wiki">Contribute</string>
+    <string name="action_wiki">Open the wiki</string>
     <string name="hack_url">https://gitpull.it/w/librebusto/en/</string>
     <string name="action_source">Source code</string>
     <string name="action_licence">Licence</string>11
@@ -124,7 +124,7 @@
 		- All the contributors, and the beta testers, too!
 		</p>
 		<br>
-		 If you want more technical information or to contribute to development, use the buttons below!</b>
+		 If you want more information or want to contribute to development, use the buttons below!</b>
     ]]></string>
     <string name="about_history_bottom">
         <![CDATA[

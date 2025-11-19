@@ -267,7 +267,11 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
                 updateFragmentData(it)
             } else{
                 progressBar.visibility=View.INVISIBLE
-                loadingMessageTextView.text = getString(R.string.no_bus_stop_have_this_name)
+                // Avoid showing this ugly message if we have found the stop, clearly it exists but GTT doesn't provide arrival times
+                if (stopName==null)
+                    loadingMessageTextView.text = getString(R.string.no_bus_stop_have_this_name)
+                else
+                    loadingMessageTextView.text = getString(R.string.no_arrivals_stop)
             }
 
         }
