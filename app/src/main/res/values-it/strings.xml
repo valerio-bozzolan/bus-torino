@@ -40,7 +40,7 @@
     <string name="action_help">Aiuto</string>
     <string name="action_about">Informazioni</string>
     <string name="action_about_more">Più informazioni</string>
-    <string name="action_wiki">Contribuisci</string>
+    <string name="action_wiki">Vai alla wiki</string>
     <string name="hack_url">https://gitpull.it/w/librebusto/it/</string>
     <string name="action_source">Codice sorgente</string>
     <string name="action_licence">Licenza</string>
@@ -91,7 +91,7 @@
 		- Tutti i contributori e i beta tester!
 		</p>
         <br>
-		Se vuoi avere più informazioni tecniche e contribuire allo sviluppo, usa i pulsanti qui sotto!</b>
+		Se vuoi avere più informazioni o contribuire allo sviluppo, usa i pulsanti qui sotto!</b>
 
          ]]></string>
     <string name="about_history_bottom"><![CDATA[
