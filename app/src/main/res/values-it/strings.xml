@@ -73,8 +73,7 @@
         <h2>Notizie e aggiornamenti</h2>
         <p>Nel canale Telegram puoi trovare informazioni sugli ultimi aggiornamenti dell\'app</p>
         ]]></string>
-    <string name="about_how">
-        <![CDATA[
+    <string name="about_how"><![CDATA[
         <h2>Ma come funziona?</h2>
         <p>Quest\'app ottiene i passaggi dei bus, le fermate e altre informazioni utili unendo dati forniti dal sito <b>www.gtt.to.it</b>, <i>www.5t.torino.it</i>, <b>muoversiatorino.it</b> "per uso personale" e altre fonti Open Data (aperto.comune.torino.it).</p>
         <br>
