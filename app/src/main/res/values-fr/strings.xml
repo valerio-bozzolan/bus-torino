@@ -169,4 +169,83 @@
     <string name="tutorial_action">Afficher le tutoriel</string>
     <string name="saved_data">Données sauvegardées</string>
     <string name="no">Non</string>
+    <string name="app_description">Vous bénéficiez de la dernière technologie en matière de respect de votre vie privée.</string>
+    <string name="stop_fill">Arrêt %1$s</string>
+    <string name="about_history_bottom"><![CDATA[
+		<h2>Licences</h2>
+		<p>L'application et le code source associé sont publiés par Valerio Bozzolan et les autres auteurs sous les termes de la licence <i>GNU General Public License v3+</i>.
+		Tout le monde est donc autorisé à utiliser, étudier, améliorer et partager cette application par <b>tout moyen</b> et à <b>toutes fins</b> : à condition de respecter ces droits et d'attribuer l'œuvre originale à Valerio Bozzolan.</p>
+        <br>
+		<h2>Remarques</h2>
+		<p>Cette application a été développée dans l'espoir d'<b>être utile à tous</b>, mais elle est fournie sans AUCUNE garantie d\'aucune sorte.</p>
+		<p>Les données utilisées par l'application proviennent <b>directement</b> de GTT et d'autres organismes publics : si vous constatez des erreurs, veuillez vous adresser à eux, et non à nous.</p>
+		<p>Cette traduction est gracieusement fournie par Riccardo Caniato, Marco Gagino et Fabio Mazza.</p>
+		<p>Bonne utilisation ! :)</p>
+    ]]></string>
+    <string name="cant_add_to_favorites">Impossible d\'ajouter aux favoris ( stockage plein ou base de données corrompue ?) !</string>
+    <string name="cannot_show_on_map_no_activity">Impossible de trouver une application où l\'afficher</string>
+    <string name="nearby_arrivals_message">Arrivées à proximité</string>
+    <string name="searching_arrivals_fmt">Recherche des arrivées depuis %1$s</string>
+    <string name="too_far_not_showing_location">Vous êtes trop loin, position non affichée</string>
+    <string name="map_style_pref_title">Style de la carte</string>
+    <string name="map_style_versatiles">Versatiles (vectoriel)</string>
+    <string name="map_style_legacy_raster">OSM legacy (raster, plus légèr)</string>
+    <string name="tutorial_first"><![CDATA[Merci d'avoir installé BusTO, l'application gratuite, libre et <b>open source</b> pour les transports publics de Turin. Il s\'agit d'une application <b>indépendante</b>, sans publicité ni traceurs d'aucune sorte.]]></string>
+    <string name="tutorial_search"><![CDATA[Vous pouvez rechercher les horaires d\'arrivée à un arrêt en saisissant le numéro dans le champ de recherche.<br>
+Si vous vous trouvez à un arrêt, vous pouvez scanner le code QR présent sur le panneau en appuyant sur l'icône à gauche de la barre de recherche.]]></string>
+    <string name="tutorial_arrivals"><![CDATA[Une fois que vous avez trouvé un arrêt, vous pouvez l'enregistrer dans vos <b>favoris</b> en touchant l\'étoile à côté de son nom]]>&gt;</string>
+    <string name="tutorial_stops"><![CDATA[Vous pouvez voir les arrêts à proximité directement sur l\'écran principal...]]></string>
+    <string name="tutorial_map"><![CDATA[...ou vous pouvez les trouver sur la carte, avec les positions en temps réel des bus circulant dans la ville (en <font color="#2F59CC">bleu</font>)]]></string>
+    <string name="tutorial_line"><![CDATA[Vous pouvez également consulter la ligne qui vous intéresse et voir où se trouvent les arrêts, ainsi que les véhicules qui desservent la ligne à ce moment-là. N'oubliez pas de choisir la direction qui vous intéresse !]]></string>
+    <string name="tutorial_menu"><![CDATA[Toutes ces fonctions se trouvent dans le menu latéral.
+Consultez les <b>Paramètres</b> pour personnaliser l'application, et la section <b>À propos de l'application</b> si vous souhaitez en savoir plus sur l'application et ses développeurs.]]></string>
+    <string name="tutorial_permissions"><![CDATA[L'application nécessite l'autorisation <b>Notifications</b> pour afficher les informations relatives au fonctionnement en arrière-plan.
+         Appuyez sur le bouton ci-dessous pour l'autoriser]]></string>
+    <string name="hello_blank_fragment">Bonjour fragment vide</string>
+    <string name="no_map_app_to_show_stop">Aucune application trouvée pour afficher l\'arrêt !</string>
+    <string name="showing_same_direction">Direction déjà sélectionnée</string>
+    <string name="destination_loading">Chargement de la destination…</string>
+    <string name="destination_unknown">Destination inconnue</string>
+    <string name="live_positions_msg_ok">Le service des positions fonctionne normalement</string>
+    <string name="live_positions_msg_no_positions">Aucune position reçue</string>
+    <string name="live_positions_msg_connection_error">Erreur de connexion au serveur</string>
+    <string name="live_positions_msg_parsing_error">Erreur lors de la lecture de la réponse du serveur</string>
+    <string name="live_positions_msg_network_error">Erreur : réponse du serveur de type inattendu</string>
+    <string name="live_positions_msg_connecting">Connexion en cours...</string>
+    <string name="live_positions_dialog_provider_text">Source des positions en temps réel :</string>
+    <string name="live_positions_switch_provider">Changer de source</string>
+    <string name="live_positions_preference_switch_clear_title">Supprimer les positions sur la carte lorsque la source des positions en temps réel est modifiée</string>
+    <string name="vehicle_fill">Véhicule %1$s</string>
+    <string name="about_history_top"><![CDATA[
+        <h1>Bienvenue !</h1>
+
+        <p>Merci d\'avoir choisi BusTO, une application <b>open source</b> et <b>indépendante</b> utile pour se déplacer dans la ville de Turin avec un <b>logiciel libre</b> !</p>
+        <p>BusTO respecte votre <b>vie privée</b> en ne collectant aucune donnée sur votre utilisation. Elle est <b>légère</b> et ne contient aucune <b>publicité</b> !</p>
+        <br>
+	<p>Ici, vous trouverez plus d\'informations et des liens concernant le projet.</p>
+        <br>
+        <h2>Tutoriel</h2>
+        <p>Si vous souhaitez consulter à nouveau l\'introduction, utilisez le bouton ci-dessous :</p>
+        ]]></string>
+    <string name="about_how"><![CDATA[
+    <h2>How does it work?</h2>
+        <p>Cette application est capable d\'accomplir toutes ces choses incroyables en extrayant des données de <b>www.gtt.to.it</b>, <b>www.5t.torino.it</b> ou <b>muoversiatorino.it</b> "pour usage personnel", ainsi que les données ouvertes du site web AperTO (aperto.comune.torino.it) .</p>
+        <br>
+		<p>Le travail de plusieurs personnes est à l'origine de cette application, en particulier :<br>
+		- <b>Fabio Mazza</b>, développeur rockstar senior actuel.<br>
+        - <b>Andrea Ugo</b>, développeur junior rockstar actuel.<br>
+		- <b>Silviu Chiriac</b>, créateur du logo du 2021.<br>
+		- <b>Marco M</b>, testeur rockstar et chasseur de bugs.<br>
+		- <b>Ludovico Pavesi</b>, ancien développeur rockstar senior (asd).<br>
+		- <b>Valerio Bozzolan</b>, mainteneur et infrastructures (sponsor).<br>
+		- <b>Marco Gagino</b>, contributeur et créateur de la première icône.<br>
+		- <b>JSoup</b> bibliothèque pour le scraping web.<br>
+		- <b>makovkastar</b> boutons flottants<br>
+        - <b>Google</b> pour les icônes et les bibliothèques de support et de design.<br>
+        - Autres icônes provenant de <b>Bootstrap</b>, <b>Feather</b> et <b>Hero Icons</b>.<br>
+		- Tous les contributeurs, ainsi que les bêta-testeurs !
+		</p>
+		<br>
+		 Si vous souhaitez obtenir plus d'informations ou contribuer au développement, utilisez les boutons ci-dessous !</b>
+    ]]></string>
 </resources>
