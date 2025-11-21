@@ -1,0 +1,25 @@
+Avoid showing message "no stop found with this name" if the stop is in the app database
+Reported by marcoM32
+Resolved by fabio.mazza
+https://gitpull.it/T1368
+
+ConcurrentModificationException from MQTTMatoClient.kt:373
+Resolved by fabio.mazza
+https://gitpull.it/T1365
+
+Fix bus positions not updating after going back to the app
+Resolved by fabio.mazza
+https://gitpull.it/T1352
+
+Show message when there is an error in the real-time bus positions
+Resolved by fabio.mazza
+https://gitpull.it/T1347
+
+Added way to change source of realtime bus positions from the map
+Resolved by fabio.mazza
+https://gitpull.it/T1346
+
+Fix crash caused by Out of Memory error on version 2.1.2
+Reported by fabio.mazza
+Resolved by 
+https://gitpull.it/T1222

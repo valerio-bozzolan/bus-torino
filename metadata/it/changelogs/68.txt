@@ -1,0 +1,25 @@
+Non mostrare il messaggio "Sembra che nessuna fermata abbia questo nome" se la fermata è nel database
+Segnalato da marcoM32
+Risolto da fabio.mazza
+https://gitpull.it/T1368
+
+ConcurrentModificationException from MQTTMatoClient.kt:373
+Risolto da fabio.mazza
+https://gitpull.it/T1365
+
+Risolto: posizioni bus non si aggiornano quando si torna all'app
+Risolto da fabio.mazza
+https://gitpull.it/T1352
+
+Mostrare all'utente un messaggio quando c'è un errore dell'app nelle posizioni in tempo reale
+Risolto da fabio.mazza
+https://gitpull.it/T1347
+
+Aggiunto modo di cambiare fonte di arrivo dei bus in tempo reale dalla mappa
+Risolto da fabio.mazza
+https://gitpull.it/T1346
+
+Fix crash caused by Out of Memory error on version 2.1.2
+Segnalato da fabio.mazza
+Risolto da 
+https://gitpull.it/T1222
