@@ -177,8 +177,8 @@
 		Tout le monde est donc autorisé à utiliser, étudier, améliorer et partager cette application par <b>tout moyen</b> et à <b>toutes fins</b> : à condition de respecter ces droits et d\attribuer l\'œuvre originale à Valerio Bozzolan.</p>
         <br>
 		<h2>Remarques</h2>
-		<p>Cette application a été développée dans l\'espoir d'<b>être utile à tous</b>, mais elle est fournie sans AUCUNE garantie d\'aucune sorte.</p>
-		<p>Les données utilisées par l\'application proviennent <b>directement</b> de GTT et d'autres organismes publics : si vous constatez des erreurs, veuillez vous adresser à eux, et non à nous.</p>
+		<p>Cette application a été développée dans l\'espoir d\'<b>être utile à tous</b>, mais elle est fournie sans AUCUNE garantie d\'aucune sorte.</p>
+		<p>Les données utilisées par l\'application proviennent <b>directement</b> de GTT et d\'autres organismes publics : si vous constatez des erreurs, veuillez vous adresser à eux, et non à nous.</p>
 		<p>Cette traduction est gracieusement fournie par Ludovico Pavesi et Fabio Mazza.</p>
 		<p>Bonne utilisation ! :)</p>
     ]]></string>
@@ -190,7 +190,7 @@
     <string name="map_style_pref_title">Style de la carte</string>
     <string name="map_style_versatiles">Versatiles (vectoriel)</string>
     <string name="map_style_legacy_raster">OSM legacy (raster, plus légèr)</string>
-    <string name="tutorial_first"><![CDATA[Merci d\'avoir installé BusTO, l\'application gratuite, libre et <b>open source</b> pour les transports publics de Turin. Il s\'agit d\'une application <b>indépendante</b>, sans publicité ni traceurs d'aucune sorte.]]></string>
+    <string name="tutorial_first"><![CDATA[Merci d\'avoir installé BusTO, l\'application gratuite, libre et <b>open source</b> pour les transports publics de Turin. Il s\'agit d\'une application <b>indépendante</b>, sans publicité ni traceurs d\'aucune sorte.]]></string>
     <string name="tutorial_search"><![CDATA[Vous pouvez rechercher les horaires d\'arrivée à un arrêt en saisissant le numéro dans le champ de recherche.<br>
 Si vous vous trouvez à un arrêt, vous pouvez scanner le code QR présent sur le panneau en appuyant sur l\'icône à gauche de la barre de recherche.]]></string>
     <string name="tutorial_arrivals"><![CDATA[Une fois que vous avez trouvé un arrêt, vous pouvez l\'enregistrer dans vos <b>favoris</b> en touchant l\'étoile à côté de son nom]]>&gt;</string>
