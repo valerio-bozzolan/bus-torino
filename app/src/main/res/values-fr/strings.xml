@@ -196,7 +196,7 @@ Si vous vous trouvez à un arrêt, vous pouvez scanner le code QR présent sur l
     <string name="tutorial_arrivals"><![CDATA[Une fois que vous avez trouvé un arrêt, vous pouvez l\'enregistrer dans vos <b>favoris</b> en touchant l\'étoile à côté de son nom]]>&gt;</string>
     <string name="tutorial_stops"><![CDATA[Vous pouvez voir les arrêts à proximité directement sur l\'écran principal...]]></string>
     <string name="tutorial_map"><![CDATA[...ou vous pouvez les trouver sur la carte, avec les positions en temps réel des bus circulant dans la ville (en <font color="#2F59CC">bleu</font>)]]></string>
-    <string name="tutorial_line"><![CDATA[Vous pouvez également consulter la ligne qui vous intéresse et voir où se trouvent les arrêts, ainsi que les véhicules qui desservent la ligne à ce moment-là. N'oubliez pas de choisir la direction qui vous intéresse !]]></string>
+    <string name="tutorial_line"><![CDATA[Vous pouvez également consulter la ligne qui vous intéresse et voir où se trouvent les arrêts, ainsi que les véhicules qui desservent la ligne à ce moment-là. N\'oubliez pas de choisir la direction qui vous intéresse !]]></string>
     <string name="tutorial_menu"><![CDATA[Toutes ces fonctions se trouvent dans le menu latéral.
 Consultez les <b>Paramètres</b> pour personnaliser l\'application, et la section <b>À propos de l\'application</b> si vous souhaitez en savoir plus sur l\'application et ses développeurs.]]></string>
     <string name="tutorial_permissions"><![CDATA[L\'application nécessite l\'autorisation <b>Notifications</b> pour afficher les informations relatives au fonctionnement en arrière-plan.
