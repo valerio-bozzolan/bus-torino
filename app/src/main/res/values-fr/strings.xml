@@ -193,7 +193,7 @@
     <string name="tutorial_first"><![CDATA[Merci d\'avoir installé BusTO, l\'application gratuite, libre et <b>open source</b> pour les transports publics de Turin. Il s\'agit d'une application <b>indépendante</b>, sans publicité ni traceurs d'aucune sorte.]]></string>
     <string name="tutorial_search"><![CDATA[Vous pouvez rechercher les horaires d\'arrivée à un arrêt en saisissant le numéro dans le champ de recherche.<br>
 Si vous vous trouvez à un arrêt, vous pouvez scanner le code QR présent sur le panneau en appuyant sur l'icône à gauche de la barre de recherche.]]></string>
-    <string name="tutorial_arrivals"><![CDATA[Une fois que vous avez trouvé un arrêt, vous pouvez l'enregistrer dans vos <b>favoris</b> en touchant l\'étoile à côté de son nom]]>&gt;</string>
+    <string name="tutorial_arrivals"><![CDATA[Une fois que vous avez trouvé un arrêt, vous pouvez l\'enregistrer dans vos <b>favoris</b> en touchant l\'étoile à côté de son nom]]>&gt;</string>
     <string name="tutorial_stops"><![CDATA[Vous pouvez voir les arrêts à proximité directement sur l\'écran principal...]]></string>
     <string name="tutorial_map"><![CDATA[...ou vous pouvez les trouver sur la carte, avec les positions en temps réel des bus circulant dans la ville (en <font color="#2F59CC">bleu</font>)]]></string>
     <string name="tutorial_line"><![CDATA[Vous pouvez également consulter la ligne qui vous intéresse et voir où se trouvent les arrêts, ainsi que les véhicules qui desservent la ligne à ce moment-là. N'oubliez pas de choisir la direction qui vous intéresse !]]></string>
