@@ -178,7 +178,7 @@
         <br>
 		<h2>Remarques</h2>
 		<p>Cette application a été développée dans l\'espoir d'<b>être utile à tous</b>, mais elle est fournie sans AUCUNE garantie d\'aucune sorte.</p>
-		<p>Les données utilisées par l'application proviennent <b>directement</b> de GTT et d'autres organismes publics : si vous constatez des erreurs, veuillez vous adresser à eux, et non à nous.</p>
+		<p>Les données utilisées par l\'application proviennent <b>directement</b> de GTT et d'autres organismes publics : si vous constatez des erreurs, veuillez vous adresser à eux, et non à nous.</p>
 		<p>Cette traduction est gracieusement fournie par Ludovico Pavesi et Fabio Mazza.</p>
 		<p>Bonne utilisation ! :)</p>
     ]]></string>
@@ -190,9 +190,9 @@
     <string name="map_style_pref_title">Style de la carte</string>
     <string name="map_style_versatiles">Versatiles (vectoriel)</string>
     <string name="map_style_legacy_raster">OSM legacy (raster, plus légèr)</string>
-    <string name="tutorial_first"><![CDATA[Merci d\'avoir installé BusTO, l\'application gratuite, libre et <b>open source</b> pour les transports publics de Turin. Il s\'agit d'une application <b>indépendante</b>, sans publicité ni traceurs d'aucune sorte.]]></string>
+    <string name="tutorial_first"><![CDATA[Merci d\'avoir installé BusTO, l\'application gratuite, libre et <b>open source</b> pour les transports publics de Turin. Il s\'agit d\'une application <b>indépendante</b>, sans publicité ni traceurs d'aucune sorte.]]></string>
     <string name="tutorial_search"><![CDATA[Vous pouvez rechercher les horaires d\'arrivée à un arrêt en saisissant le numéro dans le champ de recherche.<br>
-Si vous vous trouvez à un arrêt, vous pouvez scanner le code QR présent sur le panneau en appuyant sur l'icône à gauche de la barre de recherche.]]></string>
+Si vous vous trouvez à un arrêt, vous pouvez scanner le code QR présent sur le panneau en appuyant sur l\'icône à gauche de la barre de recherche.]]></string>
     <string name="tutorial_arrivals"><![CDATA[Une fois que vous avez trouvé un arrêt, vous pouvez l\'enregistrer dans vos <b>favoris</b> en touchant l\'étoile à côté de son nom]]>&gt;</string>
     <string name="tutorial_stops"><![CDATA[Vous pouvez voir les arrêts à proximité directement sur l\'écran principal...]]></string>
     <string name="tutorial_map"><![CDATA[...ou vous pouvez les trouver sur la carte, avec les positions en temps réel des bus circulant dans la ville (en <font color="#2F59CC">bleu</font>)]]></string>
@@ -246,6 +246,6 @@ Consultez les <b>Paramètres</b> pour personnaliser l\'application, et la sectio
 		- Tous les contributeurs, ainsi que les bêta-testeurs !
 		</p>
 		<br>
-		 Si vous souhaitez obtenir plus d'informations ou contribuer au développement, utilisez les boutons ci-dessous !</b>
+		 Si vous souhaitez obtenir plus d\'informations ou contribuer au développement, utilisez les boutons ci-dessous !</b>
     ]]></string>
 </resources>
