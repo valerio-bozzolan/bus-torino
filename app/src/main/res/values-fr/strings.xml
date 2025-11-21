@@ -23,13 +23,13 @@
     <string name="action_licence">Licence</string>11
     <string name="added_in_favorites">L\'arrêt de bus est désormais dans vos favoris</string>
     <string name="favorites_lines">Favoris</string>
-    <string name="about_activity">À propos de l\'application</string>
+    <string name="about_activity">À propos de l\\\'application</string>
     <string name="close_tutorial_short">Fermer le tutoriel</string>
     <string name="directions_capitalize_everything">Majuscules partout</string>
     <string name="pref_shown_startup_def_desc">Appuyez pour modifier</string>
     <string name="pref_lines_click_msg">Afficher les arrivées à l\'appui sur un arrêt</string>
     <string name="pref_experimental_msg">Activer les fonctions expérimentales</string>
-    <string name="positions_source_mato_descr">MaTO (le plus fréquemment mis à jour, parfois hors-ligne)</string>
+    <string name="positions_source_mato_descr">MaTO (le plus fréquemment mis à jour, parfois avec erreurs)</string>
     <string name="remove_all_trips">Supprimer les données des trajets (libère de l\'espace)</string>
     <string name="grant_location_permission">Autoriser l\'accès à la localisation</string>
     <string name="location_permission_granted">Permission d\'accès à la localisation accordée</string>
@@ -49,7 +49,7 @@
     <string name="urban_lines">Lignes urbaines</string>
     <string name="turist_lines">Lignes touristiques</string>
     <string name="no_qrcode">Aucun code QR trouvé, essayez d\'utiliser une autre application pour le scanner</string>
-    <string name="action_wiki">Contribuer</string>
+    <string name="action_wiki">Ouvrez la wiki</string>
     <string name="favorites_line_remove">Ligne retirée de vos favoris</string>
     <string name="arrival_times">Heures d\'arrivée</string>
     <string name="removed_from_favorites">Arrêt de bus retiré de vos favoris</string>
@@ -81,14 +81,14 @@
     <string name="pref_shown_startup">Section à afficher au démarrage</string>
     <string name="positions_source_pref_title">"Source de la localisation en temps réel pour les bus et les trams"</string>
     <string name="long_press_stop_4_options">Appui long sur l\'arrêt pour afficher les options</string>
-    <string name="positions_source_gtfsrt_descr">GTFS RT (plus stable, moins fréquemment mis à jour)</string>
+    <string name="positions_source_gtfsrt_descr">GTFS RT (moins fréquemment mis à jour, mais plus précis)</string>
     <string name="all_trips_removed">Tous les trajets GTFS ont été supprimés de la base de données</string>
     <string name="btn_backup_message">Sauvegarde dans un fichier</string>
     <string name="grant_notification_permission">Activer les notifications</string>
     <string name="notification_permission_granted">Notifications activées</string>
     <string name="btn_load_backup_message">Importer depuis une sauvegarde</string>
     <string name="title_barcode_scanner_install">Installer Barcode Scanner ?</string>
-    <string name="howDoesItWork"><b>Appuyez sur l\'étoile</b> pour ajouter l\'arrêt de bus à vos favoris\n\n<b>Pour lire les fiches horaires:</b>\n <b>12:56*</b> Heures d\'arrivée en temps réel\n <b>12:56</b> Heures d\'arrivée programmées\n\n<b>Tirez vers le bas pour actualiser</b> la fiche \n <b>Appui long sur la source des arrivées</b> pour la modifier</string>
+    <string name="howDoesItWork"><b>Appuyez sur l\\\'étoile</b> pour ajouter l\'arrêt de bus à vos favoris\n\n<b>Pour lire les fiches horaires:</b>\n <b>12:56*</b> Heures d\'arrivée en temps réel\n <b>12:56</b> Heures d\'arrivée programmées\n\n<b>Tirez vers le bas pour actualiser</b> la fiche \n <b>Appui long sur la source des arrivées</b> pour la modifier</string>
     <string name="about_channel"><![CDATA[
     <h2>Actualités et mises à jour</h2>
     <p>Sur le canal Telegram, vous pouvez retrouver des informations sur les dernières mises à jour de l\'application</p>
@@ -98,8 +98,8 @@
     <string name="next">Suivant</string>
     <string name="insert_bus_stop_name">Nom de l\'arrêt de bus</string>
     <string name="no_arrivals_stop">Aucune arrivée prévue pour cette arrêt</string>
-    <string name="no_bus_stop_have_this_name">Il semble qu\'il n\'y a aucun arrêt de bus avec ce nom</string>
-    <string name="action_about">À propos de l\'application</string>
+    <string name="no_bus_stop_have_this_name">Il semble qu\'il n\\\'y a aucun arrêt de bus avec ce nom</string>
+    <string name="action_about">À propos de l\\\'application</string>
     <string name="no_lines_found">Aucune ligne trouvée dans cette catégorie</string>
     <string name="no_lines_found_query">Aucune ligne ne correspond à la recherche</string>
     <string name="line_fill">Ligne %1$s</string>
@@ -173,13 +173,13 @@
     <string name="stop_fill">Arrêt %1$s</string>
     <string name="about_history_bottom"><![CDATA[
 		<h2>Licences</h2>
-		<p>L'application et le code source associé sont publiés par Valerio Bozzolan et les autres auteurs sous les termes de la licence <i>GNU General Public License v3+</i>.
-		Tout le monde est donc autorisé à utiliser, étudier, améliorer et partager cette application par <b>tout moyen</b> et à <b>toutes fins</b> : à condition de respecter ces droits et d'attribuer l'œuvre originale à Valerio Bozzolan.</p>
+		<p>L\'application et le code source associé sont publiés par Valerio Bozzolan et les autres auteurs sous les termes de la licence <i>GNU General Public License v3+</i>.
+		Tout le monde est donc autorisé à utiliser, étudier, améliorer et partager cette application par <b>tout moyen</b> et à <b>toutes fins</b> : à condition de respecter ces droits et d'attribuer l\'œuvre originale à Valerio Bozzolan.</p>
         <br>
 		<h2>Remarques</h2>
-		<p>Cette application a été développée dans l'espoir d'<b>être utile à tous</b>, mais elle est fournie sans AUCUNE garantie d\'aucune sorte.</p>
+		<p>Cette application a été développée dans l\'espoir d'<b>être utile à tous</b>, mais elle est fournie sans AUCUNE garantie d\'aucune sorte.</p>
 		<p>Les données utilisées par l'application proviennent <b>directement</b> de GTT et d'autres organismes publics : si vous constatez des erreurs, veuillez vous adresser à eux, et non à nous.</p>
-		<p>Cette traduction est gracieusement fournie par Riccardo Caniato, Marco Gagino et Fabio Mazza.</p>
+		<p>Cette traduction est gracieusement fournie par Ludovico Pavesi et Fabio Mazza.</p>
 		<p>Bonne utilisation ! :)</p>
     ]]></string>
     <string name="cant_add_to_favorites">Impossible d\'ajouter aux favoris ( stockage plein ou base de données corrompue ?) !</string>
@@ -190,7 +190,7 @@
     <string name="map_style_pref_title">Style de la carte</string>
     <string name="map_style_versatiles">Versatiles (vectoriel)</string>
     <string name="map_style_legacy_raster">OSM legacy (raster, plus légèr)</string>
-    <string name="tutorial_first"><![CDATA[Merci d'avoir installé BusTO, l'application gratuite, libre et <b>open source</b> pour les transports publics de Turin. Il s\'agit d'une application <b>indépendante</b>, sans publicité ni traceurs d'aucune sorte.]]></string>
+    <string name="tutorial_first"><![CDATA[Merci d'avoir installé BusTO, l\'application gratuite, libre et <b>open source</b> pour les transports publics de Turin. Il s\'agit d'une application <b>indépendante</b>, sans publicité ni traceurs d'aucune sorte.]]></string>
     <string name="tutorial_search"><![CDATA[Vous pouvez rechercher les horaires d\'arrivée à un arrêt en saisissant le numéro dans le champ de recherche.<br>
 Si vous vous trouvez à un arrêt, vous pouvez scanner le code QR présent sur le panneau en appuyant sur l'icône à gauche de la barre de recherche.]]></string>
     <string name="tutorial_arrivals"><![CDATA[Une fois que vous avez trouvé un arrêt, vous pouvez l'enregistrer dans vos <b>favoris</b> en touchant l\'étoile à côté de son nom]]>&gt;</string>
@@ -198,8 +198,8 @@ Si vous vous trouvez à un arrêt, vous pouvez scanner le code QR présent sur l
     <string name="tutorial_map"><![CDATA[...ou vous pouvez les trouver sur la carte, avec les positions en temps réel des bus circulant dans la ville (en <font color="#2F59CC">bleu</font>)]]></string>
     <string name="tutorial_line"><![CDATA[Vous pouvez également consulter la ligne qui vous intéresse et voir où se trouvent les arrêts, ainsi que les véhicules qui desservent la ligne à ce moment-là. N'oubliez pas de choisir la direction qui vous intéresse !]]></string>
     <string name="tutorial_menu"><![CDATA[Toutes ces fonctions se trouvent dans le menu latéral.
-Consultez les <b>Paramètres</b> pour personnaliser l'application, et la section <b>À propos de l'application</b> si vous souhaitez en savoir plus sur l'application et ses développeurs.]]></string>
-    <string name="tutorial_permissions"><![CDATA[L'application nécessite l'autorisation <b>Notifications</b> pour afficher les informations relatives au fonctionnement en arrière-plan.
+Consultez les <b>Paramètres</b> pour personnaliser l'application, et la section <b>À propos de l\'application</b> si vous souhaitez en savoir plus sur l\'application et ses développeurs.]]></string>
+    <string name="tutorial_permissions"><![CDATA[L'application nécessite l\'autorisation <b>Notifications</b> pour afficher les informations relatives au fonctionnement en arrière-plan.
          Appuyez sur le bouton ci-dessous pour l'autoriser]]></string>
     <string name="hello_blank_fragment">Bonjour fragment vide</string>
     <string name="no_map_app_to_show_stop">Aucune application trouvée pour afficher l\'arrêt !</string>
@@ -231,7 +231,7 @@ Consultez les <b>Paramètres</b> pour personnaliser l'application, et la section
     <h2>How does it work?</h2>
         <p>Cette application est capable d\'accomplir toutes ces choses incroyables en extrayant des données de <b>www.gtt.to.it</b>, <b>www.5t.torino.it</b> ou <b>muoversiatorino.it</b> "pour usage personnel", ainsi que les données ouvertes du site web AperTO (aperto.comune.torino.it) .</p>
         <br>
-		<p>Le travail de plusieurs personnes est à l'origine de cette application, en particulier :<br>
+		<p>Le travail de plusieurs personnes est à l\'origine de cette application, en particulier :<br>
 		- <b>Fabio Mazza</b>, développeur rockstar senior actuel.<br>
         - <b>Andrea Ugo</b>, développeur junior rockstar actuel.<br>
 		- <b>Silviu Chiriac</b>, créateur du logo du 2021.<br>
