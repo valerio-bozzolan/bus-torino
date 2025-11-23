@@ -67,6 +67,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     }
 
     override fun onResume() {
+        mapView.onResume()
         super.onResume()
         val newMapStyle = PreferencesHolder.getMapLibreStyleFile(requireContext())
         Log.d(DEBUG_TAG, "onResume newMapStyle: $newMapStyle, lastMapStyle: $lastMapStyle")
@@ -77,8 +78,19 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
 
     @Deprecated("Deprecated in Java")
     override fun onLowMemory() {
-        super.onLowMemory()
         mapView.onLowMemory()
+        super.onLowMemory()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        mapView.onStart()
+    }
+
+    override fun onDestroy() {
+        mapView.onDestroy()
+        Log.d(DEBUG_TAG, "Destroyed mapView Fragment!!")
+        super.onDestroy()
     }
 
 

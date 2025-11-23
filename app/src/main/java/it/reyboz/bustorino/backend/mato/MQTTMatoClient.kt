@@ -375,12 +375,19 @@ class MQTTMatoClient(){
         val currentTimeStamp = makeUnixTimestamp()
         var c = 0
         positionsLock.withLock{
-            for ((k, manyp) in currentPositions.entries) {
-                for ((t, p) in manyp.entries) {
+            for ((k, posByVeh) in currentPositions) {
+                /*for (t in posByVeh.keys.toList()) {      // iterate over snapshot to avoid modification error
+                    val p = posByVeh[t] ?: continue
                     if (currentTimeStamp - p.timestamp > timeMins * 60) {
-                        manyp.remove(t)
+                        posByVeh.remove(t)
                         c += 1
                     }
+                }
+                 */
+                c+=posByVeh.entries.removeIf{ el ->
+                    currentTimeStamp - el.value.timestamp > timeMins * 60
+                }.let {
+                    if(it) 1 else 0
                 }
             }
         }

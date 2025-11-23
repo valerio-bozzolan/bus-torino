@@ -616,8 +616,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
     override fun onStart() {
         super.onStart()
-        mapView.onStart()
-
         //restore state from viewModel
         stopsViewModel.savedState?.let {
             restoreMapStateFromBundle(it)
@@ -628,7 +626,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
     override fun onResume() {
         super.onResume()
-        mapView.onResume()
+        //mapView.onResume() handled in GeneralMapLibreFragment
 
         //val keySourcePositions = getString(R.string.pref_positions_source)
         if(showBusLayer) {
@@ -686,12 +684,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        mapView.onDestroy()
-        Log.d(DEBUG_TAG, "Destroyed map Fragment!!")
-    }
-
     override fun onMapDestroy() {
         mapStyle.removeLayer(STOPS_LAYER_ID)
         mapStyle.removeSource(STOPS_SOURCE_ID)
@@ -700,7 +692,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         mapStyle.removeSource(BUSES_SOURCE_ID)
 
 
-        map?.locationComponent?.isLocationComponentEnabled = false
+        //map?.locationComponent?.isLocationComponentEnabled = false
     }
     override fun getBaseViewForSnackBar(): View? {
         return mapView

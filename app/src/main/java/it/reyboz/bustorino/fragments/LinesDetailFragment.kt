@@ -1456,7 +1456,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     override fun onResume() {
         super.onResume()
         Log.d(DEBUG_TAG, "Resetting paused from onResume")
-        mapView.onResume()
         pausedFragment = false
 
         val keySourcePositions = getString(R.string.pref_positions_source)
@@ -1503,16 +1502,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             mapViewModel.currentZoom.value = cam.zoom
         }
 
-    }
-
-    override fun onStart() {
-        super.onStart()
-        mapView.onStart()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        mapView.onDestroy()
     }
 
     override fun onStop() {
