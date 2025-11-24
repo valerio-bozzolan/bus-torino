@@ -14,7 +14,7 @@
     <string name="parsing_error">Erreur lors de l\'analyse du site 5T/GTT (foutu site!)</string>
     <string name="results">Sélectionner l\'arrêt de bus…</string>
     <string name="line">Ligne</string>
-    <string name="lines_fill">Lignes: %1$s</string>
+    <string name="lines_fill">Lignes: %1$s</string>
     <string name="extraurban_lines">Lignes interurbaines</string>
     <string name="direction_duep">Destination:</string>
     <string name="no_passages">Aucun planning trouvé</string>
@@ -55,7 +55,7 @@
     <string name="removed_from_favorites">Arrêt de bus retiré de vos favoris</string>
     <string name="favorites_line_add">Ligne ajoutée à vos favoris</string>
     <string name="title_activity_favorites">Favoris</string>
-    <string name="no_passages_title">Aucune arrivée trouvée pour les lignes:</string>
+    <string name="no_passages_title">Aucune arrivée trouvée pour les lignes :</string>
     <string name="action_rename_bus_stop_username">Renommer</string>
     <string name="cannot_show_on_map_no_position">Impossible de trouver la position de l\'arrêt</string>
     <string name="settings_search_radius">Distance maximale (en mètres)</string>
@@ -88,7 +88,7 @@
     <string name="notification_permission_granted">Notifications activées</string>
     <string name="btn_load_backup_message">Importer depuis une sauvegarde</string>
     <string name="title_barcode_scanner_install">Installer Barcode Scanner ?</string>
-    <string name="howDoesItWork"><b>Appuyez sur l\\\'étoile</b> pour ajouter l\'arrêt de bus à vos favoris\n\n<b>Pour lire les fiches horaires:</b>\n <b>12:56*</b> Heures d\'arrivée en temps réel\n <b>12:56</b> Heures d\'arrivée programmées\n\n<b>Tirez vers le bas pour actualiser</b> la fiche \n <b>Appui long sur la source des arrivées</b> pour la modifier</string>
+    <string name="howDoesItWork"><b>Appuyez sur l\\\'étoile</b> pour ajouter l\'arrêt de bus à vos favoris\n\n<b>Pour lire les fiches horaires:</b>\n<b> 12:56*</b> Heures d\'arrivée en temps réel\n<b> 12:56</b> Heures d\'arrivée programmées\n\n<b>Tirez vers le bas pour actualiser</b> la fiche\n <b>Appui long sur la source des arrivées</b> pour la modifier</string>
     <string name="about_channel"><![CDATA[
     <h2>Actualités et mises à jour</h2>
     <p>Sur le canal Telegram, vous pouvez retrouver des informations sur les dernières mises à jour de l\'application</p>
@@ -103,7 +103,7 @@
     <string name="no_lines_found">Aucune ligne trouvée dans cette catégorie</string>
     <string name="no_lines_found_query">Aucune ligne ne correspond à la recherche</string>
     <string name="line_fill">Ligne %1$s</string>
-    <string name="line_fill_towards">Ligne %1$s, direction:</string>
+    <string name="line_fill_towards">Ligne %1$s, direction:</string>
     <string name="internal_error">Erreur interne inattendue, impossible d\'extraire les données depuis le site GTT/5T</string>
     <string name="action_favorites">Favoris</string>
     <string name="title_activity_map">Carte</string>
