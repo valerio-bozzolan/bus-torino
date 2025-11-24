@@ -78,15 +78,18 @@ class MapLibreUtils {
 
         @JvmStatic
         fun findPointsToPutDirectionMarkers(polyPoints: List<LatLng>, stops: List<Stop>, distanceIcon: Double): List<Int>{
+            //output value
+            val pointsOutput = mutableListOf<Int>()
             val closestIndices = findIndicesClosestPointsForStops(polyPoints, stops)
             Log.d(DEBUG_TAG, "idcs: $closestIndices")
+            if(closestIndices.size==0)
+                return pointsOutput
 
             val distancesSec = mutableListOf<Double>()
             var pi = closestIndices[0]
             val cumulativeDist = mutableListOf<Double>()
             var sum = 0.0
 
-            val pointsOutput = mutableListOf<Int>()
             var nPoints = 0
             var distFromLastPoint = 0.0
             for(i in 1..<stops.size){

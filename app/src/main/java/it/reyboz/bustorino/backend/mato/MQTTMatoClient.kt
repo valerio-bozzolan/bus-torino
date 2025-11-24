@@ -139,19 +139,17 @@ class MQTTMatoClient(){
 
     fun stopMatoRequests(responder: MQTTMatoListener){
         var removed = false
+
+
         for ((lineTopic,responderList)in respondersMap.entries){
-            var done = false
-            for (el in responderList){
-                if (el.get()==null){
-                    responderList.remove(el)
-                } else if(el.get() == responder){
-                    responderList.remove(el)
-                    done = true
-                }
-                if (done)
-                    break
+            val oldSize = responderList.size
+
+            responderList.removeIf {
+                (it.get()==null) || (it.get()==responder)
             }
-            if(done) Log.d(DEBUG_TAG, "Removed one listener for topic $lineTopic, listeners: $responderList")
+            val diffLength = responderList.size - oldSize
+            if(diffLength > 0)
+                Log.d(DEBUG_TAG, "Removed $diffLength listeners for topic $lineTopic, listeners: $responderList")
             //if (done) break
             if (responderList.isEmpty()){
                 //actually unsubscribe
@@ -169,14 +167,11 @@ class MQTTMatoClient(){
                     Log.e(DEBUG_TAG, "Tried unsubscribing but there was an error in the client library:\n$e")
                 }
             }
-            removed = done || removed
+            removed = (diffLength>0) || removed
         }
         // check responders map, remove lines that have no responders
-
-        for(line in respondersMap.keys){
-            if(respondersMap[line]?.isEmpty() == true){
-                respondersMap.remove(line)
-            }
+        respondersMap.entries.removeIf {
+            it.value.isEmpty()
         }
         Log.d(DEBUG_TAG, "Removed: $removed, respondersMap: $respondersMap")
     }
