@@ -1,0 +1,3 @@
+Risolto crash quando viene distrutto il fragment della mappa
+Risolto da fabio.mazza
+https://gitpull.it/T1371

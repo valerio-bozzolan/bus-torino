@@ -1,0 +1,3 @@
+Fix crash when destroying map fragment
+Resolved by fabio.mazza
+https://gitpull.it/T1371
