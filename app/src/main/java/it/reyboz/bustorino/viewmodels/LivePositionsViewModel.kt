@@ -117,7 +117,7 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
                 if (usingMQTT) LIVE_POS_PREF_GTFSRT else LIVE_POS_PREF_MQTT
             )
         }
-        Log.d(DEBUG_TI, "Switched positions source in ViewModel, using MQTT: ${!usingMQTT}")
+        Log.d(DEBUG_TI, "Switched positions source in ViewModel, now using MQTT: ${!usingMQTT}")
         serviceStatus.value = LivePositionsServiceStatus.CONNECTING
     }
     fun setGtfsLineToFilterPos(line: String, pattern: MatoPattern?){

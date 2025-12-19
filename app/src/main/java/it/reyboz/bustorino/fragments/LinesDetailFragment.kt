@@ -20,29 +20,24 @@ package it.reyboz.bustorino.fragments
 
 import android.Manifest
 import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
-import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.LinearInterpolator
 import android.widget.*
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -53,40 +48,28 @@ import it.reyboz.bustorino.adapters.NameCapitalize
 import it.reyboz.bustorino.adapters.StopAdapterListener
 import it.reyboz.bustorino.adapters.StopRecyclerAdapter
 import it.reyboz.bustorino.backend.FiveTNormalizer
-import it.reyboz.bustorino.backend.LivePositionTripPattern
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.backend.gtfs.GtfsUtils
-import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.gtfs.PolylineParser
 import it.reyboz.bustorino.backend.utils
 import it.reyboz.bustorino.data.MatoTripsDownloadWorker
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.MatoPatternWithStops
-import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
 import it.reyboz.bustorino.map.*
 import it.reyboz.bustorino.middleware.LocationUtils
 import it.reyboz.bustorino.util.Permissions
-import it.reyboz.bustorino.util.ViewUtils
 import it.reyboz.bustorino.viewmodels.LinesViewModel
 import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
 import kotlinx.coroutines.Runnable
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.geometry.LatLngBounds
-import org.maplibre.android.location.LocationComponent
-import org.maplibre.android.location.LocationComponentOptions
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.Style
-import org.maplibre.android.plugins.annotation.Symbol
-import org.maplibre.android.plugins.annotation.SymbolManager
-import org.maplibre.android.plugins.annotation.SymbolOptions
 import org.maplibre.android.style.expressions.Expression
 import org.maplibre.android.style.layers.LineLayer
 import org.maplibre.android.style.layers.Property
-import org.maplibre.android.style.layers.Property.ICON_ANCHOR_CENTER
 import org.maplibre.android.style.layers.Property.ICON_ROTATION_ALIGNMENT_MAP
 import org.maplibre.android.style.layers.PropertyFactory
 import org.maplibre.android.style.layers.SymbolLayer
@@ -104,15 +87,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     private lateinit var patternsSpinner: Spinner
     private var patternsAdapter: ArrayAdapter<String>? = null
 
-    //Bottom sheet behavior
-    private lateinit var bottomSheetBehavior: BottomSheetBehavior<RelativeLayout>
-    private var bottomLayout: RelativeLayout? = null
-    private lateinit var stopTitleTextView: TextView
-    private lateinit var stopNumberTextView: TextView
-    private lateinit var linesPassingTextView: TextView
-    private lateinit var arrivalsCard: CardView
-    private lateinit var directionsCard: CardView
-    private lateinit var bottomrightImage: ImageView
 
     //private var isBottomSheetShowing = false
     private var shouldMapLocationBeReactivated = true
@@ -172,7 +146,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                 viewModel.shouldShowMessage=false
             }
             stop?.let {
-                fragmentListener.requestArrivalsForStopID(it.ID)
+                fragmentListener?.requestArrivalsForStopID(it.ID)
             }
             if(stop == null){
                 Log.e(DEBUG_TAG,"Passed wrong stop")
@@ -197,23 +171,15 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
     //map data
     //style and sources are in GeneralMapLibreFragment
-    private lateinit var locationComponent: LocationComponent
     private lateinit var polylineSource: GeoJsonSource
     private lateinit var polyArrowSource: GeoJsonSource
-    private lateinit var selectedBusSource: GeoJsonSource
 
     private var savedCameraPosition: CameraPosition? = null
-    private var vehShowing = ""
 
-    private var stopsLayerStarted = false
     private var lastStopsSizeShown = 0
-    private var lastUpdateTime:Long = -2
 
     //BUS POSITIONS
-    private val updatesByVehDict = HashMap<String, LivePositionTripPattern>(5)
-    private val animatorsByVeh = HashMap<String, ValueAnimator>()
 
-    private var lastLocation : Location? = null
     private var enablingPositionFromClick = false
 
     private var polyline: LineString? = null
@@ -235,7 +201,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     //private var stopPosList = ArrayList<GeoPoint>()
 
     //fragment actions
-    private lateinit var fragmentListener: CommonFragmentListener
 
     private var showOnTopOfLine = false
     private var recyclerInitDone = false
@@ -251,8 +216,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     private val liveBusViewModel: LivePositionsViewModel by activityViewModels()
 
     //extra items to use the LibreMap
-    private lateinit var symbolManager : SymbolManager
-    private var stopActiveSymbol: Symbol? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -288,17 +251,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         mapView = rootView.findViewById(R.id.lineMap)
         mapView.getMapAsync(this)
 
-
-        //init bottom sheet
-        val bottomSheet = rootView.findViewById<RelativeLayout>(R.id.bottom_sheet)
-        bottomLayout = bottomSheet
-        stopTitleTextView = bottomSheet.findViewById(R.id.stopTitleTextView)
-        stopNumberTextView = bottomSheet.findViewById(R.id.stopNumberTextView)
-        linesPassingTextView = bottomSheet.findViewById(R.id.linesPassingTextView)
-        arrivalsCard = bottomSheet.findViewById(R.id.arrivalsCardButton)
-        directionsCard = bottomSheet.findViewById(R.id.directionsCardButton)
-        bottomrightImage = bottomSheet.findViewById(R.id.rightmostImageView)
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
 
         // Setup close button
         rootView.findViewById<View>(R.id.btnClose).setOnClickListener {
@@ -525,6 +477,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             val builder = Style.Builder().fromJson(mjson!!)
 
             mapReady.setStyle(builder) { style ->
+                addImagesStyle(style)
 
                 mapStyle = style
                 //setupLayers(style)
@@ -533,22 +486,11 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                 initMapUserLocation(style, mapReady, requireContext())
 
                 //if(!stopsLayerStarted)
-                initStopsPolyLineLayers(style, FeatureCollection.fromFeatures(ArrayList<Feature>()), null, null)
+                initPolylineStopsLayers(style, null)
 
                 setupBusLayer(style)
 
-                symbolManager = SymbolManager(mapView,mapReady,style)
-                symbolManager.iconAllowOverlap = true
-                symbolManager.textAllowOverlap = false
-
-                symbolManager.addClickListener{ _ ->
-                    if (stopActiveSymbol!=null){
-                        hideStopBottomSheet()
-
-                        return@addClickListener true
-                    } else
-                        return@addClickListener false
-                }
+                initSymbolManager(mapReady, style)
 
                 mapViewModel.stopShowing?.let {
                     openStopInBottomSheet(it)
@@ -633,6 +575,10 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         if(shouldMapLocationBeReactivated) setMapUserLocationEnabled(true, false, false)
     }
 
+    override fun showOpenStopWithSymbolLayer(): Boolean {
+        return true
+    }
+
     private fun observeBusPositionUpdates(){
         //live bus positions
         liveBusViewModel.filteredLocationUpdates.observe(viewLifecycleOwner){ pair ->
@@ -646,7 +592,9 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             }
             //remove vehicles not on this direction
             removeVehiclesData(vehiclesNotOnCorrectDir)
-            updateBusPositionsInMap(updates)
+            updateBusPositionsInMap(updates, hasVehicleTracking = true) { veh->
+                showVehicleTripInBottomSheet(veh)
+            }
             //if not using MQTT positions
             if(!useMQTTPositions){
                 liveBusViewModel.requestDelayedGTFSUpdates(2000)
@@ -663,100 +611,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         }
     }
 
-    private fun isBottomSheetShowing(): Boolean{
-        return bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED
-    }
-
-    /**
-     * Initialize the map location, but do not enable the component
-     */
-    @SuppressLint("MissingPermission")
-    private fun initMapUserLocation(style: Style, map: MapLibreMap, context: Context){
-        locationComponent = map.locationComponent
-        val locationComponentOptions =
-            LocationComponentOptions.builder(context)
-                .pulseEnabled(false)
-                .build()
-        val locationComponentActivationOptions =
-            MapLibreUtils.buildLocationComponentActivationOptions(style, locationComponentOptions, context)
-        locationComponent.activateLocationComponent(locationComponentActivationOptions)
-        locationComponent.isLocationComponentEnabled = false
-
-        lastLocation?.let {
-            if (it.accuracy < 200)
-                locationComponent.forceLocationUpdate(it)
-        }
-    }
-    /**
-     * Update the bottom sheet with the stop information
-     */
-    override fun openStopInBottomSheet(stop: Stop){
-        bottomLayout?.let {
-
-            //lay.findViewById<TextView>(R.id.stopTitleTextView).text ="${stop.ID} - ${stop.stopDefaultName}"
-            val stopName = stop.stopUserName ?: stop.stopDefaultName
-            stopTitleTextView.text = stopName//stop.stopDefaultName
-            stopNumberTextView.text = getString(R.string.stop_fill,stop.ID)
-            stopTitleTextView.visibility = View.VISIBLE
-
-            val string_show = if (stop.numRoutesStopping==0) ""
-            else requireContext().getString(R.string.lines_fill, stop.routesThatStopHereToString())
-            linesPassingTextView.text = string_show
-
-            //SET ON CLICK LISTENER
-            arrivalsCard.setOnClickListener{
-                fragmentListener?.requestArrivalsForStopID(stop.ID)
-            }
-
-            arrivalsCard.visibility = View.VISIBLE
-            directionsCard.visibility = View.VISIBLE
-
-            directionsCard.setOnClickListener {
-                ViewUtils.openStopInOutsideApp(stop, context)
-            }
-            context?.let {
-                val colorIcon = ViewUtils.getColorFromTheme(it, android.R.attr.colorAccent)//ResourcesCompat.getColor(resources,R.attr.colorAccent,activity?.theme)
-                ViewCompat.setBackgroundTintList(directionsCard, ColorStateList.valueOf(colorIcon))
-            }
-
-            bottomrightImage.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.navigation_right,  activity?.theme))
-
-        }
-        //add stop marker
-        if (stop.latitude!=null && stop.longitude!=null) {
-            stopActiveSymbol = symbolManager.create(
-                SymbolOptions()
-                    .withLatLng(LatLng(stop.latitude!!, stop.longitude!!))
-                    .withIconImage(STOP_ACTIVE_IMG)
-                    .withIconAnchor(ICON_ANCHOR_CENTER)
-
-            )
-
-        }
-        Log.d(DEBUG_TAG, "Shown stop $stop in bottom sheet")
-        shownStopInBottomSheet = stop
-
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-        //isBottomSheetShowing = true
-    }
-    // Hide the bottom sheet and remove extra symbol
-    private fun hideStopBottomSheet(){
-        if (stopActiveSymbol!=null){
-            symbolManager.delete(stopActiveSymbol)
-            stopActiveSymbol = null
-        }
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-        //isBottomSheetShowing = false
-
-        //reset states
-        shownStopInBottomSheet = null
-        if (vehShowing!=""){
-            //we are hiding a vehicle
-            vehShowing = ""
-            updatePositionsIcons(true)
-        }
-
-    }
 
     private fun showVehicleTripInBottomSheet(veh: String){
         val data = updatesByVehDict[veh]
@@ -818,11 +672,10 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     /**
      * Initialize the map layers for the stops
      */
-    private fun initStopsPolyLineLayers(style: Style, stopFeatures:FeatureCollection, lineFeature: Feature?, arrowFeatures: FeatureCollection?){
+    private fun initPolylineStopsLayers(style: Style, arrowFeatures: FeatureCollection?){
 
         Log.d(DEBUG_TAG, "INIT STOPS CALLED")
         stopsSource = GeoJsonSource(STOPS_SOURCE_ID)
-        style.addSource(stopsSource)
         //val context = requireContext()
         val stopIcon = ResourcesCompat.getDrawable(resources,R.drawable.ball, activity?.theme)!!
 
@@ -831,17 +684,11 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         //set the image tint
         //DrawableCompat.setTint(imgBus,ContextCompat.getColor(context,R.color.line_drawn_poly))
 
-        // add icon
+        // add icons
         style.addImage(STOP_IMAGE_ID,stopIcon)
         style.addImage(POLY_ARROW, polyIconArrow)
         style.addImage(STOP_ACTIVE_IMG, ResourcesCompat.getDrawable(resources, R.drawable.bus_stop_new_highlight, activity?.theme)!!)
-        // Stops layer
-        val stopsLayer = SymbolLayer(STOPS_LAYER_ID, STOPS_SOURCE_ID)
-        stopsLayer.withProperties(
-            PropertyFactory.iconImage(STOP_IMAGE_ID),
-            PropertyFactory.iconAllowOverlap(true),
-            PropertyFactory.iconIgnorePlacement(true)
-        )
+
 
         polylineSource = GeoJsonSource(POLYLINE_SOURCE) //lineFeature?.let { GeoJsonSource(POLYLINE_SOURCE, it) } ?: GeoJsonSource(POLYLINE_SOURCE)
         style.addSource(polylineSource)
@@ -875,67 +722,14 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             style.addLayerAbove(lineLayer,lastLayers[0].id)
         else
             style.addLayerBelow(lineLayer,"label_country_1")
-        style.addLayerAbove(stopsLayer, POLYLINE_LAYER)
+        //style.addLayerAbove(stopsLayer, POLYLINE_LAYER)
         style.addLayerAbove(arrowsLayer, POLYLINE_LAYER)
 
         stopsLayerStarted = true
+
+        initStopsLayer(style, null, POLY_ARROWS_LAYER)
     }
 
-
-    /**
-     * Setup the Map Layers
-     */
-    private fun setupBusLayer(style: Style) {
-        // Buses source
-        busesSource = GeoJsonSource(BUSES_SOURCE_ID)
-        style.addSource(busesSource)
-        style.addImage("bus_symbol",ResourcesCompat.getDrawable(resources, R.drawable.map_bus_position_icon, activity?.theme)!!)
-
-        selectedBusSource = GeoJsonSource("sel_bus_source")
-        style.addSource(selectedBusSource)
-        style.addImage("sel_bus_symbol", ResourcesCompat.getDrawable(resources, R.drawable.map_bus_position_icon_sel, activity?.theme)!!)
-
-        // Buses layer
-        val busesLayer = SymbolLayer(BUSES_LAYER_ID, BUSES_SOURCE_ID).apply {
-            withProperties(
-                PropertyFactory.iconImage("bus_symbol"),
-                //PropertyFactory.iconSize(1.2f),
-                PropertyFactory.iconAllowOverlap(true),
-                PropertyFactory.iconIgnorePlacement(true),
-                PropertyFactory.iconRotate(Expression.get("bearing")),
-                PropertyFactory.iconRotationAlignment(ICON_ROTATION_ALIGNMENT_MAP)
-
-            )
-        }
-        style.addLayerAbove(busesLayer, STOPS_LAYER_ID)
-
-        val selectedBusLayer = SymbolLayer("sel_bus_layer", "sel_bus_source").withProperties(
-            PropertyFactory.iconImage("sel_bus_symbol"),
-            //PropertyFactory.iconSize(1.2f),
-            PropertyFactory.iconAllowOverlap(true),
-            PropertyFactory.iconIgnorePlacement(true),
-            PropertyFactory.iconRotate(Expression.get("bearing")),
-            PropertyFactory.iconRotationAlignment(ICON_ROTATION_ALIGNMENT_MAP)
-
-        )
-        style.addLayerAbove(selectedBusLayer, BUSES_LAYER_ID)
-
-    }
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if(context is CommonFragmentListener){
-            fragmentListener = context
-        } else throw RuntimeException("$context must implement CommonFragmentListener")
-
-    }
-
-
-    private fun stopAnimations(){
-        for(anim in animatorsByVeh.values){
-            anim.cancel()
-        }
-    }
 
     /**
      * Save the loaded pattern data, without the stops!
@@ -1125,7 +919,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         } else
             map?.let {
                 Log.d(DEBUG_TAG, "Map stop layer is not started yet, init layer")
-                initStopsPolyLineLayers(mapStyle, FeatureCollection.fromFeatures(features),lineFeature, FeatureCollection.fromFeatures(arrowFeatures))
+                initPolylineStopsLayers(mapStyle, FeatureCollection.fromFeatures(arrowFeatures))
                 Log.d(DEBUG_TAG,"Started stops layer on map")
                 lastStopsSizeShown = features.size
                 stopsLayerStarted = true
@@ -1198,260 +992,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         }
     }
 
-    private fun removeVehiclesData(vehs: List<String>){
-        for(v in vehs){
-            if (updatesByVehDict.contains(v)) {
-                updatesByVehDict.remove(v)
-                if (animatorsByVeh.contains(v)){
-                    animatorsByVeh[v]?.cancel()
-                    animatorsByVeh.remove(v)
-                }
-            }
-            if (vehShowing==v){
-                hideStopBottomSheet()
-            }
-        }
-    }
-
-    /**
-     * Update function for the bus positions
-     * Takes the processed updates and saves them accordingly
-     * Copied from MapLibreFragment, removing the labels
-     */
-    private fun updateBusPositionsInMap(incomingData: HashMap<String, Pair<LivePositionUpdate,TripAndPatternWithStops?>>){
-        val vehsNew = HashSet(incomingData.values.map { up -> up.first.vehicle })
-        val vehsOld = HashSet(updatesByVehDict.keys)
-        Log.d(DEBUG_TAG, "In fragment, have ${incomingData.size} updates to show")
-
-        var countUpds = 0
-        var createdVehs = 0
-        //val symbolsToUpdate = ArrayList<Symbol>()
-        for (upsWithTrp in incomingData.values){
-            val newPos = upsWithTrp.first
-            val patternStops = upsWithTrp.second
-            val vehID = newPos.vehicle
-            var animate = false
-            if (vehsOld.contains(vehID)){
-                //changing the location of an existing bus
-                //update position only if the starting or the stopping position of the animation are in the view
-                val oldPos = updatesByVehDict[vehID]?.posUpdate
-                val oldPattern = updatesByVehDict[vehID]?.pattern
-                var avoidShowingUpdateBecauseIsImpossible = false
-                oldPos?.let{
-
-                    if(it.routeID!=newPos.routeID) {
-                        val dist = LatLng(it.latitude, it.longitude).distanceTo(LatLng(newPos.latitude, newPos.longitude))
-                        val speed = dist*3.6 / (newPos.timestamp - it.timestamp) //this should be in km/h
-                        Log.w(DEBUG_TAG, "Vehicle $vehID changed route from ${oldPos.routeID} to ${newPos.routeID}, distance: $dist, speed: $speed")
-                        if (speed > 120 || speed < 0){
-                            avoidShowingUpdateBecauseIsImpossible = true
-                        }
-                    }
-                }
-                if (avoidShowingUpdateBecauseIsImpossible){
-                    // DO NOT SHOW THIS SHIT
-                    Log.w(DEBUG_TAG, "Update for vehicle $vehID skipped")
-                    continue
-                }
-
-                val samePosition = oldPos?.let { (it.latitude==newPos.latitude)&&(it.longitude == newPos.longitude) }?:false
-                val setPattern =  (oldPattern==null) && (patternStops!=null)
-                if(newPos.bearing == null && oldPos?.bearing != null){
-                    //copy old bearing
-                    newPos.bearing = oldPos.bearing
-                }
-                if((!samePosition)|| setPattern) {
-
-                    val newOrOldPosInBounds = isPointInsideVisibleRegion(
-                        newPos.latitude, newPos.longitude, true
-                     ) || (oldPos?.let { isPointInsideVisibleRegion(it.latitude,it.longitude,true) } ?: false)
-
-
-                    //val skip = true
-                    if (newOrOldPosInBounds) {
-                        // update the pattern data, the position will be updated with the animation
-                        patternStops?.let { updatesByVehDict[vehID]!!.pattern = it.pattern}
-                        //this moves both the icon and the label
-                        animateNewPositionMove(newPos)
-
-                    } else {
-                        //update
-                        updatesByVehDict[vehID] = LivePositionTripPattern(newPos,patternStops?.pattern)
-                        /*busLabelSymbolsByVeh[vehID]?.let {
-                            it.latLng = LatLng(pos.latitude, pos.longitude)
-                            symbolsToUpdate.add(it)
-                        }*/
-                        //if(vehShowing==vehID)
-                        //    map?.animateCamera(CameraUpdateFactory.newLatLng(LatLng(pos.latitude, pos.longitude)),500)
-                        //TODO: Follow the vehicle
-                    }
-                }
-                countUpds++
-            }
-            else{
-                //not inside
-                // update it simply
-                updatesByVehDict[vehID] = LivePositionTripPattern(newPos, patternStops?.pattern)
-                //createLabelForVehicle(pos)
-                //if(vehShowing==vehID)
-                //    map?.animateCamera(CameraUpdateFactory.newLatLng(LatLng(pos.latitude, pos.longitude)),500)
-                createdVehs +=1
-            }
-            if (vehID == vehShowing){
-                //update the data
-                showVehicleTripInBottomSheet(vehID)
-            }
-        }
-        //symbolManager.update(symbolsToUpdate)
-        //remove old positions
-        Log.d(DEBUG_TAG, "Updated $countUpds vehicles, created $createdVehs vehicles")
-        vehsOld.removeAll(vehsNew)
-        //now vehsOld contains the vehicles id for those that have NOT been updated
-        val currentTimeStamp = System.currentTimeMillis() /1000
-        for(vehID in vehsOld){
-            //remove after 2 minutes of inactivity
-            if (updatesByVehDict[vehID]!!.posUpdate.timestamp - currentTimeStamp > 2*60){
-                //remove the bus
-                updatesByVehDict.remove(vehID)
-                if(vehID in animatorsByVeh){
-                    animatorsByVeh[vehID]?.cancel()
-                    animatorsByVeh.remove(vehID)
-                }
-                //removeVehicleLabel(vehID)
-            }
-        }
-        //update UI
-        updatePositionsIcons(false)
-    }
-
-    /**
-     * This is the tricky part, animating the transitions
-     * Basically, we need to set the new positions with the data and redraw them all
-     */
-    private fun animateNewPositionMove(positionUpdate: LivePositionUpdate){
-        if (positionUpdate.vehicle !in updatesByVehDict.keys)
-            return
-        val vehID = positionUpdate.vehicle
-        val currentUpdate = updatesByVehDict[positionUpdate.vehicle]
-        currentUpdate?.let { it ->
-            //cancel current animation on vehicle
-            animatorsByVeh[vehID]?.cancel()
-            val posUp = it.posUpdate
-
-            val currentPos = LatLng(posUp.latitude, posUp.longitude)
-            val newPos = LatLng(positionUpdate.latitude, positionUpdate.longitude)
-            val valueAnimator = ValueAnimator.ofObject(MapLibreUtils.LatLngEvaluator(), currentPos, newPos)
-            valueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
-                private var latLng: LatLng? = null
-                override fun onAnimationUpdate(animation: ValueAnimator) {
-                    latLng = animation.animatedValue as LatLng
-                    //update position on animation
-                    val update = updatesByVehDict[positionUpdate.vehicle]
-                    if(update!=null){ latLng?.let { ll ->
-                        update.posUpdate.latitude = ll.latitude
-                        update.posUpdate.longitude = ll.longitude
-                        updatePositionsIcons(false)
-                    }
-                    } else{
-                        //The update is null
-                        Log.w(DEBUG_TAG, "The bus position to animate has been removed, but the animator is still running!")
-                    }
-                }
-            })
-            /*valueAnimator.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationStart(animation: Animator) {
-                    super.onAnimationStart(animation)
-                    //val update = positionsByVehDict[positionUpdate.vehicle]!!
-                    //remove the label at the start of the animation
-                    //removeVehicleLabel(vehID)
-                    val annot = busLabelSymbolsByVeh[vehID]
-                    annot?.let { sym ->
-                        sym.textOpacity = 0.0f
-                        symbolsToUpdate.add(sym)
-                    }
-                }
-
-                override fun onAnimationEnd(animation: Animator) {
-                    super.onAnimationEnd(animation)
-                    /*val annot = busLabelSymbolsByVeh[vehID]
-                    annot?.let { sym ->
-                        sym.textOpacity = 1.0f
-                        sym.latLng = newPos //LatLng(newPos)
-                        symbolsToUpdate.add(sym)
-                    }
-
-                     */
-                }
-            })
-             */
-            animatorsByVeh[vehID]?.cancel()
-            //set the new position as the current one but with the old lat and lng
-            positionUpdate.latitude = posUp.latitude
-            positionUpdate.longitude = posUp.longitude
-            //this might be null if the updates dict does not contain the vehID
-            updatesByVehDict[vehID]!!.posUpdate = positionUpdate
-            valueAnimator.duration = 300
-            valueAnimator.interpolator = LinearInterpolator()
-            valueAnimator.start()
-
-            animatorsByVeh[vehID] = valueAnimator
-
-        } ?: {
-            Log.e(DEBUG_TAG, "Have to run animation for veh ${positionUpdate.vehicle} but not in the dict, adding")
-            //updatesByVehDict[positionUpdate.vehicle] = positionUpdate
-        }
-    }
-    //TODO: MERGE THIS CODE WITH MapLibreFragment ONE
-    /**
-     * Update the bus positions displayed on the map, from the existing data
-     */
-    private fun updatePositionsIcons(forced: Boolean){
-        //avoid frequent updates
-        val currentTime = System.currentTimeMillis()
-        if(!forced && currentTime - lastUpdateTime < 60){
-            //DO NOT UPDATE THE MAP
-            viewLifecycleOwner.lifecycleScope.launch {
-                delay(200)
-                updatePositionsIcons(forced)
-            }
-            return
-        }
-
-        val busFeatures = ArrayList<Feature>()
-        val selectedBusFeatures = ArrayList<Feature>()
-        for (dat in updatesByVehDict.values){
-            //if (s.latitude!=null && s.longitude!=null)
-            val pos = dat.posUpdate
-            val point = Point.fromLngLat(pos.longitude, pos.latitude)
-
-            val newFeature = Feature.fromGeometry(
-                point,
-                JsonObject().apply {
-                    addProperty("veh", pos.vehicle)
-                    addProperty("trip", pos.tripID)
-                    addProperty("bearing", pos.bearing ?:0.0f)
-                    addProperty("line", pos.routeID)
-                }
-            )
-            if (vehShowing == dat.posUpdate.vehicle)
-                selectedBusFeatures.add(newFeature)
-            else
-                busFeatures.add(newFeature)
-            /*busLabelSymbolsByVeh[pos.vehicle]?.let {
-                it.latLng = LatLng(pos.latitude, pos.longitude)
-                symbolsToUpdate.add(it)
-            }
-
-             */
-        }
-        busesSource.setGeoJson(FeatureCollection.fromFeatures(busFeatures))
-        selectedBusSource.setGeoJson(FeatureCollection.fromFeatures(selectedBusFeatures))
-        //update labels, clear cache to be used
-        //symbolManager.update(symbolsToUpdate)
-        //symbolsToUpdate.clear()
-        lastUpdateTime = System.currentTimeMillis()
-    }
-
 
     override fun onResume() {
         super.onResume()
@@ -1485,7 +1025,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
              */
         }
         //initialize GUI here
-        fragmentListener.readyGUIfor(FragmentKind.LINES)
+        fragmentListener?.readyGUIfor(FragmentKind.LINES)
 
     }
 
@@ -1553,16 +1093,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     companion object {
         private const val LINEID_KEY="lineID"
         private const val STOPID_FROM_KEY="stopID"
-        private const val STOPS_SOURCE_ID = "stops-source"
-        private const val STOPS_LAYER_ID = "stops-layer"
-        private const val STOP_ACTIVE_IMG = "stop_active_img"
-        private const val STOP_IMAGE_ID = "stop-img"
-        private const val POLYLINE_LAYER = "polyline-layer"
-        private const val POLYLINE_SOURCE = "polyline-source"
 
-        private const val POLY_ARROWS_LAYER = "arrows-layer"
-        private const val POLY_ARROWS_SOURCE = "arrows-source"
-        private const val POLY_ARROW ="poly-arrow-img"
 
         private const val DEBUG_TAG="BusTO-LineDetalFragment"
 

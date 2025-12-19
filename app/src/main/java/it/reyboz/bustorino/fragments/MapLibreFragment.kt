@@ -2,12 +2,8 @@ package it.reyboz.bustorino.fragments
 
 
 import android.Manifest
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Color
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -16,23 +12,17 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.LinearInterpolator
 import android.widget.ImageButton
 import android.widget.RelativeLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.gson.JsonObject
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.LivePositionsServiceStatus
 import it.reyboz.bustorino.backend.Stop
@@ -40,32 +30,20 @@ import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.mato.MQTTMatoClient
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
-import it.reyboz.bustorino.map.MapLibreUtils
 import it.reyboz.bustorino.map.MapLibreStyles
 import it.reyboz.bustorino.util.Permissions
-import it.reyboz.bustorino.util.ViewUtils
 import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
 import it.reyboz.bustorino.viewmodels.StopsMapViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.geometry.LatLngBounds
-import org.maplibre.android.location.LocationComponent
-import org.maplibre.android.location.LocationComponentOptions
 import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.Style
 import org.maplibre.android.plugins.annotation.Symbol
-import org.maplibre.android.style.expressions.Expression
-import org.maplibre.android.style.layers.Property.*
-import org.maplibre.android.style.layers.PropertyFactory
-import org.maplibre.android.style.layers.SymbolLayer
-import org.maplibre.android.style.sources.GeoJsonSource
 import org.maplibre.geojson.Feature
 import org.maplibre.geojson.FeatureCollection
-import org.maplibre.geojson.Point
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -80,32 +58,19 @@ private const val STOP_TO_SHOW = "stoptoshow"
 class MapLibreFragment : GeneralMapLibreFragment() {
 
 
-    protected var fragmentListener: CommonFragmentListener? = null
-    private lateinit var locationComponent: LocationComponent
-    private var lastLocation: Location? = null
     private val stopsViewModel: StopsMapViewModel by viewModels()
     private var stopsShowing = ArrayList<Stop>(0)
-    private var isBottomSheetShowing = false
     //private lateinit var symbolManager: SymbolManager
 
 
     // Sources for stops and buses are in GeneralMapLibreFragment
     private var isUserMovingCamera = false
-    private var stopsLayerStarted = false
     private var lastStopsSizeShown = 0
     private var lastBBox = LatLngBounds.from(2.0, 2.0, 1.0,1.0)
     private var mapInitCompleted =false
     private var stopsRedrawnTimes = 0
 
-    //bottom Sheet behavior
-    private lateinit var bottomSheetBehavior: BottomSheetBehavior<RelativeLayout>
-    private var bottomLayout: RelativeLayout? = null
-    private lateinit var stopTitleTextView: TextView
-    private lateinit var stopNumberTextView: TextView
-    private lateinit var linesPassingTextView: TextView
-    private lateinit var arrivalsCard: CardView
-    private lateinit var directionsCard: CardView
-
+    //bottom Sheet behavior in GeneralMapLibreFragment
     //private var stopActiveSymbol: Symbol? = null
 
     // Location stuff
@@ -171,9 +136,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     private val livePositionsViewModel : LivePositionsViewModel by activityViewModels()
     private lateinit var busPositionsIconButton: ImageButton
 
-    private val positionsByVehDict = HashMap<String, LivePositionUpdate>(5)
-    private val animatorsByVeh = HashMap<String, ValueAnimator>()
-    private var lastUpdateTime : Long = -1
     //private var busLabelSymbolsByVeh = HashMap<String,Symbol>()
     private val symbolsToUpdate = ArrayList<Symbol>()
 
@@ -295,7 +257,9 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             }
         }
         livePositionsViewModel.useMQTTPositionsLiveData.observe(viewLifecycleOwner){ useMQTT->
+            //Log.d(DEBUG_TAG, "Changed MQTT positions, now have to use MQTT: $useMQTT")
             if (showBusLayer && isResumed) {
+                //Log.d(DEBUG_TAG, "Deciding to switch, the current source is using MQTT: $usingMQTTPositions")
                 if(useMQTT!=usingMQTTPositions){
                     // we have to switch
                     val clearPos = PreferenceManager.getDefaultSharedPreferences(requireContext()).getBoolean("positions_clear_on_switch_pref", true)
@@ -308,6 +272,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                         livePositionsViewModel.stopMatoUpdates()
                         livePositionsViewModel.requestGTFSUpdates()
                     }
+                    Log.d(DEBUG_TAG, "Should clear positions: $clearPos")
                     if (clearPos) {
                         livePositionsViewModel.clearAllPositions()
                         //force clear of the viewed data
@@ -342,15 +307,18 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
             mapStyle = style
             //setupLayers(style)
+            addImagesStyle(style)
 
-            initMapLocation(style, mapReady, requireContext())
+            initMapUserLocation(style, mapReady, requireContext())
             //init stop layer with this
             val stopsInCache = stopsViewModel.getAllStopsLoaded()
             if(stopsInCache.isEmpty())
-                initStopsLayer(style, FeatureCollection.fromFeatures(ArrayList<Feature>()))
+                initStopsLayer(style, null)
             else
                 displayStops(stopsInCache)
-            if(showBusLayer) setupBusLayer(style)
+            if(showBusLayer) setupBusLayer(style, withLabels = true, busIconsScale = 1.2f)
+
+            initSymbolManager(mapReady, style)
 
             // Start observing data now that everything is set up
             observeStops()
@@ -418,17 +386,20 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     private fun onMapClickReact(point: LatLng): Boolean{
         map?.let { mapReady ->
             val screenPoint = mapReady.projection.toScreenLocation(point)
-            val features = mapReady.queryRenderedFeatures(screenPoint, STOPS_LAYER_ID)
+            val stopsFeatures = mapReady.queryRenderedFeatures(screenPoint, STOPS_LAYER_ID)
             val busNearby = mapReady.queryRenderedFeatures(screenPoint, BUSES_LAYER_ID)
-            if (features.isNotEmpty()) {
-                val feature = features[0]
+            Log.d(DEBUG_TAG, "Clicked on stops: $stopsFeatures \n and buses: $busNearby")
+            if (stopsFeatures.isNotEmpty()) {
+                val feature = stopsFeatures[0]
                 val id = feature.getStringProperty("id")
                 val name = feature.getStringProperty("name")
                 //Toast.makeText(requireContext(), "Clicked on $name ($id)", Toast.LENGTH_SHORT).show()
                 val stop = stopsViewModel.getStopByID(id)
+                Log.d(DEBUG_TAG, "Decided click is on stop with id $id : $stop")
                 stop?.let { newstop ->
                     val sameStopClicked = shownStopInBottomSheet?.let { newstop.ID==it.ID } ?: false
-                    if (isBottomSheetShowing) {
+                    Log.d(DEBUG_TAG, "Hiding clicked stop: $sameStopClicked")
+                    if (isBottomSheetShowing()) {
                         hideStopBottomSheet()
                     }
                     if(!sameStopClicked){
@@ -457,147 +428,10 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         return false
     }
 
-
-    private fun initStopsLayer(style: Style, features:FeatureCollection){
-
-        stopsSource = GeoJsonSource(STOPS_SOURCE_ID,features)
-        style.addSource(stopsSource)
-
-        // add icon
-        style.addImage(STOP_IMAGE_ID,
-            ResourcesCompat.getDrawable(resources,R.drawable.bus_stop_new, activity?.theme)!!)
-
-        style.addImage(STOP_ACTIVE_IMG, ResourcesCompat.getDrawable(resources, R.drawable.bus_stop_new_highlight, activity?.theme)!!)
-        style.addImage("ball",ResourcesCompat.getDrawable(resources, R.drawable.ball, activity?.theme)!!)
-        // Stops layer
-        val stopsLayer = SymbolLayer(STOPS_LAYER_ID, STOPS_SOURCE_ID)
-        stopsLayer.withProperties(
-            PropertyFactory.iconImage(STOP_IMAGE_ID),
-            PropertyFactory.iconAnchor(ICON_ANCHOR_CENTER),
-            PropertyFactory.iconAllowOverlap(true),
-            PropertyFactory.iconIgnorePlacement(true)
-            )
-
-        style.addLayerBelow(stopsLayer, "symbol-transit-airfield") //"label_country_1") this with OSM Bright
-
-
-        selectedStopSource = GeoJsonSource(SEL_STOP_SOURCE, FeatureCollection.fromFeatures(ArrayList<Feature>()))
-        style.addSource(selectedStopSource)
-
-        val selStopLayer = SymbolLayer(SEL_STOP_LAYER, SEL_STOP_SOURCE)
-        selStopLayer.withProperties(
-            PropertyFactory.iconImage(STOP_ACTIVE_IMG),
-            PropertyFactory.iconAllowOverlap(true),
-            PropertyFactory.iconIgnorePlacement(true),
-            PropertyFactory.iconAnchor(ICON_ANCHOR_CENTER),
-
-            )
-        style.addLayerAbove(selStopLayer, STOPS_LAYER_ID)
-
-        stopsLayerStarted = true
+    override fun showOpenStopWithSymbolLayer(): Boolean {
+        return false
     }
 
-    /**
-     * Setup the Map Layers
-     */
-    private fun setupBusLayer(style: Style) {
-        // Buses source
-        busesSource = GeoJsonSource(BUSES_SOURCE_ID)
-        style.addSource(busesSource)
-        style.addImage("bus_symbol",ResourcesCompat.getDrawable(resources, R.drawable.map_bus_position_icon, activity?.theme)!!)
-
-        // Buses layer
-        val busesLayer = SymbolLayer(BUSES_LAYER_ID, BUSES_SOURCE_ID).apply {
-            withProperties(
-                PropertyFactory.iconImage("bus_symbol"),
-                PropertyFactory.iconSize(1.2f),
-                PropertyFactory.iconAllowOverlap(true),
-                PropertyFactory.iconIgnorePlacement(true),
-                PropertyFactory.iconRotate(Expression.get("bearing")),
-                PropertyFactory.iconRotationAlignment(ICON_ROTATION_ALIGNMENT_MAP),
-
-                PropertyFactory.textAnchor(TEXT_ANCHOR_CENTER),
-                PropertyFactory.textAllowOverlap(true),
-                PropertyFactory.textField(Expression.get("line")),
-                PropertyFactory.textColor(Color.WHITE),
-                PropertyFactory.textRotationAlignment(TEXT_ROTATION_ALIGNMENT_VIEWPORT),
-                PropertyFactory.textSize(12f),
-                PropertyFactory.textFont(arrayOf("noto_sans_regular"))
-            )
-        }
-        style.addLayerAbove(busesLayer, STOPS_LAYER_ID)
-
-        //Line names layer
-        /*vehiclesLabelsSource = GeoJsonSource(LABELS_SOURCE)
-        style.addSource(vehiclesLabelsSource)
-        val textLayer = SymbolLayer(LABELS_LAYER_ID, LABELS_SOURCE).apply {
-            withProperties(
-                PropertyFactory.textField("label"),
-                PropertyFactory.textSize(30f),
-                //PropertyFactory.textHaloColor(Color.BLACK),
-                //PropertyFactory.textHaloWidth(1f),
-
-                PropertyFactory.textAnchor(TEXT_ANCHOR_CENTER),
-                PropertyFactory.textAllowOverlap(true),
-                PropertyFactory.textField(Expression.get("line")),
-                PropertyFactory.textColor(Color.WHITE),
-                PropertyFactory.textRotationAlignment(TEXT_ROTATION_ALIGNMENT_VIEWPORT),
-                PropertyFactory.textSize(12f)
-
-
-        )
-        }
-        style.addLayerAbove(textLayer, BUSES_LAYER_ID)
-
-         */
-
-    }
-
-    /**
-     * Update the bottom sheet with the stop information
-     */
-    override fun openStopInBottomSheet(stop: Stop){
-        bottomLayout?.let {
-
-            //lay.findViewById<TextView>(R.id.stopTitleTextView).text ="${stop.ID} - ${stop.stopDefaultName}"
-            val stopName = stop.stopUserName ?: stop.stopDefaultName
-            stopTitleTextView.text = stopName//stop.stopDefaultName
-            stopNumberTextView.text = getString(R.string.stop_fill,stop.ID)
-            val string_show = if (stop.numRoutesStopping==0) ""
-            else requireContext().getString(R.string.lines_fill, stop.routesThatStopHereToString())
-            linesPassingTextView.text = string_show
-
-            //SET ON CLICK LISTENER
-            arrivalsCard.setOnClickListener{
-                fragmentListener?.requestArrivalsForStopID(stop.ID)
-            }
-
-            directionsCard.setOnClickListener {
-                ViewUtils.openStopInOutsideApp(stop, context)
-            }
-
-
-        }
-        //add stop marker
-        if (stop.latitude!=null && stop.longitude!=null) {
-            /*stopActiveSymbol = symbolManager.create(
-                SymbolOptions()
-                    .withLatLng(LatLng(stop.latitude!!, stop.longitude!!))
-                    .withIconImage(STOP_ACTIVE_IMG)
-                    .withIconAnchor(ICON_ANCHOR_CENTER)
-                    //.withTextFont(arrayOf("noto_sans_regular")))
-             */
-            Log.d(DEBUG_TAG, "Showing stop: ${stop.ID}")
-            val list = ArrayList<Feature>()
-            list.add(stopToGeoJsonFeature(stop))
-            selectedStopSource.setGeoJson(
-                FeatureCollection.fromFeatures(list)
-            )
-        }
-        shownStopInBottomSheet = stop
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-        isBottomSheetShowing = true
-    }
     override fun onAttach(context: Context) {
         super.onAttach(context)
         fragmentListener = if (context is CommonFragmentListener) {
@@ -756,25 +590,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 stopsLayerStarted = true
             }
     }
-    // Hide the bottom sheet and remove extra symbol
-    private fun hideStopBottomSheet(){
-        /*if (stopActiveSymbol!=null){
-            symbolManager.delete(stopActiveSymbol)
-            stopActiveSymbol = null
-        }
-         */
-        //empty the source
-        selectedStopSource.setGeoJson(FeatureCollection.fromFeatures(ArrayList<Feature>()))
 
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-        //remove initial stop
-        if(initialStopToShow!=null){
-            initialStopToShow = null
-        }
-        //set showing
-        isBottomSheetShowing = false
-        shownStopInBottomSheet = null
-    }
     // --------------- BUS LOCATIONS STUFF --------------------------
     /**
      * Start requesting position updates
@@ -791,15 +607,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             )
         }
     }
-    private fun isInsideVisibleRegion(latitude: Double, longitude: Double, nullValue: Boolean): Boolean{
-        var isInside = nullValue
-        val visibleRegion = map?.projection?.visibleRegion
-        visibleRegion?.let {
-            val bounds = it.latLngBounds
-            isInside = bounds.contains(LatLng(latitude, longitude))
-        }
-        return isInside
-    }
+
 
     /*private fun createLabelForVehicle(positionUpdate: LivePositionUpdate){
         val symOpt = SymbolOptions()
@@ -824,214 +632,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
      */
 
-    /**
-     * Update function for the bus positions
-     * Takes the processed updates and saves them accordingly
-     */
-    private fun updateBusPositionsInMap(incomingData: HashMap<String, Pair<LivePositionUpdate,TripAndPatternWithStops?>>){
-        val vehsNew = HashSet(incomingData.values.map { up -> up.first.vehicle })
-        val vehsOld = HashSet(positionsByVehDict.keys)
-
-        val symbolsToUpdate = ArrayList<Symbol>()
-        for (upsWithTrp in incomingData.values){
-            val newPos = upsWithTrp.first
-            val vehID = newPos.vehicle
-            //var animate = false
-            if (vehsOld.contains(vehID)){
-                //update position only if the starting or the stopping position of the animation are in the view
-                val oldPos = positionsByVehDict[vehID]
-                var avoidShowingUpdateBecauseIsImpossible = false
-                oldPos?.let{
-                    if(oldPos.routeID!=newPos.routeID) {
-                        val dist = LatLng(it.latitude, it.longitude).distanceTo(LatLng(newPos.latitude, newPos.longitude))
-                        val speed = dist*3.6 / (newPos.timestamp - it.timestamp) //this should be in km/h
-                        Log.w(DEBUG_TAG, "Vehicle $vehID changed route from ${oldPos.routeID} to ${newPos.routeID}, distance: $dist, speed: $speed")
-                        if (speed > 120 || speed < 0){
-                            avoidShowingUpdateBecauseIsImpossible = true
-                        }
-                    }
-                }
-                if (avoidShowingUpdateBecauseIsImpossible){
-                    // DO NOT SHOW THIS SHIT
-                    Log.w(DEBUG_TAG, "Update for vehicle $vehID skipped")
-                    continue
-                }
-
-                val samePosition = oldPos?.let { (oldPos.latitude==newPos.latitude)&&(oldPos.longitude == newPos.longitude) }?:false
-
-                if(!samePosition) {
-                    val isPositionInBounds = isInsideVisibleRegion(
-                        newPos.latitude, newPos.longitude, false
-                    ) || (oldPos?.let { isInsideVisibleRegion(it.latitude,it.longitude, false) } ?: false)
-                    if ((newPos.bearing==null && oldPos?.bearing!=null)){
-                        //copy old bearing
-                        newPos.bearing = oldPos.bearing
-                    }
-                    if (isPositionInBounds) {
-                        //animate = true
-                        //this moves both the icon and the label
-                        moveVehicleToNewPosition(newPos)
-                    } else {
-
-                        positionsByVehDict[vehID] = newPos
-                        /*busLabelSymbolsByVeh[vehID]?.let {
-                            it.latLng = LatLng(pos.latitude, pos.longitude)
-                            symbolsToUpdate.add(it)
-                        }
-
-                         */
-                    }
-                }
-            }
-            else if(newPos.latitude>0 && newPos.longitude>0) {
-                    //we should not have to check for this
-                    // update it simply
-                    positionsByVehDict[vehID] = newPos
-                    //createLabelForVehicle(pos)
-                }else{
-                    Log.w(DEBUG_TAG, "Update ignored for veh $vehID on line ${newPos.routeID}, lat: ${newPos.latitude}, lon ${newPos.longitude}")
-                }
-
-        }
-       // symbolManager.update(symbolsToUpdate)
-        //remove old positions
-        vehsOld.removeAll(vehsNew)
-        //now vehsOld contains the vehicles id for those that have NOT been updated
-        val currentTimeStamp = System.currentTimeMillis() /1000
-        for(vehID in vehsOld){
-            //remove after 2 minutes of inactivity
-            if (positionsByVehDict[vehID]!!.timestamp - currentTimeStamp > 2*60){
-                positionsByVehDict.remove(vehID)
-                //removeVehicleLabel(vehID)
-            }
-        }
-        //finally, update UI
-        updatePositionsIcons()
-    }
-
-    /**
-     * This is the tricky part, animating the transitions
-     * Basically, we need to set the new positions with the data and redraw them all
-     */
-    private fun moveVehicleToNewPosition(positionUpdate: LivePositionUpdate){
-        if (positionUpdate.vehicle !in positionsByVehDict.keys)
-            return
-        val vehID = positionUpdate.vehicle
-        val currentUpdate = positionsByVehDict[positionUpdate.vehicle]
-        currentUpdate?.let { it ->
-            //cancel current animation on vehicle
-            animatorsByVeh[vehID]?.cancel()
-
-            val currentPos = LatLng(it.latitude, it.longitude)
-            val newPos = LatLng(positionUpdate.latitude, positionUpdate.longitude)
-            val valueAnimator = ValueAnimator.ofObject(MapLibreUtils.LatLngEvaluator(), currentPos, newPos)
-            valueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
-                private var latLng: LatLng? = null
-                override fun onAnimationUpdate(animation: ValueAnimator) {
-                    latLng = animation.animatedValue as LatLng
-                    //update position on animation
-                    val update = positionsByVehDict[positionUpdate.vehicle]!!
-                    latLng?.let { ll->
-                        update.latitude = ll.latitude
-                        update.longitude = ll.longitude
-                        updatePositionsIcons()
-                    }
-                }
-            })
-            valueAnimator.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationStart(animation: Animator) {
-                    super.onAnimationStart(animation)
-                    //val update = positionsByVehDict[positionUpdate.vehicle]!!
-                    //remove the label at the start of the animation
-                    /*val annot = busLabelSymbolsByVeh[vehID]
-                    annot?.let { sym ->
-                        sym.textOpacity = 0.0f
-                        symbolsToUpdate.add(sym)
-                    }
-
-                     */
-
-                }
-
-                override fun onAnimationEnd(animation: Animator) {
-                    super.onAnimationEnd(animation)
-                    //recreate the label at the end of the animation
-                    //createLabelForVehicle(positionUpdate)
-                    /*val annot = busLabelSymbolsByVeh[vehID]
-                    annot?.let { sym ->
-                        sym.textOpacity = 1.0f
-                        sym.latLng = newPos //LatLng(newPos)
-                        symbolsToUpdate.add(sym)
-                    }
-
-                     */
-                }
-            })
-
-            //set the new position as the current one but with the old lat and lng
-            positionUpdate.latitude = currentUpdate.latitude
-            positionUpdate.longitude = currentUpdate.longitude
-            positionsByVehDict[vehID] = positionUpdate
-            valueAnimator.duration = 300
-            valueAnimator.interpolator = LinearInterpolator()
-            valueAnimator.start()
-
-            animatorsByVeh[vehID] = valueAnimator
-
-        } ?: {
-            Log.e(DEBUG_TAG, "Have to run animation for veh ${positionUpdate.vehicle} but not in the dict, adding")
-            positionsByVehDict[positionUpdate.vehicle] = positionUpdate
-        }
-    }
-
-    /**
-     * Update the bus positions displayed on the map, from the existing data
-     */
-    private fun updatePositionsIcons(){
-        //avoid frequent updates
-        val currentTime = System.currentTimeMillis()
-        //throttle updates when user is moving camera
-        val interval = if(isUserMovingCamera) 150 else 60
-        val shouldDelayUpdateDraw = currentTime - lastUpdateTime < interval
-        if(shouldDelayUpdateDraw){
-            //Defer map update
-            viewLifecycleOwner.lifecycleScope.launch {
-                delay(200)
-                updatePositionsIcons()
-            }
-            return
-        }
-        val features = ArrayList<Feature>()//stops.mapNotNull { stop ->
-        //stop.latitude?.let { lat ->
-        //    stop.longitude?.let { lon ->
-        for (pos in positionsByVehDict.values){
-            //if (s.latitude!=null && s.longitude!=null)
-            val point = Point.fromLngLat(pos.longitude, pos.latitude)
-            features.add(
-                Feature.fromGeometry(
-                    point,
-                    JsonObject().apply {
-                        addProperty("veh", pos.vehicle)
-                        addProperty("trip", pos.tripID)
-                        addProperty("bearing", pos.bearing ?:0.0f)
-                        addProperty("line", pos.routeID.substringBeforeLast('U'))
-                    }
-                )
-            )
-            /*busLabelSymbolsByVeh[pos.vehicle]?.let {
-                it.latLng = LatLng(pos.latitude, pos.longitude)
-                symbolsToUpdate.add(it)
-            }
-
-             */
-        }
-        //this updates the positions
-        busesSource.setGeoJson(FeatureCollection.fromFeatures(features))
-        //update labels, clear cache to be used
-        //symbolManager.update(symbolsToUpdate)
-        symbolsToUpdate.clear()
-        lastUpdateTime = System.currentTimeMillis()
-    }
 
     // ------ LOCATION STUFF -----
     @SuppressLint("MissingPermission")
@@ -1075,29 +675,8 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             anim.cancel()
         }
         animatorsByVeh.clear()
-        positionsByVehDict.clear()
-        updatePositionsIcons()
-    }
-
-    /**
-     * Initialize the map location, but do not enable the component
-     */
-    @SuppressLint("MissingPermission")
-    private fun initMapLocation(style: Style, map: MapLibreMap, context: Context){
-        locationComponent = map.locationComponent
-        val locationComponentOptions =
-            LocationComponentOptions.builder(context)
-                .pulseEnabled(true)
-                .build()
-        val locationComponentActivationOptions =
-            MapLibreUtils.buildLocationComponentActivationOptions(style, locationComponentOptions, context)
-        locationComponent.activateLocationComponent(locationComponentActivationOptions)
-        locationComponent.isLocationComponentEnabled = false
-
-        lastLocation?.let {
-            if (it.accuracy < 200)
-                locationComponent.forceLocationUpdate(it)
-        }
+        updatesByVehDict.clear()
+        updatePositionsIcons(forced = false)
     }
 
 
@@ -1191,10 +770,10 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         }
     }
 
+
     companion object {
         private const val STOPS_SOURCE_ID = "stops-source"
         private const val STOPS_LAYER_ID = "stops-layer"
-        private const val STOPS_LAYER_SEL_ID ="stops-layer-selected"
 
         private const val LABELS_LAYER_ID = "bus-labels-layer"
         private const val LABELS_SOURCE = "labels-source"
