@@ -115,6 +115,8 @@ if( $diff_ids ) {
 		exit( 1 );
 	}
 
+	echo "[INFO] Last git tag: $git_last_tag\n";
+
 	// Find git commits since last tag
 	$git_log_cmd = sprintf(
 		'git log --pretty=format:%s %s..HEAD',
@@ -128,6 +130,10 @@ if( $diff_ids ) {
 		echo "Unable to list some git commits since last Tag.\n";
 		echo "Please manually specify some Diff ID like D123 etc.\n";
 		exit( 1 );
+	}
+
+	foreach ($git_commits_after_last_tag as $git_commit_after_last_tag) {
+		echo "[INFO] Found git commit: $git_commit_after_last_tag\n";
 	}
 
 	// Find PHID of each commit hash
