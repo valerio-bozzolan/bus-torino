@@ -1,0 +1,4 @@
+Risolto crash nel chiamare "lifecycleowner" nel momento sbagliato.
+Introdotti miglioramenti alla leggibilità con font grandi.
+Tutto implementato da Fabio Mazza! Buone feste!
+https://gitpull.it/T1375

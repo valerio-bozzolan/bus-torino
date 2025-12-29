@@ -1,0 +1,4 @@
+Fix crash caused by calling "lifecycleowner" at incorrect time.
+Readability improvements with large fonts.
+Version developed by Fabio Mazza. Happy new year!
+https://gitpull.it/T1375
