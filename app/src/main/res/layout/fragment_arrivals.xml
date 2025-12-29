@@ -13,10 +13,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="5dp"
-                app:cardElevation="2dp"
+                app:cardElevation="4dp"
                 android:layout_alignParentTop="true"
-                android:layout_marginStart="5dp"
-                android:layout_marginEnd="5dp"
+                android:layout_marginStart="8sp"
+                android:layout_marginEnd="8sp"
+                android:layout_marginTop="5sp"
+                android:padding="5sp"
         >
 
                 <TextView
@@ -195,7 +197,8 @@
 
                                 android:gravity="center_vertical"
                                 android:paddingBottom="5dp"
-                                android:layout_marginStart="10dp"
+                                android:layout_marginStart="15dp"
+                                android:layout_marginEnd="15dp"
                                 android:layout_marginTop="5dp"
                         />
                         </LinearLayout>
