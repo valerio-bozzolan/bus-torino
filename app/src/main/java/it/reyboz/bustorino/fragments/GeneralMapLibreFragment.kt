@@ -687,7 +687,14 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     }
 
     protected fun initStopsLayer(style: Style, stopsFeatures: FeatureCollection?){
-        initStopsLayer(style, stopsFeatures,"symbol-transit-airfield" )
+        //determine default layer
+        var layerAbove = ""
+        if (lastMapStyle == MapLibreUtils.STYLE_OSM_RASTER){
+            layerAbove = "osm-raster"
+        } else if (lastMapStyle == MapLibreUtils.STYLE_VECTOR){
+            layerAbove = "symbol-transit-airfield"
+        }
+        initStopsLayer(style, stopsFeatures, layerAbove)
     }
 
     protected fun initStopsLayer(style: Style, stopsFeatures: FeatureCollection?, stopsLayerAbove: String){

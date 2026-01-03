@@ -35,7 +35,7 @@ class MatoRepository(val mContext: Context) {
     fun requestTripUpdate(tripId: String, errorListener: Response.ErrorListener?,  callback: Callback<GtfsTrip>){
         val params = JSONObject()
         params.put("field",tripId)
-        Log.i(DEBUG_TAG, "Requesting info for trip id: $tripId")
+        Log.d(DEBUG_TAG, "Requesting info for trip id: $tripId")
         netVolleyManager.addToRequestQueue(MatoVolleyJSONRequest(
             MatoQueries.QueryType.TRIP,params,{
                 try {

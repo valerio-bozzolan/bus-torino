@@ -16,13 +16,15 @@ import org.maplibre.turf.TurfMeasurement
 
 class MapLibreUtils {
     companion object{
-        const val STYLE_BRIGHT_DEFAULT_JSON = "map_style_good_noshops.json"
+        //const val STYLE_BRIGHT_DEFAULT_JSON = "map_style_good_noshops.json"
         const val STYLE_VERSATILES_COLORFUL_JSON = "versatiles_colorful_light.json"
         const val STYLE_OSM_RASTER="openstreetmap_raster.json"
+
+        const val STYLE_VECTOR = STYLE_VERSATILES_COLORFUL_JSON
         private const val DEBUG_TAG ="BusTO-MapLibreUtils"
 
         @JvmStatic
-        fun getDefaultStyleJson() = STYLE_VERSATILES_COLORFUL_JSON
+        fun getDefaultStyleJson() = STYLE_VECTOR
 
         @JvmStatic
         fun shortestRotation(from: Float, to: Float): Float {

@@ -25,6 +25,7 @@ import com.android.volley.toolbox.ClearCacheRequest
 import it.reyboz.bustorino.backend.Notifications
 import it.reyboz.bustorino.data.gtfs.GtfsTrip
 import java.util.concurrent.CountDownLatch
+import kotlin.math.min
 
 class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameters)
     : CoroutineWorker(appContext, workerParams) {
@@ -37,13 +38,26 @@ class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameter
             Log.e(DEBUG_TAG,"trips list given is null")
             return Result.failure()
         }
-        return downloadGtfsTrips(tripsList!!)
+        val numTrips = tripsList.size
+        var i = 0
+        var totDown = 0
+        while (i <numTrips){
+            val res = downloadGtfsTrips(tripsList.copyOfRange(i, min(i+100, numTrips)))
+            if (res < 0){
+                return Result.failure();
+            }
+            totDown += res
+            Log.d("MatoTripsDownloadWorker", "Downloaded ${res} trips")
+
+            i+= 100
+        }
+        return Result.success(Data.Builder().putInt("tripsDownloaded", totDown).build())
     }
 
     /**
      * Download GTFS Trips from Mato
      */
-    private fun downloadGtfsTrips(tripsList: Array<String>):Result{
+    private fun downloadGtfsTrips(tripsList: Array<String>): Int{
 
         val gtfsRepository = GtfsRepository(applicationContext)
         val matoRepository = MatoRepository(applicationContext)
@@ -88,7 +102,7 @@ class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameter
         matoRepository.clearVolleyCache()
         if (tripsIDsCompleted.isEmpty()){
             Log.d(DEBUG_TAG, "No trips have been downloaded, set work to fail")
-            return Result.failure()
+            return -5
         } else {
             val doInsert = (queriedMatoTrips subtract failedMatoTripsDownload).containsAll(tripsIDsCompleted)
             Log.i(DEBUG_TAG, "Inserting missing GtfsTrips in the database, should insert $doInsert")
@@ -98,7 +112,7 @@ class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameter
 
             }
 
-            return Result.success()
+            return downloadedMatoTrips.size
         }
     }
     override suspend fun getForegroundInfo(): ForegroundInfo {
