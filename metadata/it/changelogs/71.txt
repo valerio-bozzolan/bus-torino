@@ -1,0 +1,4 @@
+Risolto crash nell'apertura della mappa con stile raster
+https://gitpull.it/T1377
+
+Buffering dei trip per evitare di riempire la cache di Volley

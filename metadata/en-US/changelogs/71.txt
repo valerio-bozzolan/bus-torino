@@ -1,0 +1,4 @@
+Fixed crash when opening the map with the raster style
+https://gitpull.it/T1377
+
+Add buffering of trips to avoid filling the Volley cache
