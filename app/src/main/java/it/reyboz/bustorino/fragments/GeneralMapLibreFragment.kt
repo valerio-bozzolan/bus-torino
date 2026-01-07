@@ -3,10 +3,12 @@ package it.reyboz.bustorino.fragments
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Context.LOCATION_SERVICE
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.location.Location
+import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -782,6 +784,11 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
 
     protected fun isBottomSheetShowing(): Boolean {
         return bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED
+    }
+
+    protected fun deviceHasGpsProvider(): Boolean{
+        val locManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
+        return locManager.allProviders.contains(LocationManager.GPS_PROVIDER)
     }
 
 

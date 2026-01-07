@@ -260,10 +260,13 @@ public class NearbyStopsFragment extends Fragment {
     @SuppressLint("MissingPermission")
     private boolean requestLocationUpdates(){
         if(Permissions.anyLocationPermissionsGranted(requireContext())) {
-            locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                    3000, 10.0f, fragmentLocationListener
-            );
-            fragmentLocationListener.isRegistered = true;
+            if (locManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)) {
+                locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                        3000, 10.0f, fragmentLocationListener
+                );
+                fragmentLocationListener.isRegistered = true;
+            }
+            fragmentLocationListener.isRegistered = false;
             return true;
         } else return false;
     }

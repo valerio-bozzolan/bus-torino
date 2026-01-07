@@ -101,7 +101,12 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                     if(lastLoc==null)  lastLoc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
                     else Log.d(DEBUG_TAG, "Got last location from cache")
 
-                    if (lastLoc != null) {
+                    //FIRST CASE: I have no GPS
+                    if( !locationManager.allProviders.contains(LocationManager.GPS_PROVIDER) ){
+                        setMapLocationEnabled(false, false,false)
+
+                    }
+                    else if (lastLoc != null) {
                         if(LatLng(lastLoc.latitude, lastLoc.longitude).distanceTo(DEFAULT_LATLNG) <= MAX_DIST_KM*1000){
                             Log.d(DEBUG_TAG, "Showing the user position")
                             setMapLocationEnabled(true, true, false)
@@ -230,7 +235,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             }
         }
         locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        if (Permissions.bothLocationPermissionsGranted(requireContext())) {
+        if (Permissions.bothLocationPermissionsGranted(requireContext()) && deviceHasGpsProvider()) {
             requestInitialUserLocation()
         } else{
             if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -759,13 +764,20 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     }
 
 
-
+    /**
+     * Method used for enabling / disabling the location
+     */
     private fun switchUserLocationStatus(view: View?){
-        if(pendingLocationActivation || locationComponent.isLocationComponentEnabled) setMapLocationEnabled(false, false, true)
+        if(pendingLocationActivation || locationComponent.isLocationComponentEnabled)
+            setMapLocationEnabled(false, false, true)
         else{
-            pendingLocationActivation = true
-            Log.d(DEBUG_TAG, "Request enable location")
-            setMapLocationEnabled(true, false, true)
+            if(locationManager.allProviders.contains(LocationManager.GPS_PROVIDER)) {
+                pendingLocationActivation = true
+                Log.d(DEBUG_TAG, "Request enable location")
+                setMapLocationEnabled(true, false, true)
+            } else{
+                Log.w(DEBUG_TAG, "Cannot find location, no GPS")
+            }
 
         }
     }
