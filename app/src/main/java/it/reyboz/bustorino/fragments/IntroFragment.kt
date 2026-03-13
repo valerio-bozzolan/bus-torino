@@ -86,7 +86,7 @@ class IntroFragment : Fragment() {
                 textView.text = utils.convertHtml(getString(R.string.tutorial_stops))
             }
             4 ->{
-                setImageBitmap(imageHolder, R.drawable.tuto_map)
+                setImageBitmap(imageHolder, R.drawable.tuto_map, 300f)
                 textView.text = utils.convertHtml(getString(R.string.tutorial_map))
                 if (Build.VERSION.SDK_INT >= 23) {
                     //only show if running on Android M or above
@@ -101,7 +101,7 @@ class IntroFragment : Fragment() {
 
             }
             5 ->{
-                setImageBitmap(imageHolder, R.drawable.tuto_line_det)
+                setImageBitmap(imageHolder, R.drawable.tuto_line_det, 300f)
                 textView.text = utils.convertHtml(getString(R.string.tutorial_line))
             }
             6-> {
@@ -177,14 +177,14 @@ class IntroFragment : Fragment() {
 
     private fun setImageBitmap(imageView: ImageView, resId: Int, maxDpToScale:Float = DP_LIM_IMAGE){
         val bitmap = BitmapFactory.decodeResource(resources,resId)
-        /*val limPix = utils.convertDipToPixels(resources, maxDpToScale)
+        val limPix = utils.convertDipToPixels(resources, maxDpToScale)
         if (bitmap.width > limPix) {
             val rescFac = limPix/bitmap.width
             val rescaledBitmap = Bitmap.createScaledBitmap(bitmap,(limPix).toInt(), (bitmap.height*rescFac).toInt(),false)
             imageView.setImageBitmap(rescaledBitmap)
         }
         else
-        */
+
         imageView.setImageBitmap(bitmap)
 
     }
