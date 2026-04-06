@@ -1,0 +1,4 @@
+Funzionamento anche senza GPS sul dispositivo.
+Aggiornati screenshot in alta definizione.
+Sopravvissuti alle nuove politiche di Google Play.
+Versione implementata da Fabio Mazza!
