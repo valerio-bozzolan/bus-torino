@@ -80,7 +80,7 @@ public class ActivityExperiments extends GeneralActivity implements CommonFragme
 
     }
     @Override
-    public void showLineOnMap(String routeGtfsId, @Nullable String stopIDFrom){
+    public void openLineFromStop(String routeGtfsId, @Nullable String stopIDFrom){
 
         readyGUIfor(FragmentKind.LINES);
         FragmentTransaction tr = getSupportFragmentManager().beginTransaction();
@@ -89,6 +89,16 @@ public class ActivityExperiments extends GeneralActivity implements CommonFragme
         tr.addToBackStack("LineonMap-"+routeGtfsId);
         tr.commit();
 
-
     }
+    @Override
+    public void openLineFromVehicle(String routeGtfsId, @Nullable String optionalPatternId, @Nullable Bundle args) {
+        readyGUIfor(FragmentKind.LINES);
+
+        FragmentTransaction tr = getSupportFragmentManager().beginTransaction();
+        tr.replace(R.id.mainActContentFrame, LinesDetailFragment.class,
+                LinesDetailFragment.Companion.makeArgsPattern(routeGtfsId, optionalPatternId, args));
+        tr.addToBackStack("Line-"+routeGtfsId);
+        tr.commit();
+    }
+
 }

@@ -22,8 +22,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import de.siegmar.fastcsv.reader.CloseableIterator;
-import de.siegmar.fastcsv.reader.NamedCsvReader;
-import de.siegmar.fastcsv.reader.NamedCsvRow;
+import de.siegmar.fastcsv.reader.CsvReader;
+import de.siegmar.fastcsv.reader.NamedCsvRecord;
 import it.reyboz.bustorino.backend.Fetcher;
 import it.reyboz.bustorino.backend.networkTools;
 import it.reyboz.bustorino.data.gtfs.CsvTableInserter;
@@ -195,8 +195,8 @@ abstract public class GtfsDataParser {
         //System.out.println(Arrays.toString(elements));
 
         //lineElements = readCsvLine(header);
-        NamedCsvReader csvReader = NamedCsvReader.builder().build(reader);
-        CloseableIterator<NamedCsvRow> iterator = csvReader.iterator();
+        CsvReader<NamedCsvRecord> csvReader = CsvReader.builder().ofNamedCsvRecord(reader);
+        CloseableIterator<NamedCsvRecord> iterator = csvReader.iterator();
 
         final CsvTableInserter inserter = new CsvTableInserter(tableName,con);
 
@@ -225,7 +225,12 @@ abstract public class GtfsDataParser {
         int c = 0;
         while (iterator.hasNext()){
 
-            final Map<String,String> rowsMap = iterator.next().getFields();
+            //final Map<String,String> rowsMap = iterator.next().getFields();
+            final NamedCsvRecord record = iterator.next();
+            final Map<String,String> rowsMap = new HashMap<>();
+            for (String col: record.getHeader()){
+                rowsMap.put(col, record.getField(col));
+            }
             if (c < 1){
                 Log.d(DEBUG_TAG, " in map:"+rowsMap);
                 c++;

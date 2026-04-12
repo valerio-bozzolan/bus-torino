@@ -264,7 +264,7 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
         void showRouteFullDirection(Route route);
 
         /**
-         * Show the line with all the stops in the app
+         * Show the line with all the stops in the line screen
          * @param route partial line info
          */
         void requestShowingRoute(Route route);

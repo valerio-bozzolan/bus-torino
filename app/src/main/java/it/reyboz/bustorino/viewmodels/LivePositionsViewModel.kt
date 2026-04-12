@@ -120,9 +120,6 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
         Log.d(DEBUG_TI, "Switched positions source in ViewModel, now using MQTT: ${!usingMQTT}")
         serviceStatus.value = LivePositionsServiceStatus.CONNECTING
     }
-    fun setGtfsLineToFilterPos(line: String, pattern: MatoPattern?){
-        gtfsLineToFilterPos.value = Pair(line, pattern)
-    }
 
     var isLastWorkResultGood =  workManager
         .getWorkInfosForUniqueWorkLiveData(MatoTripsDownloadWorker.TAG_TRIPS).map { it ->
@@ -274,13 +271,20 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
         }
 
         filteredLocationUpdates.addSource(gtfsLineToFilterPos){
-            //Log.d(DEBUG_TI, "line to filter change to: ${gtfsLineToFilterPos.value}")
+            Log.d(DEBUG_TI, "line to filter change to: ${gtfsLineToFilterPos.value}")
             updatesWithTripAndPatterns.value?.let{
                 ups-> filteredLocationUpdates.postValue(filterUpdatesForGtfsLine(ups, it))
                 //Log.d(DEBUG_TI, "Set ${ups.size} updates as new value for filteredLocation")
             }
         }
 
+    }
+    private fun clearFilteredPositions(){
+        filteredLocationUpdates.postValue(Pair(HashMap(), ArrayList<String>()))
+    }
+    fun setGtfsLineToFilterPos(line: String, pattern: MatoPattern?){
+        clearFilteredPositions()
+        gtfsLineToFilterPos.value = Pair(line, pattern)
     }
 
     private fun filterUpdatesForGtfsLine(updates: FullPositionUpdatesMap,
@@ -322,6 +326,7 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
                     if (dir == directionId) {
                         //add the trip
                         updsForTripId[tripId] = pair
+                        Log.d(DEBUG_TI, "Add vehicle ${pair.first.vehicle}, route ${pair.first.routeID}")
                     } else {
                         vehicleOnWrongDirection.add(vehicle)
                     }

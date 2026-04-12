@@ -98,27 +98,24 @@
                 android:src="@drawable/location_circlew_red"
 
                 android:layout_marginTop="54dp"
-                android:layout_marginEnd="8dp"
+                android:layout_marginEnd="5dp"
                 android:background="#00ffffff"
                 android:contentDescription="@string/enable_position"
                 app:layout_constraintTop_toTopOf="@id/lineMap"
                 app:layout_constraintEnd_toEndOf="@id/lineMap"
                 android:cropToPadding="true" />
-    <!--
-    <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/icon_follow"
-            android:src="@drawable/ic_follow_me"
-            android:background="#00ffffff"
-            android:contentDescription="@string/bt_follow_me_description"
-            android:cropToPadding="true"
-            app:layout_constraintEnd_toEndOf="@id/lineMap"
-            app:layout_constraintTop_toBottomOf="@id/icon_center_map"
-            android:layout_marginTop="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginEnd="10dp"
-    />-->
+        <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/busPositionsImageButton"
+                android:src="@drawable/bus_pos_circle_inactive"
+                android:background="#00ffffff"
+                android:contentDescription="@string/bt_follow_me_description"
+                android:layout_marginEnd="5dp"
+
+                app:layout_constraintTop_toBottomOf="@id/locationEnableIcon"
+                app:layout_constraintEnd_toEndOf="@id/lineMap"
+                android:layout_marginTop="7dp" />
 
 
         <View
@@ -151,5 +148,5 @@
         />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-    <include layout="@layout/map_include_bottom_sheet"/>
+    <include layout="@layout/include_map_bottom_sheet"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

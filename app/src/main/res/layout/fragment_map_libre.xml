@@ -15,7 +15,7 @@
     />
 
     <!-- Bottom Sheet for details -->
-    <include layout="@layout/map_include_bottom_sheet"></include>
+    <include layout="@layout/include_map_bottom_sheet"/>
 
     <FrameLayout
             android:layout_width="match_parent"

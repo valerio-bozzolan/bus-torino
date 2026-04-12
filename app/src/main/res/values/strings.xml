@@ -373,4 +373,6 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="live_positions_switch_provider">Switch source</string>
     <string name="live_positions_preference_switch_clear_title">Clear bus positions when switching live positions source</string>
 
+    <string name="updated_fill">Updated: %1$s</string>
+
 </resources>

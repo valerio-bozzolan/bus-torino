@@ -279,4 +279,5 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
     <string name="live_positions_dialog_provider_text">Fonte posizioni in tempo reale:</string>
     <string name="live_positions_switch_provider">Cambia fonte</string>
     <string name="live_positions_preference_switch_clear_title">Rimuovi posizioni sulla mappa quando si cambia fonte delle posizioni in tempo reale</string>
+    <string name="updated_fill">Aggiornato: %1$s</string>
 </resources>

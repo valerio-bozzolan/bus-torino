@@ -122,11 +122,11 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
                 DEBUG_TAG, """Need to show line for route: gtfsID ${route.gtfsId} name ${route.name}"""
             )
             if (route.gtfsId != null) {
-                mListener.showLineOnMap(route.gtfsId, stopID)
+                mListener.openLineFromStop(route.gtfsId, stopID)
             } else {
                 val gtfsID = FiveTNormalizer.getGtfsRouteID(route)
                 Log.d(DEBUG_TAG, "GtfsID for route is: $gtfsID")
-                mListener.showLineOnMap(gtfsID, stopID)
+                mListener.openLineFromStop(gtfsID, stopID)
             }
         }
     }

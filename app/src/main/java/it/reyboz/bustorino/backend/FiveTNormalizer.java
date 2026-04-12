@@ -344,6 +344,11 @@ public abstract class FiveTNormalizer {
         return name.replace(" ","");
     }
 
+    /**
+     * Create the line name in GTFS format (e.g., "gtt:10U") from a more human readable name ("10")
+     * @param route the route object
+     * @return the code for the line in GTFS format
+     */
     public static String getGtfsRouteID(Route route){
         String routeName = route.getName();
         String cutName = routeName.replace("\\s", "");

@@ -33,7 +33,7 @@ import java.util.*;
 import androidx.annotation.Nullable;
 import de.siegmar.fastcsv.reader.CloseableIterator;
 import de.siegmar.fastcsv.reader.CsvReader;
-import de.siegmar.fastcsv.reader.CsvRow;
+import de.siegmar.fastcsv.reader.CsvRecord;
 import de.siegmar.fastcsv.writer.CsvWriter;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.StopsDBInterface;
@@ -342,27 +342,27 @@ public class UserDB extends SQLiteOpenHelper {
         Cursor cursor = db.query(TABLE_NAME, getFavoritesColumnNamesAsArray,null,null,null,null, sortOrder);
 
         final int nCols = 2;//cursor.getColumnCount();
-        writer.writeRow(cursor.getColumnNames());
+        writer.writeRecord(cursor.getColumnNames());
         while (cursor.moveToNext()){
             String[] arr = {cursor.getString(0), cursor.getString(1)};
-            writer.writeRow(arr);
+            writer.writeRecord(arr);
         }
         cursor.close();
         return true;
     }
 
-    public int insertRowsFromCSV(CsvReader reader){
+    public int insertRowsFromCSV(CsvReader<CsvRecord> reader){
         SQLiteDatabase db = this.getWritableDatabase();
 
         boolean firstrow = true;
         final HashMap<String,Integer> colIndexByRows = new HashMap<>();
 
-        final CloseableIterator<CsvRow> rowsIter = reader.iterator();
+        final CloseableIterator<CsvRecord> rowsIter = reader.iterator();
         if (!rowsIter.hasNext()){
             //nothing to do, it's an empty file
             return -1;
         }
-        final CsvRow firstRow =  rowsIter.next();
+        final CsvRecord firstRow =  rowsIter.next();
         // close if there isn't another rows
         if(!rowsIter.hasNext()) return -2;
         for (int i =0; i<firstRow.getFieldCount(); i++){
@@ -378,7 +378,7 @@ public class UserDB extends SQLiteOpenHelper {
         final int col_id = colIndexByRows.get(COL_ID);
         final int col_username = colIndexByRows.get(COL_USERNAME);
         while (rowsIter.hasNext()){
-            final CsvRow row = rowsIter.next();
+            final CsvRecord row = rowsIter.next();
             final ContentValues cv = new ContentValues();
             cv.put(COL_ID, row.getField(col_id));
             cv.put(COL_USERNAME, row.getField(col_username));

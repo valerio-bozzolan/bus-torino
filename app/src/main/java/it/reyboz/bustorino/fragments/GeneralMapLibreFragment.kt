@@ -15,27 +15,36 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.JsonObject
 import it.reyboz.bustorino.R
+import it.reyboz.bustorino.backend.FiveTNormalizer
 import it.reyboz.bustorino.backend.LivePositionTripPattern
+import it.reyboz.bustorino.backend.LivePositionsServiceStatus
 import it.reyboz.bustorino.backend.Stop
+import it.reyboz.bustorino.backend.gtfs.GtfsUtils
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
+import it.reyboz.bustorino.backend.utils
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
 import it.reyboz.bustorino.map.MapLibreUtils
 import it.reyboz.bustorino.util.ViewUtils
+import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
+import it.reyboz.bustorino.viewmodels.MapStateViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.maplibre.android.MapLibre
-import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.location.LocationComponent
 import org.maplibre.android.location.LocationComponentOptions
@@ -61,7 +70,7 @@ import org.maplibre.geojson.Point
 abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback {
     protected var map: MapLibreMap? = null
     protected var shownStopInBottomSheet : Stop? = null
-    protected var savedMapStateOnPause : Bundle? = null
+    //protected var savedMapStateOnPause : Bundle? = null
 
 
     protected var fragmentListener: CommonFragmentListener? = null
@@ -95,11 +104,13 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     protected lateinit var stopTitleTextView: TextView
     protected lateinit var stopNumberTextView: TextView
     protected lateinit var linesPassingTextView: TextView
+    protected lateinit var extraBottomTextView: TextView
     protected lateinit var arrivalsCard: CardView
     protected lateinit var directionsCard: CardView
     protected lateinit var bottomrightImage: ImageView
-
     protected lateinit var locationComponent: LocationComponent
+    protected lateinit var busPositionsIconButton: ImageButton
+
     protected var lastLocation : Location? = null
 
 
@@ -115,9 +126,13 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
 
 
     //extra items to use the LibreMap
-    protected lateinit var symbolManager : SymbolManager
+    protected var symbolManager : SymbolManager? = null
     protected var stopActiveSymbol: Symbol? = null
     protected var stopsLayerStarted = false
+    protected val livePositionsViewModel : LivePositionsViewModel by activityViewModels()
+
+    //private lateinit var symbolManager: SymbolManager
+    protected val mapStateViewModel: MapStateViewModel by viewModels()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -150,6 +165,9 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         directionsCard = view.findViewById(R.id.directionsCardButton)
         bottomrightImage = view.findViewById(R.id.rightmostImageView)
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+        extraBottomTextView = view.findViewById(R.id.extraBottomTextView)
+
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
     override fun onResume() {
@@ -211,6 +229,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         } else throw RuntimeException("$context must implement CommonFragmentListener")
 
     }
+    /*
     protected fun restoreMapStateFromBundle(bundle: Bundle): Boolean{
         val nullDouble = -10_000.0
         var boundsRestored =false
@@ -266,6 +285,8 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         return b
     }
 
+     */
+
     protected fun stopToGeoJsonFeature(s: Stop): Feature{
         return Feature.fromGeometry(
             Point.fromLngLat(s.longitude!!, s.latitude!!),
@@ -299,15 +320,15 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 }
             }
             if (vehShowing==v){
-                hideStopBottomSheet()
+                hideStopOrBusBottomSheet()
             }
         }
     }
 
     // Hide the bottom sheet and remove extra symbol
-    protected fun hideStopBottomSheet(){
+    protected fun hideStopOrBusBottomSheet(){
         if (stopActiveSymbol!=null){
-            symbolManager.delete(stopActiveSymbol)
+            symbolManager?.delete(stopActiveSymbol)
             stopActiveSymbol = null
         }
         if(!showOpenStopWithSymbolLayer()){
@@ -323,22 +344,35 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             vehShowing = ""
             updatePositionsIcons(true)
         }
+        extraBottomTextView.visibility = View.GONE
 
     }
 
     protected fun initSymbolManager(mapReady: MapLibreMap , style: Style){
-        symbolManager = SymbolManager(mapView,mapReady,style)
-        symbolManager.iconAllowOverlap = true
-        symbolManager.textAllowOverlap = false
-
-        symbolManager.addClickListener{ _ ->
-            if (stopActiveSymbol!=null){
-                hideStopBottomSheet()
-
+        val sm = SymbolManager(mapView, mapReady, style)
+        sm.iconAllowOverlap = true
+        sm.textAllowOverlap = false
+        sm.addClickListener { _ ->
+            if (stopActiveSymbol != null) {
+                hideStopOrBusBottomSheet()
                 return@addClickListener true
             } else
                 return@addClickListener false
         }
+        symbolManager = sm
+    }
+
+    /**
+     * Change the icon indicating the status of the live Positions
+     */
+    protected fun setBusPositionsIcon(enabled: Boolean, error: Boolean){
+        val ctx = requireContext()
+        if(!enabled)
+            busPositionsIconButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.drawable.bus_pos_circle_inactive))
+        else if(error)
+            busPositionsIconButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.drawable.bus_pos_circle_notworking))
+        else
+            busPositionsIconButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.drawable.bus_pos_circle_active))
 
     }
 
@@ -494,6 +528,53 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     }
 
     /**
+     * Shared bottom sheet setup. The [onDirectionsClick] lambda is called when
+     * directionsCard is tapped; it receives the pattern code (empty string when
+     * no pattern is available) so each subclass can navigate as it sees fit.
+     */
+    protected fun showVehicleTripInBottomSheet(
+        veh: String,
+        onDirectionsClick: (patternCode: String) -> Unit
+    ) {
+        val data = updatesByVehDict[veh] ?: run {
+            Log.w(DEBUG_TAG, "Asked to show vehicle $veh, but it's not present in the updates")
+            return
+        }
+        bottomLayout?.let {
+            val lineName = FiveTNormalizer.fixShortNameForDisplay(
+                GtfsUtils.getLineNameFromGtfsID(data.posUpdate.routeID), true
+            )
+            val pat = data.pattern
+            if (pat != null) {
+                stopTitleTextView.text = pat.headsign
+                stopTitleTextView.visibility = View.VISIBLE
+                stopNumberTextView.text = getString(R.string.line_fill_towards, lineName)
+            } else {
+                stopTitleTextView.visibility = View.GONE
+                stopNumberTextView.text = getString(R.string.line_fill, lineName)
+            }
+            directionsCard.setOnClickListener {
+                onDirectionsClick(pat?.code ?: "")
+            }
+            directionsCard.visibility = View.VISIBLE
+            bottomrightImage.setImageDrawable(
+                ResourcesCompat.getDrawable(resources, R.drawable.ic_magnifying_glass, activity?.theme)
+            )
+            val colorBlue = ResourcesCompat.getColor(resources, R.color.blue_500, activity?.theme)
+            ViewCompat.setBackgroundTintList(directionsCard, ColorStateList.valueOf(colorBlue))
+            linesPassingTextView.text = getString(R.string.vehicle_fill, data.posUpdate.vehicle)
+            arrivalsCard.visibility = View.GONE
+
+            extraBottomTextView.text = getString(R.string.updated_fill,  utils.unixTimestampToLocalTime(data.posUpdate.timestamp))
+            extraBottomTextView.visibility = View.VISIBLE
+        }
+        vehShowing = veh
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        updatePositionsIcons(true)
+        Log.d(DEBUG_TAG, "Shown vehicle $veh in bottom sheet")
+    }
+
+    /**
      * Update the bus positions displayed on the map, from the existing data
      *
      * @param forced If true, forces immediate update ignoring the 60ms throttle
@@ -644,14 +725,13 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             Log.d(DEBUG_TAG, "Showing stop: ${stop.ID}")
 
             if (showOpenStopWithSymbolLayer()) {
-                stopActiveSymbol = symbolManager.create(
+                stopActiveSymbol = symbolManager?.create(
                     SymbolOptions()
                         .withLatLng(LatLng(stop.latitude!!, stop.longitude!!))
                         .withIconImage(STOP_ACTIVE_IMG)
                         .withIconAnchor(ICON_ANCHOR_CENTER)
-
                 )
-            } else{
+            } else {
                 val list = ArrayList<Feature>()
                 list.add(stopToGeoJsonFeature(stop))
                 selectedStopSource.setGeoJson(
@@ -769,15 +849,26 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         }
         style.addLayerAbove(busesLayer, STOPS_LAYER_ID)
 
-        val selectedBusLayer = SymbolLayer(SEL_BUS_LAYER, SEL_BUS_SOURCE).withProperties(
+        val selectedBusLayer = SymbolLayer(SEL_BUS_LAYER, SEL_BUS_SOURCE).apply {
+            withProperties(
             PropertyFactory.iconImage(BUS_SEL_IMAGE_ID),
             PropertyFactory.iconSize(busIconsScale),
             PropertyFactory.iconAllowOverlap(true),
             PropertyFactory.iconIgnorePlacement(true),
             PropertyFactory.iconRotate(Expression.get("bearing")),
             PropertyFactory.iconRotationAlignment(ICON_ROTATION_ALIGNMENT_MAP)
+            )
+            if (withLabels){
+                withProperties(PropertyFactory.textAnchor(TEXT_ANCHOR_CENTER),
+                    PropertyFactory.textAllowOverlap(true),
+                    PropertyFactory.textField(Expression.get("line")),
+                    PropertyFactory.textColor(Color.WHITE),
+                    PropertyFactory.textRotationAlignment(TEXT_ROTATION_ALIGNMENT_VIEWPORT),
+                    PropertyFactory.textSize(12f),
+                    PropertyFactory.textFont(arrayOf("noto_sans_regular")))
+            }
+        }
 
-        )
         style.addLayerAbove(selectedBusLayer, BUSES_LAYER_ID)
 
     }
@@ -789,6 +880,35 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     protected fun deviceHasGpsProvider(): Boolean{
         val locManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
         return locManager.allProviders.contains(LocationManager.GPS_PROVIDER)
+    }
+
+    /**
+     * Update automatically the icon when the live position service changes status
+     */
+    protected fun observeStatusLivePositions(){
+        livePositionsViewModel.serviceStatus.observe(viewLifecycleOwner){ status ->
+            //if service is active, update the bus positions icon
+            when(status) {
+                LivePositionsServiceStatus.OK ->
+                    setBusPositionsIcon(true, error = false)
+
+                LivePositionsServiceStatus.NO_POSITIONS -> setBusPositionsIcon(true, error = true)
+
+                else -> setBusPositionsIcon( true, error = true)
+            }
+        }
+    }
+
+    /**
+     * Clear all buses from the map
+     */
+    protected fun clearAllBusPositionsInMap(){
+        for ((k, anim) in animatorsByVeh){
+            anim.cancel()
+        }
+        animatorsByVeh.clear()
+        updatesByVehDict.clear()
+        updatePositionsIcons(forced = false)
     }
 
 

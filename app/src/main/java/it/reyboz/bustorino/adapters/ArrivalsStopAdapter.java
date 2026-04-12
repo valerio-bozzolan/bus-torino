@@ -286,7 +286,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
             final String name = r.getName();
             final String destination = r.destinazione;
             if (name!= null && destination!=null)
-            myMap.put(new Pair<>(name.toLowerCase(Locale.ROOT).trim(),destination.toLowerCase(Locale.ROOT).trim()), i);
+                myMap.put(new Pair<>(name.toLowerCase(Locale.ROOT).trim(),destination.toLowerCase(Locale.ROOT).trim()), i);
         }
         return myMap;
     }

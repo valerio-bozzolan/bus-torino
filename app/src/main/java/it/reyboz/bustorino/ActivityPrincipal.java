@@ -24,18 +24,15 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
-import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.graphics.Insets;
 import androidx.core.view.*;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -729,17 +726,26 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         mNavView.setCheckedItem(R.id.nav_arrivals);
     }
     @Override
-    public void showLineOnMap(String routeGtfsId, @Nullable String stopIDFrom){
+    public void openLineFromStop(String routeGtfsId, @Nullable String stopIDFrom){
 
         readyGUIfor(FragmentKind.LINES);
 
         FragmentTransaction tr = getSupportFragmentManager().beginTransaction();
         tr.replace(R.id.mainActContentFrame, LinesDetailFragment.class,
                 LinesDetailFragment.Companion.makeArgs(routeGtfsId, stopIDFrom));
-        tr.addToBackStack("LineonMap-"+routeGtfsId);
+        tr.addToBackStack("LineFromStop-"+routeGtfsId);
         tr.commit();
+    }
 
+    @Override
+    public void openLineFromVehicle(String routeGtfsId, @Nullable String optionalPatternId, @Nullable Bundle args) {
+        readyGUIfor(FragmentKind.LINES);
 
+        FragmentTransaction tr = getSupportFragmentManager().beginTransaction();
+        tr.replace(R.id.mainActContentFrame, LinesDetailFragment.class,
+                LinesDetailFragment.Companion.makeArgsPattern(routeGtfsId, optionalPatternId, args));
+        tr.addToBackStack("LineFromOther-"+routeGtfsId);
+        tr.commit();
     }
 
     @Override

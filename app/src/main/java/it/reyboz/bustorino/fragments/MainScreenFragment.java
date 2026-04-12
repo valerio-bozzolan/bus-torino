@@ -725,9 +725,14 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     }
 
     @Override
-    public void showLineOnMap(String routeGtfsId,  @Nullable String stopIDFrom) {
+    public void openLineFromStop(String routeGtfsId, @Nullable String stopIDFrom) {
         //pass to activity
-        mListener.showLineOnMap(routeGtfsId, stopIDFrom);
+        mListener.openLineFromStop(routeGtfsId, stopIDFrom);
+    }
+
+    @Override
+    public void openLineFromVehicle(String routeGtfsId, @Nullable String optionalPatternId, @Nullable Bundle args) {
+        mListener.openLineFromVehicle(routeGtfsId, optionalPatternId, args);
     }
 
     @Override

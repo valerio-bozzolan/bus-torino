@@ -19,11 +19,15 @@ package it.reyboz.bustorino.backend.gtfs
 
 import com.google.transit.realtime.GtfsRealtime.VehiclePosition
 
+/**
+ * General data class for the live position update
+ * Used in both the GTFS and MaTO services
+ */
 data class LivePositionUpdate(
     val tripID: String, //tripID WITHOUT THE "gtt:" prefix
     val startTime: String?,
     val startDate: String?,
-    val routeID: String,
+    val routeID: String, // routeID DOES NOT HAVE THE "gtt:" PREFIX
     val vehicle: String,
 
     var latitude: Double,
@@ -53,23 +57,10 @@ data class LivePositionUpdate(
         position.timestamp,
         null
     )
- /*data class VehicleInfo(
-     val id: String,
-     val label:String
- )
 
-  */
-    /*fun withNewPositionAndBearing(latitude: Double, longitude: Double, bearing: Float) =
-        LivePositionUpdate(this.tripID, this.startTime, this.startTime,
-            this.routeID, this.vehicle, latitude, longitude, bearing,
-            this.timestamp,this.nextStop)
-
-    fun withNewPosition(latitude: Double, longitude: Double) =
-        LivePositionUpdate(this.tripID, this.startTime, this.startTime,
-            this.routeID, this.vehicle, latitude, longitude, this.bearing,
-            this.timestamp,this.nextStop)
-
-     */
+    fun getLineGTFSFormat(): String{
+        return "gtt:$routeID"
+    }
 }
 
 

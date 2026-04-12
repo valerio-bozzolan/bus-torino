@@ -1,5 +1,6 @@
 package it.reyboz.bustorino.fragments;
 
+import android.os.Bundle;
 import androidx.annotation.Nullable;
 import it.reyboz.bustorino.backend.Stop;
 
@@ -37,8 +38,16 @@ public interface CommonFragmentListener {
     void showMapCenteredOnStop(Stop stop);
 
     /**
-     * We want to show the line in detail for route
+     * We want to show the line in detail for route coming from a stop
      * @param routeGtfsId the route gtfsID (eg, "gtt:10U")
      */
-    void showLineOnMap(String routeGtfsId,@Nullable String fromStopID);
+    void openLineFromStop(String routeGtfsId, @Nullable String fromStopID);
+
+    /**
+     * Open the line screen on the line, from a live vehicle (optional pattern)
+     * @param routeGtfsId the route gtfsID (eg, "gtt:10U")
+     * @param optionalPatternId the pattern name (can be null)
+     * @param args extra arguments given as Bundle
+     */
+    void openLineFromVehicle(String routeGtfsId, @Nullable String optionalPatternId, @Nullable Bundle args);
 }

@@ -50,9 +50,7 @@ class BackupImportFragment : Fragment() {
                 Toast.makeText(context, R.string.message_check_at_least_one, Toast.LENGTH_SHORT).show()
             }
             else if (result.resultCode == Activity.RESULT_OK) {
-
                 result.data?.data?.also { uri ->
-
                     loadZipData(uri,loadFavorites, loadPreferences)
                 }
             }
@@ -198,7 +196,7 @@ class BackupImportFragment : Fragment() {
                         FAVORITES_NAME -> if (loadFavorites) {
 
                             val reader = InputStreamReader(zipstream)
-                            val csvReader = CsvReader.builder().build(reader)
+                            val csvReader = CsvReader.builder().ofCsvRecord(reader)
 
                             val userDB =  UserDB(context)
                             val updated = userDB.insertRowsFromCSV(csvReader)
@@ -258,7 +256,7 @@ class BackupImportFragment : Fragment() {
         val contentResolver = context.contentResolver
         contentResolver.openInputStream(uri)?.use {
             InputStreamReader(it).use { stream ->
-                val csvReader = CsvReader.builder().build(stream)
+                val csvReader = CsvReader.builder().ofCsvRecord(stream)
 
                 val userDB =  UserDB(context)
                 val updated = userDB.insertRowsFromCSV(csvReader)

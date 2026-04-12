@@ -81,8 +81,6 @@ class StopsMapViewModel(application: Application): AndroidViewModel(application)
                 addStopsCallback)
         }
     }
-
-    var savedState: Bundle? = null
     var lastUserLocation: Location? = null
 
     companion object{

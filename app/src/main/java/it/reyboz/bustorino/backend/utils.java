@@ -32,12 +32,8 @@ import android.util.TypedValue;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -389,5 +385,24 @@ public abstract class utils {
         } else {
             return Html.fromHtml(text);
         }
+    }
+    /**
+     * Convert an integer (long) timestamp into a String
+     * @param timestamp the timestamp in seconds (NOT milliseconds)
+     * @return the formatted String
+     */
+    public static String unixTimestampToLocalTime(long timestamp){
+        return unixTimestampToLocalTime(timestamp, "dd/MM/yyyy HH:mm:ss");
+    }
+    /**
+     * Convert an integer (long) timestamp into a String
+     * @param timestamp the timestamp in seconds (NOT milliseconds)
+     * @param patternFormat the format to convert it to
+     * @return the formatted String
+     */
+    public static String unixTimestampToLocalTime(long timestamp, String patternFormat) {
+        Date date = new Date(timestamp * 1000L); // seconds to milliseconds
+        SimpleDateFormat format = new SimpleDateFormat(patternFormat, Locale.getDefault());
+        return format.format(date);
     }
 }

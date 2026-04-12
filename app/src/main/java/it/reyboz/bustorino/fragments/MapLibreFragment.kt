@@ -4,6 +4,7 @@ package it.reyboz.bustorino.fragments
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.ColorStateList
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -15,16 +16,19 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.RelativeLayout
 import android.widget.Toast
+import it.reyboz.bustorino.backend.FiveTNormalizer
+import it.reyboz.bustorino.backend.gtfs.GtfsUtils
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
+import androidx.room.concurrent.AtomicBoolean
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import it.reyboz.bustorino.R
-import it.reyboz.bustorino.backend.LivePositionsServiceStatus
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.mato.MQTTMatoClient
@@ -32,7 +36,6 @@ import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
 import it.reyboz.bustorino.map.MapLibreStyles
 import it.reyboz.bustorino.util.Permissions
-import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
 import it.reyboz.bustorino.viewmodels.StopsMapViewModel
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
@@ -60,8 +63,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
     private val stopsViewModel: StopsMapViewModel by viewModels()
     private var stopsShowing = ArrayList<Stop>(0)
-    //private lateinit var symbolManager: SymbolManager
-
 
     // Sources for stops and buses are in GeneralMapLibreFragment
     private var isUserMovingCamera = false
@@ -78,10 +79,15 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     private lateinit var showUserPositionButton: ImageButton
     private lateinit var centerUserButton: ImageButton
     private lateinit var followUserButton: ImageButton
+
     private var followingUserLocation = false
     private var pendingLocationActivation = false
     private var ignoreCameraMovementForFollowing = true
     private var enablingPositionFromClick = false
+    private var restoredMapCamera = AtomicBoolean()
+    private var permissionsGranted = false
+
+    //TODO: Rewrite this mess using LocationEngineProvider in MapLibre
     private val positionRequestLauncher = registerForActivityResult<Array<String>, Map<String, Boolean>>(
             ActivityResultContracts.RequestMultiplePermissions(), ActivityResultCallback { result ->
                 if (result == null) {
@@ -92,9 +98,9 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 } else if (java.lang.Boolean.TRUE == result[Manifest.permission.ACCESS_COARSE_LOCATION]
                     && java.lang.Boolean.TRUE == result[Manifest.permission.ACCESS_FINE_LOCATION]) {
                     // We can use the position, restart location overlay
-                    Log.d(DEBUG_TAG, "HAVE THE PERMISSIONS")
+                    permissionsGranted = true
                     if (context == null || requireContext().getSystemService(Context.LOCATION_SERVICE) == null)
-                        return@ActivityResultCallback ///@registerForActivityResult
+                        return@ActivityResultCallback
                     val locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
                     var lastLoc = stopsViewModel.lastUserLocation
                     @SuppressLint("MissingPermission")
@@ -107,6 +113,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
                     }
                     else if (lastLoc != null) {
+
                         if(LatLng(lastLoc.latitude, lastLoc.longitude).distanceTo(DEFAULT_LATLNG) <= MAX_DIST_KM*1000){
                             Log.d(DEBUG_TAG, "Showing the user position")
                             setMapLocationEnabled(true, true, false)
@@ -138,10 +145,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
     //BUS POSITIONS
     private var usingMQTTPositions = true // THIS IS INSIDE VIEW MODEL NOW
-    private val livePositionsViewModel : LivePositionsViewModel by activityViewModels()
-    private lateinit var busPositionsIconButton: ImageButton
 
-    //private var busLabelSymbolsByVeh = HashMap<String,Symbol>()
     private val symbolsToUpdate = ArrayList<Symbol>()
 
     private var initialStopToShow : Stop? = null
@@ -178,13 +182,8 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         // Init the MapView
         mapView = rootView.findViewById(R.id.libreMapView)
 
-        val restoreBundle = stopsViewModel.savedState
-        if(restoreBundle!=null){
-            mapView.onCreate(restoreBundle)
-        } else mapView.onCreate(savedInstanceState)
-        mapView.getMapAsync(this) //{ //map ->
-            //map.setStyle("https://demotiles.maplibre.org/style.json") }
-
+        mapView.onCreate(savedInstanceState)
+        mapView.getMapAsync(this)
 
         //init bottom sheet
         val bottomSheet = rootView.findViewById<RelativeLayout>(R.id.bottom_sheet)
@@ -243,24 +242,16 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 Toast.makeText(activity, R.string.enable_position_message_map, Toast.LENGTH_SHORT)
                     .show()
             }
+            // PERMISSIONS REQUESTED AFTER MAP SETUP
         }
 
 
         // Setup close button
         rootView.findViewById<View>(R.id.btnClose).setOnClickListener {
-            hideStopBottomSheet()
+            hideStopOrBusBottomSheet()
         }
-        livePositionsViewModel.serviceStatus.observe(viewLifecycleOwner){ status ->
-            //if service is active, update the bus positions icon
-            when(status) {
-                LivePositionsServiceStatus.OK ->
-                    setBusPositionsIcon(true, error = false)
-
-                LivePositionsServiceStatus.NO_POSITIONS -> setBusPositionsIcon(true, error = true)
-
-                else -> setBusPositionsIcon(true, error = true)
-            }
-        }
+        observeStatusLivePositions()
+        //observe change in source of the live positions
         livePositionsViewModel.useMQTTPositionsLiveData.observe(viewLifecycleOwner){ useMQTT->
             //Log.d(DEBUG_TAG, "Changed MQTT positions, now have to use MQTT: $useMQTT")
             if (showBusLayer && isResumed) {
@@ -281,6 +272,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                     if (clearPos) {
                         livePositionsViewModel.clearAllPositions()
                         //force clear of the viewed data
+                        if(vehShowing.isNotEmpty()) hideStopOrBusBottomSheet()
                         clearAllBusPositionsInMap()
                     }
 
@@ -303,8 +295,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         this.map = mapReady
         val context = requireContext()
         val mjson = MapLibreStyles.getJsonStyleFromAsset(context, PreferencesHolder.getMapLibreStyleFile(context))
-        //ViewUtils.loadJsonFromAsset(requireContext(),"map_style_good.json")
-
 
         val builder = Style.Builder().fromJson(mjson!!)
 
@@ -322,8 +312,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             else
                 displayStops(stopsInCache)
             if(showBusLayer) setupBusLayer(style, withLabels = true, busIconsScale = 1.2f)
-
-            initSymbolManager(mapReady, style)
 
             // Start observing data now that everything is set up
             observeStops()
@@ -350,9 +338,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 //the user is moving the map
                 isUserMovingCamera = true
             }
-            map?.let { setFollowingUser(it.locationComponent.cameraMode == CameraMode.TRACKING) }
-        //setFollowingUser()
-
         }
 
         mapReady.addOnMapClickListener { point ->
@@ -364,28 +349,39 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         observeBusPositionUpdates()
 
         //Restoring data
-        var boundsRestored = false
-        pendingLocationActivation = true
-        stopsViewModel.savedState?.let{
-            boundsRestored = restoreMapStateFromBundle(it)
-            //why are we disabling it?
-            pendingLocationActivation = it.getBoolean(KEY_LOCATION_ENABLED,true)
-            Log.d(DEBUG_TAG, "Restored map state from the saved bundle: ")
-        }
-        if(pendingLocationActivation)
-            positionRequestLauncher.launch(Permissions.LOCATION_PERMISSIONS)
 
-        //reset saved State at the end
-        if((!boundsRestored)) {
-            //set initial position
-            //center position
-            val latlngTarget = initialStopToShow?.let {
-                LatLng(it.latitude!!, it.longitude!!)
-            } ?: LatLng(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON)
-            mapReady.cameraPosition = CameraPosition.Builder().target(latlngTarget).zoom(DEFAULT_ZOOM).build()
+        if (initialStopToShow!=null){
+            val s = initialStopToShow!!
+            mapReady.cameraPosition = CameraPosition.Builder().target(
+                LatLng(s.latitude!!, s.longitude!!)
+            ).zoom(DEFAULT_ZOOM).build()
+            restoredMapCamera.set(true)
+        } else{
+            var boundsRestored = false
+            //restore the map state here
+            map?.let{
+                boundsRestored = mapStateViewModel.restoreMapState(it)
+                 mapStateViewModel.lastOpenStopID.value?.let{ sID->
+                     val s= stopsViewModel.getStopByID(sID)
+                     if (s==null) {
+                         if(sID.isNotEmpty())
+                             Log.w(DEBUG_TAG,"Wanted to open stop $sID in map but it was not loaded!")
+                     }
+                     else{
+                         openStopInBottomSheet(s) }
+                 }
+
+            }
+            if(!boundsRestored){
+                mapReady.cameraPosition = CameraPosition.Builder().target(
+                    LatLng(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON)
+                ).zoom(DEFAULT_ZOOM).build()
+            }
+            restoredMapCamera.set(boundsRestored)
         }
-        //reset saved state
-        stopsViewModel.savedState = null
+
+        pendingLocationActivation = true
+        positionRequestLauncher.launch(Permissions.LOCATION_PERMISSIONS)
     }
 
     private fun onMapClickReact(point: LatLng): Boolean{
@@ -405,7 +401,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                     val sameStopClicked = shownStopInBottomSheet?.let { newstop.ID==it.ID } ?: false
                     Log.d(DEBUG_TAG, "Hiding clicked stop: $sameStopClicked")
                     if (isBottomSheetShowing()) {
-                        hideStopBottomSheet()
+                        hideStopOrBusBottomSheet()
                     }
                     if(!sameStopClicked){
                         openStopInBottomSheet(newstop)
@@ -424,9 +420,14 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             } else if (busNearby.isNotEmpty()) {
                 val feature = busNearby[0]
                 val vehid = feature.getStringProperty("veh")
-                val route = feature.getStringProperty("line")
-
-                Toast.makeText(context, "Veh $vehid on route $route", Toast.LENGTH_SHORT).show()
+                if (isBottomSheetShowing()) hideStopOrBusBottomSheet()
+                showVehicleTripInBottomSheet(vehid)
+                //move camera to center on vehicle
+                updatesByVehDict[vehid]?.let { dat ->
+                    mapReady.animateCamera(
+                        CameraUpdateFactory.newLatLng(LatLng(dat.posUpdate.latitude, dat.posUpdate.longitude)), 750
+                    )
+                }
                 return true
             }
         }
@@ -455,19 +456,12 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
     override fun onStart() {
         super.onStart()
-        //restore state from viewModel
-        stopsViewModel.savedState?.let {
-            restoreMapStateFromBundle(it)
-            //reset state
-            stopsViewModel.savedState = null
-        }
     }
 
     override fun onResume() {
         super.onResume()
         //mapView.onResume() handled in GeneralMapLibreFragment
 
-        //val keySourcePositions = getString(R.string.pref_positions_source)
         if(showBusLayer) {
             //first, clean up all the old positions
             livePositionsViewModel.clearOldPositionsUpdates()
@@ -480,7 +474,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 livePositionsViewModel.requestGTFSUpdates()
                 usingMQTTPositions = false
             }
-            //mapViewModel.testCascade();
+
             livePositionsViewModel.isLastWorkResultGood.observe(this) { d: Boolean ->
                 Log.d(
                     DEBUG_TAG, "Last trip download result is $d"
@@ -493,8 +487,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         }
 
         fragmentListener?.readyGUIfor(FragmentKind.MAP)
-        //restore saved state
-        savedMapStateOnPause?.let { restoreMapStateFromBundle(it) }
     }
 
     override fun onPause() {
@@ -502,7 +494,11 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         mapView.onPause()
         Log.d(DEBUG_TAG, "Fragment paused")
 
-        savedMapStateOnPause = saveMapStateInBundle()
+        map?.let{
+            //if map is initialized
+            mapStateViewModel.saveMapState(it)
+        }
+        mapStateViewModel.lastOpenStopID.postValue(shownStopInBottomSheet?.ID)
         if (livePositionsViewModel.useMQTTPositionsLiveData.value!!) livePositionsViewModel.stopMatoUpdates()
 
     }
@@ -511,10 +507,11 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         super.onStop()
         mapView.onStop()
         Log.d(DEBUG_TAG, "Fragment stopped!")
-        stopsViewModel.savedState = Bundle().let {
+       /* stopsViewModel.savedState = Bundle().let {
             mapView.onSaveInstanceState(it)
             it
         }
+        */
         //save last location
         map?.locationComponent?.lastKnownLocation?.let{
             stopsViewModel.lastUserLocation = it
@@ -537,6 +534,17 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         return mapView
     }
 
+    private fun showVehicleTripInBottomSheet(veh: String) {
+        val data = updatesByVehDict[veh] ?: return
+        super.showVehicleTripInBottomSheet(veh) { patternCode ->
+            map?.let { mapStateViewModel.saveMapState(it) }
+            fragmentListener?.openLineFromVehicle(
+                data.posUpdate.getLineGTFSFormat(),
+                patternCode,
+                mapStateViewModel.savedCameraState?.toBundle()
+            )
+        }
+    }
     private fun observeStops() {
         // Observe stops
         stopsViewModel.stopsToShow.observe(viewLifecycleOwner) { stops ->
@@ -606,36 +614,14 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 DEBUG_TAG,
                 "Have " + data.size + " trip updates, has Map start finished: " + mapInitCompleted
             )
-            if (mapInitCompleted) updateBusPositionsInMap(data)
+            if (mapInitCompleted) updateBusPositionsInMap(data, hasVehicleTracking = true) { veh ->
+                showVehicleTripInBottomSheet(veh)
+            }
             if (!isDetached && !livePositionsViewModel.useMQTTPositionsLiveData.value!!) livePositionsViewModel.requestDelayedGTFSUpdates(
                 3000
             )
         }
     }
-
-
-    /*private fun createLabelForVehicle(positionUpdate: LivePositionUpdate){
-        val symOpt = SymbolOptions()
-            .withLatLng(LatLng(positionUpdate.latitude, positionUpdate.longitude))
-            .withTextColor("#ffffff")
-            .withTextField(positionUpdate.routeID.substringBeforeLast('U'))
-            .withTextSize(13f)
-            .withTextAnchor(TEXT_ANCHOR_CENTER)
-            .withTextFont(arrayOf( "noto_sans_regular"))//"noto_sans_regular", "sans-serif")) //"noto_sans_regular"))
-
-        val newSymbol = symbolManager.create(symOpt
-        )
-        Log.d(DEBUG_TAG, "Symbol for veh ${positionUpdate.vehicle}: $newSymbol")
-        busLabelSymbolsByVeh[positionUpdate.vehicle] = newSymbol
-    }
-    private fun removeVehicleLabel(vehicle: String){
-        busLabelSymbolsByVeh[vehicle]?.let {
-            symbolManager.delete(it)
-            busLabelSymbolsByVeh.remove(vehicle)
-        }
-    }
-
-     */
 
 
     // ------ LOCATION STUFF -----
@@ -672,19 +658,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
     }
 
-    /**
-     * Clear all buses from the map
-     */
-    private fun clearAllBusPositionsInMap(){
-        for ((k, anim) in animatorsByVeh){
-            anim.cancel()
-        }
-        animatorsByVeh.clear()
-        updatesByVehDict.clear()
-        updatePositionsIcons(forced = false)
-    }
-
-
 
     /**
      * Handles logic of enabling the user location on the map
@@ -697,7 +670,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             if (permissionOk) {
                 Log.d(DEBUG_TAG, "Permission OK, starting location component, assumed: $assumePermissions, fromClick: $fromClick")
                 locationComponent.isLocationComponentEnabled = true
-                if (initialStopToShow==null) {
+                if (!restoredMapCamera.get()) {
                     locationComponent.cameraMode = CameraMode.TRACKING //CameraMode.TRACKING
                     setFollowingUser(true)
                 }
@@ -711,7 +684,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                     Toast.makeText(activity, R.string.enable_position_message_map, Toast.LENGTH_SHORT).show()
                 }
                 Log.d(DEBUG_TAG, "Requesting permission to show user location")
-                enablingPositionFromClick = fromClick
                 showUserPositionRequestLauncher.launch(Permissions.LOCATION_PERMISSIONS)
             }
         } else{
@@ -727,25 +699,12 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     }
 
 
+
     private fun setLocationIconEnabled(enabled: Boolean){
         if (enabled)
             showUserPositionButton.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.location_circlew_red))
         else
             showUserPositionButton.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.location_circlew_grey))
-
-    }
-
-    /**
-     * Helper method for GUI
-     */
-    private fun setBusPositionsIcon(enabled: Boolean, error: Boolean){
-        val ctx = requireContext()
-        if(!enabled)
-            busPositionsIconButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.drawable.bus_pos_circle_inactive))
-        else if(error)
-            busPositionsIconButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.drawable.bus_pos_circle_notworking))
-        else
-            busPositionsIconButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.drawable.bus_pos_circle_active))
 
     }
 
