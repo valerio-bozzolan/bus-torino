@@ -39,15 +39,27 @@ class LinesGridShowingViewModel(application: Application) : AndroidViewModel(app
     fun getLineQueryValue():String{
         return queryLiveData.value ?: ""
     }
-    private val filteredLinesLiveData = MediatorLiveData<List<GtfsRoute>>()
-    fun getLinesLiveData(): LiveData<List<GtfsRoute>> {
-        return filteredLinesLiveData
-    }
+    private val filteredLinesLiveData = MediatorLiveData<List<Pair<GtfsRoute,Int >>>()
+    fun getLinesLiveData() = filteredLinesLiveData
 
-    private fun filterLinesForQuery(lines: List<GtfsRoute>, query: String): List<GtfsRoute>{
-        val result=  lines.filter { r-> query.lowercase() in r.shortName.lowercase() }
+    private fun filterLinesForQuery(lines: List<GtfsRoute>, query: String): ArrayList<Pair<GtfsRoute,Int>>{
+        var result=  lines.filter { r-> query.lowercase() in r.shortName.lowercase() }
+        //EXCLUDE gtt:F - ferrovie (luckily, gtt does not run rail service anymore)
+        result = result.filter { r -> r.agencyID != "gtt:F" }
 
-        return result
+        val out  = ArrayList<Pair<GtfsRoute,Int>>()
+        for (r in result){
+            out.add(Pair(r,1))
+        }
+        // add those matching the query in the description
+        for (r: GtfsRoute in lines) {
+            if (query.lowercase() in r.description.lowercase()) {
+                if (r !in result){
+                    out.add(Pair(r,2))
+                }
+            }
+        }
+        return out
     }
 
     init {

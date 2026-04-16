@@ -18,6 +18,7 @@
 package it.reyboz.bustorino.backend.gtfs;
 
 import androidx.core.util.Pair;
+import it.reyboz.bustorino.backend.FiveTNormalizer;
 import it.reyboz.bustorino.backend.ServiceType;
 
 abstract public class GtfsUtils {
@@ -68,5 +69,14 @@ abstract public class GtfsUtils {
 
     public static String getLineNameFromGtfsID(String routeID){
         return getRouteInfoFromGTFS(routeID).second;
+    }
+
+    public static String lineNameDisplayFromGtfsID(String routeID){
+        String name =  getRouteInfoFromGTFS(routeID).second;
+
+        String altName = FiveTNormalizer.routeInternalToDisplay(name);
+        if (altName==null) //WTF WHY DOES IT HAVE TO BE NULL
+            return name;
+        else return altName;
     }
 }

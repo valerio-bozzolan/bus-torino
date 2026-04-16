@@ -41,7 +41,7 @@
     <string name="message_check_at_least_one">Vérifiez cocher au moins un élément à importer !</string>
     <string name="load_file_favorites">Importer les favoris depuis une sauvegarde</string>
     <string name="load_preferences">Importer les préférences depuis une sauvegarde</string>
-    <string name="passages">Arrivées à: %1$s</string>
+    <string name="passages_fill">Arrivées à: %1$s</string>
     <string name="action_about_more">En savoir plus</string>
     <string name="action_author">Rencontrer l\'auteur</string>
     <string name="action_help">Aide</string>

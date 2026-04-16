@@ -23,7 +23,6 @@ import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.res.ColorStateList
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -35,18 +34,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.view.ViewCompat
 import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.JsonObject
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.adapters.NameCapitalize
 import it.reyboz.bustorino.adapters.StopAdapterListener
 import it.reyboz.bustorino.adapters.StopRecyclerAdapter
-import it.reyboz.bustorino.backend.FiveTNormalizer
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.backend.gtfs.GtfsUtils
 import it.reyboz.bustorino.backend.gtfs.PolylineParser
@@ -101,7 +97,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     private var patternShown: MatoPatternWithStops? = null
 
     private val viewModel: LinesViewModel by viewModels()
-    private var firstInit = true
+    //private var firstInit = true
     private var pausedFragment = false
     private lateinit var switchButton: ImageButton
 
@@ -263,8 +259,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         }
 
         val titleTextView = rootView.findViewById<TextView>(R.id.titleTextView)
-        titleTextView.text = getString(R.string.line)+" "+FiveTNormalizer.fixShortNameForDisplay(
-            GtfsUtils.getLineNameFromGtfsID(lineID), true)
+        titleTextView.text = getString(R.string.line)+" "+ GtfsUtils.lineNameDisplayFromGtfsID(lineID)
 
         favoritesButton?.isClickable = true
         favoritesButton?.setOnClickListener {
@@ -342,24 +337,27 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         usingMQTTPositions = PreferenceManager.getDefaultSharedPreferences(requireContext())
             .getString(keySourcePositions, "mqtt").contentEquals("mqtt")
 
-        viewModel.patternsWithStopsByRouteLiveData.observe(viewLifecycleOwner){
-            patterns -> savePatternsToShow(patterns)
-        }
+        viewModel.patternsWithStopsByRouteLiveData.observe(viewLifecycleOwner, this::savePatternsToShow)
         /*
          */
         viewModel.stopsForPatternLiveData.observe(viewLifecycleOwner) { stops ->
-            if(mapView.visibility ==View.VISIBLE)
-                patternShown?.let{
-                    // We have the pattern and the stops here, time to display them
-                    //TODO: Decide if we should follow the camera view given by the previous screen (probably the map fragment)
-                    // use !restoredCameraInMap to do so
-                    displayPatternWithStopsOnMap(it,stops, true)
-                } ?:{
-                    Log.w(DEBUG_TAG, "The viewingPattern is null!")
-                }
-            else{
-                if(stopsRecyclerView.visibility==View.VISIBLE)
+            val pattern = viewModel.selectedPatternLiveData.value
+            if (pattern == null) {
+                Log.w(DEBUG_TAG, "The selectedPattern is null!")
+                return@observe
+            }
+            if(mapView.visibility ==View.VISIBLE) {
+                // We have the pattern and the stops here, time to display them
+                //TODO: Decide if we should follow the camera view given by the previous screen (probably the map fragment)
+                // use !restoredCameraInMap to do so
+
+               // val shouldZoom = (shownStopInBottomSheet == null) //use this if we want to avoid zoom when we're keeping the stop open
+                displayPatternWithStopsOnMap(pattern, stops, true)
+            } else {
+                if(stopsRecyclerView.visibility==View.VISIBLE) {
+                    patternShown = pattern
                     showStopsInRecyclerView(stops)
+                }
             }
         }
         viewModel.gtfsRoute.observe(viewLifecycleOwner){route->
@@ -394,6 +392,20 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                             updatesByVehDict.clear()
                             updatePositionsIcons(true)
                             livePositionsViewModel.retriggerPositionUpdate()
+                        }
+                        if (shownStopInBottomSheet!=null){
+                            //check if the stop is inside the new pattern
+                            /*val s = shownStopInBottomSheet!!
+                            val newPatternStops = patternWithStops.stopsIndices
+                            val filterPStops = newPatternStops.filter { ps -> ps.stopGtfsId == "gtt:${s.ID}" }
+                            if (filterPStops.isEmpty()){
+                                hideStopOrBusBottomSheet()
+                            }
+                             */
+                            // do another thing, just close the stop when the pattern is changed
+                            if (patt.code != patternWithStops.pattern.code){
+                                hideStopOrBusBottomSheet()
+                            }
                         }
                     }
                 }
@@ -576,16 +588,16 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
             mapReady.addOnMapClickListener { point ->
                 val screenPoint = mapReady.projection.toScreenLocation(point)
-                val features = mapReady.queryRenderedFeatures(screenPoint, STOPS_LAYER_ID)
+                val stopsNearby = mapReady.queryRenderedFeatures(screenPoint, STOPS_LAYER_ID)
                 val busNearby = mapReady.queryRenderedFeatures(screenPoint, BUSES_LAYER_ID)
-                if (features.isNotEmpty()) {
-                    val feature = features[0]
+                //Log.d(DEBUG_TAG, "onMapClick, stopsNearby: $stopsNearby \nstopShown: $shownStopInBottomSheet \nbusNearby: $busNearby,")
+
+                if (stopsNearby.isNotEmpty()) {
+                    val feature = stopsNearby[0]
                     val id = feature.getStringProperty("id")
-                    val name = feature.getStringProperty("name")
-                    //Toast.makeText(requireContext(), "Clicked on $name ($id)", Toast.LENGTH_SHORT).show()
                     val stop = viewModel.getStopByID(id)
                     stop?.let {
-                        if (isBottomSheetShowing() || vehShowing.isNotEmpty()){
+                        if (isBottomSheetShowing() || vehShowing.isNotEmpty()) {
                             hideStopOrBusBottomSheet()
                         }
                         openStopInBottomSheet(it)
@@ -597,21 +609,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                     return@addOnMapClickListener true
                 } else if (busNearby.isNotEmpty()){
                     val feature = busNearby[0]
-                    val vehid = feature.getStringProperty("veh")
-                    val route = feature.getStringProperty("line")
-                    if(isBottomSheetShowing())
-                        hideStopOrBusBottomSheet()
-                    //if(context!=null){
-                     //   Toast.makeText(context, "Veh $vehid on route ${route.slice(0..route.length-2)}", Toast.LENGTH_SHORT).show()
-                    //}
-                    showVehicleTripInBottomSheet(vehid)
-                    updatesByVehDict[vehid]?.let {
-                        //if (it.posUpdate.latitude != null && it.longitude != null)
-                            mapReady.animateCamera(
-                                CameraUpdateFactory.newLatLng(LatLng(it.posUpdate.latitude, it.posUpdate.longitude)),
-                                750
-                            )
-                    }
+                    openBusFromMapClick(feature)
 
                     return@addOnMapClickListener true
                 }
@@ -626,7 +624,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         val zoom = 12.0
         val latlngTarget = LatLng(MapLibreFragment.DEFAULT_CENTER_LAT, MapLibreFragment.DEFAULT_CENTER_LON)
         if(!setViewAlready)
-        mapReady.cameraPosition = savedCameraPosition ?:CameraPosition.Builder().target(latlngTarget).zoom(zoom).build()
+            mapReady.cameraPosition = savedCameraPosition ?:CameraPosition.Builder().target(latlngTarget).zoom(zoom).build()
 
         savedCameraPosition = null
 
@@ -637,9 +635,23 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         return true
     }
 
+    /**
+     * Separate function to find the vehicle associated with a feature and display it
+     */
+    private fun openBusFromMapClick(feature: Feature){
+        val vehid = feature.getStringProperty("veh")
+        if(isBottomSheetShowing())
+            hideStopOrBusBottomSheet()
+        showVehicleTripInBottomSheet(vehid)
+        updatesByVehDict[vehid]?.let {
+            map?.animateCamera(
+                CameraUpdateFactory.newLatLng(LatLng(it.posUpdate.latitude, it.posUpdate.longitude)),
+                750
+            )
+        }
+    }
+
     private fun observeBusPositionUpdates(){
-
-
         //live bus positions
         livePositionsViewModel.filteredLocationUpdates.observe(viewLifecycleOwner){ pair ->
             //Log.d(DEBUG_TAG, "Received ${updates.size} updates for the positions")
@@ -672,12 +684,27 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     }
 
     private fun showVehicleTripInBottomSheet(veh: String) {
-        super.showVehicleTripInBottomSheet(veh) { patternCode ->
+        super.showVehicleTripInBottomSheet(veh) { patternCode, veh ->
             //this is checked in @GeneralMapLibreFragment
             //val data = updatesByVehDict[veh] ?: return@showVehicleTripInBottomSheet
             if (patternCode.isEmpty()) return@showVehicleTripInBottomSheet
             if (patternShown?.pattern?.code == patternCode) {
-                Toast.makeText(context, R.string.showing_same_direction, Toast.LENGTH_SHORT).show()
+                //center view on vehicle
+                updatesByVehDict[veh]?.let { up->
+                    map?.let{
+                        /*
+                        val c = it.cameraPosition
+                        it.moveCamera(CameraUpdateFactory.CameraPositionUpdate(c.bearing,
+                            LatLng(up.posUpdate.latitude, up.posUpdate.longitude),
+                            c.tilt,c.zoom, c.padding)
+                        )
+                         */
+                        it.animateCamera(CameraUpdateFactory.newLatLng(LatLng(up.posUpdate.latitude, up.posUpdate.longitude)))
+                    }
+                } ?: {
+                    Toast.makeText(context, R.string.showing_same_direction, Toast.LENGTH_SHORT).show()
+                }
+
             } else {
                 showPatternWithCode(patternCode)
             }
@@ -749,7 +776,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         var p: MatoPatternWithStops? = null
 
         if (patternIdToShow.isNotEmpty()){
-            for (patt in currentPatterns) {
+            for (patt in patterns) {
                 if (patt.pattern.code == patternIdToShow){
                     p = patt
                 }
@@ -763,7 +790,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         else if(stopIDFromToShow.isNotEmpty()) {
             val stopGtfsID = "gtt:$stopIDFromToShow"
             var pLength = 0
-            for (patt in currentPatterns) {
+            for (patt in patterns) {
                 for (pstop in patt.stopsIndices) {
                     if (pstop.stopGtfsId == stopGtfsID) {
                         //found
@@ -781,9 +808,9 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             else
                 Log.d(DEBUG_TAG, "Requesting to show pattern from stop $stopIDFromToShow, found pattern ${p.pattern.code}")
         }
-
-        stopIDFromToShow = ""
+        // the flag of showing pattern is not necessary anymore, we have set the pattern
         patternIdToShow = ""
+        // the flag of selecting from stop needs to be used again when displaying the pattern
         return p
     }
     /**
@@ -798,7 +825,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             it.addAll(currentPatterns.map { p->"${p.pattern.directionId} - ${p.pattern.headsign}" })
             it.notifyDataSetChanged()
         }
-        val patternToShow = filterPatternFromArgs(patterns)
+        val patternToShow = filterPatternFromArgs(currentPatterns)
         if(patternToShow!=null) {
             //showPattern(patternToShow)
             patternShown = patternToShow
@@ -816,7 +843,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         Log.d(DEBUG_TAG, "Requesting stops for pattern ${patternWithStops.pattern.code}")
         viewModel.selectedPatternLiveData.value = patternWithStops
         viewModel.currentPatternStops.value =  patternWithStops.stopsIndices.sortedBy { i-> i.order }
-        patternShown = patternWithStops
 
         viewModel.requestStopsForPatternWithStops(patternWithStops)
     }
@@ -831,12 +857,11 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             }
         }
         Log.d(DEBUG_TAG, "Requesting stops fro pattern $code in position: $pos")
+        // this triggers the showing on the map / recyclerview
         if (pos !=-2)
             patternsSpinner.setSelection(pos)
         else
             Log.e(DEBUG_TAG, "Pattern with code $code not found!!")
-        //request pattern stops from DB
-        //setPatternAndReqStops(patternWs)
     }
 
     /**
@@ -957,12 +982,28 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                 Log.e(DEBUG_TAG, "Stops layer is not started!!")
             }
 
+        var reallyZoomToPattern = zoomToPattern
+        if(stopIDFromToShow.isNotEmpty()){
+            //open the stop
+            val stopfilt = stopsSorted.filter { s -> s.ID == stopIDFromToShow }
+            if (stopfilt.isEmpty()){
+                Log.e(DEBUG_TAG, "Tried to show stop but it's not in the selected pattern")
+            } else{
+                val stop = stopfilt[0]
+                openStopInBottomSheet(stop)
 
-        //POINTS LIST IS NOT IN ORDER ANY MORE
-        //if(!map.overlayManager.contains(stopsOverlay)){
-        //    map.overlayManager.add(stopsOverlay)
-        //}
-        if(zoomToPattern) zoomToCurrentPattern()
+                if(stop.hasCoords()) {
+                    reallyZoomToPattern = false
+                    setCameraPosition(stop.latitude!!, stop.longitude!!, 13.5)
+                }
+
+            }
+            // Reset this to avoid checking again when showing
+            stopIDFromToShow = ""
+            //camera set
+        }
+        if(reallyZoomToPattern) zoomToCurrentPattern()
+
     }
 
     private fun initializeRecyclerView(){

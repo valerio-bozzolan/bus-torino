@@ -1,6 +1,7 @@
 /*
 	BusTO (backend components)
     Copyright (C) 2016 Ludovico Pavesi
+    Copyright (c) 2026 Fabio Mazza
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -416,7 +417,64 @@ public class Palina extends Stop implements Parcelable {
 
         return  mList;
     }
-    //private void mergeRoute
+
+    private static String pick(String a, String b) {
+        return (a != null && !a.isEmpty()) ? a : b;
+    }
+
+    /**
+     * Merge two Palinas, including information from both
+     * @param p1 the first one, which has priority
+     * @param p2 the second one
+     * @return the merged Palina data
+     */
+    public static @Nullable Palina mergePaline(@Nullable Palina p1, @Nullable Palina p2) {
+        if (p1 == null) return p2;
+        if (p2 == null) return p1;
+
+        // --- Campi base (Stop) ---
+        String id = p1.ID; // assumiamo stesso ID
+
+        String name = pick(p1.getStopDefaultName(), p2.getStopDefaultName());
+        String userName = pick(p1.getStopUserName(), p2.getStopUserName());
+        String location = pick(p1.location, p2.location);
+
+        Double lat = p1.getLatitude() != null ? p1.getLatitude() : p2.getLatitude();
+        Double lon = p1.getLongitude() != null ? p1.getLongitude() : p2.getLongitude();
+
+        String gtfsID = pick(p1.gtfsID, p2.gtfsID);
+
+        Palina result = new Palina(id, name, userName, location, lat, lon, gtfsID);
+
+        // --- Routes ---
+        List<Route> mergedRoutes = new ArrayList<>();
+        boolean addFromSecond = false;
+
+        if (p1.queryAllRoutes() != null)
+            mergedRoutes.addAll(p1.routes);
+
+        else if (p2.queryAllRoutes() != null)
+            mergedRoutes.addAll(p2.routes);
+        else {
+            //assume the first one has more important imformation
+            mergedRoutes.addAll(p1.routes);
+            addFromSecond = true;
+
+        }
+
+        result.setRoutes(mergedRoutes);
+        if(addFromSecond){
+            result.addInfoFromRoutes(p2.routes);
+        }
+
+        // Unisci eventuali duplicati (stesso routeID)
+        result.mergeDuplicateRoutes(0);
+
+        // Aggiorna stringa routes
+        result.buildRoutesString();
+
+        return result;
+    }
 
     /// ------- Parcelable stuff ---
     protected Palina(Parcel in) {

@@ -18,7 +18,8 @@
     <string name="no_arrivals_stop">Nessun passaggio trovato alla fermata</string>
     <string name="searching_arrivals_fmt">Ricerca arrivi da %1$s</string>
     <string name="parsing_error">Errore di lettura del sito 5T/GTT (dannato sito!)</string>
-    <string name="passages">Fermata: %1$s</string>
+    <string name="passages_fill">Fermata: %1$s</string>
+    <string name="passages">Fermata:</string>
     <string name="line">Linea</string>
     <string name="lines">Linee</string>
     <string name="urban_lines">Linee urbane</string>
@@ -45,6 +46,8 @@
     <string name="action_source">Codice sorgente</string>
     <string name="action_licence">Licenza</string>
     <string name="action_author">Incontra l\'autore</string>
+    <string name="action_open_line">Mostra linea</string>
+    <string name="action_show_direction">Vedi direzione</string>
     <string name="added_in_favorites">Fermata aggiunta ai preferiti</string>
     <string name="cant_add_to_favorites">Impossibile aggiungere ai preferiti (memoria piena o database corrotto?)!</string>
     <string name="title_activity_favorites">Preferiti</string>

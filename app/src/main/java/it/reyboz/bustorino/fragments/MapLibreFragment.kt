@@ -161,6 +161,12 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         super.onCreate(savedInstanceState)
         arguments?.let {
             initialStopToShow = Stop.fromBundle(arguments)
+            if (initialStopToShow==null){
+
+            } else if(!initialStopToShow!!.hasCoords()){
+                //null the stop if it doesn't have coordinates, we cannot find it
+                initialStopToShow = null
+            }
         }
     }
 
@@ -352,9 +358,11 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
         if (initialStopToShow!=null){
             val s = initialStopToShow!!
-            mapReady.cameraPosition = CameraPosition.Builder().target(
-                LatLng(s.latitude!!, s.longitude!!)
-            ).zoom(DEFAULT_ZOOM).build()
+            if(s.hasCoords()){
+                mapReady.cameraPosition = CameraPosition.Builder().target(
+                    LatLng(s.latitude!!, s.longitude!!)
+                ).zoom(DEFAULT_ZOOM).build()
+            }
             restoredMapCamera.set(true)
         } else{
             var boundsRestored = false
@@ -436,6 +444,12 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
     override fun showOpenStopWithSymbolLayer(): Boolean {
         return false
+    }
+    override fun hideStopOrBusBottomSheet(){
+        if (shownStopInBottomSheet?.ID == initialStopToShow?.ID){
+            initialStopToShow = null
+        }
+        super.hideStopOrBusBottomSheet()
     }
 
     override fun onAttach(context: Context) {
@@ -536,7 +550,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
     private fun showVehicleTripInBottomSheet(veh: String) {
         val data = updatesByVehDict[veh] ?: return
-        super.showVehicleTripInBottomSheet(veh) { patternCode ->
+        super.showVehicleTripInBottomSheet(veh) { patternCode, _ ->
             map?.let { mapStateViewModel.saveMapState(it) }
             fragmentListener?.openLineFromVehicle(
                 data.posUpdate.getLineGTFSFormat(),
@@ -553,7 +567,8 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             initialStopToShow?.let{ s->
                 //show the stop in the bottom sheet
                 if(!initialStopShown && (s.ID in stopsShowing.map { it.ID })) {
-                    openStopInBottomSheet(s)
+                    val stopToShow = stopsShowing.first { it.ID == s.ID }
+                    openStopInBottomSheet(stopToShow)
                     initialStopShown = true
                 }
             }

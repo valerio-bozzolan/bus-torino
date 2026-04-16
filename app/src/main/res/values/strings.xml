@@ -31,7 +31,8 @@
     <string name="parsing_error">Error parsing the 5T/GTT website (damn site!)</string>
     <string name="query_too_short">Name too short, type more characters and retry
     </string> <!-- TODO: carry out experiments to determine the best wording for this message and publish a paper with the findings -->
-    <string name="passages">Arrivals at: %1$s</string>
+    <string name="passages_fill">Arrivals at: %1$s</string>
+    <string name="passages">Arrivals at:</string>
     <string name="results">Choose the bus stop…</string>
     <string name="line">Line</string>
     <string name="lines">Lines</string>
@@ -142,6 +143,8 @@
 
     <string name="cant_add_to_favorites">Cannot add to favorites (storage full or corrupted database?)!</string>
     <string name="action_view_on_map">View on a map</string>
+    <string name="action_open_line">Show line details</string>
+    <string name="action_show_direction">Show full direction</string>
     <string name="cannot_show_on_map_no_activity">Cannot find any application to show it in</string>
     <string name="cannot_show_on_map_no_position">Cannot find the position of the stop</string>
 

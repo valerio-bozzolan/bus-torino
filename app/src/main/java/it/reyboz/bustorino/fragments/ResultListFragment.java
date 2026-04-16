@@ -34,7 +34,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.*;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.FiveTNormalizer;
@@ -167,7 +166,7 @@ public class ResultListFragment extends Fragment{
                     });
                     String displayName = getArguments().getString(ArrivalsFragment.STOP_TITLE);
                     setTextViewMessage(String.format(
-                            getString(R.string.passages), displayName));
+                            getString(R.string.passages_fill), displayName));
                     break;
                 default:
                     throw new IllegalStateException("Argument passed was not of a supported type");

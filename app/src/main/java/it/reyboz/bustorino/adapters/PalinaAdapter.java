@@ -25,11 +25,13 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.preference.PreferenceManager;
 
 import android.content.SharedPreferences;
+import android.view.Gravity;
 import android.os.Build;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import java.util.*;
@@ -88,6 +90,12 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
 
         vh.routeIDTextView.setText(route.getDisplayCode());
         vh.routeCard.setOnClickListener(view -> mRouteListener.requestShowingRoute(route));
+
+        // Clicking anywhere on the row shows a popup menu
+        vh.itemView.setOnClickListener(view ->
+                openPopupMenuDetails(con,view, route)
+        ); //vh.rowRouteDestination.getVisibility() == View.VISIBLE ? vh.rowRouteDestination : vh.itemView
+
         if(route.destinazione==null || route.destinazione.length() == 0) {
             vh.rowRouteDestination.setVisibility(View.GONE);
             // move around the route timetable
@@ -114,11 +122,6 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
 
             }
             vh.rowRouteDestination.setText(dest);
-
-            //set click listener
-            vh.itemView.setOnClickListener(view -> {
-                mRouteListener.showRouteFullDirection(route);
-            });
         }
 
         switch (route.type) {
@@ -206,6 +209,26 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
                 return Capitalize.FIRST;
         }
         return  Capitalize.DO_NOTHING;
+    }
+
+    private void openPopupMenuDetails(Context con, View view, Route route){
+        PopupMenu popup = new PopupMenu(con, view, Gravity.END);
+        popup.inflate(R.menu.menu_arrivals_line_item);
+        if (route.destinazione == null || route.destinazione.isEmpty()) {
+            popup.getMenu().findItem(R.id.action_show_direction).setVisible(false);
+        }
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.action_open_line) {
+                mRouteListener.requestShowingRoute(route);
+                return true;
+            } else if (id == R.id.action_show_direction) {
+                mRouteListener.showRouteFullDirection(route);
+                return true;
+            }
+            return false;
+        });
+        popup.show();
     }
 
     public PalinaAdapter(Context context, Palina p, PalinaClickListener listener, boolean hideEmptyRoutes) {

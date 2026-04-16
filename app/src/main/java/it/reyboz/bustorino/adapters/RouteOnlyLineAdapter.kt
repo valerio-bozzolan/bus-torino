@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import it.reyboz.bustorino.R
+import it.reyboz.bustorino.backend.FiveTNormalizer
 import it.reyboz.bustorino.backend.Palina
 import java.lang.ref.WeakReference
 
@@ -47,7 +48,8 @@ class RouteOnlyLineAdapter (val routeNames: List<String>,
 
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
-        viewHolder.textView.text = routeNames[position]
+        // SHOW "STAR" as "ST"
+        viewHolder.textView.text = FiveTNormalizer.filterFullStarName(routeNames[position])
         viewHolder.itemView.setOnClickListener{
             clickreference?.get()?.onItemClick(position, routeNames[position])
         }

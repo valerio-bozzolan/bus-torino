@@ -20,6 +20,7 @@ package it.reyboz.bustorino.data.gtfs
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import it.reyboz.bustorino.backend.FiveTNormalizer
 
 @Entity(tableName=GtfsRoute.DB_TABLE)
 data class GtfsRoute(
@@ -79,5 +80,9 @@ data class GtfsRoute(
 
     override fun getColumns(): Array<String> {
         return COLUMNS
+    }
+
+    fun getShortNameDisplay(): String {
+        return FiveTNormalizer.filterFullStarName(shortName)
     }
 }

@@ -5,22 +5,22 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import it.reyboz.bustorino.backend.*
 import it.reyboz.bustorino.backend.mato.MatoAPIFetcher
 import it.reyboz.bustorino.data.NextGenDB
+import it.reyboz.bustorino.data.OldDataRepository
 import it.reyboz.bustorino.middleware.RecursionHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicReference
 
 class ArrivalsViewModel(application: Application): AndroidViewModel(application) {
 
     // Arrivals of palina
     val appContext: Context
-    init {
-        appContext = application.applicationContext
-    }
 
     val palinaLiveData = MediatorLiveData<Palina>()
     val sourcesLiveData = MediatorLiveData<Passaggio.Source>()
@@ -29,9 +29,47 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
 
     val currentFetchers = MediatorLiveData<List<ArrivalsFetcher>>()
 
+    /// OLD REPO for stops instance
+    private val executor = Executors.newFixedThreadPool(2)
+    private val oldRepo = OldDataRepository(executor, NextGenDB.getInstance(application))
+
+    private var stopIdRequested = ""
+    private val stopFromDB = MutableLiveData<Stop>()
+    private val oldRepoStopCallback = OldDataRepository.Callback<List<Stop>>{ stopListRes ->
+        if(stopIdRequested.isEmpty()) return@Callback
+
+        if(stopListRes.isSuccess) {
+            val stopF = stopListRes.result!!.filter { s -> s.ID == stopIdRequested }
+            if (stopF.isEmpty()) {
+                Log.w(DEBUG_TAG, "Requested stop $stopIdRequested but is not in the list from database: ${stopListRes.result}")
+            } else{
+                stopFromDB.postValue(stopF[0])
+                Log.d(DEBUG_TAG, "Setting new stop ${stopF[0]} from database")
+            }
+        } else{
+            Log.e(DEBUG_TAG, "Requested stop ${stopIdRequested} from database but error occured: ${stopListRes.exception}")
+        }
+    }
+
+    init {
+        appContext = application.applicationContext
+        palinaLiveData.addSource(stopFromDB){
+            s ->
+            val hasSource = palinaLiveData.value?.passaggiSourceIfAny
+            Log.d(DEBUG_TAG, "Have current palina ${palinaLiveData.value!=null}, source passaggi $hasSource,  new incoming stop $s from database")
+            val newp = Palina.mergePaline(palinaLiveData.value, Palina(s))
+            newp?.let { palinaLiveData.value = it }
+        }
+    }
+
+
     fun requestArrivalsForStop(stopId: String, fetchers: List<ArrivalsFetcher>){
         val context = appContext //application.applicationContext
         currentFetchers.value = fetchers
+        //request stop from the DB
+        stopIdRequested = stopId
+        oldRepo.requestStopsWithGtfsIDs(listOf("gtt:$stopId"), oldRepoStopCallback)
+
         viewModelScope.launch(Dispatchers.IO){
             runArrivalsFetching(stopId, fetchers, context)
         }
@@ -127,9 +165,7 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
 
             // Se abbiamo un risultato OK, restituiamo la palina
             if (resultRef.get() == Fetcher.Result.OK) {
-                //set data
-                resultLiveData.postValue(Fetcher.Result.OK)
-                palinaLiveData.postValue(palina)
+                setResultAndPalinaFromFetchers(palina, Fetcher.Result.OK)
                 //TODO: Rotate the fetchers appropriately
                 return
             }
@@ -140,13 +176,18 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
         //failedAll = true
 
         // Se abbiamo comunque una palina, la restituiamo
-        if (resultPalina != null) {
-            resultLiveData.postValue(resultRef.get())
-            palinaLiveData.postValue(resultPalina)
+        resultPalina?.let {
+            setResultAndPalinaFromFetchers(it, resultRef.get())
         }
 
     }
 
+    private fun setResultAndPalinaFromFetchers(palina: Palina, fetcherResult: Fetcher.Result) {
+        resultLiveData.postValue(fetcherResult)
+        Log.d(DEBUG_TAG, "Have new result palina for stop ${palina.ID}, source ${palina.passaggiSourceIfAny} has coords: ${palina.hasCoords()}")
+        Log.d(DEBUG_TAG, "Old palina liveData is: ${palinaLiveData.value?.stopDisplayName}, has Coords ${palinaLiveData.value?.hasCoords()}")
+        palinaLiveData.postValue(Palina.mergePaline(palina, palinaLiveData.value))
+    }
     companion object{
         const val DEBUG_TAG="BusTO-ArrivalsViMo"
 

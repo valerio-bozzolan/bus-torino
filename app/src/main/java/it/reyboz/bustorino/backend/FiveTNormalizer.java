@@ -182,6 +182,7 @@ public abstract class FiveTNormalizer {
         if(routeID.length() == 3 && routeID.charAt(2) == 'B') {
             return routeID.substring(0,2).concat("/");
         }
+        //TODO: Decide what to do about the "+" lines (68+, 13+)
 
         switch(routeID) {
             case "1C":
@@ -379,5 +380,14 @@ public abstract class FiveTNormalizer {
 
 
         return sb.toString();
+    }
+
+    public static String filterFullStarName(String name){
+        String outName = name;
+        if(name.contains("STAR ")){
+            //FIX FOR THE MaTO data
+            outName = outName.replace("STAR ","ST");
+        }
+        return outName;
     }
 }

@@ -199,7 +199,7 @@ open class MatoAPIFetcher(
             for (i in 0 until routesStoppingJSON.length()){
                 val routeBaseInfo = routesStoppingJSON.getJSONObject(i)
                 val r = Route(routeBaseInfo.getString("shortName"), Route.Type.UNKNOWN,"")
-                r.setGtfsId(routeBaseInfo.getString("gtfsId").trim())
+                r.gtfsId = routeBaseInfo.getString("gtfsId").trim()
                 baseRoutes.add(r)
 
             }
@@ -233,7 +233,7 @@ open class MatoAPIFetcher(
             //val gtfsRoutes = mutableListOf<>()
             return palina
         }
-        fun parseRouteStoptimesJSON(jsonPatternWithStops: JSONObject): Route{
+        private fun parseRouteStoptimesJSON(jsonPatternWithStops: JSONObject): Route{
             val patternJSON = jsonPatternWithStops.getJSONObject("pattern")
             val routeJSON = patternJSON.getJSONObject("route")
 
@@ -258,7 +258,7 @@ open class MatoAPIFetcher(
                 "TRAM" -> routeType = Route.Type.TRAM
             }
             val route = Route(
-                routeJSON.getString("shortName"),
+                FiveTNormalizer.filterFullStarName(routeJSON.getString("shortName")),
                 patternJSON.getString("headsign"),
                 routeType,
                 passages,

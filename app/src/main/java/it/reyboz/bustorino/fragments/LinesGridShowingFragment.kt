@@ -17,6 +17,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.google.android.flexbox.FlexDirection
+import com.google.android.flexbox.FlexboxLayoutManager
+import com.google.android.flexbox.JustifyContent
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.adapters.RouteAdapter
 import it.reyboz.bustorino.adapters.RouteOnlyLineAdapter
@@ -29,7 +32,6 @@ import it.reyboz.bustorino.middleware.AutoFitGridLayoutManager
 import it.reyboz.bustorino.util.LinesNameSorter
 import it.reyboz.bustorino.util.ViewUtils
 import it.reyboz.bustorino.viewmodels.LinesGridShowingViewModel
-
 
 class LinesGridShowingFragment : ScreenBaseFragment() {
 
@@ -63,6 +65,13 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
     private val linesComparator = Comparator<GtfsRoute> { a,b ->
         return@Comparator linesNameSorter.compare(a.shortName, b.shortName)
     }
+    private val linesPriorityComparator = Comparator<Pair<GtfsRoute,Int>> { pa, pb ->
+        if (pa.second != pb.second){
+            return@Comparator pa.second - pb.second
+        } else{
+            return@Comparator linesNameSorter.compare(pa.first.shortName, pb.first.shortName)
+        }
+    }
 
     private val routeClickListener = RouteAdapter.ItemClicker {
         fragmentListener.openLineFromStop(it.gtfsId, null)
@@ -73,6 +82,13 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
     private val lastQueryEmptyForAgency = HashMap<String, Boolean>(3)
     private var openRecyclerView = "AG_URBAN"
 
+    private fun getFlexLayoutManager(context: Context): FlexboxLayoutManager{
+        val layoutManager = FlexboxLayoutManager(context)
+        layoutManager.flexDirection = FlexDirection.ROW
+        layoutManager.justifyContent = JustifyContent.FLEX_START
+
+        return layoutManager
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -105,37 +121,36 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
             recyView.layoutManager = gridLayoutManager
         }
         //init favorites recyclerview
-        val gridLayoutManager = AutoFitGridLayoutManager(
-            requireContext().applicationContext,
-            (utils.convertDipToPixels(context, 70f)).toInt()
-        )
-        favoritesRecyclerView.layoutManager = gridLayoutManager
+        favoritesRecyclerView.layoutManager = getFlexLayoutManager(requireContext())
 
 
-        viewModel.getLinesLiveData().observe(viewLifecycleOwner){
-            //routesList = ArrayList(it)
-            //routesList.sortWith(linesComparator)
+        viewModel.getLinesLiveData().observe(viewLifecycleOwner){ rL ->
+
             routesByAgency.clear()
             for (k in AGENCIES){
                 routesByAgency[k] = ArrayList()
             }
-
-            for(route in it){
+            val routesPrioByAg = HashMap<String, ArrayList<Pair<GtfsRoute,Int>>>()
+            for (ag in AGENCIES){
+                routesPrioByAg[ag] = ArrayList()
+            }
+            for(p in rL){
+                val route = p.first
                 val agency = route.agencyID
                 if(agency !in routesByAgency.keys){
-                    Log.e(DEBUG_TAG, "The agency $agency is not present in the predefined agencies (${routesByAgency.keys})")
+                    Log.e(DEBUG_TAG, "The agency $agency for route ${p.first.gtfsId} is not in the predefined agencies (${routesByAgency.keys})")
                 }
                 routesByAgency[agency]?.add(route)
+                routesPrioByAg[agency]?.add(p) // I would print a debug here, but it's the same as above
             }
 
 
             //zip agencies and recyclerviews
-            Companion.AGENCIES.zip(recViews) { ag, recView  ->
-                routesByAgency[ag]?.let { routeList ->
-                    if (routeList.size > 0) {
-                        routeList.sortWith(linesComparator)
-                        //val adapter = RouteOnlyLineAdapter(it.map { rt -> rt.shortName })
-                        val adapter = RouteAdapter(routeList, routeClickListener)
+            AGENCIES.zip(recViews) { ag, recView  ->
+                routesPrioByAg[ag]?.let { routePrioList ->
+                    if (routePrioList.isNotEmpty()) {
+                        routePrioList.sortWith(linesPriorityComparator)
+                        val adapter = RouteAdapter(routePrioList.map { it.first }, routeClickListener)
                         val lastQueryEmpty = if(ag in lastQueryEmptyForAgency.keys) lastQueryEmptyForAgency[ag]!! else true
                         if (lastQueryEmpty)
                             recView.adapter = adapter
@@ -148,7 +163,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
                         lastQueryEmptyForAgency[ag] = true
 
                     }
-                    durations[ag] = if(routeList.size < 20) ViewUtils.DEF_DURATION else 1000
+                    durations[ag] = if(routePrioList.size < 20) ViewUtils.DEF_DURATION else 1000
                 }
             }
 
@@ -390,7 +405,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
 
 
     companion object {
-        private const val COLUMN_WIDTH_DP=200
+        private const val COLUMN_WIDTH_DP=250
         private const val AG_FAV = "fav"
         private const val AG_URBAN = "gtt:U"
         private const val AG_EXTRAURB ="gtt:E"

@@ -140,7 +140,7 @@
     <string name="insert_bus_stop_number_error">Voer bushalte nummer in</string>
     <string name="network_error">Check je internetverbinding!</string>
     <string name="query_too_short">Te korte naam, typ meer karakters en probeer opnieuw</string>
-    <string name="passages">Aankomsten om: %1$s</string>
+    <string name="passages_fill">Aankomsten om: %1$s</string>
     <string name="lines_fill">Lijnen: %1$s</string>
     <string name="action_about_more">Meer over</string>
     <string name="title_activity_favorites">Favorieten</string>

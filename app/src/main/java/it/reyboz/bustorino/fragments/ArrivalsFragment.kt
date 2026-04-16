@@ -65,8 +65,10 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
 
     //Views
     protected lateinit var addToFavorites: ImageButton
+    protected lateinit var openInMapButton: ImageButton
     protected lateinit var timesSourceTextView: TextView
-    protected lateinit var messageTextView: TextView
+    private lateinit var messageTextView: TextView
+    private lateinit var preMessageTextView: TextView // this hold the "Arrivals at: " text
     protected lateinit  var arrivalsRecyclerView: RecyclerView
     private var mListAdapter: PalinaAdapter? = null
 
@@ -95,14 +97,8 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
 
     private val palinaClickListener: PalinaClickListener = object : PalinaClickListener {
         override fun showRouteFullDirection(route: Route) {
-            var routeName: String?
+            var routeName = route.routeLongDisplayName
             Log.d(DEBUG_TAG, "Make toast for line " + route.name)
-
-
-            routeName = FiveTNormalizer.routeInternalToDisplay(route.name)
-            if (routeName == null) {
-                routeName = route.displayCode
-            }
             if (context == null) Log.e(DEBUG_TAG, "Touched on a route but Context is null")
             else if (route.destinazione == null || route.destinazione.length == 0) {
                 Toast.makeText(
@@ -168,7 +164,9 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
     ): View? {
         val root = inflater.inflate(R.layout.fragment_arrivals, container, false)
         messageTextView = root.findViewById(R.id.messageTextView)
+        preMessageTextView = root.findViewById(R.id.arrivalsTextView)
         addToFavorites = root.findViewById(R.id.addToFavorites)
+        openInMapButton = root.findViewById(R.id.openInMapButton)
         // "How does it work part"
         howDoesItWorkTextView = root.findViewById(R.id.howDoesItWorkTextView)
         hideHintButton = root.findViewById(R.id.hideHintButton)
@@ -219,7 +217,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         val displayName = requireArguments().getString(STOP_TITLE)
         if (displayName != null) setTextViewMessage(
             String.format(
-                getString(R.string.passages), displayName
+                getString(R.string.passages_fill), displayName
             )
         )
 
@@ -261,6 +259,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
 
         arrivalsViewModel.palinaLiveData.observe(viewLifecycleOwner){
             mListener.toggleSpinner(false)
+            Log.d(DEBUG_TAG, "New result palina observed, has coords: ${it.hasCoords()}")
             if(arrivalsViewModel.resultLiveData.value==Fetcher.Result.OK){
                 //the result is true
                 changeUIFirstSearchActive(false)
@@ -456,21 +455,34 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             if (p == null) Log.w(DEBUG_TAG, "Asked to update the data, but we're not attached and the data is null")
             else needUpdateOnAttach = true
         } else {
+            //set title
+            if(stopName==null && p?.stopDisplayName != null){
+                stopName = p.stopDisplayName
+                updateMessage()
+            }
+
             val adapter = PalinaAdapter(context, lastUpdatedPalina, palinaClickListener, true)
             showArrivalsSources(lastUpdatedPalina!!)
             resetListAdapter(adapter)
+            lastUpdatedPalina?.let{ pal ->
+                openInMapButton.setOnClickListener {
+                    if (pal.hasCoords())
+                        mListener.showMapCenteredOnStop(pal)
+                }
+            }
+
 
             val routesWithNoPassages = lastUpdatedPalina!!.routesNamesWithNoPassages
             if (routesWithNoPassages.isEmpty()) {
                 //hide the views if there are no empty routes
-                noArrivalsRecyclerView!!.visibility = View.GONE
+                noArrivalsRecyclerView.visibility = View.GONE
                 noArrivalsTitleView!!.visibility = View.GONE
             } else {
                 Collections.sort(routesWithNoPassages, LinesNameSorter())
                 noArrivalsAdapter = RouteOnlyLineAdapter(routesWithNoPassages, null)
-                noArrivalsRecyclerView!!.adapter = noArrivalsAdapter
+                noArrivalsRecyclerView.adapter = noArrivalsAdapter
 
-                noArrivalsRecyclerView!!.visibility = View.VISIBLE
+                noArrivalsRecyclerView.visibility = View.VISIBLE
                 noArrivalsTitleView!!.visibility = View.VISIBLE
             }
 
@@ -525,9 +537,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
     }
 
     /**
-     * Update the message in the fragment
-     *
-     * It may eventually change the "Add to Favorite" icon
+     * Update the stop title in the fragment
      */
     private fun updateMessage() {
         var message = ""
@@ -539,12 +549,20 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             Log.e("ArrivalsFragm$tag", "NO ID FOR THIS FRAGMENT - something went horribly wrong")
         }
         if (message.isNotEmpty()) {
-            setTextViewMessage(getString(R.string.passages, message))
+            //setTextViewMessage(getString(R.string.passages_fill, message))
+           setTextViewMessage(message)
         }
-
-        // whatever is the case, update the star icon
-        //updateStarIconFromLastBusStop();
     }
+
+    /**
+     * Set the message textView
+     * @param message the whole message to write in the textView
+     */
+    fun setTextViewMessage(message: String?) {
+        messageTextView.text = message
+        messageTextView.visibility = View.VISIBLE
+    }
+
 
     override fun onCreateLoader(id: Int, p1: Bundle?): Loader<Cursor> {
         val args = arguments
@@ -592,7 +610,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
                     stopIsInFavorites = false
                 }
                 updateStarIcon()
-
+                /*
                 if (stopName == null) {
                     //stop is not inside the favorites and wasn't provided
                     Log.d("ArrivalsFragment$tag", "Stop wasn't in the favorites and has no name, looking in the DB")
@@ -601,8 +619,10 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
                         arguments, this
                     )
                 }
+                6
+                 */
             }
-
+            /*
             loaderStopId -> if (data.count > 0) {
                 data.moveToFirst()
                 val index = data.getColumnIndex(
@@ -616,6 +636,8 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             } else {
                 Log.w("ArrivalsFragment$tag", "Stop is not inside the database... CLOISTER BELL")
             }
+
+             */
         }
     }
 
@@ -627,15 +649,6 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         mListAdapter = adapter
         arrivalsRecyclerView.adapter = adapter
         arrivalsRecyclerView.visibility = View.VISIBLE
-    }
-
-    /**
-     * Set the message textView
-     * @param message the whole message to write in the textView
-     */
-    fun setTextViewMessage(message: String?) {
-        messageTextView.text = message
-        messageTextView.visibility = View.VISIBLE
     }
 
     fun toggleLastStopToFavorites() {

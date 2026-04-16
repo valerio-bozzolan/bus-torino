@@ -12,7 +12,7 @@ import java.lang.ref.WeakReference
 
 class RouteAdapter(val routes: List<GtfsRoute>,
                    click: ItemClicker,
-                   private val layoutId: Int = R.layout.entry_line_num_descr) :
+                   private val layoutId: Int = R.layout.entry_line_name_description) :
     RecyclerView.Adapter<RouteAdapter.ViewHolder>()
 {
         val clickreference: WeakReference<ItemClicker>
@@ -45,7 +45,7 @@ class RouteAdapter(val routes: List<GtfsRoute>,
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
         val route = routes[position]
-        holder.nameTextView.text = route.shortName
+        holder.nameTextView.text = route.getShortNameDisplay()
         holder.descrptionTextView.text = route.longName
 
         holder.itemView.setOnClickListener{

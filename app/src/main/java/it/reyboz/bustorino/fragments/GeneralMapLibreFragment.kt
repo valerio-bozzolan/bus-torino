@@ -45,6 +45,7 @@ import it.reyboz.bustorino.viewmodels.MapStateViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.maplibre.android.MapLibre
+import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.location.LocationComponent
 import org.maplibre.android.location.LocationComponentOptions
@@ -326,7 +327,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     }
 
     // Hide the bottom sheet and remove extra symbol
-    protected fun hideStopOrBusBottomSheet(){
+    protected open fun hideStopOrBusBottomSheet(){
         if (stopActiveSymbol!=null){
             symbolManager?.delete(stopActiveSymbol)
             stopActiveSymbol = null
@@ -534,7 +535,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
      */
     protected fun showVehicleTripInBottomSheet(
         veh: String,
-        onDirectionsClick: (patternCode: String) -> Unit
+        onDirectionsClick: (patternCode: String, veh: String) -> Unit
     ) {
         val data = updatesByVehDict[veh] ?: run {
             Log.w(DEBUG_TAG, "Asked to show vehicle $veh, but it's not present in the updates")
@@ -542,7 +543,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         }
         bottomLayout?.let {
             val lineName = FiveTNormalizer.fixShortNameForDisplay(
-                GtfsUtils.getLineNameFromGtfsID(data.posUpdate.routeID), true
+                GtfsUtils.getLineNameFromGtfsID(data.posUpdate.routeID), false
             )
             val pat = data.pattern
             if (pat != null) {
@@ -554,7 +555,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 stopNumberTextView.text = getString(R.string.line_fill, lineName)
             }
             directionsCard.setOnClickListener {
-                onDirectionsClick(pat?.code ?: "")
+                onDirectionsClick(pat?.code ?: "", veh)
             }
             directionsCard.visibility = View.VISIBLE
             bottomrightImage.setImageDrawable(
@@ -700,6 +701,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             val string_show = if (stop.numRoutesStopping==0) ""
             else requireContext().getString(R.string.lines_fill, stop.routesThatStopHereToString())
             linesPassingTextView.text = string_show
+            linesPassingTextView.visibility = View.VISIBLE
 
             //SET ON CLICK LISTENER
             arrivalsCard.setOnClickListener{
@@ -909,6 +911,13 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         animatorsByVeh.clear()
         updatesByVehDict.clear()
         updatePositionsIcons(forced = false)
+    }
+
+    protected fun setCameraPosition(latitude: Double, longitude: Double, zoom: Double) {
+        map?.cameraPosition = CameraPosition.Builder()
+            .target(LatLng(latitude, longitude))
+            .zoom(zoom)
+            .build()
     }
 
 

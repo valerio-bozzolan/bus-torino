@@ -432,6 +432,15 @@ public class Route implements Comparable<Route>, Parcelable {
 
          return adjusted;
     }
+    public String getRouteLongDisplayName() {
+
+        String routeName = FiveTNormalizer.routeInternalToDisplay(this.name);
+        if (routeName == null) {
+            routeName = this.displayCode;
+        }
+        return routeName;
+    }
+
 
     // ---- Parcelable implem ---
     protected Route(Parcel in) {

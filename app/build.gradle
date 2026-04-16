@@ -116,6 +116,8 @@ dependencies {
 
     // Guava implementation for DBUpdateWorker
     implementation 'com.google.guava:guava:33.5.0-android'
+
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
     
     implementation "androidx.fragment:fragment-ktx:$fragment_version"
     implementation "androidx.activity:activity-ktx:$activity_version"

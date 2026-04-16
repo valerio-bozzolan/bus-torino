@@ -216,9 +216,7 @@ public class Stop implements Comparable<Stop>, Parcelable {
 
     /**
      * Returns stop name or username (if set).<br>
-     * - empty string means "already searched everywhere, can't find it"<br>
-     * - null means "didn't search, yet. Maybe you should try."<br>
-     * - string means "here's the name.", obviously.<br>
+     * If null, we should try to look somewhere else.
      *
      * @return string if known, null if still unknown
      */
@@ -282,6 +280,13 @@ public class Stop implements Comparable<Stop>, Parcelable {
         return String.format(Locale.US, "geo:%f,%f", this.lat, this.lon);
     }
 
+    /**
+     * Check if the stop contains the coordinates
+     * @return true if both the latitude and the longitude are not null
+     */
+    public final boolean hasCoords(){
+        return (this.lat!=null)&&(this.lon!=null);
+    }
     public final @Nullable String getGeoURLWithAddress() {
         String url = getGeoURL();
 
