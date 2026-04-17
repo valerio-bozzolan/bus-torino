@@ -101,9 +101,6 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     private final Runnable refreshStop = new Runnable() {
         public void run() {
             if(getContext() == null) return;
-            List<ArrivalsFetcher> fetcherList = utils.getDefaultArrivalsFetchers(getContext());
-            ArrivalsFetcher[] arrivalsFetchers = new ArrivalsFetcher[fetcherList.size()];
-            arrivalsFetchers = fetcherList.toArray(arrivalsFetchers);
 
             if (childFragMan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment) {
                 ArrivalsFragment fragment = (ArrivalsFragment) childFragMan.findFragmentById(R.id.resultFrame);
@@ -117,8 +114,12 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                     //new AsyncArrivalsSearcher(fragmentHelper, fragment.getCurrentFetchersAsArray(), getContext()).execute(stopName);
                     fragment.requestArrivalsForTheFragment();
                 }
-            } else //we create a new fragment, which is WRONG
+            } else { //we create a new fragment, which is WRONG
+                List<ArrivalsFetcher> fetcherList = utils.getDefaultArrivalsFetchers(getContext());
+                ArrivalsFetcher[] arrivalsFetchers = new ArrivalsFetcher[fetcherList.size()];
+                arrivalsFetchers = fetcherList.toArray(arrivalsFetchers);
                 new AsyncArrivalsSearcher(fragmentHelper, arrivalsFetchers, getContext()).execute();
+            }
         }
     };
     //

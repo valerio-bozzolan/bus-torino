@@ -67,7 +67,7 @@
     <string name="database_update_req">Forcer la mise à jour de la base de données</string>
     <string name="arrivals_card_at_the_stop">à l\'arrêt</string>
     <string name="show_arrivals">Afficher les arrivées</string>
-    <string name="source_mato">Appli Muoversi a Torino</string>
+    <string name="source_mato">Muoversi a Torino</string>
     <string name="mqtt_notification_text">Le service de localisation en temps réel MaTO live bus est en cours d\'exécution</string>
     <string name="storage_permission">stockage</string>
     <string name="stop_search_view_title">Rechercher par arrêt</string>

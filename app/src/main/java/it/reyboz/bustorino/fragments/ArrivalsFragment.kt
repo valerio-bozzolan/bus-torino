@@ -66,7 +66,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
     //Views
     protected lateinit var addToFavorites: ImageButton
     protected lateinit var openInMapButton: ImageButton
-    protected lateinit var timesSourceTextView: TextView
+    protected lateinit var arrivalsSourceTextView: TextView
     private lateinit var messageTextView: TextView
     private lateinit var preMessageTextView: TextView // this hold the "Arrivals at: " text
     protected lateinit  var arrivalsRecyclerView: RecyclerView
@@ -187,21 +187,20 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             manager.orientation
         )
         arrivalsRecyclerView.addItemDecoration(mDividerItemDecoration)
-        timesSourceTextView = root.findViewById(R.id.timesSourceTextView)
-        timesSourceTextView.setOnLongClickListener { view: View? ->
+        arrivalsSourceTextView = root.findViewById(R.id.timesSourceTextView)
+        arrivalsSourceTextView.setOnLongClickListener { view: View? ->
             if (!fetchersChangeRequestPending) {
                 rotateFetchers()
                 //Show we are changing provider
-                timesSourceTextView.setText(R.string.arrival_source_changing)
+                arrivalsSourceTextView.setText(R.string.arrival_source_changing)
 
-                //mListener.requestArrivalsForStopID(stopID)
                 requestArrivalsForTheFragment()
                 fetchersChangeRequestPending = true
                 return@setOnLongClickListener true
             }
             false
         }
-        timesSourceTextView.setOnClickListener(View.OnClickListener { view: View? ->
+        arrivalsSourceTextView.setOnClickListener(View.OnClickListener { view: View? ->
             Toast.makeText(
                 context, R.string.change_arrivals_source_message, Toast.LENGTH_SHORT
             )
@@ -246,35 +245,52 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             timesSourceTextView.setText(sourcesTextViewData);
         }*/
         //need to do this when we recreate the fragment but we haven't updated the arrival times
-        lastUpdatedPalina?.let { showArrivalsSources(it) }
-        /*if (lastUpdatedPalina?.queryAllRoutes() != null && lastUpdatedPalina!!.queryAllRoutes()!!.size >0){
-            showArrivalsSources(lastUpdatedPalina!!)
-        } else{
-            Log.d(DEBUG_TAG, "No routes names")
+        if(lastUpdatedPalina == null && arrivalsViewModel.palinaLiveData.value != null) {
+            //this updates lastUpdatedPalina and also shows the arrival source
+            updateFragmentData(arrivalsViewModel.palinaLiveData.value!!)
+
         }
+        //lastUpdatedPalina?.let { showArrivalsSources(it) }
 
-         */
 
+        arrivalsViewModel.arrivalsRequestRunningLiveData.observe(viewLifecycleOwner, { running ->
+            //UI CHANGES TO APPLY WHEN THE REQUEST IS RUNNING
+            mListener.toggleSpinner(running)
 
+            if(running){
+                //different way of setting this flag
+                if(lastUpdatedPalina == null || lastUpdatedPalina?.totalNumberOfPassages==0) {
+                    showLoadingMessageForFirstTime()
+                }
+            } else{
+                //stopped running, we can show the palina
+                //val uname = lastUpdatedPalina?.stopDisplayName
+                if (lastUpdatedPalina == null || lastUpdatedPalina?.numRoutesWithArrivals == 0) {
+                    //no passages and result is not valid
+                    setUIForNoStopFound()
+                }
+            }
+        })
 
         arrivalsViewModel.palinaLiveData.observe(viewLifecycleOwner){
-            mListener.toggleSpinner(false)
-            Log.d(DEBUG_TAG, "New result palina observed, has coords: ${it.hasCoords()}")
-            if(arrivalsViewModel.resultLiveData.value==Fetcher.Result.OK){
-                //the result is true
-                changeUIFirstSearchActive(false)
+            Log.d(DEBUG_TAG, "New result palina observed, has coords: ${it.hasCoords()}, title ${it?.stopDisplayName}, number of passages: ${it.totalNumberOfPassages}")
+
+            val palinaIsValid = it!=null && (it.totalNumberOfPassages>0 || it.stopDisplayName!=null)
+            if (palinaIsValid){
                 updateFragmentData(it)
-            } else{
-                progressBar.visibility=View.INVISIBLE
-                // Avoid showing this ugly message if we have found the stop, clearly it exists but GTT doesn't provide arrival times
-                if (stopName==null)
-                    loadingMessageTextView.text = getString(R.string.no_bus_stop_have_this_name)
-                else
-                    loadingMessageTextView.text = getString(R.string.no_arrivals_stop)
+            }
+            if(arrivalsViewModel.arrivalsRequestRunningLiveData.value ==false) {
+                //finished loading
+                if (palinaIsValid) {
+                    //the result is true
+                    hideLoadingMessageAndShowResults()
+                } else {
+                    setUIForNoStopFound()
+                }
             }
 
         }
-
+        // this is only for the progress
         arrivalsViewModel.sourcesLiveData.observe(viewLifecycleOwner){
             Log.d(DEBUG_TAG, "Using arrivals source: $it")
             val srcString = getDisplayArrivalsSource(it,requireContext())
@@ -282,24 +298,25 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         }
 
         arrivalsViewModel.resultLiveData.observe(viewLifecycleOwner){res ->
+            val src = arrivalsViewModel.sourcesLiveData.value
             when (res) {
                 Fetcher.Result.OK -> {}
-                Fetcher.Result.CLIENT_OFFLINE -> showToastMessage(R.string.network_error, true)
+                Fetcher.Result.CLIENT_OFFLINE -> showFetcherMessage(R.string.network_error, src)
                 Fetcher.Result.SERVER_ERROR -> {
                     if (utils.isConnected(context)) {
-                        showToastMessage(R.string.parsing_error, true)
+                        showFetcherMessage(R.string.parsing_error, src)
                     } else {
-                        showToastMessage(R.string.network_error, true)
+                        showFetcherMessage(R.string.network_error, src)
                     }
-                    showToastMessage(R.string.internal_error,true)
+                    showFetcherMessage(R.string.internal_error,src)
                 }
 
-                Fetcher.Result.PARSER_ERROR -> showShortToast(R.string.internal_error)
-                Fetcher.Result.QUERY_TOO_SHORT -> showShortToast(R.string.query_too_short)
-                Fetcher.Result.EMPTY_RESULT_SET -> showShortToast(R.string.no_arrivals_stop)
+                Fetcher.Result.PARSER_ERROR -> showFetcherMessage(R.string.internal_error, src)
+                Fetcher.Result.QUERY_TOO_SHORT -> showFetcherMessage(R.string.query_too_short, src)
+                Fetcher.Result.EMPTY_RESULT_SET -> showFetcherMessage(R.string.no_arrivals_stop, src)
 
-                Fetcher.Result.NOT_FOUND -> showShortToast(R.string.no_bus_stop_have_this_name)
-                else -> showShortToast(R.string.internal_error)
+                Fetcher.Result.NOT_FOUND -> showFetcherMessage(R.string.no_bus_stop_have_this_name, src)
+                else -> showFetcherMessage(R.string.internal_error, src)
             }
         }
         return root
@@ -308,8 +325,18 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
 
     private fun showShortToast(id: Int) = showToastMessage(id,true)
 
+    private fun showFetcherMessage(id: Int, source: Source?){
+        val srcString = source?.let{ getDisplayArrivalsSource(it,requireContext())}
+        if (srcString!=null){
+            Toast.makeText(requireContext(), id, Toast.LENGTH_SHORT).show()
+        } else{
+            val message = getString(id)
 
-    private fun changeUIFirstSearchActive(yes: Boolean){
+            Toast.makeText(requireContext(), "$srcString : $message", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /*private fun changeUIFirstSearchActive(yes: Boolean){
         if(yes){
             resultsLayout.visibility = View.GONE
             progressBar.visibility = View.VISIBLE
@@ -321,18 +348,32 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         }
     }
 
+     */
+    private fun showLoadingMessageForFirstTime(){
+        resultsLayout.visibility = View.GONE
+        progressBar.visibility = View.VISIBLE
+        loadingMessageTextView.visibility = View.VISIBLE
+    }
+    private fun hideLoadingMessageAndShowResults(){
+        resultsLayout.visibility = View.VISIBLE
+        progressBar.visibility = View.GONE
+        loadingMessageTextView.visibility = View.GONE
+    }
+
+    private fun setUIForNoStopFound(){
+        progressBar.visibility=View.INVISIBLE
+        // Avoid showing this ugly message if we have found the stop, clearly it exists but GTT doesn't provide arrival times
+        if (stopName==null)
+            loadingMessageTextView.text = getString(R.string.no_bus_stop_have_this_name)
+        else
+            loadingMessageTextView.text = getString(R.string.no_arrivals_stop)
+    }
+
     override fun onResume() {
         super.onResume()
         val loaderManager = loaderManager
         Log.d(DEBUG_TAG, "OnResume, justCreated $justCreated, lastUpdatedPalina is: $lastUpdatedPalina")
-        /*if(needUpdateOnAttach){
-            updateFragmentData(null);
-            needUpdateOnAttach=false;
-        }*/
-        /*if(lastUpdatedPalina!=null){
-            updateFragmentData(null);
-            showArrivalsSources(lastUpdatedPalina);
-        }*/
+
         mListener.readyGUIfor(FragmentKind.ARRIVALS)
 
         //fix bug when the list adapter is null
@@ -350,7 +391,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             } else {
                 //start first search
                 requestArrivalsForTheFragment()
-                changeUIFirstSearchActive(true)
+                showLoadingMessageForFirstTime()
                 justCreated = false
             }
             //start the loader
@@ -421,15 +462,6 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         setOption(requireContext(), OPTION_SHOW_LEGEND, false)
     }
 
-    /*val currentFetchersAsArray: Array<ArrivalsFetcher?>
-        get() {
-            val arr = arrayOfNulls<ArrivalsFetcher>(fetchers!!.size)
-            fetchers!!.toArray<ArrivalsFetcher>(arr)
-            return arr
-        }
-
-     */
-
     fun getCurrentFetchersAsArray(): Array<out ArrivalsFetcher?> {
         val r= fetchers.toTypedArray()
             //?: emptyArray<ArrivalsFetcher>()
@@ -462,7 +494,11 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             }
 
             val adapter = PalinaAdapter(context, lastUpdatedPalina, palinaClickListener, true)
-            showArrivalsSources(lastUpdatedPalina!!)
+            p?.let {
+                //only update the sources if we have actual passaggi
+                if (arrivalsViewModel.arrivalsRequestRunningLiveData.value == false)
+                    showArrivalsSources(lastUpdatedPalina!!)
+            }
             resetListAdapter(adapter)
             lastUpdatedPalina?.let{ pal ->
                 openInMapButton.setOnClickListener {
@@ -508,13 +544,13 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         val updatedFetchers = adjustFetchersToSource(source)
         if (!updatedFetchers) Log.w(DEBUG_TAG, "Tried to update the source fetcher but it didn't work")
         val base_message = getString(R.string.times_source_fmt, source_txt)
-        timesSourceTextView.text = base_message
-        timesSourceTextView.visibility = View.VISIBLE
+        arrivalsSourceTextView.text = base_message
+        arrivalsSourceTextView.visibility = View.VISIBLE
 
         if (p.totalNumberOfPassages > 0) {
-            timesSourceTextView.visibility = View.VISIBLE
+            arrivalsSourceTextView.visibility = View.VISIBLE
         } else {
-            timesSourceTextView.visibility = View.INVISIBLE
+            arrivalsSourceTextView.visibility = View.INVISIBLE
         }
         fetchersChangeRequestPending = false
     }
@@ -716,7 +752,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
     override fun onDestroyView() {
         //arrivalsRecyclerView = null
         if (arguments != null) {
-            requireArguments().putString(SOURCES_TEXT, timesSourceTextView.text.toString())
+            requireArguments().putString(SOURCES_TEXT, arrivalsSourceTextView.text.toString())
             requireArguments().putString(MESSAGE_TEXT_VIEW, messageTextView.text.toString())
         }
         super.onDestroyView()
@@ -738,8 +774,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
     fun requestArrivalsForTheFragment(){
 
         // Run with previous fetchers
-        //fragment.getCurrentFetchers().toArray()
-        //AsyncArrivalsSearcher(, getCurrentFetchersAsArray(), context).execute(stopID)
+
         context?.let {
             mListener.toggleSpinner(true)
             val fetcherSources = fetchers.map { f-> f?.sourceForFetcher?.name ?: "" }

@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             tools:context=".fragments.MainScreenFragment"
-             android:paddingTop="10dip"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" xmlns:app="http://schemas.android.com/apk/res-auto"
+                tools:context=".fragments.MainScreenFragment"
+                android:paddingTop="10dip"
+>
     >
-
     <ImageButton
             android:id="@+id/QRButton"
             style="?android:attr/borderlessButtonStyle"
             android:layout_width="40dip"
             android:layout_height="40dip"
             android:layout_alignBottom="@+id/searchButton"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
             android:layout_marginLeft="16dp"
             android:layout_marginStart="16dp"
             android:background="@drawable/qrcode_button_custom"
@@ -86,10 +84,9 @@
             android:layout_width="match_parent"
             android:layout_height="8dp"
             android:layout_alignParentEnd="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
             android:layout_alignParentStart="true"
-            android:layout_below="@+id/searchButton"
+            android:layout_below="@+id/QRButton"
+            android:layout_marginTop="3dp"
             android:layout_marginEnd="10dp"
             android:layout_marginStart="10dp"
             android:indeterminateOnly="true"
@@ -108,6 +105,7 @@
             android:layout_alignParentRight="true"
             android:layout_gravity="bottom|end"
             android:layout_below="@+id/searchButton"
+            android:layout_marginTop="5dp"
 
     >
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout

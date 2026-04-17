@@ -25,7 +25,7 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
     val palinaLiveData = MediatorLiveData<Palina>()
     val sourcesLiveData = MediatorLiveData<Passaggio.Source>()
 
-    val resultLiveData = MediatorLiveData<Fetcher.Result>()
+    val resultLiveData = MutableLiveData<Fetcher.Result>()
 
     val currentFetchers = MediatorLiveData<List<ArrivalsFetcher>>()
 
@@ -35,6 +35,9 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
 
     private var stopIdRequested = ""
     private val stopFromDB = MutableLiveData<Stop>()
+
+    val arrivalsRequestRunningLiveData = MutableLiveData(false)
+
     private val oldRepoStopCallback = OldDataRepository.Callback<List<Stop>>{ stopListRes ->
         if(stopIdRequested.isEmpty()) return@Callback
 
@@ -53,23 +56,36 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
 
     init {
         appContext = application.applicationContext
+
         palinaLiveData.addSource(stopFromDB){
             s ->
             val hasSource = palinaLiveData.value?.passaggiSourceIfAny
             Log.d(DEBUG_TAG, "Have current palina ${palinaLiveData.value!=null}, source passaggi $hasSource,  new incoming stop $s from database")
-            val newp = Palina.mergePaline(palinaLiveData.value, Palina(s))
-            newp?.let { palinaLiveData.value = it }
+            val newp = if(palinaLiveData.value == null) Palina(s) else Palina.mergePaline(palinaLiveData.value, Palina(s))
+            Log.d(DEBUG_TAG, "Merged palina: $newp, num passages: ${newp?.totalNumberOfPassages}, has coords: ${newp?.hasCoords()}")
+            newp?.let { pal -> palinaLiveData.postValue(pal) }
         }
+
     }
 
+    fun clearPalinaArrivals(palina: Palina) : Palina{
+        palina.clearRoutes()
+        return palina
+    }
 
     fun requestArrivalsForStop(stopId: String, fetchers: List<ArrivalsFetcher>){
         val context = appContext //application.applicationContext
         currentFetchers.value = fetchers
+        //THIS IS TOTALLY WRONG!!!
+        /*palinaLiveData.value?.let{
+            palinaLiveData.value = clearPalinaArrivals(it)
+        }
+
+         */
         //request stop from the DB
         stopIdRequested = stopId
         oldRepo.requestStopsWithGtfsIDs(listOf("gtt:$stopId"), oldRepoStopCallback)
-
+        arrivalsRequestRunningLiveData.value = true
         viewModelScope.launch(Dispatchers.IO){
             runArrivalsFetching(stopId, fetchers, context)
         }
@@ -84,6 +100,7 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
 
         if (fetchers.isEmpty()) {
             //do nothing
+            arrivalsRequestRunningLiveData.postValue(false)
             return
         }
 
@@ -166,7 +183,7 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
             // Se abbiamo un risultato OK, restituiamo la palina
             if (resultRef.get() == Fetcher.Result.OK) {
                 setResultAndPalinaFromFetchers(palina, Fetcher.Result.OK)
-                //TODO: Rotate the fetchers appropriately
+
                 return
             }
             //end Fetchers loop
@@ -179,10 +196,13 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
         resultPalina?.let {
             setResultAndPalinaFromFetchers(it, resultRef.get())
         }
-
+        //in ogni caso, settiamo la richiesta come conclusa
+        arrivalsRequestRunningLiveData.postValue(false)
+        Log.d(DEBUG_TAG, "Finished fetchers available to search arrivals for palina stop $stopId")
     }
 
     private fun setResultAndPalinaFromFetchers(palina: Palina, fetcherResult: Fetcher.Result) {
+        arrivalsRequestRunningLiveData.postValue(false)
         resultLiveData.postValue(fetcherResult)
         Log.d(DEBUG_TAG, "Have new result palina for stop ${palina.ID}, source ${palina.passaggiSourceIfAny} has coords: ${palina.hasCoords()}")
         Log.d(DEBUG_TAG, "Old palina liveData is: ${palinaLiveData.value?.stopDisplayName}, has Coords ${palinaLiveData.value?.hasCoords()}")

@@ -21,7 +21,6 @@ import android.content.Context
 import android.util.Log
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.toolbox.RequestFuture
-import it.reyboz.bustorino.BuildConfig
 import it.reyboz.bustorino.backend.*
 import it.reyboz.bustorino.data.gtfs.GtfsAgency
 import it.reyboz.bustorino.data.gtfs.GtfsFeed
@@ -52,15 +51,16 @@ open class MatoAPIFetcher(
         stopID!!
 
         val now = Calendar.getInstance().time
-        var numMinutes = 30
+        var numMinutes = 60
         var palina = Palina(stopID)
-        var numPassaggi = 0
         var trials = 0
         val numDepartures = 8
-        while (numPassaggi < minNumPassaggi && trials < 2) {
+        var moreTime = false
+        var palinaOK = false
+        while (trials <20 && !palinaOK) {
 
             //numDepartures+=2
-            numMinutes += 20
+            if (moreTime) numMinutes *= 2 //duplicate time
             val future = RequestFuture.newFuture<Palina>()
             val request = MapiArrivalRequest(stopID, now, numMinutes * 60, numDepartures, res, future, future)
             if (appContext == null || res == null) {
@@ -71,15 +71,17 @@ open class MatoAPIFetcher(
             request.setTag(getVolleyReqTag(MatoQueries.QueryType.ARRIVALS))
             requestQueue.add(request)
 
+            moreTime = false
             try {
-                val palinaResult =  future.get(5, TimeUnit.SECONDS)
+                val palinaResult =  future.get(15, TimeUnit.SECONDS)
                 if (palinaResult!=null) {
-                    /*if (BuildConfig.DEBUG)
-                    for (r in palinaResult.queryAllRoutes()){
-                        Log.d(DEBUG_TAG, "route " + r.gtfsId + " has " + r.passaggi.size + " passaggi: "+ r.passaggiToString)
-                    }*/
+
                     palina = palinaResult
-                    numPassaggi = palina.minNumberOfPassages
+                    if(palina.totalNumberOfPassages < minNumPassaggi && numMinutes < MAX_MINUTES_SEARCH) {
+                        moreTime = true
+                    } else{
+                        palinaOK = true
+                    }
                 } else{
                     Log.d(DEBUG_TAG, "Result palina is null")
                 }
@@ -109,8 +111,8 @@ open class MatoAPIFetcher(
         const val VOLLEY_TAG = "MatoAPIFetcher"
 
         const val DEBUG_TAG = "BusTO:MatoAPIFetcher"
-        const val DEF_MIN_NUMPASSAGGI=2
-
+        const val DEF_MIN_NUMPASSAGGI = 5
+        const val MAX_MINUTES_SEARCH = 24*60 // a day in minutes
         val REQ_PARAMETERS = mapOf(
             "Content-Type" to "application/json; charset=utf-8",
             "DNT" to "1",

@@ -42,7 +42,7 @@ import it.reyboz.bustorino.util.LinesNameSorter;
  * Not in a way that makes sense and keeps the code readable, at least.
  */
 public class Palina extends Stop implements Parcelable {
-    private ArrayList<Route> routes = new ArrayList<>();
+    private ArrayList<Route> routes = new ArrayList<>(); // the routes with arrival times
     private boolean routesModified = false;
     private Passaggio.Source allSource = null;
 
@@ -52,7 +52,7 @@ public class Palina extends Stop implements Parcelable {
 
     public Palina(Stop s){
         super(s.ID,s.getStopDefaultName(),s.getStopUserName(),s.location,s.type,
-                s.getRoutesThatStopHere(),s.getLatitude(),s.getLongitude(), null);
+                s.getRoutesThatStopHere(),s.getLatitude(),s.getLongitude(), s.gtfsID);
     }
 
     public Palina(@NonNull String ID, @Nullable String name, @Nullable String userName,
@@ -109,6 +109,21 @@ public class Palina extends Stop implements Parcelable {
 
     public void setRoutes(List<Route> routeList){
         routes = new ArrayList<>(routeList);
+    }
+
+    /**
+     * Remove all arrivals from this Palina
+     */
+    public void clearRoutes(){
+        routes.clear();
+    }
+
+    /**
+     * Check how many routes (from arrival times) we have
+     * @return the number of routes
+     */
+    public int getNumRoutesWithArrivals(){
+        return routes.size();
     }
 
     @Nullable

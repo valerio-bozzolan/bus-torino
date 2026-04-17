@@ -8,9 +8,11 @@
             android:id="@+id/messageCardView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            fab:cardElevation="2dp"
+            fab:cardElevation="4dp"
             fab:cardCornerRadius="5dp"
-            android:layout_margin="16dp">
+            android:layout_marginStart="10sp"
+            android:layout_marginEnd="10sp"
+            android:layout_marginTop="10sp">
 
         <TextView
             android:id="@+id/messageTextView"

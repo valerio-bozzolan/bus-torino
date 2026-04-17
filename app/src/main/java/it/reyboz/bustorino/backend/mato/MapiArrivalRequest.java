@@ -86,7 +86,7 @@ public class MapiArrivalRequest extends MapiVolleyRequest<Palina> {
             throw new AuthFailureError("Error with JSON enconding",e);
         }
         String requestBody = data.toString();
-        Log.d(DEBUG_TAG, "Request variables: "+ variables);
+        Log.d(DEBUG_TAG, "MaTO arrivals request variables: "+ variables);
         return requestBody.getBytes();
     }
 
@@ -111,7 +111,7 @@ public class MapiArrivalRequest extends MapiVolleyRequest<Palina> {
 
                 p = MatoAPIFetcher.Companion.parseStopJSON(currentObj);
                 if (p.gtfsID != null) {
-                        if(p.gtfsID.contains("gtt:")){
+                        if(p.gtfsID.contains("gtt:")){ // this is apparently sufficient
                             //valid stop
                             stopFound = true;
                             break;
@@ -138,16 +138,5 @@ public class MapiArrivalRequest extends MapiVolleyRequest<Palina> {
         }
          */
         return Response.success(p, HttpHeaderParser.parseCacheHeaders(response));
-    }
-
-    public class StopNotFoundError extends VolleyError{
-
-        public StopNotFoundError(String message) {
-            super(message);
-        }
-
-        public StopNotFoundError() {
-            super();
-        }
     }
 }

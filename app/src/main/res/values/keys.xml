@@ -24,7 +24,6 @@
     <array name="arrivals_sources_values_default">
         <item>matofetcher</item>
         <item>gttjsonfetcher</item>
-        <item>fivetscraper</item>
     </array>
 
     <string name="pref_positions_source">pref_positions_source</string>

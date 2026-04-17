@@ -13,11 +13,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="5dp"
-                app:cardElevation="5dp"
+                app:cardElevation="4dp"
                 android:layout_alignParentTop="true"
-                android:layout_marginStart="8sp"
-                android:layout_marginEnd="8sp"
+                android:layout_marginStart="10sp"
+                android:layout_marginEnd="10sp"
                 android:layout_marginTop="5sp"
+                android:layout_marginBottom="2sp"
                 android:padding="8sp"
         >
                 <androidx.constraintlayout.widget.ConstraintLayout
@@ -221,7 +222,7 @@
                         <View
                                 android:id="@+id/divider_arr"
                                 android:layout_width="match_parent"
-                                android:layout_height="1dp"
+                                android:layout_height="2dp"
                                 android:background="@color/grey_200"
 
                         />
@@ -231,7 +232,6 @@
                                 android:id="@+id/timesSourceTextView"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginLeft="10dp"
                                 android:text=""
                                 android:textAppearance="?android:attr/textAppearanceMedium"
                                 android:textSize="20sp"
