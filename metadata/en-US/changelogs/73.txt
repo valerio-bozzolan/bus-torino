@@ -1,0 +1,17 @@
+Do not show the rail service from GTT, as it is not active anymore
+https://gitpull.it/T1400
+
+Add context open on arrivals click so actions are clearer
+https://gitpull.it/T1395
+
+De-duplicate code and resources for the map fragments
+https://gitpull.it/T1367
+
+New action to find the location of a stop
+Reported by marcoM32
+https://gitpull.it/T1110
+
+Show the bus positions last time of update
+https://gitpull.it/T1364
+
+Version developed by Fabio Mazza!

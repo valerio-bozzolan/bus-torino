@@ -1,0 +1,17 @@
+Non mostrare il servizio ferroviario di GTT, che non è più attivo
+https://gitpull.it/T1400
+
+Aggiunto menù contestuale negli arrivi così le azioni sono più chiare
+https://gitpull.it/T1395
+
+Ri-organizzato il codice e le risorse della mappa
+https://gitpull.it/T1367
+
+Nuova azione per trovare la posizione di una fermata
+Segnalato da marcoM32
+https://gitpull.it/T1110
+
+Mostrato l'orario di aggiornamento della posizione dei bus
+https://gitpull.it/T1364
+
+Versione sviluppata da Fabio Mazza!
