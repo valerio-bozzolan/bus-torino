@@ -14,6 +14,7 @@ import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import it.reyboz.bustorino.data.DBUpdateCheckWorker
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.fragments.IntroFragment
 import it.reyboz.bustorino.middleware.GeneralActivity
@@ -31,7 +32,8 @@ class ActivityIntro : GeneralActivity(), IntroFragment.IntroListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_intro)
-
+        //check default settings and apply them
+        checkApplyDefaultSettingsValues()
         viewPager = findViewById(R.id.viewPager)
         btnBackward = findViewById(R.id.btnPrevious)
         btnForward = findViewById(R.id.btnNext)
@@ -104,6 +106,9 @@ class ActivityIntro : GeneralActivity(), IntroFragment.IntroListener {
             findViewById<View>(R.id.theConstraintLayout),
             this.applyBottomAndBordersInsetsListener
         )
+        // Start the DB Update now
+        DBUpdateCheckWorker.schedulePeriodicCheck(this, true)
+
     }
 
 

@@ -36,7 +36,7 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import it.reyboz.bustorino.ActivityBackup;
 import it.reyboz.bustorino.R;
-import it.reyboz.bustorino.data.DatabaseUpdate;
+import it.reyboz.bustorino.data.DBUpdateWorker;
 import it.reyboz.bustorino.data.GtfsMaintenanceWorker;
 import org.jetbrains.annotations.NotNull;
 
@@ -94,9 +94,9 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
         if (dbUpdateNow!=null)
             dbUpdateNow.setOnPreferenceClickListener(
                 preference -> {
-                    //trigger update
+                    //force update
                     if(getContext()!=null) {
-                        DatabaseUpdate.requestDBUpdateWithWork(getContext().getApplicationContext(), true, true);
+                        DBUpdateWorker.requestDBUpdateUniqueWork(requireContext(), true);
                         Toast.makeText(getContext(),R.string.requesting_db_update,Toast.LENGTH_SHORT).show();
                         return true;
                     }

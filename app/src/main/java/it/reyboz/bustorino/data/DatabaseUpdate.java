@@ -45,7 +45,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -60,7 +59,7 @@ public class DatabaseUpdate {
 
 
 
-    enum Result {
+    public enum Result {
             DONE, ERROR_STOPS_DOWNLOAD, ERROR_LINES_DOWNLOAD, DB_CLOSED
         }
 
@@ -287,18 +286,17 @@ public class DatabaseUpdate {
         return editor.commit();
     }
 
-    /**
+    /*
      * Request update using workmanager framework
      * @param con the context to use
      * @param forced if you want to force the request to go now
-     */
     public static void requestDBUpdateWithWork(Context con,boolean restart, boolean forced){
         final SharedPreferences theShPr = PreferencesHolder.getMainSharedPreferences(con);
         final WorkManager workManager = WorkManager.getInstance(con);
         final Data reqData = new Data.Builder()
                 .putBoolean(DBUpdateWorker.FORCED_UPDATE, forced).build();
 
-        PeriodicWorkRequest wr = new PeriodicWorkRequest.Builder(DBUpdateWorker.class, 7, TimeUnit.DAYS)
+        PeriodicWorkRequest wr = new PeriodicWorkRequest.Builder(DBUpdateWorker.class, 2, TimeUnit.DAYS)
                 .setBackoffCriteria(BackoffPolicy.LINEAR, 10, TimeUnit.MINUTES)
                 .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
                         .build())
@@ -307,11 +305,12 @@ public class DatabaseUpdate {
         final int version = theShPr.getInt(PreferencesHolder.DB_GTT_VERSION_KEY, -10);
         final long lastDBUpdateTime = theShPr.getLong(PreferencesHolder.DB_LAST_UPDATE_KEY, -10);
         if ((version >= 0 || lastDBUpdateTime >=0) && !restart)
-            workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
+            workManager.enqueueUniquePeriodicWork(DBUpdateWorker.WORK_NAME,
                     ExistingPeriodicWorkPolicy.KEEP, wr);
-        else workManager.enqueueUniquePeriodicWork(DBUpdateWorker.DEBUG_TAG,
+        else workManager.enqueueUniquePeriodicWork(DBUpdateWorker.WORK_NAME,
                 ExistingPeriodicWorkPolicy.REPLACE, wr);
     }
+    */
     /*
     public static boolean isDBUpdating(){
         return false;
@@ -321,8 +320,7 @@ public class DatabaseUpdate {
 
     public static void watchUpdateWorkStatus(Context context, @NonNull LifecycleOwner lifecycleOwner,
                                              @NonNull Observer<? super List<WorkInfo>> observer) {
-        WorkManager workManager = WorkManager.getInstance(context);
-        workManager.getWorkInfosForUniqueWorkLiveData(DBUpdateWorker.DEBUG_TAG).observe(
+        DBUpdateWorker.getWorkInfoLiveData(context).observe(
                 lifecycleOwner, observer
         );
     }

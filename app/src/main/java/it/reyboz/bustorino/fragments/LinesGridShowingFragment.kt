@@ -16,7 +16,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.flexbox.JustifyContent
@@ -200,7 +199,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
             arrows[k]?.setOnClickListener { openLinesAndCloseOthersIfNeeded(k) }
         }
         // watch for the db update
-        WorkManager.getInstance(requireContext()).getWorkInfosForUniqueWorkLiveData(DBUpdateWorker.DEBUG_TAG).observe(viewLifecycleOwner){
+        DBUpdateWorker.getWorkInfoLiveData(requireContext()).observe(viewLifecycleOwner){
             workInfoList ->
             if (workInfoList == null || workInfoList.isEmpty()) {
                 return@observe
@@ -437,9 +436,5 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
             rotate.fillBefore = false
             return rotate
         }
-    }
-
-    override fun showSnackbarOnDBUpdate(): Boolean {
-        return false
     }
 }

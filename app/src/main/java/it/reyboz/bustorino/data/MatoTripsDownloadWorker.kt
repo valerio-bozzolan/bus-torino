@@ -21,7 +21,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
 import androidx.work.*
-import com.android.volley.toolbox.ClearCacheRequest
 import it.reyboz.bustorino.backend.Notifications
 import it.reyboz.bustorino.data.gtfs.GtfsTrip
 import java.util.concurrent.CountDownLatch
@@ -119,7 +118,7 @@ class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameter
         val notificationManager =
             applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val context = applicationContext
-        Notifications.createDBNotificationChannel(context)
+        Notifications.createDBNotificationChannelIfNeeded(context)
 
         return ForegroundInfo(NOTIFICATION_ID, Notifications.makeMatoDownloadNotification(context))
     }

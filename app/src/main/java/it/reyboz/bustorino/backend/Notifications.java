@@ -93,7 +93,7 @@ public class Notifications {
         manager.cancel(notificationID);
     }
 
-    public static void createDBNotificationChannel(Context context){
+    public static void createDBNotificationChannelIfNeeded(Context context){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                 Notifications.DB_UPDATE_CHANNELS_ID,

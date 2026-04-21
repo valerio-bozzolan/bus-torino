@@ -58,7 +58,7 @@ class MatoPatternsDownloadWorker(appContext: Context, workerParams: WorkerParame
         val notificationManager =
             applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val context = applicationContext
-        Notifications.createDBNotificationChannel(context)
+        Notifications.createDBNotificationChannelIfNeeded(context)
 
         return ForegroundInfo(NOTIFICATION_ID, Notifications.makeMatoDownloadNotification(context))
     }

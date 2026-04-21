@@ -29,6 +29,7 @@ import android.util.Log;
 import android.view.*;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -41,19 +42,15 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.PreferenceManager;
 import androidx.work.WorkInfo;
-import androidx.work.WorkManager;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import it.reyboz.bustorino.backend.Stop;
-import it.reyboz.bustorino.backend.utils;
+import it.reyboz.bustorino.data.DBUpdateCheckWorker;
 import it.reyboz.bustorino.data.DBUpdateWorker;
-import it.reyboz.bustorino.data.DatabaseUpdate;
 import it.reyboz.bustorino.data.PreferencesHolder;
 import it.reyboz.bustorino.data.gtfs.GtfsDatabase;
 import it.reyboz.bustorino.fragments.*;
@@ -74,6 +71,13 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     private boolean showingMainFragmentFromOther = false;
     private boolean onCreateComplete = false;
 
+    private final OnBackPressedCallback callback = new OnBackPressedCallback(false) {
+        @Override
+        public void handleOnBackPressed() {
+            activityCustomBackPressed();
+        }
+    };
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -84,6 +88,10 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             getWindow().setNavigationBarContrastEnforced(false);
         }
          */
+
+        //onBackPressed solution required from Android 16
+        callback.setEnabled(true);
+        this.getOnBackPressedDispatcher().addCallback( callback);
         boolean showingArrivalsFromIntent = false;
 
         final Toolbar mToolbar = findViewById(R.id.default_toolbar);
@@ -184,31 +192,15 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             showingArrivalsFromIntent = true;
         }
         //database check
-        GtfsDatabase gtfsDB = GtfsDatabase.Companion.getGtfsDatabase(this);
-
-        final int db_version = gtfsDB.getOpenHelper().getReadableDatabase().getVersion();
-        boolean dataUpdateRequested = false;
-        final SharedPreferences theShPr = getMainSharedPreferences();
-
-        final int old_version = PreferencesHolder.getGtfsDBVersion(theShPr);
-        Log.d(DEBUG_TAG, "GTFS Database: old version is "+old_version+ ", new version is "+db_version);
-        if (old_version < db_version){
-            //decide update conditions in the future
-            if(old_version < 2 && db_version >= 2) {
-                dataUpdateRequested = true;
-                DatabaseUpdate.requestDBUpdateWithWork(this, true, true);
-            }
-            PreferencesHolder.setGtfsDBVersion(theShPr, db_version);
-        }
-        //Try (hopefully) database update
+        // THIS CHECK IS DUPLICATED, TODO: REMOVE
+        final boolean dataUpdateRequested = checkIfNeedSpecialUpgradeDB();
         if(!dataUpdateRequested)
-            DatabaseUpdate.requestDBUpdateWithWork(this, false, false);
-
+        //        DatabaseUpdate.requestDBUpdateWithWork(this, false, false);
+            DBUpdateCheckWorker.Companion.schedulePeriodicCheck(this,false);
         /*
         Watch for database update
          */
-        final WorkManager workManager = WorkManager.getInstance(this);
-        workManager.getWorkInfosForUniqueWorkLiveData(DBUpdateWorker.DEBUG_TAG)
+        DBUpdateWorker.getWorkInfoLiveData(this)
                 .observe(this, workInfoList -> {
                     // If there are no matching work info, do nothing
                     if (workInfoList == null || workInfoList.isEmpty()) {
@@ -223,7 +215,6 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                             break;
                         }
                     }
-
                     if (showProgress) {
                         createDefaultSnackbar();
                     } else {
@@ -258,7 +249,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         onCreateComplete = true;
 
         //last but not least, set the good default values
-        setDefaultSettingsValuesWhenMissing();
+        checkApplyDefaultSettingsValues();
         // handle the device "insets"
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootRelativeLayout), (v, windowInsets) -> {
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -308,7 +299,10 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         }
 
 
+
+
         //check if first run activity (IntroActivity) has been started once or not
+        final SharedPreferences theShPr = getMainSharedPreferences();
         boolean hasIntroRun = theShPr.getBoolean(PreferencesHolder.PREF_INTRO_ACTIVITY_RUN,false);
         if(!hasIntroRun){
             startIntroductionActivity();
@@ -319,6 +313,27 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         // and will not render the hamburger icon without it.
         return new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.drawer_open,  R.string.drawer_close);
 
+    }
+
+    private boolean checkIfNeedSpecialUpgradeDB(){
+        final GtfsDatabase gtfsDB = GtfsDatabase.Companion.getGtfsDatabase(this);
+
+        final int db_version = gtfsDB.getOpenHelper().getReadableDatabase().getVersion();
+        boolean dataUpdateRequested = false;
+        final SharedPreferences theShPr = getMainSharedPreferences();
+
+        final int old_version = PreferencesHolder.getGtfsDBVersion(theShPr);
+        Log.d(DEBUG_TAG, "GTFS Database: old version is "+old_version+ ", new version is "+db_version);
+        if (old_version < db_version){
+            //decide update conditions in the future
+            if(old_version < 2 && db_version >= 2) {
+                dataUpdateRequested = true;
+                DBUpdateWorker.requestDBUpdateUniqueWork(this, true);
+            }
+            PreferencesHolder.setGtfsDBVersion(theShPr, db_version);
+        }
+
+        return dataUpdateRequested;
     }
 
     /**
@@ -450,9 +465,16 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     }
 
-    @Override
+    /*@Override
     public void onBackPressed() {
-        boolean foundFragment = false;
+        if (!activityCustomBackPressed())
+            super.onBackPressed();
+    }
+
+     */
+
+    private boolean activityCustomBackPressed(){
+        boolean resolved = true;
         Fragment shownFrag = getSupportFragmentManager().findFragmentById(R.id.mainActContentFrame);
         if (mDrawer.isDrawerOpen(GravityCompat.START))
             mDrawer.closeDrawer(GravityCompat.START);
@@ -472,12 +494,15 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             getSupportFragmentManager().popBackStack();
             Log.d(DEBUG_TAG, "Popping main frame backstack for fragments");
         }
-        else
-            super.onBackPressed();
+        else{
+            resolved = false;
+        }
+       return resolved;
     }
 
     /**
      * Create and show the SnackBar with the message
+     * The fragment shown points to which view to attach the snackbar
      */
     private void createDefaultSnackbar() {
 
@@ -821,45 +846,4 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         }
     }
 
-    /**
-     * Adjust setting to match the default ones
-     */
-    private void setDefaultSettingsValuesWhenMissing(){
-        SharedPreferences mainSharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = mainSharedPref.edit();
-        //Main fragment to show
-        String screen = mainSharedPref.getString(SettingsFragment.PREF_KEY_STARTUP_SCREEN, "");
-        boolean edit = false;
-        if (screen.isEmpty()){
-            editor.putString(SettingsFragment.PREF_KEY_STARTUP_SCREEN, "arrivals");
-            edit=true;
-        }
-        //Fetchers
-        final Set<String> setSelected = mainSharedPref.getStringSet(SettingsFragment.KEY_ARRIVALS_FETCHERS_USE, new HashSet<>());
-        if (setSelected.isEmpty()){
-            String[] defaultVals = getResources().getStringArray(R.array.arrivals_sources_values_default);
-            editor.putStringSet(SettingsFragment.KEY_ARRIVALS_FETCHERS_USE, utils.convertArrayToSet(defaultVals));
-            edit=true;
-        }
-        //Live bus positions
-        final String keySourcePositions=getString(R.string.pref_positions_source);
-        final String positionsSource = mainSharedPref.getString(keySourcePositions, "");
-        if(positionsSource.isEmpty()){
-            String[] defaultVals = getResources().getStringArray(R.array.positions_source_values);
-            editor.putString(keySourcePositions, defaultVals[0]);
-            edit=true;
-        }
-        //Map style
-        final String mapStylePref = mainSharedPref.getString(SettingsFragment.LIBREMAP_STYLE_PREF_KEY, "");
-        if(mapStylePref.isEmpty()){
-            final String[] defaultVals = getResources().getStringArray(R.array.map_style_pref_values);
-            editor.putString(SettingsFragment.LIBREMAP_STYLE_PREF_KEY, defaultVals[0]);
-            edit=true;
-        }
-        if (edit){
-            editor.commit();
-        }
-
-
-    }
 }
