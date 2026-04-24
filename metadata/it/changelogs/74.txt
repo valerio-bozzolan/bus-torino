@@ -1,0 +1,6 @@
+Rifatta logica dell'aggiornamento del database
+
+Supporto alla nuova gesture di navigazione indietro di Android 16 (bugfix)
+https://gitpull.it/T1401
+
+Versione sviluppata da Fabio Mazza!
