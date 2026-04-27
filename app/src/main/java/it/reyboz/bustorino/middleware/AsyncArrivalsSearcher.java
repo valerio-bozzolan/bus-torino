@@ -101,8 +101,8 @@ public class AsyncArrivalsSearcher extends AsyncTask<String, Fetcher.Result,Pali
             //get the data from the fetcher
             ArrivalsFetcher f =  r.getAndMoveForward();
             AtomicReference<Fetcher.Result> resRef = new AtomicReference<>();
-            if (f instanceof MatoAPIFetcher){
-                ((MatoAPIFetcher)f).setAppContext(context);
+            if (f instanceof ArrivalsFetcherContext){
+                ((ArrivalsFetcherContext)f).setContext(context);
             }
             Log.d(TAG,"Using the ArrivalsFetcher: "+f.getClass());
 

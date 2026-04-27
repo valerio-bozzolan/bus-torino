@@ -39,11 +39,8 @@ import kotlin.collections.ArrayList
 
 open class MatoAPIFetcher(
     private val minNumPassaggi: Int
-) : ArrivalsFetcher {
-    var appContext: Context? = null
-        set(value) {
-            field = value!!.applicationContext
-        }
+) : ArrivalsFetcherContext() {
+
     constructor(): this(DEF_MIN_NUMPASSAGGI)
 
 

@@ -125,8 +125,8 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
             sourcesLiveData.postValue(fetcher.sourceForFetcher)
 
 
-            if (fetcher is MatoAPIFetcher) {
-                fetcher.appContext = appContext
+            if (fetcher is ArrivalsFetcherContext) {
+                fetcher.setContext(appContext)
             }
             Log.d(DEBUG_TAG, "Using the ArrivalsFetcher: ${fetcher.javaClass}")
 
