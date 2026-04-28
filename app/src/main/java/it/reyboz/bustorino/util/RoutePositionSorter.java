@@ -23,6 +23,7 @@ import android.util.Log;
 
 import it.reyboz.bustorino.backend.*;
 
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -54,12 +55,16 @@ public class RoutePositionSorter implements Comparator<Pair<Stop, Route>> {
         } else {
             Collections.sort(passaggi1);
             Collections.sort(passaggi2);
-            int deltaOre = passaggi1.get(0).hh-passaggi2.get(0).hh;
+            /*int deltaOre = passaggi1.get(0).hh-passaggi2.get(0).hh;
             if(deltaOre>12)
                 deltaOre -= 24;
             else if (deltaOre<-12)
                 deltaOre  += 24;
             delta+=deltaOre*60 + passaggi1.get(0).mm-passaggi2.get(0).mm;
+
+             */
+
+            delta = (int) passaggi1.get(0).getDifferenceMinutes(passaggi2.get(0));
         }
         delta += (int)((dist1 -dist2)*minutialmetro*distancemultiplier);
         return delta;

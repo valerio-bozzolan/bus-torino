@@ -247,10 +247,19 @@ open class MatoAPIFetcher(
                 val scheduledTime = stoptime.getInt("scheduledArrival")
                 val realtimeTime = stoptime.getInt("realtimeArrival")
                 val realtime = stoptime.getBoolean("realtime")
-                passages.add(
+
+                val passaggio = Passaggio.newInstance(realtimeTime, realtime,
+                    (realtimeTime-scheduledTime), Passaggio.Source.MatoAPI)
+
+                passaggio?.let{
+                    passages.add(it)
+                }
+                /*passages.add(
                     Passaggio(realtimeTime,realtime, realtimeTime-scheduledTime,
                         Passaggio.Source.MatoAPI)
                 )
+
+                 */
             }
             var routeType = Route.Type.UNKNOWN
             if (gtfsId[gtfsId.length-1] == 'E')

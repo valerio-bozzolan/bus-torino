@@ -112,7 +112,7 @@ public class FiveTAPIFetcher implements ArrivalsFetcher{
 
                 for(int j=0;j<passagesJSON.length();j++){
                     final JSONObject arrival = passagesJSON.getJSONObject(j);
-                    final String passaggio = Passaggio.createPassaggioGTT(arrival.getString("time"),arrival.getBoolean("rt"));
+                    final String passaggio = Passaggio.createPassaggioGTTString(arrival.getString("time"),arrival.getBoolean("rt"));
                     r.addPassaggio(passaggio, Passaggio.Source.FiveTAPI);
                     //Log.d(DEBUG_NAME,"Adding passage with time "+arrival.getString("time")+"\nrealtime="+arrival.getBoolean("rt"));
                 }

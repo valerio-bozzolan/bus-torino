@@ -157,16 +157,27 @@ public class Route implements Comparable<Route>, Parcelable {
     }
 
     /**
+     * Add internally a passaggio if it is not null
+     * @param passaggio
+     * @return 1 if it is added, 0 if not
+     */
+    private int addPassaggioCheck(Passaggio passaggio){
+        if (passaggio!=null) {
+            this.passaggi.add(passaggio);
+            return  1;
+        } else return 0;
+    }
+    /**
      * Adds a time (passaggio) to the timetable for this route
      *
      * @param TimeGTT time in GTT format (e.g. "11:22*")
      */
-     public void addPassaggio(String TimeGTT, Passaggio.Source source) {
-         this.passaggi.add(new Passaggio(TimeGTT, source));
+     public int addPassaggio(String TimeGTT, Passaggio.Source source) {
+        return addPassaggioCheck(Passaggio.newInstance(TimeGTT, source));
      }
      //Overloaded
-     public void addPassaggio(int hour, int minutes, boolean realtime, Passaggio.Source source) {
-         this.passaggi.add(new Passaggio(hour, minutes, realtime, source));
+     public int addPassaggio(int hour, int minutes, boolean realtime, Passaggio.Source source) {
+         return  addPassaggioCheck(Passaggio.newInstance(hour, minutes, realtime, source, null));
      }
 
     public static Route.Type getTypeFromSymbol(String route) {
