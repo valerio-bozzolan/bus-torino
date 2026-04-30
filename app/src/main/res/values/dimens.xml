@@ -13,5 +13,6 @@
     <dimen name="subtitle_size">28sp</dimen>
 
     <dimen name="map_toolbar_icon_size">43dp</dimen>
+    <dimen name="dialog_alerts_btn_size">50dp</dimen>
 
 </resources>

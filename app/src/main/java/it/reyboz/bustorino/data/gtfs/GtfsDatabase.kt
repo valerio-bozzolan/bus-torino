@@ -34,11 +34,17 @@ import androidx.room.migration.Migration
         GtfsTrip::class,
         GtfsShape::class,
         MatoPattern::class,
-        PatternStop::class
+        PatternStop::class,
+    //entities for GTFS Realtime Alerts
+        GtfsAlertEntity::class,
+        GtfsAlertsTranslation::class,
+        GtfsAlertsActivePeriods::class,
+        GtfsAlertInformedEntity::class
                ],
     version = GtfsDatabase.VERSION,
     autoMigrations = [
-        AutoMigration(from=2,to=3)
+        AutoMigration(from=2,to=3),
+        AutoMigration(from=3,to=4)
     ],
     exportSchema = true
 )
@@ -46,6 +52,8 @@ import androidx.room.migration.Migration
 abstract class GtfsDatabase : RoomDatabase() {
 
     abstract fun gtfsDao() : GtfsDBDao
+
+    abstract fun alertsDao(): AlertsDao
 
 
     companion object{
@@ -66,7 +74,7 @@ abstract class GtfsDatabase : RoomDatabase() {
             }
         }
 
-        const val VERSION = 3
+        const val VERSION = 4
         const val FOREIGNKEY_ONDELETE = ForeignKey.CASCADE
 
         val MIGRATION_1_2 = Migration(1,2) {

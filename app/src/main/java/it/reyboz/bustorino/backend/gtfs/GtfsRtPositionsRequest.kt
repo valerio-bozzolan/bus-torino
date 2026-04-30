@@ -29,7 +29,7 @@ import it.reyboz.bustorino.backend.Fetcher
 class GtfsRtPositionsRequest(
                              errorListener: ErrorListener,
                              val listener: RequestListener) :
-    Request<ArrayList<LivePositionUpdate>>(Method.GET, URL_POSITION, errorListener) {
+    Request<ArrayList<LivePositionUpdate>>(Method.GET, GtfsUtils.GTFSRT_URL_POSITION, errorListener) {
 
     override fun parseNetworkResponse(response: NetworkResponse?): Response<ArrayList<LivePositionUpdate>> {
         if (response == null){
@@ -67,10 +67,6 @@ class GtfsRtPositionsRequest(
     }
 
     companion object{
-        const val URL_POSITION =  "http://percorsieorari.gtt.to.it/das_gtfsrt/vehicle_position.aspx"
-
-        const val URL_TRIP_UPDATES ="http://percorsieorari.gtt.to.it/das_gtfsrt/trip_update.aspx"
-        const val URL_ALERTS = "http://percorsieorari.gtt.to.it/das_gtfsrt/alerts.aspx"
 
         interface RequestListener{
             fun onResponse(response: ArrayList<LivePositionUpdate>?)

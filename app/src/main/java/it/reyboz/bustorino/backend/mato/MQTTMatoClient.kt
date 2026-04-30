@@ -353,7 +353,7 @@ class MQTTMatoClient(){
             }
             //Log.d(DEBUG_TAG, "We have update on line $lineId, vehicle $vehicleId")
         } catch (e: JSONException){
-            Log.w(DEBUG_TAG,"Cannot decipher message on topic $topic, line $lineId, veh $vehicleId (bad JSON)")
+            Log.e(DEBUG_TAG,"Cannot decipher message on topic $topic, line $lineId, veh $vehicleId (bad JSON)",e)
             sendStatusToResponders(LivePositionsServiceStatus.ERROR_PARSING_RESPONSE)
 
 

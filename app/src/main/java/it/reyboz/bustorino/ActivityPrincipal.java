@@ -40,6 +40,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 import androidx.work.WorkInfo;
 
@@ -55,6 +56,7 @@ import it.reyboz.bustorino.data.PreferencesHolder;
 import it.reyboz.bustorino.data.gtfs.GtfsDatabase;
 import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.GeneralActivity;
+import it.reyboz.bustorino.viewmodels.ServiceAlertsViewModel;
 
 import static it.reyboz.bustorino.backend.utils.getBusStopIDFromUri;
 import static it.reyboz.bustorino.backend.utils.openIceweasel;
@@ -71,6 +73,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     private boolean showingMainFragmentFromOther = false;
     private boolean onCreateComplete = false;
 
+    private ServiceAlertsViewModel  serviceAlertsViewModel;
     private final OnBackPressedCallback callback = new OnBackPressedCallback(false) {
         @Override
         public void handleOnBackPressed() {
@@ -84,6 +87,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         super.onCreate(savedInstanceState);
         Log.d(DEBUG_TAG, "onCreate, savedInstanceState is: "+savedInstanceState);
         setContentView(R.layout.activity_principal);
+        serviceAlertsViewModel = new ViewModelProvider(this).get(ServiceAlertsViewModel.class);
+
         /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             getWindow().setNavigationBarContrastEnforced(false);
         }
@@ -101,7 +106,6 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         else Log.w(DEBUG_TAG, "NO ACTION BAR");
 
         mToolbar.setOnMenuItemClickListener(new ToolbarItemClickListener(this));
-
         mDrawer = findViewById(R.id.drawer_layout);
         drawerToggle = setupDrawerToggle(mToolbar);
 
@@ -300,13 +304,19 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
 
 
-
         //check if first run activity (IntroActivity) has been started once or not
         final SharedPreferences theShPr = getMainSharedPreferences();
         boolean hasIntroRun = theShPr.getBoolean(PreferencesHolder.PREF_INTRO_ACTIVITY_RUN,false);
         if(!hasIntroRun){
             startIntroductionActivity();
         }
+        serviceAlertsViewModel.getLastTimeRunningDownload().observe(this, (timeRunning) -> {
+            if (timeRunning != null) {
+                Log.d(DEBUG_TAG, "requested alerts download at time: "+timeRunning);
+            }
+        });
+        serviceAlertsViewModel.launchAlertsPeriodCheck();
+
     }
     private ActionBarDrawerToggle setupDrawerToggle(Toolbar toolbar) {
         // NOTE: Make sure you pass in a valid toolbar reference.  ActionBarDrawToggle() does not require it
@@ -846,4 +856,16 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // stop updating the alerts
+        serviceAlertsViewModel.setRunningDownloadRequests(false);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        serviceAlertsViewModel.launchAlertsPeriodCheck();
+    }
 }

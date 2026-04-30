@@ -58,15 +58,17 @@
                     app:srcCompat="@drawable/ic_star_outline"
                     tools:ignore="OnClick"/>
         </androidx.cardview.widget.CardView>
+
         <TextView
                 android:text="DCCII"
                 android:layout_width="0dp"
                 android:layout_marginStart="18dp"
                 android:layout_marginEnd="18dp"
-                android:layout_height="wrap_content" android:id="@+id/lineDescripTextView"
+                android:layout_height="wrap_content"
+                android:id="@+id/lineDescripTextView"
                 app:layout_constraintTop_toBottomOf="@id/switchImageButton"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/lineInfoWarningButton"
+                app:layout_constraintStart_toStartOf="parent"
                 android:textColor="@color/grey_700"
                 android:fontFamily="@font/lato_regular"
                 android:textSize="18sp"
@@ -74,12 +76,41 @@
                 android:maxWidth="300sp"
                 android:layout_marginTop="12dp"
         />
+        <ImageButton
+                android:id="@+id/lineInfoWarningButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:scaleType="fitCenter"
+                android:layout_gravity="end"
+                android:foreground="?attr/selectableItemBackground"
+                android:background="@android:color/transparent"
+                app:srcCompat="@drawable/chat_bubble_warning_solid"
+                app:tint="?colorPrimary"
+                android:layout_marginTop="0dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginBottom="4dp"
+                app:layout_constraintTop_toTopOf="@id/lineDescripTextView"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/lineDescripTextView"
+                app:layout_constraintBottom_toTopOf="@id/infoBarrier"
+                android:visibility="gone"
+                tools:ignore="OnClick"/>
+
+        <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/infoBarrier"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="lineDescripTextView,lineInfoWarningButton"/>
         <Spinner
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/patternsSpinner"
-                app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toEndOf="@id/headingToTextView"
-                android:layout_marginTop="6dp" app:layout_constraintTop_toBottomOf="@+id/lineDescripTextView"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/headingToTextView"
+                android:layout_marginTop="6dp"
+                app:layout_constraintTop_toBottomOf="@+id/infoBarrier"
                 android:layout_marginStart="5dp"/>
         <TextView
                 android:text="@string/direction_duep"

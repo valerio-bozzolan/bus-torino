@@ -63,8 +63,7 @@ class LinesGridShowingViewModel(application: Application) : AndroidViewModel(app
     }
 
     init {
-        val gtfsDao = GtfsDatabase.getGtfsDatabase(application).gtfsDao()
-        gtfsRepo = GtfsRepository(gtfsDao)
+        gtfsRepo = GtfsRepository(application)
         routesLiveData = gtfsRepo.getAllRoutes()
 
         filteredLinesLiveData.addSource(routesLiveData){

@@ -38,8 +38,7 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
         stopsForPatternLiveData.postValue(stopsForPatternLiveData.value)
     }
     init {
-        val gtfsDao = GtfsDatabase.getGtfsDatabase(application).gtfsDao()
-        gtfsRepo = GtfsRepository(gtfsDao)
+        gtfsRepo = GtfsRepository(application)
 
         oldRepo = OldDataRepository(executor, NextGenDB.getInstance(application))
 

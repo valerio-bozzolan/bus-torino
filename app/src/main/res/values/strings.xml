@@ -230,7 +230,8 @@
     <string name="database_notification_channel_desc">Updates of the app database</string>
     <string name="live_position_service_name">BusTO - live position service</string>
     <string name="live_positions_notification_channel">Live positions</string>
-    <string name="live_positions_notification_channel_desc">Showing activity related to the live positions service</string>
+    <string name="live_positions_notification_channel_desc">Showing activity related to the live positions service
+    </string>
     <string name="mqtt_notification_text">MaTO live bus positions service is running</string>
 
     <string name="db_trips_download_message">Downloading trips from MaTO server</string>
@@ -258,6 +259,7 @@
     <string name="search_box_lines_suggestion_filter">Filter by name</string>
     <string name="requesting_db_update">Launching database update</string>
     <string name="downloading_data_mato">Downloading data from MaTO server</string>
+    <string name="downloading_alerts_message">Downloading realtime alerts data</string>
 
     <!-- preferences -->
     <string name="pref_directions_capitalize">Capitalize directions</string>
@@ -290,7 +292,6 @@
         <item>@string/nav_map_text</item>
         <item>@string/lines</item>
     </array>
-
     <string name="positions_source_pref_title">Source of real time positions for buses and trams</string>
     <string name="positions_source_mato_descr">MaTO (updated more frequently, might have errors)</string>
     <string name="positions_source_gtfsrt_descr">GTFS RT (less frequently updated, more accurate)</string>
@@ -374,8 +375,14 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="positions_source_gtfsrt_short" translatable="false">GTFS RT</string>
     <string name="live_positions_dialog_provider_text">Live positions source:</string>
     <string name="live_positions_switch_provider">Switch source</string>
-    <string name="live_positions_preference_switch_clear_title">Clear bus positions when switching live positions source</string>
+    <string name="live_positions_preference_switch_clear_title">Clear bus positions when switching live positions
+        source
+    </string>
 
     <string name="updated_fill">Updated: %1$s</string>
-
+    <string name="alert_line_fill">Alerts for line %1$s:</string>
+    <string name="no_alerts_in_your_language_fill">No alerts in your language, showing in %1$s</string>
+    <string name="italian">Italian</string>
+    <string name="english">English</string>
+    <string name="checking_alerts_update">Checking new alerts now</string>
 </resources>

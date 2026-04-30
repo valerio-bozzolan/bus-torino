@@ -309,7 +309,7 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
             val numUpds = updates.entries.size
             Log.d(
                 DEBUG_TI,
-                "Got $numUpds updates, current pattern is: ${pattern?.name}, directionID: ${pattern?.directionId}"
+                "Got $numUpds updates, using MQTT: ${useMQTTPositionsLiveData.value}, pattern ${pattern?.name}"
             )
             // cannot understand where this is used
             //val patternsDirections = HashMap<String,Int>()
@@ -326,7 +326,7 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
                     if (dir == directionId) {
                         //add the trip
                         updsForTripId[tripId] = pair
-                        Log.d(DEBUG_TI, "Add vehicle ${pair.first.vehicle}, route ${pair.first.routeID}")
+                        //Log.d(DEBUG_TI, "Add vehicle ${pair.first.vehicle}, route ${pair.first.routeID}")
                     } else {
                         vehicleOnWrongDirection.add(vehicle)
                     }
@@ -479,6 +479,6 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
         private const val MAX_MINUTES_RETRY = 3
         private const val MAX_TIME_RETRY = MAX_MINUTES_RETRY*60*1000 //3 minutes (in milliseconds)
 
-        public const val MAX_MINUTES_CLEAR_POSITIONS = 8
+        public const val MAX_MINUTES_CLEAR_POSITIONS = 10
     }
 }

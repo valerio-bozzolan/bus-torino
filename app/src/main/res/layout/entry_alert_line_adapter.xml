@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+                                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                                   android:layout_width="match_parent"
+                                   android:layout_height="wrap_content"
+                                   app:cardCornerRadius="5dp"
+                                   app:cardElevation="5dp"
+                                   android:layout_marginTop="5dp"
+                                   android:layout_margin="5dp"
+
+>
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+    >
+        <TextView
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+
+                android:id="@+id/messageTitleTextView"
+                android:textStyle="bold"
+                android:textSize="17sp"
+                android:fontFamily="@font/lato_bold"
+                android:textColor="@color/black_900"
+                android:text="Alerts for line"
+                android:layout_alignParentTop="true"
+                android:layout_marginBottom="5dp"
+         />
+
+        <TextView
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+
+                android:id="@+id/messageBodyTextView"
+                android:textSize="16sp"
+                android:fontFamily="@font/lato_regular"
+                android:textColor="@color/black_900"
+                android:text="Alert text"
+                android:layout_below="@id/messageTitleTextView"
+        />
+
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

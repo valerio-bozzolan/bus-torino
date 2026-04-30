@@ -6,10 +6,16 @@ import androidx.lifecycle.MutableLiveData
 import it.reyboz.bustorino.data.gtfs.*
 
 class GtfsRepository(
-        val gtfsDao: GtfsDBDao
+    context: Context
 ) {
 
-    constructor(context: Context) : this(GtfsDatabase.getGtfsDatabase(context).gtfsDao())
+    val gtfsDao: GtfsDBDao
+    val alertsDao: AlertsDao
+    init{
+        val gtfsDB = GtfsDatabase.getGtfsDatabase(context)
+        gtfsDao = gtfsDB.gtfsDao()
+        alertsDao = gtfsDB.alertsDao()
+    }
     fun getLinesLiveDataForFeed(feed: String): LiveData<List<GtfsRoute>>{
         //return withContext(Dispatchers.IO){
             return gtfsDao.getRoutesForFeed(feed)
@@ -38,5 +44,9 @@ class GtfsRepository(
 
     fun getRouteFromGtfsId(gtfsId: String): LiveData<GtfsRoute>{
         return gtfsDao.getRouteByGtfsID(gtfsId)
+    }
+
+    fun getAlertsByRouteID(routeID: String): LiveData<List<AlertWithDetails>>{
+        return alertsDao.getAlertsForRoute(routeID)
     }
 }

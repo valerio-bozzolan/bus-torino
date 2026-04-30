@@ -18,6 +18,8 @@
 package it.reyboz.bustorino.data.gtfs
 
 import androidx.room.TypeConverter
+import com.google.transit.realtime.GtfsRealtime.Alert.Cause
+import com.google.transit.realtime.GtfsRealtime.Alert.Effect
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -28,7 +30,6 @@ import java.util.*
  * handled automatically by Room with TypeConverter
  */
 class Converters {
-
 
     @TypeConverter
     fun fromString(value: String?): Date? {
@@ -47,6 +48,25 @@ class Converters {
     @TypeConverter
     fun fromInt(value: Int?): GtfsServiceDate.ExceptionType? {
         return value?.let { GtfsServiceDate.ExceptionType.getByValue(it) }
+    }
+    // FOR GTFS REALTIME ENUMS
+    @TypeConverter
+    fun fromCause(cause: Cause): Int {
+        return cause.number
+    }
+
+    @TypeConverter
+    fun toCause(value: Int): Cause {
+        return Cause.forNumber(value) ?: Cause.UNKNOWN_CAUSE
+    }
+    @TypeConverter
+    fun fromEffect(effect: Effect): Int {
+        return effect.number
+    }
+
+    @TypeConverter
+    fun toEffect(value: Int): Effect {
+        return Effect.forNumber(value) ?: Effect.UNKNOWN_EFFECT
     }
 
     companion object{

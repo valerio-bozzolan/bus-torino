@@ -34,6 +34,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -55,6 +56,7 @@ import it.reyboz.bustorino.middleware.LocationUtils
 import it.reyboz.bustorino.util.Permissions
 import it.reyboz.bustorino.viewmodels.LinesViewModel
 import it.reyboz.bustorino.viewmodels.MapStateViewModel
+import it.reyboz.bustorino.viewmodels.ServiceAlertsViewModel
 import kotlinx.coroutines.Runnable
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
@@ -78,7 +80,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class LinesDetailFragment() : GeneralMapLibreFragment() {
 
-    private var lineID = ""
+    private var lineID = "" // the GTFS line ID (e.g. "gtt:10U")
     private lateinit var patternsSpinner: Spinner
     private var patternsAdapter: ArrayAdapter<String>? = null
 
@@ -97,9 +99,11 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     private var patternShown: MatoPatternWithStops? = null
 
     private val viewModel: LinesViewModel by viewModels()
+    private val alertsViewModel: ServiceAlertsViewModel by activityViewModels()
     //private var firstInit = true
     private var pausedFragment = false
     private lateinit var switchButton: ImageButton
+    private lateinit var lineInfoButton: ImageButton
 
     private var favoritesButton: ImageButton? = null
     private var locationIcon: ImageButton? = null
@@ -242,7 +246,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         switchButton = rootView.findViewById(R.id.switchImageButton)
         locationIcon = rootView.findViewById(R.id.locationEnableIcon)
         busPositionsIconButton = rootView.findViewById(R.id.busPositionsImageButton)
-
+        lineInfoButton = rootView.findViewById(R.id.lineInfoWarningButton)
         favoritesButton = rootView.findViewById(R.id.favoritesButton)
         stopsRecyclerView = rootView.findViewById(R.id.patternStopsRecyclerView)
         descripTextView = rootView.findViewById(R.id.lineDescripTextView)
@@ -368,6 +372,20 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             }
              descripTextView.text = route.longName
             descripTextView.visibility = View.VISIBLE
+        }
+        // enable info button if there are alerts on the line
+        alertsViewModel.setGtfsLineFilter(lineID)
+        alertsViewModel.alertsByRouteLiveData.observe(viewLifecycleOwner){ list ->
+            Log.d(DEBUG_TAG, "alerts for line $lineID:  ${list.size}")
+
+            if(list.isNotEmpty()){
+                lineInfoButton.visibility = View.VISIBLE
+                //Log.d(DEBUG_TAG, "First alert is:\n ${list[0].longPrint()}")
+            } else
+                lineInfoButton.visibility = View.GONE
+        }
+        lineInfoButton.setOnClickListener {
+            AlertsDialogFragment(lineID).show(parentFragmentManager, "Alerts-Line$lineID")
         }
         /*
 

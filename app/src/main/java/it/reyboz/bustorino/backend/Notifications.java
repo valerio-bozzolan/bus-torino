@@ -51,7 +51,7 @@ public class Notifications {
     }
 
 
-    public static Notification makeMatoDownloadNotification(Context context,String title){
+    public static Notification makeDBUpdateLowPriorityNotification(Context context, String title){
         return new NotificationCompat.Builder(context, Notifications.DB_UPDATE_CHANNELS_ID)
                 //.setContentIntent(PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), Constants.PENDING_INTENT_FLAG_IMMUTABLE))
                 .setSmallIcon(R.drawable.ic_bus_stilized_transparent)
@@ -81,7 +81,7 @@ public class Notifications {
                 .build();
     }
     public static Notification makeMatoDownloadNotification(Context context){
-        return makeMatoDownloadNotification(context, context.getString(R.string.downloading_data_mato));
+        return makeDBUpdateLowPriorityNotification(context, context.getString(R.string.downloading_data_mato));
     }
 
     public static Notification makeMQTTServiceNotification(Context context){
