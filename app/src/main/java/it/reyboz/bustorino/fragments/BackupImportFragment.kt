@@ -121,7 +121,7 @@ class BackupImportFragment : Fragment() {
         contentResolver.openOutputStream(uri)?.use {
             OutputStreamWriter(it).use {wr->
                 val csvWriter = CsvWriter.builder().build(wr)
-                val userDB = UserDB(context)
+                val userDB = UserDB.getInstance(context)
                 userDB.writeFavoritesToCsv(csvWriter)
                 csvWriter.close()
                 Toast.makeText(context, R.string.saved_data, Toast.LENGTH_SHORT).show()
@@ -173,7 +173,7 @@ class BackupImportFragment : Fragment() {
             zipOutputStream.putNextEntry(ZipEntry(FAVORITES_NAME))
             val outWriter = OutputStreamWriter(zipOutputStream)
             val csvWriter = CsvWriter.builder().build(outWriter)
-            val userDB = UserDB(context)
+            val userDB = UserDB.getInstance(context)
             userDB.writeFavoritesToCsv(csvWriter)
             outWriter.flush()
             zipOutputStream.closeEntry()
@@ -198,11 +198,12 @@ class BackupImportFragment : Fragment() {
                             val reader = InputStreamReader(zipstream)
                             val csvReader = CsvReader.builder().ofCsvRecord(reader)
 
-                            val userDB =  UserDB(context)
+                            val userDB =  UserDB.getInstance(context)
                             val updated = userDB.insertRowsFromCSV(csvReader)
 
-                            userDB.close()
+                            //userDB.close()
                             //csvReader.close()
+                            Log.d(DEBUG_TAG, "Inserted $updated rows into UserDB - Favorites")
                         }
                         APP_PREF_NAME -> if(loadPreferences){
                             val jsonString = readFileToString(zipstream)
@@ -258,10 +259,10 @@ class BackupImportFragment : Fragment() {
             InputStreamReader(it).use { stream ->
                 val csvReader = CsvReader.builder().ofCsvRecord(stream)
 
-                val userDB =  UserDB(context)
+                val userDB =  UserDB.getInstance(context)
                 val updated = userDB.insertRowsFromCSV(csvReader)
                 Toast.makeText(context, "Read $updated favorites", Toast.LENGTH_SHORT).show()
-                userDB.close()
+                //userDB.close()
                 csvReader.close()
             }
         }

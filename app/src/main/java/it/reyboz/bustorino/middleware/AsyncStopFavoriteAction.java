@@ -73,7 +73,7 @@ public class AsyncStopFavoriteAction extends AsyncTask<Stop, Void, Boolean> {
         if(stop != null) {
 
             // get a writable database
-            UserDB userDatabase = new UserDB(context);
+            UserDB userDatabase = UserDB.getInstance(context);
             SQLiteDatabase db = userDatabase.getWritableDatabase();
 
             // eventually toggle the status
@@ -99,8 +99,8 @@ public class AsyncStopFavoriteAction extends AsyncTask<Stop, Void, Boolean> {
                 result = UserDB.deleteStop(stop, db);
             }
 
-            // please sir, close the door
-            db.close();
+            // These should NOT be closed: the database is a singleton, the connections are recycled.
+            //db.close();
         }
 
         return result;

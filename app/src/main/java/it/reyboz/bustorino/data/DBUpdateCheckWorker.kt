@@ -18,8 +18,10 @@
 package it.reyboz.bustorino.data
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.work.*
+import it.reyboz.bustorino.data.gtfs.GtfsDatabase
 import java.util.concurrent.TimeUnit
 
 /**
@@ -40,15 +42,26 @@ class DBUpdateCheckWorker(context: Context, workerParams: WorkerParameters)
         val neverUpdated = currentDBVersion < 0 || lastDBUpdateTime <= 0
         val timeElapsed = currentTime > lastDBUpdateTime + UPDATE_MIN_DELAY
 
-        if (neverUpdated || timeElapsed) {
+        val isSpecialCase = checkIfNeedSpecialUpgradeDB(con)
+
+
+        if (neverUpdated || timeElapsed || isSpecialCase) {
             Log.d(DEBUG_TAG, "Scheduling DBUpdateWorker")
             DBUpdateWorker.requestDBUpdateUniqueWork(con, forced = true)
-        } else {
+            if(isSpecialCase){
+                val gtfsDBVer = getGtfsDBVersion(con)
+                Log.d(DEBUG_TAG, "Set new gtfs database version $gtfsDBVer")
+                setGtfsDBVersionPreference(con, gtfsDBVer)
+            }
+        }
+        else {
             Log.d(DEBUG_TAG, "No update needed")
         }
 
         return Result.success()
     }
+
+
 
     companion object {
         const val DEBUG_TAG = "BusTO-DBUpdateScheduler"
@@ -74,5 +87,41 @@ class DBUpdateCheckWorker(context: Context, workerParams: WorkerParameters)
                 .enqueueUniquePeriodicWork(WORK_NAME, policy, workRequest)
         }
 
+        @JvmStatic
+        private fun getGtfsDBVersion(context: Context): Int {
+            val gtfsDB = GtfsDatabase.Companion.getGtfsDatabase(context)
+
+            val db_version = gtfsDB.openHelper.readableDatabase.version
+            return db_version
+        }
+
+        @JvmStatic
+        private fun checkIfNeedSpecialUpgradeDB(context: Context): Boolean {
+            val db_version = getGtfsDBVersion(context)
+            var dataUpdateNeeded = false
+            val theShPr: SharedPreferences =  PreferencesHolder.getMainSharedPreferences(context);
+            //applicationContext.getMainSharedPreferences()
+
+            val old_version = PreferencesHolder.getGtfsDBVersion(theShPr)
+            Log.d(
+                DEBUG_TAG,
+                "GTFS Database: old version is $old_version, new version is $db_version"
+            )
+            if (old_version < db_version) {
+                //decide update conditions in the future
+                if (old_version < 2 && db_version >= 2) {
+                    dataUpdateNeeded = true
+                    //DBUpdateWorker.requestDBUpdateUniqueWork(this, true)
+                }
+                //PreferencesHolder.setGtfsDBVersion(theShPr, db_version)
+            }
+
+            return dataUpdateNeeded
+        }
+        @JvmStatic
+        private fun setGtfsDBVersionPreference(context: Context, version: Int) {
+            val theShPr: SharedPreferences =  PreferencesHolder.getMainSharedPreferences(context);
+            PreferencesHolder.setGtfsDBVersion(theShPr, version)
+        }
     }
 }

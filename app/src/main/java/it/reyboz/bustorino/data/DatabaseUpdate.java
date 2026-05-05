@@ -270,8 +270,9 @@ public class DatabaseUpdate {
         long endTime = System.currentTimeMillis();
         Log.d(DEBUG_TAG, "Inserting stops took: " + ((double) (endTime - startTime) / 1000) + " s");
         Log.d(DEBUG_TAG, "\t"+patternsStopsHits+" routes string were built from the patterns");
-        db.close();
-        dbHelp.close();
+        // These should NOT be closed: the database is a singleton, the connections are recycled.
+        //db.close();
+        //dbHelp.close();
 
         return DatabaseUpdate.Result.DONE;
     }

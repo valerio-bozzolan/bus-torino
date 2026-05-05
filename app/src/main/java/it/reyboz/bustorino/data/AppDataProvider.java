@@ -21,9 +21,11 @@ import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteDatabaseLockedException;
 import android.net.Uri;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.backend.DBStatusManager;
 import it.reyboz.bustorino.backend.Stop;
@@ -140,12 +142,7 @@ public class AppDataProvider extends ContentProvider {
                 if(c.getCount() == 0){
                     //There are no lines, insert?
                     //NOPE
-                    /*
                     c.close();
-                    ContentValues cv = new ContentValues();
-                    cv.put(LinesTable.COLUMN_NAME,line_name);
-                    lineid = db.insert(LinesTable.TABLE_NAME,null,cv);
-                    */
                     break;
                 }else {
                     c.moveToFirst();
@@ -193,7 +190,7 @@ public class AppDataProvider extends ContentProvider {
     public boolean onCreate() {
         con = getContext();
         appDBHelper = NextGenDB.getInstance(getContext());
-        userDBHelper = new UserDB(getContext());
+        userDBHelper = UserDB.getInstance(getContext());
         if(con!=null) {
             preferences = new DBStatusManager(con,null);
         } else {
@@ -204,6 +201,7 @@ public class AppDataProvider extends ContentProvider {
     }
 
     @Override
+    @Nullable
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) throws UnsupportedOperationException,IllegalArgumentException {
         //IMPORTANT
@@ -211,7 +209,15 @@ public class AppDataProvider extends ContentProvider {
         if(preferences.isDBUpdating(true))
             //throw new UnsupportedOperationException("DB is updating");
             return null;
-        SQLiteDatabase  db = appDBHelper.getReadableDatabase();
+        SQLiteDatabase db;
+        try{
+            //try to get a readable database
+            db = appDBHelper.getReadableDatabase();
+        } catch (SQLiteDatabaseLockedException ex){
+            Log.e(DEBUG_TAG,"Database is locked",ex);
+            return null;
+        }
+
         List<String>  parts = uri.getPathSegments();
         switch (sUriMatcher.match(uri)){
             case LOCATION_SEARCH:

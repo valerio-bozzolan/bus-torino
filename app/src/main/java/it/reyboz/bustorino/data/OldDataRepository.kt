@@ -18,6 +18,7 @@
 package it.reyboz.bustorino.data
 
 import android.content.Context
+import androidx.sqlite.SQLiteException
 import it.reyboz.bustorino.backend.Result
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.backend.utils
@@ -51,16 +52,21 @@ class OldDataRepository(private val executor: Executor,
         latitTo: Double,
         longitFrom: Double,
         longitTo: Double,
-        callback: Callback<java.util.ArrayList<Stop>>
+        callback: Callback<ArrayList<Stop>>
     ){
         //Log.d(DEBUG_TAG, "Async Stop Fetcher started working");
         executor.execute {
-            val stops = nextGenDB.queryAllInsideMapView(
-                latitFrom, latitTo,
-                longitFrom, longitTo
-            )
+            var result = ArrayList<Stop>()
+            try {
+                result = nextGenDB.queryAllInsideMapView(
+                    latitFrom, latitTo,
+                    longitFrom, longitTo
+                )
+            } catch (e: SQLiteException){
+                callback.onComplete(Result.failure(e))
+            }
 
-            callback.onComplete(Result.success(stops))
+            callback.onComplete(Result.success(result))
         }
 
     }

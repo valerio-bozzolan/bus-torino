@@ -253,7 +253,7 @@ public class FragmentHelper {
     public void showToastMessage(int messageID, boolean short_lenght) {
         final int length = short_lenght ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG;
         if (context != null)
-        Toast.makeText(context, messageID, length).show();
+            Toast.makeText(context, messageID, length).show();
     }
     private void showShortToast(int messageID){
         showToastMessage(messageID, true);

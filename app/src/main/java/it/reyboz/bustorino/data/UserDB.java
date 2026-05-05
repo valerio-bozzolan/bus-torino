@@ -20,6 +20,7 @@ package it.reyboz.bustorino.data;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -53,10 +54,18 @@ public class UserDB extends SQLiteOpenHelper {
     private static final Uri FAVORITES_URI = AppDataProvider.getUriBuilderToComplete().appendPath(
             AppDataProvider.FAVORITES).build();
 
+    private static UserDB mInstance;
 
-    public UserDB(Context context) {
+    public static synchronized UserDB getInstance(Context context) {
+        if (mInstance == null) {
+            mInstance = new UserDB(context.getApplicationContext());
+        }
+        return mInstance;
+    }
+
+    private UserDB(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        this.c = context;
+        this.c = context.getApplicationContext();
 	}
 
     @Override
@@ -169,15 +178,13 @@ public class UserDB extends SQLiteOpenHelper {
         boolean found = false;
 
         try {
-            Cursor c = db.query(TABLE_NAME, usernameColumnNameAsArray, "ID = ?", new String[] {stopId}, null, null, null);
-
-            if(c.moveToNext()) {
-                found = true;
-            }
-
-            c.close();
-        } catch(SQLiteException ignored) {
+            // better way to check the existence
+            long count = DatabaseUtils.queryNumEntries(db, TABLE_NAME, "ID = ?",
+                    new String[]{stopId});
+            return count > 0;
+        } catch(SQLiteException e) {
             // don't care
+            Log.w("BusTO-UserDB", "isStopInFavorites failed for " + stopId, e);
         }
 
         return found;
@@ -389,8 +396,8 @@ public class UserDB extends SQLiteOpenHelper {
         }
         db.setTransactionSuccessful();
         db.endTransaction();
-
-        db.close();
+        // These should NOT be closed: the database is a singleton, the connections are recycled.
+        //db.close();
 
        return updated;
     }

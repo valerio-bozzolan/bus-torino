@@ -333,7 +333,8 @@ public class AsyncArrivalsSearcher extends AsyncTask<String, Fetcher.Result,Pali
                 endtime = System.currentTimeMillis();
                 Log.d("DataDownload", "Inserted connections found, took " + (endtime - starttime) + " ms, inserted " + rows + " rows");
             }
-            nextGenDB.close();
+
+            //nextGenDB.close();
         }
     }
 }

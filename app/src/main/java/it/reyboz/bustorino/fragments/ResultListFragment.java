@@ -112,7 +112,7 @@ public class ResultListFragment extends Fragment{
 
         // no stop no party
         if(busStopId != null) {
-            SQLiteDatabase userDB = new UserDB(getContext()).getReadableDatabase();
+            SQLiteDatabase userDB = UserDB.getInstance(getContext()).getReadableDatabase();
             found = UserDB.isStopInFavorites(userDB, busStopId);
         }
 

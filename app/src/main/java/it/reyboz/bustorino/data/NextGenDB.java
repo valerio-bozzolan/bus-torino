@@ -22,10 +22,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
-import android.database.sqlite.SQLiteConstraintException;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.*;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.util.Log;
@@ -105,7 +102,7 @@ public class NextGenDB extends SQLiteOpenHelper{
     }
     public static NextGenDB getInstance(Context context) {
         if (INSTANCE == null){
-            INSTANCE = new NextGenDB(context);
+            INSTANCE = new NextGenDB(context.getApplicationContext());
         }
         return INSTANCE;
     }
@@ -179,7 +176,7 @@ public class NextGenDB extends SQLiteOpenHelper{
      *  double lngFrom = bb.getLonWestE6() / 1E6;
      *  double lngTo = bb.getLonEastE6() / 1E6;
      */
-    public synchronized ArrayList<Stop> queryAllInsideMapView(double minLat, double maxLat, double minLng, double maxLng) {
+    public synchronized ArrayList<Stop> queryAllInsideMapView(double minLat, double maxLat, double minLng, double maxLng) throws SQLiteDatabaseLockedException {
         ArrayList<Stop> stops = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
@@ -415,7 +412,7 @@ public class NextGenDB extends SQLiteOpenHelper{
             endtime = System.currentTimeMillis();
             Log.d("DataDownload", "Inserted connections found, took " + (endtime - starttime) + " ms, inserted " + rows + " rows");
         }
-        nextGenDB.close();
+        //nextGenDB.close();
         return true;
     }
     /*

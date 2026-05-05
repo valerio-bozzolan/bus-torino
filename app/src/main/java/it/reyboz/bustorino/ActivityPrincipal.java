@@ -196,11 +196,9 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             showingArrivalsFromIntent = true;
         }
         //database check
-        // THIS CHECK IS DUPLICATED, TODO: REMOVE
-        final boolean dataUpdateRequested = checkIfNeedSpecialUpgradeDB();
-        if(!dataUpdateRequested)
+
         //        DatabaseUpdate.requestDBUpdateWithWork(this, false, false);
-            DBUpdateCheckWorker.Companion.schedulePeriodicCheck(this,false);
+        DBUpdateCheckWorker.Companion.schedulePeriodicCheck(this,false);
         /*
         Watch for database update
          */
@@ -325,26 +323,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     }
 
-    private boolean checkIfNeedSpecialUpgradeDB(){
-        final GtfsDatabase gtfsDB = GtfsDatabase.Companion.getGtfsDatabase(this);
 
-        final int db_version = gtfsDB.getOpenHelper().getReadableDatabase().getVersion();
-        boolean dataUpdateRequested = false;
-        final SharedPreferences theShPr = getMainSharedPreferences();
-
-        final int old_version = PreferencesHolder.getGtfsDBVersion(theShPr);
-        Log.d(DEBUG_TAG, "GTFS Database: old version is "+old_version+ ", new version is "+db_version);
-        if (old_version < db_version){
-            //decide update conditions in the future
-            if(old_version < 2 && db_version >= 2) {
-                dataUpdateRequested = true;
-                DBUpdateWorker.requestDBUpdateUniqueWork(this, true);
-            }
-            PreferencesHolder.setGtfsDBVersion(theShPr, db_version);
-        }
-
-        return dataUpdateRequested;
-    }
 
     /**
      * Setup drawer actions
