@@ -175,6 +175,7 @@
     <string name="enable_position_message_map">Allow access to location to show it on the map</string>
     <string name="enable_position_message_nearby">Allow access to location to show stops nearby</string>
     <string name="enableGpsText">Please enable location on the device</string>
+    <string name="no_gps_on_device">No GPS receiver found on the device!</string>
     <string name="database_update_msg_inapp">Database update in progress&#8230;</string>
     <string name="database_update_msg_notif">Updating the database</string>
     <string name="database_update_req">Force database update</string>
@@ -238,6 +239,7 @@
 
     <string name="too_many_permission_asks">Asked for %1$s permission too many times</string>
     <string name="permission_storage_maps_msg">Cannot use the map with the storage permission!</string>
+    
     <string name="storage_permission">storage</string>
     <string name="message_crash">The application has crashed because you encountered a bug.
         \nIf you want, you can help the developers by sending the crash report via email.
@@ -342,6 +344,10 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="grant_location_permission">Grant location permission</string>
     <string name="location_permission_granted">Location permission granted</string>
     <string name="location_permission_not_granted">Location permission has not been granted</string>
+    <string name="no_permission_dialog_title">Missing permission</string>
+    <!-- If more permissions are needed, adapt this string to make if "fillable" -->
+    <string name="no_permission_dialog_text_location">To use this functionality, the application needs access to the location, which can not only be granted in the system settings.</string>
+    <string name="no_permission_dialog_open">Open settings</string>
 
     <string name="close_tutorial">OK, close the tutorial</string>
     <string name="close_tutorial_short">Close the tutorial</string>

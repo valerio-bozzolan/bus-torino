@@ -18,19 +18,17 @@
 package it.reyboz.bustorino.fragments
 
 
-import android.Manifest
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.activity.result.ActivityResultCallback
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -52,7 +50,6 @@ import it.reyboz.bustorino.data.MatoTripsDownloadWorker
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.MatoPatternWithStops
 import it.reyboz.bustorino.map.*
-import it.reyboz.bustorino.middleware.LocationUtils
 import it.reyboz.bustorino.util.Permissions
 import it.reyboz.bustorino.viewmodels.LinesViewModel
 import it.reyboz.bustorino.viewmodels.MapStateViewModel
@@ -75,7 +72,6 @@ import org.maplibre.geojson.Feature
 import org.maplibre.geojson.FeatureCollection
 import org.maplibre.geojson.LineString
 import org.maplibre.geojson.Point
-import java.util.concurrent.atomic.AtomicBoolean
 
 
 class LinesDetailFragment() : GeneralMapLibreFragment() {
@@ -89,7 +85,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     private var shouldMapLocationBeReactivated = true
 
     private var toRunWhenMapReady : Runnable? = null
-    private var mapInitialized = AtomicBoolean(false)
+    //private var mapInitialized = AtomicBoolean(false)
 
     //private var patternsSpinnerState: Parcelable? = null
 
@@ -183,20 +179,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
     private var polyline: LineString? = null
 
-    private val showUserPositionRequestLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions(),
-            ActivityResultCallback { result ->
-                if (result == null) {
-                    Log.w(DEBUG_TAG, "Got asked permission but request is null, doing nothing?")
-                } else if (java.lang.Boolean.TRUE == result[Manifest.permission.ACCESS_COARSE_LOCATION]
-                    && java.lang.Boolean.TRUE == result[Manifest.permission.ACCESS_FINE_LOCATION]) {
-                    // We can use the position, restart location overlay
-                    if (context == null || requireContext().getSystemService(Context.LOCATION_SERVICE) == null)
-                        return@ActivityResultCallback ///@registerForActivityResult
-                    setMapUserLocationEnabled(true, true, enablingPositionFromClick)
-                } else Log.w(DEBUG_TAG, "No location permission")
-            })
     //private var stopPosList = ArrayList<GeoPoint>()
 
     //fragment actions
@@ -206,8 +188,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
     private var usingMQTTPositions = true
     private var restoredCameraInMap = false
-
-
 
     //position of live markers
 
@@ -232,7 +212,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         //isBottomSheetShowing = false
         //stopsLayerStarted = false
         lastStopsSizeShown = 0
-        mapInitialized.set(false)
+        mapInitialized = false
 
         val rootView = inflater.inflate(R.layout.fragment_lines_detail, container, false)
         //lineID = requireArguments().getString(LINEID_KEY, "")
@@ -294,10 +274,8 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             }
         }
         locationIcon?.let {view ->
-            if(!LocationUtils.isLocationEnabled(requireContext()) || !Permissions.anyLocationPermissionsGranted(requireContext()))
-                setLocationIconEnabled(false)
             //set click Listener
-            view.setOnClickListener(this::onPositionIconButtonClick)
+            view.setOnClickListener(this::switchUserLocationStatus)
         }
         busPositionsIconButton.setOnClickListener {
             LivePositionsDialogFragment().show(parentFragmentManager, "LivePositionsDialog")
@@ -372,6 +350,9 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             }
              descripTextView.text = route.longName
             descripTextView.visibility = View.VISIBLE
+        }
+        mapStateViewModel.locationActive.observe(viewLifecycleOwner) {
+            setLocationIconEnabled(it)
         }
         // enable info button if there are alerts on the line
         alertsViewModel.setGtfsLineFilter(lineID)
@@ -458,7 +439,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         hideStopOrBusBottomSheet()
 
         if(locationComponent.isLocationComponentEnabled){
-            locationComponent.isLocationComponentEnabled = false
+            setLocationComponentEnabled(false)
             shouldMapLocationBeReactivated = true
         } else
             shouldMapLocationBeReactivated = false
@@ -481,60 +462,52 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
         switchButton.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_list_30))
 
-        if(shouldMapLocationBeReactivated && Permissions.bothLocationPermissionsGranted(requireContext())){
-            locationComponent.isLocationComponentEnabled = true
+        if(shouldMapLocationBeReactivated){
+            setLocationComponentEnabled(Permissions.bothLocationPermissionsGranted(requireContext()))
         }
     }
 
-    private fun setLocationIconEnabled(setTrue: Boolean){
-        if(setTrue)
+    override fun setLocationIconEnabled(enabled: Boolean){
+        if(enabled) {
             locationIcon?.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.location_circlew_red))
-        else
-            locationIcon?.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.location_circlew_grey))
-    }
-
-    /**
-     * Handles logic of enabling the user location on the map
-     */
-    @SuppressLint("MissingPermission")
-    private fun setMapUserLocationEnabled(enabled: Boolean, assumePermissions: Boolean, fromClick: Boolean) {
-        if (enabled) {
-            val permissionOk = assumePermissions || Permissions.bothLocationPermissionsGranted(requireContext())
-
-            if (permissionOk) {
-                Log.d(DEBUG_TAG, "Permission OK, starting location component, assumed: $assumePermissions")
-                locationComponent.isLocationComponentEnabled = true
-                //locationComponent.cameraMode = CameraMode.TRACKING //CameraMode.TRACKING
-
-                setLocationIconEnabled(true)
-                if (fromClick) Toast.makeText(context, R.string.location_enabled, Toast.LENGTH_SHORT).show()
-            } else {
-                if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                    //TODO: show dialog for permission rationale
-                    Toast.makeText(activity, R.string.enable_position_message_map, Toast.LENGTH_SHORT).show()
-                }
-                Log.d(DEBUG_TAG, "Requesting permission to show user location")
-                enablingPositionFromClick = fromClick
-                showUserPositionRequestLauncher.launch(Permissions.LOCATION_PERMISSIONS)
-            }
-        } else{
-            locationComponent.isLocationComponentEnabled = false
-            setLocationIconEnabled(false)
-            if (fromClick) {
-                Toast.makeText(requireContext(), R.string.location_disabled, Toast.LENGTH_SHORT).show()
-                 //TODO: Cancel the request for the enablement of the position if needed
-            }
         }
-
+        else {
+            locationIcon?.setImageDrawable(ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.location_circlew_grey
+                )
+            )
+        }
     }
 
-    /**
-     * Switch position icon from activ
-     */
-    private fun onPositionIconButtonClick(view: View){
-        if(locationComponent.isLocationComponentEnabled) setMapUserLocationEnabled(false, false, true)
-        else{
-            setMapUserLocationEnabled(true, false, true)
+    override fun onMapLocationEnabled(active: Boolean) {
+        //extra thing: show the toast
+        showToastLocation(active)
+    }
+
+    override fun onMapLocationComponentInitialized() {
+        //enable the position after the first fix
+        //onMapLocationEnabled(true)
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun onFirstReceivedLocation(location: Location) {
+        if(mapInitialized){
+            val center = map!!.cameraPosition.target
+            val newPos = LatLng(location.latitude, location.longitude)
+            Log.d(DEBUG_TAG, "Center of the map : $center")
+            val newStatus = if(center==null || newPos.distanceTo(center) > 20*1000){
+                Log.d(DEBUG_TAG, "Distance from center of map to location: "+center?.distanceTo(newPos))
+                if(!shownToastNoPosition) context?.let{ c->
+                    Toast.makeText(c, R.string.too_far_not_showing_location, Toast.LENGTH_LONG).show()
+                    shownToastNoPosition = true
+                }
+                false
+            } else{
+                true
+            }
+            if(!newStatus) setLocationComponentEnabled(newStatus)
+            mapStateViewModel.locationActive.value = newStatus
         }
     }
 
@@ -558,8 +531,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                 mapStyle = style
                 //setupLayers(style)
 
-                // Start observing data
-                initMapUserLocation(style, mapReady, requireContext())
+                //checkInitMapLocation(mapReady, style,requireContext())
 
                 //if(!stopsLayerStarted)
                 initPolylineStopsLayers(style, null)
@@ -569,7 +541,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                 initSymbolManager(mapReady, style)
                 toRunWhenMapReady?.run()
                 toRunWhenMapReady = null
-                mapInitialized.set(true)
+                mapInitialized = true
 
                 if(patternShown!=null){
                     viewModel.stopsForPatternLiveData.value?.let {
@@ -646,7 +618,8 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
         savedCameraPosition = null
 
-        if(shouldMapLocationBeReactivated) setMapUserLocationEnabled(true, false, false)
+        if(shouldMapLocationBeReactivated)
+            mapReady.style?.let{ checkInitMapLocation(mapReady,it, context)}
     }
 
     override fun showOpenStopWithSymbolLayer(): Boolean {
@@ -922,7 +895,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     }
 
     private fun displayPatternWithStopsOnMap(patternWs: MatoPatternWithStops, stopsToSort: List<Stop>, zoomToPattern: Boolean){
-        if(!mapInitialized.get()){
+        if(!mapInitialized){
             //set the runnable and do nothing else
             Log.d(DEBUG_TAG, "Delaying pattern display to when map is Ready: ${patternWs.pattern.code}")
             toRunWhenMapReady = Runnable {
@@ -1104,7 +1077,10 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     override fun onStop() {
         super.onStop()
         mapView.onStop()
-        shouldMapLocationBeReactivated = locationComponent.isLocationComponentEnabled
+        if(locationInitialized)
+            shouldMapLocationBeReactivated = locationComponent.isLocationComponentEnabled
+        else
+            shouldMapLocationBeReactivated = false
     }
 
     override fun onDestroyView() {
@@ -1137,7 +1113,8 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         mapStyle.removeSource(BUSES_SOURCE_ID)
 
 
-        map?.locationComponent?.isLocationComponentEnabled = false
+        //map?.locationComponent?.isLocationComponentEnabled = false
+        setLocationComponentEnabled(false)
     }
 
     override fun getBaseViewForSnackBar(): View? {

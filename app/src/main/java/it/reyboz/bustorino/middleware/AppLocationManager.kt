@@ -213,9 +213,6 @@ class AppLocationManager private constructor(context: Context) : LocationListene
         Log.d(DEBUG_TAG, "Provider: $provider disabled")
     }
 
-    fun anyLocationProviderMatchesCriteria(cr: Criteria?): Boolean {
-        return Permissions.anyLocationProviderMatchesCriteria(locMan, cr, true)
-    }
 
     /**
      * Interface to be implemented to get the location request

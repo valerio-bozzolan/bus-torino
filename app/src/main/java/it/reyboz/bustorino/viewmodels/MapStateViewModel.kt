@@ -1,5 +1,6 @@
 package it.reyboz.bustorino.viewmodels
 
+import android.location.Location
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import it.reyboz.bustorino.map.MapCameraState
@@ -32,6 +33,11 @@ class MapStateViewModel : ViewModel() {
     fun restoreMapState(map: MapLibreMap): Boolean {
         return restoreMapState(map, this.savedCameraState)
     }
+
+    var locationToShow: Location? = null
+
+    val locationActive = MutableLiveData(false)
+    val followingUserPosition = MutableLiveData(false)
 
     companion object{
         fun restoreMapState(map: MapLibreMap, savedCameraState: MapCameraState?): Boolean {

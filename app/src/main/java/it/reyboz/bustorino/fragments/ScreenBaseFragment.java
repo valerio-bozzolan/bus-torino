@@ -2,7 +2,11 @@ package it.reyboz.bustorino.fragments;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.provider.Settings;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
@@ -11,10 +15,12 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.snackbar.Snackbar;
 import it.reyboz.bustorino.BuildConfig;
+import it.reyboz.bustorino.R;
 
 import java.util.Map;
 
@@ -97,6 +103,7 @@ public abstract class ScreenBaseFragment extends Fragment {
             }
         });
     }
+
 
     public interface LocationRequestListener{
         void onPermissionResult(boolean isCoarseGranted, boolean isFineGranted);

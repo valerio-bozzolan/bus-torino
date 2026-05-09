@@ -1,5 +1,23 @@
+/*
+	BusTO  - Fragments components
+    Copyright (C) 2025 Fabio Mazza
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package it.reyboz.bustorino.fragments
 
+import android.Manifest
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
@@ -19,6 +37,9 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.ActivityResultCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -28,6 +49,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.JsonObject
+import it.reyboz.bustorino.BuildConfig
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.FiveTNormalizer
 import it.reyboz.bustorino.backend.LivePositionTripPattern
@@ -38,7 +60,10 @@ import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.utils
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
+import it.reyboz.bustorino.map.MapLibreLocationEngine
 import it.reyboz.bustorino.map.MapLibreUtils
+import it.reyboz.bustorino.middleware.FusedNativeLocationProvider
+import it.reyboz.bustorino.util.Permissions
 import it.reyboz.bustorino.util.ViewUtils
 import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
 import it.reyboz.bustorino.viewmodels.MapStateViewModel
@@ -48,7 +73,10 @@ import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.location.LocationComponent
-import org.maplibre.android.location.LocationComponentOptions
+import org.maplibre.android.location.LocationComponentActivationOptions
+import org.maplibre.android.location.engine.LocationEngineCallback
+import org.maplibre.android.location.engine.LocationEngineRequest
+import org.maplibre.android.location.engine.LocationEngineResult
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.OnMapReadyCallback
@@ -67,6 +95,7 @@ import org.maplibre.android.style.sources.GeoJsonSource
 import org.maplibre.geojson.Feature
 import org.maplibre.geojson.FeatureCollection
 import org.maplibre.geojson.Point
+import kotlin.time.Duration.Companion.milliseconds
 
 abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback {
     protected var map: MapLibreMap? = null
@@ -87,6 +116,11 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     protected lateinit var sharedPreferences: SharedPreferences
     protected lateinit var bottomSheetBehavior: BottomSheetBehavior<RelativeLayout>
 
+    protected var locationEngine: MapLibreLocationEngine? = null
+    protected lateinit var locationProvider: FusedNativeLocationProvider
+
+    protected var shownToastNoPosition = false
+
 
     private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener(){ pref, key ->
         /*when(key){
@@ -100,6 +134,28 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             reloadMap()
         }
     }
+
+    protected val positionRequestResponder = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(), ActivityResultCallback{ res ->
+            if(!(res.containsKey(PERM_LOC_COARSE)&&res.containsKey(PERM_LOC_FINE))){
+                Log.e(DEBUG_TAG, "Location request does not have the correct keys")
+            } else if(res[PERM_LOC_COARSE]!! && res[PERM_LOC_FINE]!!){
+                //permission OK, init map location
+                val mMap = map
+                if(mMap == null){
+                    Log.w(DEBUG_TAG, "Location request completed, but map is null!")
+                }else{
+                    initializeMapLocationComponent(mMap,requireContext(), null)
+                }
+            } else{
+                // PERMISSION DENIED
+                // TODO find better way to show the necessity of the permission
+                if(shouldShowRequestPermissionRationale(PERM_LOC_FINE))
+                    Toast.makeText(requireContext(),
+                        R.string.enable_position_message_map, Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
     //Bottom sheet behavior in GeneralMapLibreFragment
     protected var bottomLayout: RelativeLayout? = null
     protected lateinit var stopTitleTextView: TextView
@@ -134,7 +190,39 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
 
     //private lateinit var symbolManager: SymbolManager
     protected val mapStateViewModel: MapStateViewModel by viewModels()
+    protected var locationInitialized = false
+    protected var mapInitialized = false
+    protected var receivedFirstLocation = false
 
+
+    //location callback to decide if to zoom to the user position
+    @SuppressLint("MissingPermission")
+    protected val mapLibreLocationCallback = object : LocationEngineCallback<LocationEngineResult> {
+        override fun onSuccess(result: LocationEngineResult) {
+            val location: Location? = result.lastLocation
+            Log.d(DEBUG_TAG, "Received location $location")
+            location?.let {
+                //check timing of the location
+                val currentTime = System.currentTimeMillis()
+                val discard = (currentTime - it.time) > 90 * 1000.0  // discard if it is Older than 60 seconds
+                if(!discard) {
+                    if (!receivedFirstLocation) {
+                        onFirstReceivedLocation(it)
+                    }
+                    receivedFirstLocation = true
+                }
+            }
+
+            if(receivedFirstLocation){
+                //remove this
+                locationEngine?.removeLocationUpdates(this)
+            }
+        }
+
+        override fun onFailure(exception: Exception) {
+            Log.e(DEBUG_TAG, "Error in getting position: ${exception.message}")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -180,6 +268,8 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             reloadMap()
         }
     }
+
+
 
     @Deprecated("Deprecated in Java")
     override fun onLowMemory() {
@@ -377,24 +467,47 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
 
     }
 
-    /**
-     * Initialize the map location, but do not enable the component
-     */
-    @SuppressLint("MissingPermission")
-    protected fun initMapUserLocation(style: Style, map: MapLibreMap, context: Context){
-        locationComponent = map.locationComponent
-        val locationComponentOptions =
-            LocationComponentOptions.builder(context)
-                .pulseEnabled(false)
-                .build()
-        val locationComponentActivationOptions =
-            MapLibreUtils.buildLocationComponentActivationOptions(style, locationComponentOptions, context)
-        locationComponent.activateLocationComponent(locationComponentActivationOptions)
-        locationComponent.isLocationComponentEnabled = false
 
-        lastLocation?.let {
-            if (it.accuracy < 200)
-                locationComponent.forceLocationUpdate(it)
+    abstract fun onMapLocationComponentInitialized()
+
+    @SuppressLint("MissingPermission")
+    protected fun setLocationComponentEnabled(enabled: Boolean): Boolean{
+        var changed = false
+        map?.apply {
+            if(locationComponent.isLocationComponentEnabled !=enabled)
+            locationComponent.isLocationComponentEnabled= enabled
+        changed = true}
+
+        return changed
+    }
+
+    @SuppressLint("MissingPermission")
+    protected fun initializeMapLocationComponent(map: MapLibreMap, context: Context, style: Style?){
+        val mStyle = style ?: map.style
+        if(locationInitialized){
+            Log.w(DEBUG_TAG, "trying to initialize Location Component, but it is already done")
+            return
+        }
+        mStyle?.let{ style ->
+            locationComponent = map.locationComponent
+
+            locationProvider = FusedNativeLocationProvider(context)
+            locationEngine = MapLibreLocationEngine(locationProvider)
+            val options = LocationComponentActivationOptions.builder(context, style)
+                .useDefaultLocationEngine(false)
+                .locationEngine(locationEngine)
+                .build()
+            locationComponent.activateLocationComponent(options)
+            //locationComponent.cameraMode = CameraMode.TRACKING
+            //locationComponent.renderMode = RenderMode.COMPASS
+            locationInitialized = true
+            if(BuildConfig.DEBUG) Log.d(DEBUG_TAG, "Requesting location updates")
+            locationEngine!!.requestLocationUpdates(LocationEngineRequest.Builder(500).setDisplacement(20.0f).build(),
+                    mapLibreLocationCallback, null)
+            // signal to show user location icon as active
+            mapStateViewModel.locationActive.value = true
+            setLocationComponentEnabled(true)
+            onMapLocationComponentInitialized()
         }
     }
 
@@ -405,7 +518,6 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
      * Unified version that works with both fragments
      *
      * @param incomingData Map of updates with optional trip and pattern information
-     * @param checkCoordinateValidity If true, validates that coordinates are positive (default: false)
      * @param hasVehicleTracking If true, checks if vehShowing is updated and calls callback (default: true)
      * @param trackVehicleCallback Optional callback to show vehicle details when vehShowing is updated
      */
@@ -587,7 +699,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             // Schedule delayed update
             if(lifecycleOwnerLiveData.value != null)
                 viewLifecycleOwner.lifecycleScope.launch {
-                    delay(200)
+                    delay(200.milliseconds)
                     updatePositionsIcons(forced)
                 }
             return
@@ -874,6 +986,76 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         style.addLayerAbove(selectedBusLayer, BUSES_LAYER_ID)
 
     }
+    /**
+     * Method used for enabling / disabling the location from the buttons
+     */
+    protected fun switchUserLocationStatus(view: View?){
+        val enabled = if(locationInitialized) locationComponent.isLocationComponentEnabled else false
+        val context = context ?: return
+        if(enabled) {
+            setMapLocationEnabled(false)
+            onMapLocationEnabled(false)
+        }
+        else if(deviceHasGpsProvider()) {
+            if(Permissions.bothLocationPermissionsGranted(context)){
+                setMapLocationEnabled(true)
+                onMapLocationEnabled(true)
+            } else{
+                Log.d(DEBUG_TAG, "Requesting permissions to show location")
+                Permissions.getInstance(context).checkRequestLocationPermissions(requireActivity(), positionRequestResponder)
+            }
+        } else{
+            context.let {
+                Toast.makeText(it, R.string.no_gps_on_device, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    }
+
+    @SuppressLint("MissingPermission")
+    protected fun setMapLocationEnabled(enabled: Boolean){
+        map?.locationComponent?.isLocationComponentEnabled = enabled
+        //map?.cameraPosition =
+        mapStateViewModel.locationActive.value = enabled
+    }
+    protected fun checkInitMapLocation(mapReady: MapLibreMap,style: Style, context: Context) {
+        //enable location
+        val hasGps = deviceHasGpsProvider()
+        val permissions = Permissions.getInstance(context)
+        if(hasGps) {
+            if (Permissions.bothLocationPermissionsGranted(context)) {
+                Log.d(DEBUG_TAG, "Have got the location permission, init location component")
+                initializeMapLocationComponent(mapReady, context, style)
+            }else {
+                var req = false
+                activity?.let{
+                    req = permissions.checkRequestLocationPermissions(it, positionRequestResponder)
+                }
+                //setLocationIconEnabled(false)
+                //setFollowingUser(false)
+                if(!req) {
+                    setMapLocationEnabled(false)
+                    onMapLocationEnabled(false)
+                }
+
+            }
+        }
+    }
+
+    /**
+     * Set the UI elements showing that the user location is disabled
+     */
+    abstract fun onMapLocationEnabled(active: Boolean)
+
+    /**
+     * Helper function to actually set the icon
+     */
+    abstract fun setLocationIconEnabled(enabled: Boolean)
+
+    /**
+     * Called when we receive the first fix on the user location
+     */
+    abstract fun onFirstReceivedLocation(location: Location)
 
     protected fun isBottomSheetShowing(): Boolean {
         return bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED
@@ -920,6 +1102,13 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             .build()
     }
 
+    protected fun showToastLocation(enabled: Boolean){
+        val textid = if (enabled) R.string.location_enabled  else R.string.location_disabled
+        context?.let{
+            Toast.makeText(it,textid,Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     companion object{
         private const val DEBUG_TAG="GeneralMapLibreFragment"
@@ -950,6 +1139,12 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         protected const val POLY_ARROWS_LAYER = "arrows-layer"
         protected const val POLY_ARROWS_SOURCE = "arrows-source"
         protected const val POLY_ARROW ="poly-arrow-img"
+
+        private const val PERM_LOC_COARSE = Manifest.permission.ACCESS_COARSE_LOCATION
+        private const val PERM_LOC_FINE = Manifest.permission.ACCESS_FINE_LOCATION
+
+        //TODO: this is hardcoded, make it modifiable by the user
+        protected const val MAX_DIST_KM = 90.0
 
     }
 }
