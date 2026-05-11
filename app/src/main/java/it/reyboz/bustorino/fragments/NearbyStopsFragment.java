@@ -22,13 +22,10 @@ import android.content.Context;
 
 import android.content.SharedPreferences;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.location.LocationListenerCompat;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.core.util.Pair;
@@ -51,6 +48,7 @@ import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.data.DatabaseUpdate;
 import it.reyboz.bustorino.adapters.SquareStopAdapter;
 import it.reyboz.bustorino.middleware.AutoFitGridLayoutManager;
+import it.reyboz.bustorino.middleware.FusedNativeLocationProvider;
 import it.reyboz.bustorino.util.Permissions;
 import it.reyboz.bustorino.util.StopSorterByDistance;
 import it.reyboz.bustorino.viewmodels.NearbyStopsViewModel;
@@ -58,7 +56,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class NearbyStopsFragment extends Fragment {
+public class NearbyStopsFragment extends ScreenBaseFragment {
+
+    @Nullable
+    @Override
+    public View getBaseViewForSnackBar() {
+        return null;
+    }
 
     public enum FragType{
         STOPS(1), ARRIVALS(2);
@@ -78,7 +82,6 @@ public class NearbyStopsFragment extends Fragment {
     private enum LocationShowingStatus {SEARCHING, FIRST_FIX, DISABLED, NO_PERMISSION}
 
     private FragmentListenerMain mListener;
-    private FragmentLocationListener fragmentLocationListener;
 
     private final static String DEBUG_TAG = "NearbyStopsFragment";
     private final static String FRAGMENT_TYPE_KEY = "FragmentType";
@@ -104,17 +107,46 @@ public class NearbyStopsFragment extends Fragment {
 
     private Integer MAX_DISTANCE = -3;
     private int MIN_NUM_STOPS = -1;
-    private int TIME_INTERVAL_REQUESTS = -1;
-    private LocationManager locManager;
 
     //These are useful for the case of nearby arrivals
     private NearbyArrivalsDownloader arrivalsManager = null;
     private ArrivalsStopAdapter arrivalsStopAdapter = null;
 
     private ArrayList<Stop> currentNearbyStops = new ArrayList<>();
-    private NearbyArrivalsDownloader nearbyArrivalsDownloader;
 
     private LocationShowingStatus showingStatus = LocationShowingStatus.NO_PERMISSION;
+
+    private final FusedNativeLocationProvider.LocationUpdateListener locationUpdateListener = new FusedNativeLocationProvider.LocationUpdateListener() {
+        @Override
+        public void onLocationUpdate(@NotNull Location location) {
+            updateLocationViewModel(location);
+        }
+
+        @Override
+        public void onFusedStatusChanged(boolean isEnabled) {
+            Log.d(DEBUG_TAG, "Location provider is enabled: " + isEnabled);
+            if(isEnabled){
+                setShowingStatus(LocationShowingStatus.SEARCHING);
+            } else{
+                setShowingStatus(LocationShowingStatus.DISABLED);
+            }
+        }
+    };
+    private final FusedNativeLocationProvider.Options locationOptionsArrivals = new FusedNativeLocationProvider.Options(5*1000L, 50f),
+            locationOptionsStops = new FusedNativeLocationProvider.Options(1000L, 5f);;
+
+
+
+    /*
+    TODO: we do not request the permission in this fragment, only showing it when we have the location. Request position if this changes.
+    private final ActivityResultLauncher<String[]> permissionsResultLauncher = getPositionRequestLauncher(
+            granted ->{
+
+            }
+    );
+     */
+    private FusedNativeLocationProvider locationProvider = null;
+
 
     private final NearbyArrivalsDownloader.ArrivalsListener arrivalsListener = new NearbyArrivalsDownloader.ArrivalsListener() {
         @Override
@@ -171,16 +203,15 @@ public class NearbyStopsFragment extends Fragment {
         if (getArguments() != null) {
             setFragmentType(FragType.fromNum(getArguments().getInt(FRAGMENT_TYPE_KEY)));
         }
-        locManager = (LocationManager) requireContext().getSystemService(Context.LOCATION_SERVICE);
-        fragmentLocationListener = new FragmentLocationListener();
+        //locManager = (LocationManager) requireContext().getSystemService(Context.LOCATION_SERVICE);
+        //fragmentLocationListener = new FragmentLocationListener();
         if (getContext()!=null) {
             //globalSharedPref = getContext().getSharedPreferences(getString(R.string.mainSharedPreferences), Context.MODE_PRIVATE);
             //globalSharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener);
         }
 
-        nearbyArrivalsDownloader = new NearbyArrivalsDownloader(getContext().getApplicationContext(), arrivalsListener);
-
-
+        //NearbyArrivalsDownloader nearbyArrivalsDownloader = new NearbyArrivalsDownloader(getContext().getApplicationContext(), arrivalsListener);
+        locationProvider = new FusedNativeLocationProvider(requireContext());
     }
 
     @Override
@@ -216,15 +247,19 @@ public class NearbyStopsFragment extends Fragment {
                 }
 
                 WorkInfo wi = workInfos.get(0);
-                if (wi.getState() == WorkInfo.State.RUNNING && fragmentLocationListener.isRegistered) {
-                    locManager.removeUpdates(fragmentLocationListener);
-                    fragmentLocationListener.isRegistered = true;
+                if (wi.getState() == WorkInfo.State.RUNNING && locationProvider.isRunning()) {
+                    locationProvider.stopUpdates();
                     viewModel.setDBUpdateRunning(true);
                 } else{
                     //start the request
-                    if(!fragmentLocationListener.isRegistered){
-                        requestLocationUpdates();
+                    if(Permissions.bothLocationPermissionsGranted(requireContext())) {
+                        if(!locationProvider.isRunning()){
+                            startLocationUpdatesByType();
+                        }
+                    } else{
+                        setShowingStatus(LocationShowingStatus.NO_PERMISSION);
                     }
+
                     viewModel.setDBUpdateRunning(false);
                     //actually restart request
                 }
@@ -255,6 +290,9 @@ public class NearbyStopsFragment extends Fragment {
             setShowingStatus(LocationShowingStatus.NO_PERMISSION);
 
         }
+        //add location listener
+        locationProvider.addListener(locationUpdateListener);
+
         return root;
     }
 
@@ -262,15 +300,19 @@ public class NearbyStopsFragment extends Fragment {
     @SuppressLint("MissingPermission")
     private boolean requestLocationUpdates(){
         if(Permissions.anyLocationPermissionsGranted(requireContext())) {
-            if (locManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)) {
-                locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                        3000, 10.0f, fragmentLocationListener
-                );
-                fragmentLocationListener.isRegistered = true;
-            }
-            fragmentLocationListener.isRegistered = false;
+            startLocationUpdatesByType();
             return true;
         } else return false;
+    }
+
+    /**
+     * Internal bit used to start location updates
+     */
+    private void startLocationUpdatesByType(){
+        switch (fragment_type) {
+            case STOPS: locationProvider.startUpdates(locationOptionsStops); break;
+            case ARRIVALS: locationProvider.startUpdates(locationOptionsArrivals); break;
+        }
     }
 
 
@@ -280,8 +322,9 @@ public class NearbyStopsFragment extends Fragment {
      * @param type the type, TYPE_ARRIVALS or TYPE_STOPS
      */
     private void setFragmentType(FragType type){
+        boolean isChanged = fragment_type != type;
         this.fragment_type = type;
-        switch(type){
+        /*switch(type){
             case ARRIVALS:
                 TIME_INTERVAL_REQUESTS = 5*1000;
                 break;
@@ -289,11 +332,35 @@ public class NearbyStopsFragment extends Fragment {
                 TIME_INTERVAL_REQUESTS = 1000;
 
         }
+
+         */
+        if(isChanged){
+            startLocationUpdatesByType();
+            setShowingStatus(LocationShowingStatus.SEARCHING);
+        }
     }
+    /**
+     * Set the location in the view model if it is good
+     * @param location new location
+     */
+    private void updateLocationViewModel(@NonNull Location location, float accuracy){
+        if(viewModel==null) {
+            return;
+        }
+        if(location.getAccuracy()<accuracy) {
+            lastPosition = new GPSPoint(location.getLatitude(), location.getLongitude());
+            //viewModel.requestStopsAtDistance(location.getLatitude(), location.getLongitude(), distance, true);
+            viewModel.setLastLocation(location);
+        }
+    }
+    private void  updateLocationViewModel(@NonNull Location location){
+        updateLocationViewModel(location, 150);
+    }
+
     private void setShowingStatus(@NonNull LocationShowingStatus newStatus){
+        if(BuildConfig.DEBUG)
+            Log.d(DEBUG_TAG, "Asked to set showing status : " + newStatus);
         if(newStatus == showingStatus){
-            if(BuildConfig.DEBUG)
-                Log.d(DEBUG_TAG, "Asked to set new displaying status but it's the same");
             return;
         }
         switch (newStatus){
@@ -314,7 +381,7 @@ public class NearbyStopsFragment extends Fragment {
                     circlingProgressBar.setVisibility(View.GONE);
                     loadingTextView.setVisibility(View.GONE);
                 }
-                messageTextView.setText(R.string.enableGpsText);
+                messageTextView.setText(R.string.enable_location_message);
                 messageTextView.setVisibility(View.VISIBLE);
                 break;
             case SEARCHING:
@@ -347,8 +414,6 @@ public class NearbyStopsFragment extends Fragment {
         super.onPause();
 
         gridRecyclerView.setAdapter(null);
-        locManager.removeUpdates(fragmentLocationListener);
-        fragmentLocationListener.isRegistered = false;
         Log.d(DEBUG_TAG,"On paused called");
     }
 
@@ -480,7 +545,6 @@ public class NearbyStopsFragment extends Fragment {
             default:
         }
         prepareForFragmentType();
-        fragmentLocationListener.lastUpdateTime = -1;
         //locManager.removeLocationRequestFor(fragmentLocationListener);
         //locManager.addLocationRequestFor(fragmentLocationListener);
         if(lastPosition!=null) {
@@ -587,9 +651,10 @@ public class NearbyStopsFragment extends Fragment {
         messageTextView.setVisibility(View.GONE);
     }
 
-    /**
+    /*
      * Local locationListener, to use for the GPS
      */
+    /*
     class FragmentLocationListener implements LocationListenerCompat {
 
         private long lastUpdateTime = -1;
@@ -631,4 +696,6 @@ public class NearbyStopsFragment extends Fragment {
             LocationListenerCompat.super.onStatusChanged(provider, status, extras);
         }
     }
+
+     */
 }

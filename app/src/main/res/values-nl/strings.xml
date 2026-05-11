@@ -83,7 +83,7 @@
     <string name="settings_group_general">Algemene instellingen</string>
     <string name="enable_position_message_map">Toegang tot locatie toestaan om te laten zien op de kaart</string>
     <string name="enable_position_message_nearby">Toegang tot locatie toestaan om haltes in de buurt te weergeven</string>
-    <string name="enableGpsText">Schakel aub de locatie in op het apparaat</string>
+    <string name="enable_location_message">Schakel aub de locatie in op het apparaat</string>
     <string name="database_update_msg_inapp">Database update gaande…</string>
     <string name="database_update_msg_notif">Database aan het updaten</string>
     <string name="database_update_req">Forceer database update</string>

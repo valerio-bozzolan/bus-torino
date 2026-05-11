@@ -9,8 +9,9 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import it.reyboz.bustorino.BuildConfig
-import it.reyboz.bustorino.util.Permissions
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Native Android location provider that fuses GPS_PROVIDER, NETWORK_PROVIDER
@@ -27,6 +28,12 @@ class FusedNativeLocationProvider(context: Context) {
 
     fun interface LocationUpdateListener {
         fun onLocationUpdate(location: Location)
+
+        fun onFusedStatusChanged(isEnabled: Boolean) {}
+    }
+
+    fun interface LocationStatusListener {
+        fun onLocationStatusChanged(isEnabled: Boolean)
     }
 
     /**
@@ -40,13 +47,19 @@ class FusedNativeLocationProvider(context: Context) {
      * @param usePassive        Enables PASSIVE_PROVIDER (zero consumption, opportunistic updates).
      */
     data class Options(
-        val minIntervalMs: Long = 500L,
+        val minIntervalMs: Long = 1000L,
         val minDisplacementM: Float = 5f,
         val looper: Looper? = null,
         val useGps: Boolean = true,
         val useNetwork: Boolean = true,
         val usePassive: Boolean = true,
-    )
+    ){
+        constructor(minIntervalMs: Long, minDisplacementM: Float) : this(
+            minIntervalMs = minIntervalMs,
+            minDisplacementM = minDisplacementM,
+            useGps = true
+        )
+    }
 
 
     private val locationManager =
@@ -54,6 +67,7 @@ class FusedNativeLocationProvider(context: Context) {
 
     // List of registered listeners (called on the configured looper)
     private val listeners = CopyOnWriteArraySet<LocationUpdateListener>()
+    private val statusListeners = CopyOnWriteArraySet<LocationStatusListener>()
 
     // Active Android listeners, one per provider
     private val activeAndroidListeners = mutableListOf<LocationListener>()
@@ -61,14 +75,15 @@ class FusedNativeLocationProvider(context: Context) {
     @Volatile
     private var bestLocation: Location? = null
 
-    @Volatile
-    private var running = false
+    private var running = AtomicBoolean(false)
 
     private var runningOptions = Options(500L, 5f, null, true, true, true)
 
-    private val activeProviders = ArrayList<String>()
+    private val availableProviders = ArrayList<String>()
 
-    private var havePermissions = false
+    private var lastStatusUpdateEnabled = false
+
+    private val providersAreEnabled = ConcurrentHashMap<String, Boolean>()
 
     //private val removedListener = mutableSetOf<LocationUpdateListener>()
 
@@ -91,6 +106,12 @@ class FusedNativeLocationProvider(context: Context) {
         }
     }
 
+    fun addListener(listener: LocationStatusListener) {
+        synchronized(listeners) {
+            statusListeners.add(listener)
+        }
+    }
+
     /**
      * Removes a previously registered listener.
      */
@@ -106,6 +127,12 @@ class FusedNativeLocationProvider(context: Context) {
         }
     }
 
+    fun removeListener(listener: LocationStatusListener) {
+        synchronized(listeners) {
+            statusListeners.remove(listener)
+        }
+    }
+
     /**
      * Starts receiving location updates from the enabled providers.
      * If already running, stops the existing providers first and restarts
@@ -114,11 +141,26 @@ class FusedNativeLocationProvider(context: Context) {
      * Requires ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION.
      */
     @SuppressLint("MissingPermission")
-    fun startUpdates(options: Options?): Boolean {
-        if (running) stopUpdates()
+    fun startUpdates(options: Options?) {
+        val wasNotRunning = running.compareAndSet(false, true)
+
+        if (!wasNotRunning) {
+            //it's already running, no need to stop
+            Log.d(DEBUG_TAG, "Requested to start updates, but provider is running")
+            if(options!=null){
+                if(runningOptions !== options){
+                    Log.d(DEBUG_TAG, "Stopping and restarting")
+                    //need to restart
+                    stopUpdatesInternal()
+                    startUpdates(options)
+                }
+            }
+            return
+        }
         if (options!=null){
             runningOptions = options
         }
+        lastStatusUpdateEnabled = false
         val selectedProviders = buildList {
             if (runningOptions.useGps)     add(LocationManager.GPS_PROVIDER)
             if (runningOptions.useNetwork) add(LocationManager.NETWORK_PROVIDER)
@@ -128,32 +170,42 @@ class FusedNativeLocationProvider(context: Context) {
         val effectiveLooper = runningOptions.looper ?: Looper.getMainLooper()
 
         selectedProviders.forEach { provider ->
-            if (!locationManager.isProviderEnabled(provider)) return@forEach
+            val isEnabled = locationManager.isProviderEnabled(provider)
+            if(isEnabled) {
+                lastStatusUpdateEnabled = true
+            }
+            providersAreEnabled[provider] = isEnabled
+            //listen for location, even if the provider is not started yet
+            val locListener = object : LocationListener {
+                override fun onLocationChanged(location: Location) {
+                    onReceiveLocation(location)
+                }
 
-            val locListener = LocationListener { location ->
-                if (isBetterLocation(location, bestLocation)) {
-                    bestLocation = location
-                    //Log.d(DEBUG_TAG, "New best location: $bestLocation")
-                    notifyListeners(location)
+                override fun onProviderDisabled(provider: String) {
+                    super.onProviderDisabled(provider)
+                    onProviderStatusChanged(provider, false)
+                }
+
+                override fun onProviderEnabled(provider: String) {
+                    super.onProviderEnabled(provider)
+                    onProviderStatusChanged(provider, true)
                 }
             }
 
-            //runCatching {
-            locationManager.requestLocationUpdates(
-                provider,
-                runningOptions.minIntervalMs,
-                runningOptions.minDisplacementM,
-                locListener,
-                effectiveLooper,
-            )
-            activeAndroidListeners.add(locListener)
-            activeProviders.add(provider)
-            //}
+            runCatching {
+                locationManager.requestLocationUpdates(
+                    provider,
+                    runningOptions.minIntervalMs,
+                    runningOptions.minDisplacementM,
+                    locListener,
+                    effectiveLooper,
+                )
+                activeAndroidListeners.add(locListener)
+                availableProviders.add(provider)
+            }
         }
-
-        running = activeAndroidListeners.isNotEmpty()
-        Log.d(DEBUG_TAG, "Started location updates, running: $running, with providers: $activeProviders")
-        return running
+        notifyListenerStatus(lastStatusUpdateEnabled)
+        Log.d(DEBUG_TAG, "Started location updates, running: ${running.get()}, with providers: $availableProviders")
     }
 
     /**
@@ -162,16 +214,19 @@ class FusedNativeLocationProvider(context: Context) {
      * calling [startUpdates] again will resume delivering updates to them.
      */
     private fun stopUpdatesInternal() {
-        if(!running) //we have already done this
-            return
-        Log.d(DEBUG_TAG, "Actually stopping location updates, active providers: $activeProviders")
-        activeAndroidListeners.forEach { listener ->
-            runCatching { locationManager.removeUpdates(listener) }
+        if(running.compareAndSet(true, false)) {
+            //we have to stop updates
+            Log.d(DEBUG_TAG, "Actually stopping location updates, active providers: $availableProviders")
+            activeAndroidListeners.forEach { listener ->
+                runCatching { locationManager.removeUpdates(listener) }
+            }
+            activeAndroidListeners.clear()
+            //running = false is set by compareAndSet
+            availableProviders.clear()
         }
-        activeAndroidListeners.clear()
-        running = false
-        activeProviders.clear()
     }
+
+    fun isRunning(): Boolean = running.get()
 
     /**
      * Returns the best known location cached by the enabled providers,
@@ -208,6 +263,36 @@ class FusedNativeLocationProvider(context: Context) {
         //synchronized(listeners) {
             listeners.forEach { it.onLocationUpdate(location) }
     }
+    private fun notifyListenerStatus(enabled: Boolean){
+        Log.d(DEBUG_TAG, "Notifying listeners, the position is enabled: $enabled")
+        listeners.forEach { it.onFusedStatusChanged(enabled) }
+        statusListeners.forEach { it.onLocationStatusChanged(enabled) }
+    }
+
+    private fun onReceiveLocation(location: Location) {
+        if (isBetterLocation(location, bestLocation)) {
+            bestLocation = location
+            //Log.d(DEBUG_TAG, "New best location: $bestLocation")
+            notifyListeners(location)
+        }
+    }
+
+    private fun onProviderStatusChanged(provider: String,enabled: Boolean) {
+        providersAreEnabled.put(provider, enabled)
+        val actu = providersAreEnabled.reduceValues(1, Boolean::or)
+        if (actu!=null && actu!=lastStatusUpdateEnabled){
+            lastStatusUpdateEnabled = actu
+            notifyListenerStatus(actu)
+        }
+
+    }
+
+    fun isLocationEnabled(): Boolean {
+        val probValue = providersAreEnabled.reduceValues(1, Boolean::or)
+        return probValue ?: true
+    }
+
+
 
     /**
      * Public call for stopping the updates

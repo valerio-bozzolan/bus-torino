@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
@@ -98,15 +99,19 @@ public abstract class ScreenBaseFragment extends Fragment {
                     return;
                 final boolean coarseGranted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION));
                 final boolean fineGranted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION));
+                if (coarseGranted != fineGranted){
+                    Log.e("BusTO-ScreenBaseFragment", "the two permissions have different values, coarse "+
+                            coarseGranted +", fineGranted "+fineGranted);
+                }
 
-                listener.onPermissionResult(coarseGranted, fineGranted);
+                listener.onPermissionResult(coarseGranted || fineGranted);
             }
         });
     }
 
 
     public interface LocationRequestListener{
-        void onPermissionResult(boolean isCoarseGranted, boolean isFineGranted);
+        void onPermissionResult(boolean locationGranted);
     }
 
 }

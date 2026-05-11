@@ -36,13 +36,13 @@ import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import androidx.room.concurrent.AtomicBoolean
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import it.reyboz.bustorino.BuildConfig
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.mato.MQTTMatoClient
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
+import it.reyboz.bustorino.map.MapLibreLocationEngine
 import it.reyboz.bustorino.map.MapLibreStyles
 import it.reyboz.bustorino.viewmodels.StopsMapViewModel
 import org.maplibre.android.camera.CameraPosition
@@ -50,7 +50,6 @@ import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.location.engine.LocationEngineCallback
-import org.maplibre.android.location.engine.LocationEngineRequest
 import org.maplibre.android.location.engine.LocationEngineResult
 import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.location.modes.RenderMode
@@ -234,7 +233,8 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             usingMQTTPositions = useMQTT
 
         }
-        mapStateViewModel.locationActive.observe(viewLifecycleOwner){ setLocationIconEnabled(it)}
+        mapStateViewModel.locationUserActive.observe(viewLifecycleOwner){
+            setLocationIconEnabled(it)}
         mapStateViewModel.followingUserPosition.observe(viewLifecycleOwner){ updateFollowingIcon(it)}
 
         Log.d(DEBUG_TAG, "Fragment View Created!")
@@ -622,7 +622,10 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 }
 
                 override fun onFailure(p0: java.lang.Exception) {
-                    Log.e(DEBUG_TAG, "Failed to get the last location", p0)
+                    if( p0 is MapLibreLocationEngine.NoLocationException)
+                            Log.d(DEBUG_TAG, "Cannot find location: ${p0.message}")
+                    else
+                        Log.w(DEBUG_TAG, "Failed to get the last location, error: ${p0.message}",)
                 }
 
             })
@@ -653,7 +656,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 }
                 setLocationComponentEnabled(false)
                 //Update UI Status
-                mapStateViewModel.locationActive.value = false
+                mapStateViewModel.locationUserActive.value = false
                 mapStateViewModel.followingUserPosition.value = false
             } else {
                 map?.apply {
@@ -665,7 +668,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                     )
                     setLocationComponentEnabled(true)
                     locationComponent.cameraMode = CameraMode.TRACKING
-                    mapStateViewModel.locationActive.value = true
+                    mapStateViewModel.locationUserActive.value = true
                 }
                 setFollowUserLocation(true)
             }

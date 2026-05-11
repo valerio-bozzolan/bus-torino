@@ -351,7 +351,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
              descripTextView.text = route.longName
             descripTextView.visibility = View.VISIBLE
         }
-        mapStateViewModel.locationActive.observe(viewLifecycleOwner) {
+        mapStateViewModel.locationUserActive.observe(viewLifecycleOwner) {
             setLocationIconEnabled(it)
         }
         // enable info button if there are alerts on the line
@@ -507,7 +507,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                 true
             }
             if(!newStatus) setLocationComponentEnabled(newStatus)
-            mapStateViewModel.locationActive.value = newStatus
+            mapStateViewModel.locationUserActive.value = newStatus
         }
     }
 

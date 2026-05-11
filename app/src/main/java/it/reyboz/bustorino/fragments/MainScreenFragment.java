@@ -173,34 +173,34 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     boolean locationPermissionGranted, locationPermissionAsked = false;
     AppLocationManager locationManager;
     private final ActivityResultLauncher<String[]> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<>() {
                 @Override
                 public void onActivityResult(Map<String, Boolean> result) {
-                    if(result==null) return;
+                    if (result == null) return;
 
-                    if(result.get(Manifest.permission.ACCESS_COARSE_LOCATION) == null ||
+                    if (result.get(Manifest.permission.ACCESS_COARSE_LOCATION) == null ||
                             result.get(Manifest.permission.ACCESS_FINE_LOCATION) == null)
                         return;
 
-                    Log.d(DEBUG_TAG, "Permissions for location are: "+result);
-                    if(Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION))
-                            || Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION))){
+                    Log.d(DEBUG_TAG, "Permissions for location are: " + result);
+                    if (Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION))
+                            || Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION))) {
                         locationPermissionGranted = true;
                         Log.w(DEBUG_TAG, "Starting position");
-                        if (mListener!= null && getContext()!=null){
-                            if (locationManager==null)
+                        if (mListener != null && getContext() != null) {
+                            if (locationManager == null)
                                 locationManager = AppLocationManager.getInstance(getContext());
                             locationManager.addLocationRequestFor(requester);
                         }
                         // show nearby fragment
                         //showNearbyStopsFragment();
                         Log.d(DEBUG_TAG, "We have location permission");
-                        if(pendingNearbyStopsFragmentRequest){
+                        if (pendingNearbyStopsFragmentRequest) {
                             showNearbyFragmentIfPossible();
                             pendingNearbyStopsFragmentRequest = false;
                         }
                     }
-                    if(pendingNearbyStopsFragmentRequest) pendingNearbyStopsFragmentRequest =false;
+                    if (pendingNearbyStopsFragmentRequest) pendingNearbyStopsFragmentRequest = false;
                 }
             });
 

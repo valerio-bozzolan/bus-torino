@@ -62,7 +62,7 @@
     <string name="enable_position_message_map">Autorisez l\'accès à la localisation pour l\'afficher sur la carte</string>
     <string name="database_update_msg_inapp">Mise à jour de la base de données en cours…</string>
     <string name="settings_reset_database">Lancer la mise à jour manuelle de la base de données</string>
-    <string name="enableGpsText">Veuillez activer la localisation sur l\'appareil</string>
+    <string name="enable_location_message">Veuillez activer la localisation sur l\'appareil</string>
     <string name="database_update_msg_notif">Mise à jour de la base de données</string>
     <string name="database_update_req">Forcer la mise à jour de la base de données</string>
     <string name="arrivals_card_at_the_stop">à l\'arrêt</string>

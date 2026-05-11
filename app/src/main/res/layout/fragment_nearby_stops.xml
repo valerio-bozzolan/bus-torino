@@ -73,7 +73,7 @@
               android:layout_centerHorizontal="true"
               />
     <TextView
-            android:text="@string/enableGpsText"
+            android:text="@string/enable_location_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/messageTextView"
             android:visibility="gone"

@@ -120,8 +120,9 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     protected lateinit var locationProvider: FusedNativeLocationProvider
 
     protected var shownToastNoPosition = false
+    private var locationEnabledOnDevice = true
 
-
+    //TODO ACTIVATE THIS
     private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener(){ pref, key ->
         /*when(key){
             SettingsFragment.LIBREMAP_STYLE_PREF_KEY -> reloadMap()
@@ -217,11 +218,21 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 //remove this
                 locationEngine?.removeLocationUpdates(this)
             }
+
         }
 
         override fun onFailure(exception: Exception) {
             Log.e(DEBUG_TAG, "Error in getting position: ${exception.message}")
         }
+    }
+
+    protected val deviceLocationStatusListener = FusedNativeLocationProvider.LocationStatusListener { isEnabled ->
+        mapStateViewModel.locationDeviceEnabled.value = isEnabled
+        if(locationEnabledOnDevice && !isEnabled && locationInitialized) {
+            warnLocationNotEnabledOnDevice()
+            //setMapLocationEnabled(false)
+        }
+        locationEnabledOnDevice = isEnabled
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -288,9 +299,20 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         super.onDestroy()
     }
 
+    override fun onPause() {
+        super.onPause()
+    }
+
     override fun onDestroyView() {
         bottomLayout = null
+        locationProvider.removeListener(deviceLocationStatusListener)
         super.onDestroyView()
+    }
+
+    protected fun warnLocationNotEnabledOnDevice(){
+        context?.let{
+            Toast.makeText(it,R.string.enable_location_message,Toast.LENGTH_SHORT).show()
+        }
     }
 
     protected fun reloadMap(){
@@ -320,63 +342,6 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         } else throw RuntimeException("$context must implement CommonFragmentListener")
 
     }
-    /*
-    protected fun restoreMapStateFromBundle(bundle: Bundle): Boolean{
-        val nullDouble = -10_000.0
-        var boundsRestored =false
-        val latCenter = bundle.getDouble("center_map_lat", nullDouble)
-        val lonCenter = bundle.getDouble("center_map_lon",nullDouble)
-        val zoom = bundle.getDouble("map_zoom", nullDouble)
-        val bearing = bundle.getDouble("map_bearing", nullDouble)
-        val tilt = bundle.getDouble("map_tilt", nullDouble)
-        if(lonCenter!=nullDouble &&latCenter!=nullDouble) map?.let {
-            val center = LatLng(latCenter, lonCenter)
-            val newPos = CameraPosition.Builder().target(center)
-            if(zoom>0) newPos.zoom(zoom)
-            if(bearing!=nullDouble) newPos.bearing(bearing)
-            if(tilt != nullDouble) newPos.tilt(tilt)
-            it.cameraPosition=newPos.build()
-
-            Log.d(DEBUG_TAG, "Restored map state from Bundle, center: $center, zoom: $zoom, bearing $bearing, tilt $tilt")
-            boundsRestored =true
-        } else{
-            Log.d(DEBUG_TAG, "Not restoring map state, center: $latCenter,$lonCenter; zoom: $zoom, bearing: $bearing, tilt $tilt")
-        }
-        val mStop = bundle.getBundle("shown_stop")?.let {
-            Stop.fromBundle(it)
-        }
-        mStop?.let { openStopInBottomSheet(it) }
-        return boundsRestored
-    }
-
-    protected fun saveMapStateBeforePause(bundle: Bundle){
-        map?.let {
-            val newBbox = it.projection.visibleRegion.latLngBounds
-
-
-            val cp = it.cameraPosition
-            bundle.putDouble("center_map_lat", newBbox.center.latitude)
-            bundle.putDouble("center_map_lon", newBbox.center.longitude)
-            it.cameraPosition.zoom.let { z-> bundle.putDouble("map_zoom",z) }
-            bundle.putDouble("map_bearing",cp.bearing)
-            bundle.putDouble("map_tilt", cp.tilt)
-
-            val locationComponent = it.locationComponent
-            bundle.putBoolean(KEY_LOCATION_ENABLED,locationComponent.isLocationComponentEnabled)
-            bundle.putParcelable("last_location", locationComponent.lastKnownLocation)
-        }
-        shownStopInBottomSheet?.let {
-            bundle.putBundle("shown_stop", it.toBundle())
-        }
-    }
-
-    protected fun saveMapStateInBundle(): Bundle {
-        val b = Bundle()
-        saveMapStateBeforePause(b)
-        return b
-    }
-
-     */
 
     protected fun stopToGeoJsonFeature(s: Stop): Feature{
         return Feature.fromGeometry(
@@ -477,6 +442,9 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             if(locationComponent.isLocationComponentEnabled !=enabled)
             locationComponent.isLocationComponentEnabled= enabled
         changed = true}
+        Log.d(DEBUG_TAG, "Asked to set location component enabled: $enabled, changed: $changed")
+        mapStateViewModel.locationUserActive.value = enabled
+
 
         return changed
     }
@@ -492,21 +460,24 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             locationComponent = map.locationComponent
 
             locationProvider = FusedNativeLocationProvider(context)
+            locationProvider.addListener(deviceLocationStatusListener)
             locationEngine = MapLibreLocationEngine(locationProvider)
             val options = LocationComponentActivationOptions.builder(context, style)
                 .useDefaultLocationEngine(false)
                 .locationEngine(locationEngine)
                 .build()
             locationComponent.activateLocationComponent(options)
-            //locationComponent.cameraMode = CameraMode.TRACKING
-            //locationComponent.renderMode = RenderMode.COMPASS
-            locationInitialized = true
+
             if(BuildConfig.DEBUG) Log.d(DEBUG_TAG, "Requesting location updates")
             locationEngine!!.requestLocationUpdates(LocationEngineRequest.Builder(500).setDisplacement(20.0f).build(),
                     mapLibreLocationCallback, null)
-            // signal to show user location icon as active
-            mapStateViewModel.locationActive.value = true
-            setLocationComponentEnabled(true)
+
+            if(!locationEnabledOnDevice){
+                warnLocationNotEnabledOnDevice()
+            }else {
+                setLocationComponentEnabled(true)
+            }
+            locationInitialized = true
             onMapLocationComponentInitialized()
         }
     }
@@ -994,12 +965,14 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         val context = context ?: return
         if(enabled) {
             setMapLocationEnabled(false)
-            onMapLocationEnabled(false)
         }
-        else if(deviceHasGpsProvider()) {
+        else if(deviceHasLocationProvider()) {
             if(Permissions.bothLocationPermissionsGranted(context)){
-                setMapLocationEnabled(true)
-                onMapLocationEnabled(true)
+                if(!locationEnabledOnDevice){
+                    warnLocationNotEnabledOnDevice()
+                } else{
+                    setMapLocationEnabled(true)
+                }
             } else{
                 Log.d(DEBUG_TAG, "Requesting permissions to show location")
                 Permissions.getInstance(context).checkRequestLocationPermissions(requireActivity(), positionRequestResponder)
@@ -1012,15 +985,20 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
 
     }
 
+    /**
+     * Set the map location component enabled
+     */
     @SuppressLint("MissingPermission")
     protected fun setMapLocationEnabled(enabled: Boolean){
+        Log.d(DEBUG_TAG, "Setting map location enabled: $enabled")
         map?.locationComponent?.isLocationComponentEnabled = enabled
         //map?.cameraPosition =
-        mapStateViewModel.locationActive.value = enabled
+        mapStateViewModel.locationUserActive.value = enabled
+        onMapLocationEnabled(enabled)
     }
     protected fun checkInitMapLocation(mapReady: MapLibreMap,style: Style, context: Context) {
         //enable location
-        val hasGps = deviceHasGpsProvider()
+        val hasGps = deviceHasLocationProvider()
         val permissions = Permissions.getInstance(context)
         if(hasGps) {
             if (Permissions.bothLocationPermissionsGranted(context)) {
@@ -1031,11 +1009,9 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 activity?.let{
                     req = permissions.checkRequestLocationPermissions(it, positionRequestResponder)
                 }
-                //setLocationIconEnabled(false)
-                //setFollowingUser(false)
+
                 if(!req) {
                     setMapLocationEnabled(false)
-                    onMapLocationEnabled(false)
                 }
 
             }
@@ -1061,9 +1037,9 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         return bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED
     }
 
-    protected fun deviceHasGpsProvider(): Boolean{
+    protected fun deviceHasLocationProvider(): Boolean{
         val locManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
-        return locManager.allProviders.contains(LocationManager.GPS_PROVIDER)
+        return locManager.allProviders.size > 0
     }
 
     /**

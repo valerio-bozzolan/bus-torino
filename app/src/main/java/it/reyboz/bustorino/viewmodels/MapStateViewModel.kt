@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import it.reyboz.bustorino.map.MapCameraState
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
-import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.maps.MapLibreMap
 
 class MapStateViewModel : ViewModel() {
@@ -36,8 +35,9 @@ class MapStateViewModel : ViewModel() {
 
     var locationToShow: Location? = null
 
-    val locationActive = MutableLiveData(false)
+    val locationUserActive = MutableLiveData(false)
     val followingUserPosition = MutableLiveData(false)
+    val locationDeviceEnabled = MutableLiveData(false)
 
     companion object{
         fun restoreMapState(map: MapLibreMap, savedCameraState: MapCameraState?): Boolean {

@@ -174,7 +174,7 @@
 
     <string name="enable_position_message_map">Allow access to location to show it on the map</string>
     <string name="enable_position_message_nearby">Allow access to location to show stops nearby</string>
-    <string name="enableGpsText">Please enable location on the device</string>
+    <string name="enable_location_message">Please enable location on the device</string>
     <string name="no_gps_on_device">No GPS receiver found on the device!</string>
     <string name="database_update_msg_inapp">Database update in progress&#8230;</string>
     <string name="database_update_msg_notif">Updating the database</string>
