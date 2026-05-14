@@ -60,55 +60,13 @@
     <string name="about_activity">Informazioni</string>
     <string name="howDoesItWork"><b>Tocca la stella</b> per aggiungere la fermata ai preferiti\n\n<b>Come leggere gli orari:</b>\n<b> 12:56*</b> Orario in tempo reale\n<b> 12:56</b> Orario programmato\n\n<b>Trascina giù per aggiornare</b> l\'orario. \n <b>Tocca a lungo</b> su <b>Fonte Orari</b> per cambiare sorgente degli orari di arrivo</string>
     <string name="hint_button">OK!</string>
-    <string name="about_history_top"><![CDATA[
-        <h1>Benvenuto!</h1>
-        
-        <p>Grazie per aver scelto BusTO, un\'app <b>open source</b> e <b>indipendente</b> da GTT/5T, per spostarsi a Torino attraverso <b>software libero</b>!</p>
-        <p>BusTO rispetta la tua <b>privacy</b> non raccogliendo nessun dato sull\'utilizzo, ed è <b>leggera</b> e senza <b>pubblicità</b>!</p>
-        <br>
-        <p>Qui puoi trovare più informazioni e link riguardo al progetto.</p>
-		<br>
-        <h2>Schermata iniziale</h2>
-        <p>Se vuoi rivedere la schermata iniziale, usa il pulsante qui sotto:</b>
-     ]]></string>
-    <string name="about_channel">
-        <![CDATA[
+    <string name="about_history_top"><![CDATA["<h1>Benvenuto!</h1>\n        \n        <p>Grazie per aver scelto BusTO, un\'app <b>open source</b> e <b>indipendente</b> da GTT/5T, per spostarsi a Torino attraverso <b>software libero</b>!</p>\n        <p>BusTO rispetta la tua <b>privacy</b> non raccogliendo nessun dato sull\'utilizzo, ed è <b>leggera</b> e senza <b>pubblicità</b>!</p>\n        <br>\n        <p>Qui puoi trovare più informazioni e link riguardo al progetto.</p>\n\t\t<br>\n        <h2>Schermata iniziale</h2>\n        <p>Se vuoi rivedere la schermata iniziale, usa il pulsante qui sotto:</b>"]]></string>
+    <string name="about_channel"><![CDATA[
         <h2>Notizie e aggiornamenti</h2>
         <p>Nel canale Telegram puoi trovare informazioni sugli ultimi aggiornamenti dell\'app</p>
         ]]></string>
-    <string name="about_how"><![CDATA[
-        <h2>Ma come funziona?</h2>
-        <p>Quest\'app ottiene i passaggi dei bus, le fermate e altre informazioni utili unendo dati forniti dal sito <b>www.gtt.to.it</b>, <i>www.5t.torino.it</i>, <b>muoversiatorino.it</b> "per uso personale" e altre fonti Open Data (aperto.comune.torino.it).</p>
-        <br>
-		<p>Ingredienti:<br>
-		- <b>Fabio Mazza</b> attuale rockstar developer anziano.<br>
-		- <b>Andrea Ugo</b> attuale rockstar developer in formazione.<br>
-		- <b>Silviu Chiriac</b> designer del logo 2021.<br>
-		- <b>Marco M</b> formidabile tester e cacciatore di bug.<br>
-		- <b>Ludovico Pavesi</b> ex rockstar developer anziano asd.<br>
-		- <b>Valerio Bozzolan</b> attuale manutentore.<br>
-		- <b>Marco Gagino</b> apprezzato ex collaboratore, ideatore icona e grafica.<br>
-		- <b>JSoup</b> libreria per "<i>web scaping</i>".<br>
-		- <b>Google</b> icone e librerie di supporto e design.<br>
-		- Altre icone da <b>Bootstrap</b>, <b>Feather</b> e <b>Hero Icons</b><br>
-		- Tutti i contributori e i beta tester!
-		</p>
-        <br>
-		Se vuoi avere più informazioni o contribuire allo sviluppo, usa i pulsanti qui sotto!</b>
-
-         ]]></string>
-    <string name="about_history_bottom"><![CDATA[
-		<h2>Licenze</h2>
-		<p>L\'app e il relativo codice sorgente sono distribuiti sotto la licenza <i>GNU General Public License v3</i> (https://www.gnu.org/licenses/gpl-3.0.html).
-		Ciò <b>significa</b> che puoi usare, studiare, migliorare e ricondividere quest\'app con <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: a patto di mantenere sempre questi diritti a tua volta e di dare credito a Valerio Bozzolan e agli altri autori del codice dell\'app.
-		</p>
-
-		<br>
-		<h2>Note</h2>
-		<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza NESSUNA garanzia sul suo funzionamento attuale e/o futuro.</p>
-		<p>Tutti i dati utilizzati dall\'app provengono <b>direttamente</b> da GTT o da simili agenzie pubbliche: se trovi che sono inesatti per qualche motivo, ti invitiamo a rivolgerti a loro.</p>
-		<p>Buon utilizzo! :)</p>
-    ]]></string>
+    <string name="about_how"><![CDATA["<h2>Ma come funziona?</h2>\n        <p>Quest\'app ottiene i passaggi dei bus, le fermate e altre informazioni utili unendo dati forniti dal sito <b>www.gtt.to.it</b>, <i>www.5t.torino.it</i>, <b>muoversiatorino.it</b> \"per uso personale\" e altre fonti Open Data (aperto.comune.torino.it).</p>\n        <br>\n\t\t<p>Ingredienti:<br>\n\t\t- <b>Fabio Mazza</b> attuale rockstar developer anziano.<br>\n\t\t- <b>Andrea Ugo</b> attuale rockstar developer in formazione.<br>\n\t\t- <b>Silviu Chiriac</b> designer del logo 2021.<br>\n\t\t- <b>Marco M</b> formidabile tester e cacciatore di bug.<br>\n\t\t- <b>Ludovico Pavesi</b> ex rockstar developer anziano asd.<br>\n\t\t- <b>Valerio Bozzolan</b> attuale manutentore.<br>\n\t\t- <b>Marco Gagino</b> apprezzato ex collaboratore, ideatore icona e grafica.<br>\n\t\t- <b>JSoup</b> libreria per \"<i>web scaping</i>\".<br>\n\t\t- <b>Google</b> icone e librerie di supporto e design.<br>\n\t\t- Altre icone da <b>Bootstrap</b>, <b>Feather</b> e <b>Hero Icons</b><br>\n\t\t- Tutti i contributori e i beta tester!\n\t\t</p>\n        <br>\n\t\tSe vuoi avere più informazioni o contribuire allo sviluppo, usa i pulsanti qui sotto!</b>"]]></string>
+    <string name="about_history_bottom"><![CDATA[<h2>Licenze</h2>\n\t\t<p>L\'app e il relativo codice sorgente sono distribuiti sotto la licenza <i>GNU General Public License v3</i> (https://www.gnu.org/licenses/gpl-3.0.html).\n\t\tCiò <b>significa</b> che puoi usare, studiare, migliorare e ricondividere quest\'app con <b>qualunque mezzo</b> e per <b>qualsiasi scopo</b>: a patto di mantenere sempre questi diritti a tua volta e di dare credito a Valerio Bozzolan e agli altri autori del codice dell\'app.\n\t\t</p>\n\n\t\t<br>\n\t\t<h2>Note</h2>\n\t\t<p>Quest\'applicazione è rilasciata <b>nella speranza che sia utile a tutti</b> ma senza NESSUNA garanzia sul suo funzionamento attuale e/o futuro.</p>\n\t\t<p>Tutti i dati utilizzati dall\'app provengono <b>direttamente</b> da GTT o da simili agenzie pubbliche: se trovi che sono inesatti per qualche motivo, ti invitiamo a rivolgerti a loro.</p>\n\t\t<p>Buon utilizzo! :)</p>]]></string>
     <string name="query_too_short">Nome troppo corto, digita più caratteri e riprova</string>
     <string name="route_towards_destination">%1$s verso %2$s</string>
     <string name="route_towards_unknown">%s (destinazione sconosciuta)</string>
@@ -135,7 +93,7 @@
     <string name="pref_recents_group_title">Fermate recenti</string>
     <string name="settings_group_general">Impostazioni generali</string>
     <string name="settings_group_database">Gestione del database</string>
-    <string name="settings_reset_database">Comincia aggiornamento manuale del database</string>
+    <string name="settings_reset_database">Lancia aggiornamento manuale del database</string>
     <string name="enable_position_message_map">Consenti l\'accesso alla posizione per mostrarla sulla mappa</string>
     <string name="enable_position_message_nearby">Consenti l\'accesso alla posizione per mostrare le fermate vicine</string>
     <string name="enable_location_message">Abilitare la posizione sul dispositivo</string>
@@ -288,4 +246,10 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
     <string name="english">Inglese</string>
     <string name="alert_line_fill">Avvisi per la linea %1$s:</string>
     <string name="checking_alerts_update">Controllo degli avvisi disponibili in corso</string>
+    <string name="no_gps_on_device">Servizio GPS non trovato sul dispositivo!</string>
+    <string name="downloading_alerts_message">Download dati avvisi in tempo reale</string>
+    <string name="no_permission_dialog_title">Permesso mancante</string>
+    <string name="no_permission_dialog_text_location">Per usare questa funzionalità, l\'app necessita dell\'accesso alla posizione, che ora può essere dato solo dalle impostazioni di sistema.</string>
+    <string name="no_permission_dialog_open">Apri le impostazioni</string>
+    <string name="back_again_to_close">Premi ancora \"indietro\" per uscire dall\'app</string>
 </resources>
