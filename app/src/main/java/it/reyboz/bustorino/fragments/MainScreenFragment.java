@@ -21,8 +21,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Criteria;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -61,13 +59,11 @@ import java.util.Map;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.data.PreferencesHolder;
-import it.reyboz.bustorino.middleware.AppLocationManager;
 import it.reyboz.bustorino.middleware.AsyncArrivalsSearcher;
 import it.reyboz.bustorino.middleware.AsyncStopsSearcher;
 import it.reyboz.bustorino.middleware.BarcodeScanContract;
 import it.reyboz.bustorino.middleware.BarcodeScanOptions;
 import it.reyboz.bustorino.middleware.BarcodeScanUtils;
-import it.reyboz.bustorino.util.LocationCriteria;
 import it.reyboz.bustorino.util.Permissions;
 
 import static it.reyboz.bustorino.backend.utils.getBusStopIDFromUri;
@@ -112,7 +108,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     private int searchMode;
     //private ImageButton addToFavorites;
     //// HIDDEN BUT IMPORTANT ELEMENTS ////
-    FragmentManager childFragMan;
+    private FragmentManager childFragMan;
     Handler mainHandler;
     private final Runnable refreshStop = new Runnable() {
         public void run() {
@@ -171,7 +167,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     boolean pendingIntroRun = false;
     boolean pendingNearbyStopsFragmentRequest = false;
     boolean locationPermissionGranted, locationPermissionAsked = false;
-    AppLocationManager locationManager;
+    //AppLocationManager locationManager;
     private final ActivityResultLauncher<String[]> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<>() {
                 @Override
@@ -187,11 +183,13 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
                             || Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION))) {
                         locationPermissionGranted = true;
                         Log.w(DEBUG_TAG, "Starting position");
-                        if (mListener != null && getContext() != null) {
+                        /*if (mListener != null && getContext() != null) {
                             if (locationManager == null)
                                 locationManager = AppLocationManager.getInstance(getContext());
                             locationManager.addLocationRequestFor(requester);
                         }
+
+                         */
                         // show nearby fragment
                         //showNearbyStopsFragment();
                         Log.d(DEBUG_TAG, "We have location permission");
@@ -205,9 +203,9 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             });
 
 
-    private final LocationCriteria cr = new LocationCriteria(2000, 10000);
+    //private final LocationCriteria cr = new LocationCriteria(2000, 10000);
     //Location
-    private AppLocationManager.LocationRequester requester = new AppLocationManager.LocationRequester() {
+    /*private AppLocationManager.LocationRequester requester = new AppLocationManager.LocationRequester() {
         @Override
         public void onLocationChanged(Location loc) {
 
@@ -255,7 +253,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         }
     };
 
-
+     */
 
     //// ACTIVITY ATTACHED (LISTENER ///
     private CommonFragmentListener mListener;
@@ -337,15 +335,14 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         fragmentHelper = new FragmentHelper(this, getChildFragmentManager(), getContext(), R.id.resultFrame);
         setSearchModeBusStopID();
 
-
-
+        /*
         cr.setAccuracy(Criteria.ACCURACY_FINE);
         cr.setAltitudeRequired(false);
         cr.setBearingRequired(false);
         cr.setCostAllowed(true);
         cr.setPowerRequirement(Criteria.NO_REQUIREMENT);
-
-        locationManager = AppLocationManager.getInstance(requireContext());
+        */
+        //locationManager = AppLocationManager.getInstance(requireContext());
 
         Log.d(DEBUG_TAG, "OnCreateView, savedInstanceState null: "+(savedInstanceState==null));
 
@@ -470,8 +467,8 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
 
         final Context con = requireContext();
         Log.w(DEBUG_TAG, "OnResume called, setupOnStart: "+ setupOnStart);
-        if (locationManager == null)
-            locationManager = AppLocationManager.getInstance(con);
+        //if (locationManager == null)
+        //    locationManager = AppLocationManager.getInstance(con);
         //recheck the introduction activity has been run
         if(pendingIntroRun && PreferencesHolder.hasIntroFinishedOneShot(con)){
             //request position permission if needed
@@ -487,8 +484,8 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
         }
         if(Permissions.bothLocationPermissionsGranted(con)){
             Log.d(DEBUG_TAG, "Location permission OK");
-            if(!locationManager.isRequesterRegistered(requester))
-                locationManager.addLocationRequestFor(requester);
+            //if(!locationManager.isRequesterRegistered(requester))
+            //    locationManager.addLocationRequestFor(requester);
         } //don't request permission
         // if we have a pending stopID request, do it
         Log.d(DEBUG_TAG, "Pending stop ID for arrivals: "+pendingStopID);
@@ -533,7 +530,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     @Override
     public void onPause() {
         //mainHandler = null;
-        locationManager.removeLocationRequestFor(requester);
+        //locationManager.removeLocationRequestFor(requester);
         super.onPause();
         fragmentHelper.setBlockAllActivities(true);
         fragmentHelper.stopLastRequestIfNeeded(true);
@@ -648,7 +645,6 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
     }
 
     @Nullable
-    @org.jetbrains.annotations.Nullable
     @Override
     public View getBaseViewForSnackBar() {
         return coordLayout;
@@ -718,7 +714,7 @@ public class MainScreenFragment extends ScreenBaseFragment implements  FragmentL
             hideKeyboard();
 
             if (pendingNearbyStopsFragmentRequest) {
-                locationManager.removeLocationRequestFor(requester);
+                //locationManager.removeLocationRequestFor(requester);
                 pendingNearbyStopsFragmentRequest = false;
             }
         }

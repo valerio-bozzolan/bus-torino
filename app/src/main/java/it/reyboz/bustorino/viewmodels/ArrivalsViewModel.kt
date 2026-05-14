@@ -23,6 +23,8 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.map
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import it.reyboz.bustorino.backend.*
 import it.reyboz.bustorino.backend.mato.MatoAPIFetcher
@@ -37,25 +39,33 @@ import java.util.concurrent.atomic.AtomicReference
 class ArrivalsViewModel(application: Application): AndroidViewModel(application) {
 
     // Arrivals of palina
-    val appContext: Context
+    val appContext: Context = application.applicationContext
+    private val executor = Executors.newFixedThreadPool(2)
+    private val oldRepo = OldDataRepository(executor, application)
 
-    val palinaLiveData = MediatorLiveData<Palina>()
+
+    val palinaFromArrivals = MediatorLiveData<Palina>()
+    val palinaToShow = MediatorLiveData<Palina>()
     val sourcesLiveData = MediatorLiveData<Passaggio.Source>()
 
     val resultLiveData = MutableLiveData<Fetcher.Result>()
 
     val currentFetchers = MediatorLiveData<List<ArrivalsFetcher>>()
 
-    /// OLD REPO for stops instance
-    private val executor = Executors.newFixedThreadPool(2)
-    private val oldRepo = OldDataRepository(executor, NextGenDB.getInstance(application))
+    private val stopID = MutableLiveData<String>()
+
+    fun setStopId(stopId: String) { stopID.value = (stopId) }
+    val stopFavoritesData = stopID.switchMap { oldRepo.getFavoritesLiveDataByStopId(listOf(it))}
+    val stopInFavorites = stopFavoritesData.map { it!=null && it.isNotEmpty() }
+
+        /// OLD REPO for stops instance
 
     private var stopIdRequested = ""
     private val stopFromDB = MutableLiveData<Stop>()
 
     val arrivalsRequestRunningLiveData = MutableLiveData(false)
 
-    private val oldRepoStopCallback = OldDataRepository.Callback<List<Stop>>{ stopListRes ->
+    private val oldRepoStopCallback = OldDataRepository.Callback<ArrayList<Stop>>{ stopListRes ->
         if(stopIdRequested.isEmpty()) return@Callback
 
         if(stopListRes.isSuccess) {
@@ -72,15 +82,32 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
     }
 
     init {
-        appContext = application.applicationContext
 
-        palinaLiveData.addSource(stopFromDB){
+        palinaFromArrivals.addSource(stopFromDB){
             s ->
-            val hasSource = palinaLiveData.value?.passaggiSourceIfAny
-            Log.d(DEBUG_TAG, "Have current palina ${palinaLiveData.value!=null}, source passaggi $hasSource,  new incoming stop $s from database")
-            val newp = if(palinaLiveData.value == null) Palina(s) else Palina.mergePaline(palinaLiveData.value, Palina(s))
-            Log.d(DEBUG_TAG, "Merged palina: $newp, num passages: ${newp?.totalNumberOfPassages}, has coords: ${newp?.hasCoords()}")
-            newp?.let { pal -> palinaLiveData.postValue(pal) }
+            val hasSource = palinaFromArrivals.value?.passaggiSourceIfAny
+            //Log.d(DEBUG_TAG, "Have current palina ${palinaLiveData.value!=null}, source passaggi $hasSource,  new incoming stop $s from database")
+            val newp = if(palinaFromArrivals.value == null) Palina(s) else Palina.mergePaline(palinaFromArrivals.value, Palina(s))
+            //Log.d(DEBUG_TAG, "Merged palina: $newp, num passages: ${newp?.totalNumberOfPassages}, has coords: ${newp?.hasCoords()}")
+            newp?.let { pal -> palinaFromArrivals.postValue(pal) }
+        }
+        palinaToShow.addSource(stopFavoritesData){ dat ->
+            val current = palinaFromArrivals.value
+            Log.d(DEBUG_TAG, "have palina $current and favorites data: $dat")
+            if(dat!=null && current!=null){
+                if(dat.size>0 && dat[0].stopUserName!=null) // is in the favorites
+                    current.stopUserName = dat[0].stopUserName
+                //set new data in palinaLiveData
+                palinaToShow.value = current
+            }
+        }
+        palinaToShow.addSource(palinaFromArrivals){ p->
+            stopFavoritesData.value?.let {it ->
+                if(it.isNotEmpty() && it[0].stopUserName!=null) {
+                    p.stopUserName = it[0].stopUserName
+                }
+            }
+            palinaToShow.value = p
         }
 
     }
@@ -89,6 +116,7 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
         palina.clearRoutes()
         return palina
     }
+
 
     fun requestArrivalsForStop(stopId: String, fetchers: List<ArrivalsFetcher>){
         val context = appContext //application.applicationContext
@@ -222,8 +250,8 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
         arrivalsRequestRunningLiveData.postValue(false)
         resultLiveData.postValue(fetcherResult)
         Log.d(DEBUG_TAG, "Have new result palina for stop ${palina.ID}, source ${palina.passaggiSourceIfAny} has coords: ${palina.hasCoords()}")
-        Log.d(DEBUG_TAG, "Old palina liveData is: ${palinaLiveData.value?.stopDisplayName}, has Coords ${palinaLiveData.value?.hasCoords()}")
-        palinaLiveData.postValue(Palina.mergePaline(palina, palinaLiveData.value))
+        Log.d(DEBUG_TAG, "Old palina liveData is: ${palinaFromArrivals.value?.stopDisplayName}, has Coords ${palinaFromArrivals.value?.hasCoords()}")
+        palinaFromArrivals.postValue(Palina.mergePaline(palina, palinaFromArrivals.value))
     }
     companion object{
         const val DEBUG_TAG="BusTO-ArrivalsViMo"

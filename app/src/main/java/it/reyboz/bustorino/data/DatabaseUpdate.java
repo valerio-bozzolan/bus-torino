@@ -17,10 +17,8 @@
  */
 package it.reyboz.bustorino.data;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -58,9 +56,9 @@ public class DatabaseUpdate {
 
 
 
-
+    //todo: do something with this enum to show the user
     public enum Result {
-            DONE, ERROR_STOPS_DOWNLOAD, ERROR_LINES_DOWNLOAD, DB_CLOSED
+            DONE, ERROR_STOPS_DOWNLOAD, ERROR_LINES_DOWNLOAD, DATABASE_ERROR
         }
 
     /**
@@ -219,62 +217,12 @@ public class DatabaseUpdate {
 
         }
         final NextGenDB dbHelp = NextGenDB.getInstance(con.getApplicationContext());
-        final SQLiteDatabase db = dbHelp.getWritableDatabase();
-
-        if(!db.isOpen()){
-            //catch errors like: java.lang.IllegalStateException: attempt to re-open an already-closed object: SQLiteDatabase
-            //we have to abort the work and restart it
-            return Result.DB_CLOSED;
-        }
-        //TODO: Get the type of stop from the lines
-        //Empty the needed tables
-
-        db.beginTransaction();
-        //db.execSQL("DELETE FROM "+StopsTable.TABLE_NAME);
-        //db.delete(LinesTable.TABLE_NAME,null,null);
-
-        //put new data
-        long startTime = System.currentTimeMillis();
-
-        Log.d(DEBUG_TAG, "Inserting " + palinasMatoAPI.size() + " stops");
-        String routesStoppingString="";
-        int patternsStopsHits = 0;
-        for (final Palina p : palinasMatoAPI) {
-            final ContentValues cv = new ContentValues();
-
-            cv.put(NextGenDB.Contract.StopsTable.COL_ID, p.ID);
-            cv.put(NextGenDB.Contract.StopsTable.COL_NAME, p.getStopDefaultName());
-            if (p.location != null)
-                cv.put(NextGenDB.Contract.StopsTable.COL_LOCATION, p.location);
-            cv.put(NextGenDB.Contract.StopsTable.COL_LAT, p.getLatitude());
-            cv.put(NextGenDB.Contract.StopsTable.COL_LONG, p.getLongitude());
-            if (p.getAbsurdGTTPlaceName() != null) cv.put(NextGenDB.Contract.StopsTable.COL_PLACE, p.getAbsurdGTTPlaceName());
-            if(p.gtfsID!= null && routesStoppingByStop.containsKey(p.gtfsID)){
-                final ArrayList<String> routesSs= new ArrayList<>(routesStoppingByStop.get(p.gtfsID));
-                routesStoppingString = Palina.buildRoutesStringFromNames(routesSs);
-                patternsStopsHits++;
-            } else{
-                routesStoppingString = p.routesThatStopHereToString();
-            }
-            cv.put(NextGenDB.Contract.StopsTable.COL_LINES_STOPPING, routesStoppingString);
-            if (p.type != null) cv.put(NextGenDB.Contract.StopsTable.COL_TYPE, p.type.getCode());
-            if (p.gtfsID != null) cv.put(NextGenDB.Contract.StopsTable.COL_GTFS_ID, p.gtfsID);
-            //Log.d(DEBUG_TAG,cv.toString());
-            //cpOp.add(ContentProviderOperation.newInsert(uritobeused).withValues(cv).build());
-            //valuesArr[i] = cv;
-            db.replace(NextGenDB.Contract.StopsTable.TABLE_NAME, null, cv);
-
-        }
-        db.setTransactionSuccessful();
-        db.endTransaction();
-        long endTime = System.currentTimeMillis();
-        Log.d(DEBUG_TAG, "Inserting stops took: " + ((double) (endTime - startTime) / 1000) + " s");
-        Log.d(DEBUG_TAG, "\t"+patternsStopsHits+" routes string were built from the patterns");
-        // These should NOT be closed: the database is a singleton, the connections are recycled.
-        //db.close();
-        //dbHelp.close();
-
-        return DatabaseUpdate.Result.DONE;
+        //final SQLiteDatabase db = dbHelp.getWritableDatabase();
+        boolean done= dbHelp.updateDataStops(palinasMatoAPI, routesStoppingByStop);
+        if(done)
+            return DatabaseUpdate.Result.DONE;
+        else
+            return Result.DATABASE_ERROR;
     }
 
     public static boolean setDBUpdatingFlag(Context con, boolean value){

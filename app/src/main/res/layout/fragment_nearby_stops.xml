@@ -13,6 +13,7 @@
             android:layout_marginTop="15dp"
             android:paddingTop="3dp"
             android:gravity="center_horizontal"
+            android:fontFamily="@font/lato_bold"
             android:textSize="23sp"
             android:layout_toLeftOf="@id/switchButton" android:layout_marginLeft="10dp"
             android:layout_marginStart="10dp" android:layout_marginRight="10dp" android:layout_marginEnd="10dp"
@@ -45,11 +46,18 @@
 
     <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
-            android:layout_height="match_parent" android:layout_below="@id/horizontalProgressBar"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/horizontalProgressBar"
             android:id="@+id/stopGridRecyclerView"
             android:clickable="true"
-            android:focusable="true" android:visibility="gone"
-            android:clipChildren="false" android:clipToPadding="true" android:horizontalSpacing="10dp"
+            android:focusable="true"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:visibility="gone"
+            android:clipChildren="false"
+            android:clipToPadding="true"
+            android:horizontalSpacing="10dp"
             android:layout_alignParentBottom="true"
             android:verticalSpacing="10dp"/>
 
@@ -75,11 +83,15 @@
     <TextView
             android:text="@string/enable_location_message"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/messageTextView"
+            android:layout_height="wrap_content"
+            android:id="@+id/messageTextView"
+            android:fontFamily="@font/lato_regular"
             android:visibility="gone"
             android:textAppearance="@style/Base.ThemeOverlay.AppCompat.Light"
-            android:layout_below="@+id/titleTextView" android:layout_centerHorizontal="true" android:textSize="17sp"
-            android:layout_marginTop="20dp"
+            android:layout_below="@+id/titleTextView"
+            android:layout_centerHorizontal="true"
+            android:textSize="17sp"
+            android:layout_margin="20dp"
     />
 
 

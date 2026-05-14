@@ -40,7 +40,7 @@ class LinesViewModel(application: Application) : AndroidViewModel(application) {
     init {
         gtfsRepo = GtfsRepository(application)
 
-        oldRepo = OldDataRepository(executor, NextGenDB.getInstance(application))
+        oldRepo = OldDataRepository(executor, application)
 
     }
 

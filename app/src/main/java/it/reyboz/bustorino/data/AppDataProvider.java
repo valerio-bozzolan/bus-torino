@@ -28,13 +28,12 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.backend.DBStatusManager;
-import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.backend.utils;
 import it.reyboz.bustorino.data.NextGenDB.Contract.*;
 
 import java.util.List;
 
-import static it.reyboz.bustorino.data.UserDB.getFavoritesColumnNamesAsArray;
+import static it.reyboz.bustorino.data.UserDB.FAVORITES_COLUMNS_ARRAY;
 
 public class AppDataProvider extends ContentProvider {
 
@@ -249,7 +248,7 @@ public class AppDataProvider extends ContentProvider {
                 }
 
             case FAVORITES_OP:
-                final String stopFavSelection = getFavoritesColumnNamesAsArray[0]+" = ?";
+                final String stopFavSelection = FAVORITES_COLUMNS_ARRAY[0]+" = ?";
                 db = userDBHelper.getReadableDatabase();
                 Log.d(DEBUG_TAG,"Asked information on Favorites about stop with id "+uri.getLastPathSegment());
                 return db.query(UserDB.TABLE_NAME,projection,stopFavSelection,new String[]{uri.getLastPathSegment()},null,null,sortOrder);

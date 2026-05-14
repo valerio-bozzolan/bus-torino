@@ -28,7 +28,9 @@ import android.provider.BaseColumns;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import it.reyboz.bustorino.backend.Palina;
+import it.reyboz.bustorino.backend.Result;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 
@@ -91,9 +93,10 @@ public class NextGenDB extends SQLiteOpenHelper{
     public static final String QUERY_FROM_GTFS_ID_IN_TO_COMPLETE= StopsTable.COL_GTFS_ID +" IN ";
 
     public static String QUERY_WHERE_ID = StopsTable.COL_ID+" = ?";
-
+    public static final int RESULT_SQLITE_ERROR = -4;
 
     private final Context appContext;
+    private final InvalidationTracker invalidationTracker = new InvalidationTracker();
     private static NextGenDB INSTANCE;
 
     private NextGenDB(Context context) {
@@ -176,7 +179,8 @@ public class NextGenDB extends SQLiteOpenHelper{
      *  double lngFrom = bb.getLonWestE6() / 1E6;
      *  double lngTo = bb.getLonEastE6() / 1E6;
      */
-    public synchronized ArrayList<Stop> queryAllInsideMapView(double minLat, double maxLat, double minLng, double maxLng) throws SQLiteDatabaseLockedException {
+    @NonNull
+    public synchronized Result<ArrayList<Stop>> queryAllInsideMapView(double minLat, double maxLat, double minLng, double maxLng) {
         ArrayList<Stop> stops = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
@@ -186,48 +190,52 @@ public class NextGenDB extends SQLiteOpenHelper{
         String minLngRaw = String.valueOf(minLng);
         String maxLngRaw = String.valueOf(maxLng);
 
-
         if(db == null) {
-            return stops;
+            return Result.failure(new SQLiteException("Database is null"));
         }
 
-        try {
-            final Cursor result = db.query(StopsTable.TABLE_NAME, QUERY_COLUMN_stops_all, QUERY_WHERE_LAT_AND_LNG_IN_RANGE,
-                    new String[] {minLatRaw, maxLatRaw, minLngRaw, maxLngRaw},
-                    null, null, null);
+        try (final Cursor result = db.query(StopsTable.TABLE_NAME, QUERY_COLUMN_stops_all, QUERY_WHERE_LAT_AND_LNG_IN_RANGE,
+                new String[] {minLatRaw, maxLatRaw, minLngRaw, maxLngRaw},
+                null, null, null)) {
             stops = getStopsFromCursorAllFields(result);
-            result.close();
         } catch(SQLiteException e) {
             Log.e(DEBUG_TAG, "SQLiteException occurred");
-            e.printStackTrace();
-            return stops;
+            return Result.failure(e);
         }catch (Exception e){
             Log.e(DEBUG_TAG, "Exception occurred when getting stops");
-            e.printStackTrace();
-            return stops;
-        }
-        finally {
-            db.close();
+            return Result.failure(e);
         }
 
-        return stops;
+        return Result.success(stops);
     }
+
+    @NonNull
+    public QueryLiveData<ArrayList<Stop>> queryAllInsideMapViewLiveData(double minLat, double maxLat, double minLng, double maxLng) {
+        return  new QueryLiveData<>(List.of(StopsTable.TABLE_NAME), invalidationTracker,()->{
+            Result<ArrayList<Stop>> queryResult = queryAllInsideMapView(minLat, maxLat, minLng, maxLng);
+            if(queryResult.isSuccess()){
+                return queryResult.result;
+            } else{
+                Log.w(DEBUG_TAG, "queryAllInsideMapViewLiveData failed", queryResult.exception);
+                return new ArrayList<>();
+            }
+        });
+    }
+
+
 
     /**
      * Query stops in the database having these IDs
-     * REMEMBER TO CLOSE THE DB CONNECTION AFTERWARDS
      * @param bustoDB readable database instance
      * @param gtfsIDs gtfs IDs to query
      * @return list of stops
      */
-    public static synchronized ArrayList<Stop> queryAllStopsWithGtfsIDs(SQLiteDatabase bustoDB, List<String> gtfsIDs){
+    @NonNull
+    public static synchronized Result<ArrayList<Stop>> queryAllStopsWithGtfsIDs(@NonNull SQLiteDatabase bustoDB,@NonNull List<String> gtfsIDs){
         final ArrayList<Stop> stops = new ArrayList<>();
 
-        if(bustoDB == null){
-            Log.e(DEBUG_TAG, "Asked query for IDs but database is null");
-            return stops;
-        } else if (gtfsIDs == null || gtfsIDs.isEmpty()) {
-            return stops;
+        if (gtfsIDs.isEmpty()) {
+            return Result.success(stops);
         }
 
         final StringBuilder builder = new StringBuilder(QUERY_FROM_GTFS_ID_IN_TO_COMPLETE);
@@ -246,19 +254,89 @@ public class NextGenDB extends SQLiteOpenHelper{
 
         final String[] idsQuery = gtfsIDs.toArray(new String[0]);
 
-        try {
-            final Cursor result = bustoDB.query(StopsTable.TABLE_NAME,QUERY_COLUMN_stops_all, whereClause,
-                    idsQuery,
-                    null, null, null);
+        try(Cursor result = bustoDB.query(StopsTable.TABLE_NAME,QUERY_COLUMN_stops_all, whereClause,
+                idsQuery,
+                null, null, null)) {
             stops.addAll(getStopsFromCursorAllFields(result));
-            result.close();
+        } catch(SQLiteException e) {
+            Log.w(DEBUG_TAG, "SQLiteException occurred in getting stops");
+            return Result.failure(e);
+        }
+        return Result.success(stops);
+    }
+
+    public static String buildWhereClause(String colName, List<String> args){
+        final StringBuilder builder = new StringBuilder().append(colName).append(" IN ");
+        boolean first = true;
+        builder.append(" ( ");
+        for(int i=0; i< args.size(); i++){
+            if(first){
+                first = false;
+            } else{
+                builder.append(", ");
+            }
+            builder.append("?");
+        }
+        builder.append(") ");
+        return builder.toString();
+    }
+
+    /**
+     * Query stops in the database having these IDs
+     * @param bustoDB readable database instance
+     * @param stopIds to query
+     * @return list of stops
+     */
+    @NonNull
+    public static synchronized Result<ArrayList<Stop>> queryStopsWithStopIds(@NonNull SQLiteDatabase bustoDB,@NonNull List<String> stopIds){
+        ArrayList<Stop> stops = null;
+
+        if (stopIds.isEmpty()) {
+            return Result.success(stops);
+        }
+
+        final StringBuilder builder = new StringBuilder().append(StopsTable.COL_ID).append(" IN ");
+        boolean first = true;
+        builder.append(" ( ");
+        for(int i=0; i< stopIds.size(); i++){
+            if(first){
+                first = false;
+            } else{
+                builder.append(", ");
+            }
+            builder.append("?");//.append("\"").append(id).append("\"");
+        }
+        builder.append(") ");
+        final String whereClause = builder.toString();
+        Log.d(DEBUG_TAG, "Asking for all stops with IDs, query: "+whereClause);
+
+        final String[] idsQuery = stopIds.toArray(new String[0]);
+
+        try(Cursor result = bustoDB.query(StopsTable.TABLE_NAME,QUERY_COLUMN_stops_all, whereClause,
+                idsQuery,
+                null, null, null)) {
+            stops = getStopsFromCursorAllFields(result);
         } catch(SQLiteException e) {
             Log.e(DEBUG_TAG, "SQLiteException occurred");
-            e.printStackTrace();
-
+            return Result.failure(e);
         }
-        return stops;
+        return Result.success(stops);
     }
+
+    @NonNull
+    public QueryLiveData<ArrayList<Stop>> queryStopsWithStopIdsLiveData(@NonNull  List<String> stopIds){
+        return new QueryLiveData<>(List.of(StopsTable.TABLE_NAME), invalidationTracker, ()->{
+            Log.d(DEBUG_TAG, "Table stops changed, redoing query");
+            SQLiteDatabase db = this.getReadableDatabase();
+            Result<ArrayList<Stop>> result = queryStopsWithStopIds(db, stopIds);
+            if(result.isSuccess()){
+                return result.result;
+            } else{
+                return null;
+            }
+        });
+    }
+
 
     /**
      * Get the list of stop in the query, with all the possible fields {NextGenDB.QUERY_COLUMN_stops_all}
@@ -307,34 +385,6 @@ public class NextGenDB extends SQLiteOpenHelper{
         return stops;
     }
 
-    public static synchronized int writeLinesStoppingHere(SQLiteDatabase db, HashMap<String,Set<String>> linesStoppingBy){
-        int rowsUpdated = 0;
-        for (String stopGtfsID : linesStoppingBy.keySet()){
-            if (linesStoppingBy.get(stopGtfsID)==null) continue;
-            if (linesStoppingBy.get(stopGtfsID).isEmpty()) continue;
-            ArrayList<String> ll = new ArrayList<>(linesStoppingBy.get(stopGtfsID));
-            String stringForStops = Palina.buildRoutesStringFromNames(ll);
-
-            ContentValues cv = new ContentValues();
-            cv.put(StopsTable.COL_LINES_STOPPING, stringForStops);
-
-            // Which row to update, based on the title
-            String selection = StopsTable.COL_GTFS_ID + " LIKE ?";
-            String[] selectionArgs = { stopGtfsID };
-
-            int count = db.update(
-                    StopsTable.TABLE_NAME,
-                    cv,
-                    selection,
-                    selectionArgs);
-            if (count > 1){
-                Log.e(DEBUG_TAG, "Updated the linesStoppingBy for more than one stop");
-            }
-            rowsUpdated += count;
-        }
-        return  rowsUpdated;
-    }
-
     public static boolean insertBranchesIntoDB(@NonNull Context context, @NonNull List<Route> routesToInsert){
         final NextGenDB nextGenDB = NextGenDB.getInstance(context);
         //ContentValues[] values = new ContentValues[routesToInsert.size()];
@@ -345,40 +395,7 @@ public class NextGenDB extends SQLiteOpenHelper{
             //if it has received an interrupt, stop
             if(Thread.interrupted()) return false;
             //otherwise, build contentValues
-            final ContentValues cv = new ContentValues();
-            cv.put(BranchesTable.COL_BRANCHID,r.branchid);
-            cv.put(LinesTable.COLUMN_NAME,r.getName());
-            cv.put(BranchesTable.COL_DIRECTION,r.destinazione);
-            cv.put(BranchesTable.COL_DESCRIPTION,r.description);
-            for (int day :r.serviceDays) {
-                switch (day){
-                    case Calendar.MONDAY:
-                        cv.put(BranchesTable.COL_LUN,1);
-                        break;
-                    case Calendar.TUESDAY:
-                        cv.put(BranchesTable.COL_MAR,1);
-                        break;
-                    case Calendar.WEDNESDAY:
-                        cv.put(BranchesTable.COL_MER,1);
-                        break;
-                    case Calendar.THURSDAY:
-                        cv.put(BranchesTable.COL_GIO,1);
-                        break;
-                    case Calendar.FRIDAY:
-                        cv.put(BranchesTable.COL_VEN,1);
-                        break;
-                    case Calendar.SATURDAY:
-                        cv.put(BranchesTable.COL_SAB,1);
-                        break;
-                    case Calendar.SUNDAY:
-                        cv.put(BranchesTable.COL_DOM,1);
-                        break;
-                }
-            }
-            if(r.type!=null) cv.put(BranchesTable.COL_TYPE, r.type.getCode());
-            cv.put(BranchesTable.COL_FESTIVO, r.festivo.getCode());
-
-            //values[routesToInsert.indexOf(r)] = cv;
+            final ContentValues cv = createContentValuesBranch(r);
             branchesValues.add(cv);
             if(r.getStopsList() != null)
                 for(int i=0; i<r.getStopsList().size();i++){
@@ -392,28 +409,133 @@ public class NextGenDB extends SQLiteOpenHelper{
                     connectionsVals.add(connVal);
                 }
         }
+        //ContentResolver cr = context.getContentResolver();
+
         starttime = System.currentTimeMillis();
-        ContentResolver cr = context.getContentResolver();
-        try {
-            cr.bulkInsert(Uri.parse("content://" + AppDataProvider.AUTHORITY + "/branches/"), branchesValues.toArray(new ContentValues[0]));
-            endtime = System.currentTimeMillis();
-            Log.d("DataDownload", "Inserted branches, took " + (endtime - starttime) + " ms");
-        } catch (SQLException exc){
-            Log.e("AsyncDataDownload","Inserting data: some error happened, aborting the database insert");
-            exc.printStackTrace();
+        //cr.bulkInsert(Uri.parse("content://" + AppDataProvider.AUTHORITY + "/branches/"), branchesValues.toArray(new ContentValues[0]));
+        int rows = nextGenDB.insertBatchContent(branchesValues.toArray(new ContentValues[0]), BranchesTable.TABLE_NAME, SQLiteDatabase.CONFLICT_REPLACE);
+        endtime = System.currentTimeMillis();
+        Log.d("DataDownload", "Inserted branches, took " + (endtime - starttime) + " ms, inserted "+ rows + " rows");
+        if(rows == RESULT_SQLITE_ERROR){
             return false;
         }
+
 
         if (!connectionsVals.isEmpty()) {
             starttime = System.currentTimeMillis();
             ContentValues[] valArr = connectionsVals.toArray(new ContentValues[0]);
             Log.d("DataDownloadInsert", "inserting " + valArr.length + " connections");
-            int rows = nextGenDB.insertBatchContent(valArr, ConnectionsTable.TABLE_NAME);
+            rows = nextGenDB.insertBatchContent(valArr, ConnectionsTable.TABLE_NAME, SQLiteDatabase.CONFLICT_REPLACE);
             endtime = System.currentTimeMillis();
             Log.d("DataDownload", "Inserted connections found, took " + (endtime - starttime) + " ms, inserted " + rows + " rows");
+            if(rows == RESULT_SQLITE_ERROR){
+                return false;
+            }
         }
         //nextGenDB.close();
         return true;
+    }
+
+    public boolean updateDataStops(List<Palina> palinas, HashMap<String, Set<String>> routesStoppingByStop){
+        SQLiteDatabase db = getWritableDatabase();
+        boolean completed = false;
+        if(!db.isOpen()){
+            //catch errors like: java.lang.IllegalStateException: attempt to re-open an already-closed object: SQLiteDatabase
+            //we have to abort the work and restart it
+            return completed;
+        }
+        int patternsStopsHits = 0;
+        long startTime = System.currentTimeMillis();
+
+        try {
+            //TODO: Get the type of stop from the lines
+            //Empty the needed tables
+
+            db.beginTransaction();
+            //put new data
+
+            Log.d(DEBUG_TAG, "Inserting " + palinas.size() + " stops");
+            String routesStoppingString = "";
+
+            for (final Palina p : palinas) {
+                final ContentValues cv = new ContentValues();
+
+                cv.put(StopsTable.COL_ID, p.ID);
+                cv.put(StopsTable.COL_NAME, p.getStopDefaultName());
+                if (p.location != null)
+                    cv.put(StopsTable.COL_LOCATION, p.location);
+                cv.put(StopsTable.COL_LAT, p.getLatitude());
+                cv.put(StopsTable.COL_LONG, p.getLongitude());
+                if (p.getAbsurdGTTPlaceName() != null)
+                    cv.put(StopsTable.COL_PLACE, p.getAbsurdGTTPlaceName());
+                if (p.gtfsID != null && routesStoppingByStop.containsKey(p.gtfsID)) {
+                    final ArrayList<String> routesSs = new ArrayList<>(routesStoppingByStop.get(p.gtfsID));
+                    routesStoppingString = Palina.buildRoutesStringFromNames(routesSs);
+                    patternsStopsHits++;
+                } else {
+                    routesStoppingString = p.routesThatStopHereToString();
+                }
+                cv.put(StopsTable.COL_LINES_STOPPING, routesStoppingString);
+                if (p.type != null) cv.put(StopsTable.COL_TYPE, p.type.getCode());
+                if (p.gtfsID != null) cv.put(StopsTable.COL_GTFS_ID, p.gtfsID);
+                //Log.d(DEBUG_TAG,cv.toString());
+                //cpOp.add(ContentProviderOperation.newInsert(uritobeused).withValues(cv).build());
+                //valuesArr[i] = cv;
+                db.replace(StopsTable.TABLE_NAME, null, cv);
+
+            }
+            db.setTransactionSuccessful();
+            completed = true;
+        }catch (SQLException exc){
+            Log.w(DEBUG_TAG, "SQlite Exception: " + exc.getMessage());
+        } finally {
+            db.endTransaction();
+        }
+
+        long endTime = System.currentTimeMillis();
+        Log.d(DEBUG_TAG, "Inserting stops took: " + ((double) (endTime - startTime) / 1000) + " s, successful: "+completed);
+        Log.d(DEBUG_TAG, "\t"+patternsStopsHits+" routes string were built from the patterns");
+        if(completed){
+            invalidationTracker.notifyInvalidation(StopsTable.TABLE_NAME);
+        }
+        return completed;
+    }
+
+    @NonNull
+    private static ContentValues createContentValuesBranch(Route r) {
+        final ContentValues cv = new ContentValues();
+        cv.put(BranchesTable.COL_BRANCHID, r.branchid);
+        cv.put(LinesTable.COLUMN_NAME, r.getName());
+        cv.put(BranchesTable.COL_DIRECTION, r.destinazione);
+        cv.put(BranchesTable.COL_DESCRIPTION, r.description);
+        for (int day : r.serviceDays) {
+            switch (day){
+                case Calendar.MONDAY:
+                    cv.put(BranchesTable.COL_LUN,1);
+                    break;
+                case Calendar.TUESDAY:
+                    cv.put(BranchesTable.COL_MAR,1);
+                    break;
+                case Calendar.WEDNESDAY:
+                    cv.put(BranchesTable.COL_MER,1);
+                    break;
+                case Calendar.THURSDAY:
+                    cv.put(BranchesTable.COL_GIO,1);
+                    break;
+                case Calendar.FRIDAY:
+                    cv.put(BranchesTable.COL_VEN,1);
+                    break;
+                case Calendar.SATURDAY:
+                    cv.put(BranchesTable.COL_SAB,1);
+                    break;
+                case Calendar.SUNDAY:
+                    cv.put(BranchesTable.COL_DOM,1);
+                    break;
+            }
+        }
+        if(r.type!=null) cv.put(BranchesTable.COL_TYPE, r.type.getCode());
+        cv.put(BranchesTable.COL_FESTIVO, r.festivo.getCode());
+        return cv;
     }
     /*
     static ArrayList<Stop> createStopListFromCursor(Cursor data){
@@ -448,31 +570,27 @@ public class NextGenDB extends SQLiteOpenHelper{
      * @param content ContentValues array
      * @return number of lines inserted
      */
-    public int insertBatchContent(ContentValues[] content,String tableName) throws SQLiteException {
+    public int insertBatchContent(ContentValues[] content,String tableName, int sqliteConflictStrategy) {
 
         final SQLiteDatabase db = this.getWritableDatabase();
         int success = 0;
-
-        db.beginTransaction();
-
-        for (final ContentValues cv : content) {
-            try {
-                db.replaceOrThrow(tableName, null, cv);
-                success++;
-            } catch (SQLiteConstraintException d){
-                Log.w("NextGenDB_Insert","Failed insert with FOREIGN KEY... \n"+d.getMessage());
-
-            } catch (Exception e) {
-                Log.w("NextGenDB_Insert", e);
+        try{
+            db.beginTransaction();
+            for(ContentValues cv:content){
+                db.insertWithOnConflict(tableName, null, cv, sqliteConflictStrategy);
             }
+            db.setTransactionSuccessful();
+            success = content.length;
+        } catch (SQLException e) {
+            Log.w(DEBUG_TAG, "Error inserting batch content into table "+tableName, e);
+            success = RESULT_SQLITE_ERROR;
+        } finally {
+            db.endTransaction();
         }
-        db.setTransactionSuccessful();
-        db.endTransaction();
+        if (success > 0) {
+            invalidationTracker.notifyInvalidation(tableName); // ✅ Notify only after confirmed commit
+        }
         return success;
-    }
-
-    int updateLinesStoppingInStop(List<Stop> stops){
-        return 0;
     }
 
     public static List<String> splitLinesString(String linesStr){

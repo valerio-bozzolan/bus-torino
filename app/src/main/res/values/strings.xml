@@ -391,4 +391,6 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="italian">Italian</string>
     <string name="english">English</string>
     <string name="checking_alerts_update">Checking new alerts now</string>
+    <string name="back_again_to_close">Press back again to close the app</string>
+
 </resources>

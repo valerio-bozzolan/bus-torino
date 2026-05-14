@@ -115,6 +115,7 @@ public class NearbyStopsFragment extends ScreenBaseFragment {
     private ArrayList<Stop> currentNearbyStops = new ArrayList<>();
 
     private LocationShowingStatus showingStatus = LocationShowingStatus.NO_PERMISSION;
+    private boolean isLocationEnabled = false;
 
     private final FusedNativeLocationProvider.LocationUpdateListener locationUpdateListener = new FusedNativeLocationProvider.LocationUpdateListener() {
         @Override
@@ -125,6 +126,7 @@ public class NearbyStopsFragment extends ScreenBaseFragment {
         @Override
         public void onFusedStatusChanged(boolean isEnabled) {
             Log.d(DEBUG_TAG, "Location provider is enabled: " + isEnabled);
+            isLocationEnabled = isEnabled;
             if(isEnabled){
                 setShowingStatus(LocationShowingStatus.SEARCHING);
             } else{
@@ -363,6 +365,11 @@ public class NearbyStopsFragment extends ScreenBaseFragment {
         if(newStatus == showingStatus){
             return;
         }
+        if(!isLocationEnabled && newStatus!=LocationShowingStatus.NO_PERMISSION){
+            Log.d(DEBUG_TAG, "asked to show status: "+newStatus+" but the position is disabled");
+            newStatus = LocationShowingStatus.DISABLED;
+        }
+
         switch (newStatus){
             case FIRST_FIX:
                 circlingProgressBar.setVisibility(View.GONE);
@@ -377,10 +384,10 @@ public class NearbyStopsFragment extends ScreenBaseFragment {
                 messageTextView.setVisibility(View.VISIBLE);
                 break;
             case DISABLED:
-                if (showingStatus== LocationShowingStatus.SEARCHING){
+                //if (showingStatus== LocationShowingStatus.SEARCHING){
                     circlingProgressBar.setVisibility(View.GONE);
                     loadingTextView.setVisibility(View.GONE);
-                }
+                //}
                 messageTextView.setText(R.string.enable_location_message);
                 messageTextView.setVisibility(View.VISIBLE);
                 break;
@@ -415,6 +422,8 @@ public class NearbyStopsFragment extends ScreenBaseFragment {
 
         gridRecyclerView.setAdapter(null);
         Log.d(DEBUG_TAG,"On paused called");
+
+        locationProvider.stopUpdates();
     }
 
     @Override
@@ -464,6 +473,10 @@ public class NearbyStopsFragment extends ScreenBaseFragment {
             }
         if(BuildConfig.DEBUG)
             Log.d(DEBUG_TAG, "Max distance for stops: "+MAX_DISTANCE+ ", Min number of stops: "+MIN_NUM_STOPS);
+
+        if(!locationProvider.isRunning()){
+            startLocationUpdatesByType();
+        }
 
     }
 

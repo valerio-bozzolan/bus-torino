@@ -133,8 +133,8 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         // Init the MapView
         mapView = rootView.findViewById(R.id.libreMapView)
 
-        mapView.onCreate(savedInstanceState)
-        mapView.getMapAsync(this)
+        mapView!!.onCreate(savedInstanceState)
+        mapView!!.getMapAsync(this)
 
         //init bottom sheet
         val bottomSheet = rootView.findViewById<RelativeLayout>(R.id.bottom_sheet)
@@ -166,7 +166,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 val location = locationComponent.lastKnownLocation
 
                 location?.let {
-                    mapView.getMapAsync { map ->
+                    mapView?.getMapAsync { map ->
                         map.animateCamera(CameraUpdateFactory.newCameraPosition(
                             CameraPosition.Builder().target(LatLng(location.latitude, location.longitude)).build()), 500)
                     }
@@ -260,8 +260,8 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             addImagesStyle(style)
 
             //init stop layer with this
-            val stopsInCache = stopsViewModel.getAllStopsLoaded()
-            if(stopsInCache.isEmpty())
+            val stopsInCache = stopsViewModel.stopsToShow.value
+            if(stopsInCache.isNullOrEmpty())
                 initStopsLayer(style, null)
             else
                 displayStops(stopsInCache)
@@ -465,12 +465,21 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
     override fun onPause() {
         super.onPause()
-        mapView.onPause()
         Log.d(DEBUG_TAG, "Fragment paused")
 
         map?.let{
             //if map is initialized
             mapStateViewModel.saveMapState(it)
+        }
+        try{
+            //save last location
+            map?.locationComponent?.let{
+                if(locationInitialized && it.isLocationComponentActivated){
+                    stopsViewModel.lastUserLocation = it.lastKnownLocation
+                }
+            }
+        }catch (e: Exception){
+            Log.w(DEBUG_TAG, "Cannot save lastKnowLocation from map location component,error: ${e.message}")
         }
         mapStateViewModel.lastOpenStopID.postValue(shownStopInBottomSheet?.ID)
         if (livePositionsViewModel.useMQTTPositionsLiveData.value!!) livePositionsViewModel.stopMatoUpdates()
@@ -479,20 +488,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
     override fun onStop() {
         super.onStop()
-        mapView.onStop()
         Log.d(DEBUG_TAG, "Fragment stopped!")
-       /* stopsViewModel.savedState = Bundle().let {
-            mapView.onSaveInstanceState(it)
-            it
-        }
-        */
-        //save last location
-        if (locationInitialized)
-            map?.locationComponent?.lastKnownLocation?.let{
-                stopsViewModel.lastUserLocation = it
-            }
-
-
     }
 
     override fun onMapDestroy() {
@@ -614,8 +610,13 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 override fun onSuccess(res: LocationEngineResult?) {
                     Log.d(DEBUG_TAG, "Got the last location, ${res?.lastLocation}")
                     res?.lastLocation?.let { loc ->
-                        if(mapInitialized)
-                            map?.cameraPosition = CameraPosition.Builder().target(LatLng(loc.latitude, loc.longitude)).build()
+                        if(mapInitialized){
+                            val newLocation = LatLng(loc.latitude, loc.longitude)
+                            //center the position only if it is close enough
+                            if(newLocation.distanceTo(DEFAULT_LATLNG) < MAX_DIST_KM * 1000)
+                                map?.cameraPosition = CameraPosition.Builder().target(LatLng(loc.latitude, loc.longitude)).build()
+
+                        }
                         else
                            mapStateViewModel.locationToShow = loc
                     }
@@ -630,6 +631,10 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
             })
         }
+        if(locationEnabledOnDevice){
+            setFollowUserLocation(true)
+        }
+
     }
 
     override fun onMapLocationEnabled(active: Boolean) {
@@ -644,11 +649,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         if(locationInitialized && !receivedFirstLocation) {
             //only zoom if the user position is close enough to the center
             val newPoint = LatLng(it.latitude, it.longitude)
-            if(newPoint.distanceTo(LatLng(
-                    MapLibreFragment.DEFAULT_CENTER_LAT,
-                    MapLibreFragment.DEFAULT_CENTER_LON
-                ))
-                > MAX_DIST_KM * 1000){
+            if(newPoint.distanceTo(DEFAULT_LATLNG) > MAX_DIST_KM * 1000){
                 //show Toast
                 if(!shownToastNoPosition) context?.let{ c->
                     Toast.makeText(c, R.string.too_far_not_showing_location, Toast.LENGTH_LONG).show()

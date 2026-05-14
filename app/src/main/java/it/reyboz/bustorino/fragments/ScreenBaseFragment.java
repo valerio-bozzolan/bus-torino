@@ -15,13 +15,12 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.snackbar.Snackbar;
 import it.reyboz.bustorino.BuildConfig;
-import it.reyboz.bustorino.R;
 
 import java.util.Map;
 
@@ -33,6 +32,7 @@ public abstract class ScreenBaseFragment extends Fragment {
 
     protected void setOption(String optionName, boolean value) {
         Context mContext = getContext();
+        assert mContext != null;
         SharedPreferences.Editor editor = mContext.getSharedPreferences(PREF_FILE, MODE_PRIVATE).edit();
         editor.putBoolean(optionName, value);
         editor.commit();
@@ -108,7 +108,49 @@ public abstract class ScreenBaseFragment extends Fragment {
             }
         });
     }
+    /*protected void runActionFavorites(@NonNull Stop s, @NonNull FavoritesChangeWorker.Action action, @NonNull FavoritesChangeWorker.Companion.ResultListener resultListener){
+        Context mContext = requireContext();
 
+        WorkManager workManager = WorkManager.getInstance(mContext);
+
+        WorkRequest req = FavoritesChangeWorker.makeRequest(s, action);
+        workManager.enqueue(req);
+        Context appContext = mContext.getApplicationContext();
+
+        //FavoritesChangeWorker.registerListener(mContext, getViewLifecycleOwner(), s, action, resultListener);
+        workManager.getWorkInfosByTagLiveData(FavoritesChangeWorker.getTag(s, action))
+                .observe(getViewLifecycleOwner(), wi -> {
+                    Log.d("BusTO-BaseFragment", "workinfo for stop "+s.ID+" has arrived");
+                    if(wi.isEmpty()){
+                        return;
+                    }
+                    WorkInfo workInfo = wi.get(wi.size() - 1);
+                    Data progress = wi.get(wi.size()-1).getProgress();
+
+                    int actvalue = progress.getInt(ACTION_ARG,-1);
+                    boolean done = progress.getBoolean(DONE_ARG, false);
+                    if (done) {
+                        // at this point the action should be just ADD or REMOVE
+
+                        if (actvalue == FavoritesChangeWorker.Action.ADD.getValue()) {
+                            // now added
+                            Toast.makeText(appContext, R.string.added_in_favorites, Toast.LENGTH_SHORT).show();
+                        } else if (actvalue == FavoritesChangeWorker.Action.REMOVE.getValue()) {
+                            // now removed
+                            Toast.makeText(appContext, R.string.removed_from_favorites, Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        // wtf
+                        Toast.makeText(appContext, R.string.cant_add_to_favorites, Toast.LENGTH_SHORT).show();
+                    }
+                    Log.d("busTO-ScreenBaseFragm", "favorites action="+actvalue+ ",done="+done);
+
+                    // aggiorna UI
+                    resultListener.doStuffWithResult(done);
+                });
+    }
+
+     */
 
     public interface LocationRequestListener{
         void onPermissionResult(boolean locationGranted);

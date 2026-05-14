@@ -24,9 +24,7 @@ import android.location.*
 import android.os.Bundle
 import android.util.Log
 import androidx.core.content.ContextCompat
-import androidx.core.location.LocationListenerCompat
 import it.reyboz.bustorino.util.LocationCriteria
-import it.reyboz.bustorino.util.Permissions
 import java.lang.ref.WeakReference
 import kotlin.math.min
 

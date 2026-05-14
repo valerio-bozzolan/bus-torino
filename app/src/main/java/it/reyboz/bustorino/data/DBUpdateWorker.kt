@@ -19,8 +19,6 @@ package it.reyboz.bustorino.data
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.ServiceInfo
-import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -83,7 +81,7 @@ class DBUpdateWorker(context: Context, workerParams: WorkerParameters) : Corouti
             when (resultUpdate) {
                 DatabaseUpdate.Result.ERROR_STOPS_DOWNLOAD -> dataBuilder.put(ERROR_REASON_KEY, ERROR_DOWNLOADING_STOPS)
                 DatabaseUpdate.Result.ERROR_LINES_DOWNLOAD -> dataBuilder.put(ERROR_REASON_KEY, ERROR_DOWNLOADING_LINES)
-                DatabaseUpdate.Result.DB_CLOSED -> dataBuilder.put(ERROR_REASON_KEY, ERROR_CODE_DB_CLOSED)
+                DatabaseUpdate.Result.DATABASE_ERROR -> dataBuilder.put(ERROR_REASON_KEY, ERROR_CODE_DATABASE)
                 DatabaseUpdate.Result.DONE -> {}
             }
             //cancelNotification(NOTIFICATION_ID)
@@ -151,7 +149,7 @@ class DBUpdateWorker(context: Context, workerParams: WorkerParameters) : Corouti
         const val ERROR_FETCHING_VERSION: Int = 4
         const val ERROR_DOWNLOADING_STOPS: Int = 5
         const val ERROR_DOWNLOADING_LINES: Int = 6
-        val ERROR_CODE_DB_CLOSED: Int = -2
+        val ERROR_CODE_DATABASE: Int = -2
 
         const val SUCCESS_REASON_KEY: String = "SUCCESS_REASON"
         const val SUCCESS_NO_ACTION_NEEDED: Int = 9

@@ -18,33 +18,72 @@
 package it.reyboz.bustorino.data
 
 import android.content.Context
+import android.util.Log
 import androidx.sqlite.SQLiteException
 import it.reyboz.bustorino.backend.Result
 import it.reyboz.bustorino.backend.Stop
+import it.reyboz.bustorino.backend.StopFavoritesData
 import it.reyboz.bustorino.backend.utils
 import java.util.ArrayList
 import java.util.concurrent.Executor
 
 class OldDataRepository(private val executor: Executor,
                         private val nextGenDB: NextGenDB,
+            private val userDB: UserDB
     ) {
 
-    constructor(executor: Executor, context: Context): this(executor, NextGenDB.getInstance(context))
+    constructor(executor: Executor, context: Context): this(executor, NextGenDB.getInstance(context), UserDB.getInstance(context))
     fun requestStopsWithGtfsIDs(
-        gtfsIDs: List<String?>?,
-        callback: Callback<List<Stop>>
+        gtfsIDs: List<String>,
+        callback: Callback<ArrayList<Stop>>
     ) {
+        executor.execute {
+                //final NextGenDB dbHelper = new NextGenDB(context);
+            val db = nextGenDB.readableDatabase
+            val stopResult= NextGenDB.queryAllStopsWithGtfsIDs(db, gtfsIDs)
+            //Result<List<Stop>> result = Result.success;
+            callback.onComplete(stopResult)
+        }
+    }
+    fun requestStopsWithIds(ids: List<String>, callback: Callback<ArrayList<Stop>>) {
         executor.execute {
             try {
                 //final NextGenDB dbHelper = new NextGenDB(context);
                 val db = nextGenDB.readableDatabase
-                val stops: List<Stop> = NextGenDB.queryAllStopsWithGtfsIDs(db, gtfsIDs)
+                val stopsResult= NextGenDB.queryStopsWithStopIds(db, ids)
                 //Result<List<Stop>> result = Result.success;
-                callback.onComplete(Result.success(stops))
+                callback.onComplete(stopsResult);
             } catch (e: Exception) {
                 callback.onComplete(Result.failure(e))
             }
         }
+
+    }
+
+    fun getFavoritesData(ids: List<String>, callback: Callback<ArrayList<StopFavoritesData>>){
+        executor.execute {
+            try {
+                val data =userDB.queryDataForStopIds(ids)
+                Log.d(DEBUG_TAG, "received favorites data: $data")
+                if(data != null){
+                    val res = Result.success(data)
+                    callback.onComplete(res)
+                }
+                else{
+                    callback.onComplete(Result.failure(android.database.sqlite.SQLiteException()))
+                }
+            } catch (e: Exception) {
+                callback.onComplete(Result.failure(e))
+            }
+        }
+    }
+    fun getFavoritesLiveData(): QueryLiveData<List<StopFavoritesData>> {
+        return userDB.favoritesLiveData
+    }
+    fun getFavoritesLiveDataByStopId(ids: List<String>) = userDB.getLiveDataForStopIds(ids)
+
+    fun getStopsForIdsLiveData(ids: List<String>): QueryLiveData<ArrayList<Stop>> {
+        return nextGenDB.queryStopsWithStopIdsLiveData(ids)
     }
 
     fun requestStopsInArea(
@@ -56,19 +95,21 @@ class OldDataRepository(private val executor: Executor,
     ){
         //Log.d(DEBUG_TAG, "Async Stop Fetcher started working");
         executor.execute {
-            var result = ArrayList<Stop>()
-            try {
-                result = nextGenDB.queryAllInsideMapView(
+            //var result = ArrayList<Stop>()
+                callback.onComplete(nextGenDB.queryAllInsideMapView(
                     latitFrom, latitTo,
                     longitFrom, longitTo
-                )
-            } catch (e: SQLiteException){
-                callback.onComplete(Result.failure(e))
-            }
+                ))
 
-            callback.onComplete(Result.success(result))
         }
 
+    }
+
+    fun requestStopsInAreaLiveData(minLat: Double,
+                                   maxLat: Double,
+                                   minLong: Double,
+                                   maxLong: Double): QueryLiveData<ArrayList<Stop>> {
+        return nextGenDB.queryAllInsideMapViewLiveData(minLat, maxLat, minLong, maxLong)
     }
 
     /**
@@ -88,5 +129,9 @@ class OldDataRepository(private val executor: Executor,
 
     fun interface Callback<T> {
         fun onComplete(result: Result<T>)
+    }
+
+    companion object {
+        private const val DEBUG_TAG = "BusTO-OldDataRepo"
     }
 }

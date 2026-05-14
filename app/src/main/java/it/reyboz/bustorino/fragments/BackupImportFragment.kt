@@ -192,6 +192,7 @@ class BackupImportFragment : Fragment() {
             val csvWriter = CsvWriter.builder().build(outWriter)
             val userDB = UserDB.getInstance(context)
             userDB.writeFavoritesToCsv(csvWriter)
+            csvWriter.flush()
             outWriter.flush()
             zipOutputStream.closeEntry()
 

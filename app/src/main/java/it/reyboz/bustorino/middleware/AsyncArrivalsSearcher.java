@@ -22,6 +22,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 
@@ -257,84 +258,7 @@ public class AsyncArrivalsSearcher extends AsyncTask<String, Fetcher.Result,Pali
 
         @Override
         public void run() {
-            final NextGenDB nextGenDB = NextGenDB.getInstance(context);
-            //ContentValues[] values = new ContentValues[routesToInsert.size()];
-            ArrayList<ContentValues> branchesValues = new ArrayList<>(routesToInsert.size()*4);
-            ArrayList<ContentValues> connectionsVals = new ArrayList<>(routesToInsert.size()*4);
-            long starttime,endtime;
-            for (Route r:routesToInsert){
-                //if it has received an interrupt, stop
-                if(Thread.interrupted()) return;
-                //otherwise, build contentValues
-                final ContentValues cv = new ContentValues();
-                cv.put(BranchesTable.COL_BRANCHID,r.branchid);
-                cv.put(LinesTable.COLUMN_NAME,r.getName());
-                cv.put(BranchesTable.COL_DIRECTION,r.destinazione);
-                cv.put(BranchesTable.COL_DESCRIPTION,r.description);
-                for (int day :r.serviceDays) {
-                    switch (day){
-                        case Calendar.MONDAY:
-                            cv.put(BranchesTable.COL_LUN,1);
-                            break;
-                        case Calendar.TUESDAY:
-                            cv.put(BranchesTable.COL_MAR,1);
-                            break;
-                        case Calendar.WEDNESDAY:
-                            cv.put(BranchesTable.COL_MER,1);
-                            break;
-                        case Calendar.THURSDAY:
-                            cv.put(BranchesTable.COL_GIO,1);
-                            break;
-                        case Calendar.FRIDAY:
-                            cv.put(BranchesTable.COL_VEN,1);
-                            break;
-                        case Calendar.SATURDAY:
-                            cv.put(BranchesTable.COL_SAB,1);
-                            break;
-                        case Calendar.SUNDAY:
-                            cv.put(BranchesTable.COL_DOM,1);
-                            break;
-                    }
-                }
-                if(r.type!=null) cv.put(BranchesTable.COL_TYPE, r.type.getCode());
-                cv.put(BranchesTable.COL_FESTIVO, r.festivo.getCode());
-
-                //values[routesToInsert.indexOf(r)] = cv;
-                branchesValues.add(cv);
-                if(r.getStopsList() != null)
-                    for(int i=0; i<r.getStopsList().size();i++){
-                        String stop = r.getStopsList().get(i);
-                        final ContentValues connVal = new ContentValues();
-                        connVal.put(ConnectionsTable.COLUMN_STOP_ID,stop);
-                        connVal.put(ConnectionsTable.COLUMN_ORDER,i);
-                        connVal.put(ConnectionsTable.COLUMN_BRANCH,r.branchid);
-
-                        //add to global connVals
-                        connectionsVals.add(connVal);
-                }
-            }
-            starttime = System.currentTimeMillis();
-            ContentResolver cr = context.getContentResolver();
-            try {
-                cr.bulkInsert(Uri.parse("content://" + AppDataProvider.AUTHORITY + "/branches/"), branchesValues.toArray(new ContentValues[0]));
-                endtime = System.currentTimeMillis();
-                Log.d("DataDownload", "Inserted branches, took " + (endtime - starttime) + " ms");
-            } catch (SQLException exc){
-                Log.e("AsyncDataDownload","Inserting data: some error happened, aborting the database insert");
-                exc.printStackTrace();
-                return;
-            }
-
-            if (connectionsVals.size()>0) {
-                starttime = System.currentTimeMillis();
-                ContentValues[] valArr = connectionsVals.toArray(new ContentValues[0]);
-                Log.d("DataDownloadInsert", "inserting " + valArr.length + " connections");
-                int rows = nextGenDB.insertBatchContent(valArr, ConnectionsTable.TABLE_NAME);
-                endtime = System.currentTimeMillis();
-                Log.d("DataDownload", "Inserted connections found, took " + (endtime - starttime) + " ms, inserted " + rows + " rows");
-            }
-
-            //nextGenDB.close();
+            NextGenDB.insertBranchesIntoDB(context, routesToInsert);
         }
     }
 }

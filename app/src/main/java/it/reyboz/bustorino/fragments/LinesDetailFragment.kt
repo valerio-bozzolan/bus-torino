@@ -234,7 +234,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
         //map stuff
         mapView = rootView.findViewById(R.id.lineMap)
-        mapView.getMapAsync(this)
+        mapView!!.getMapAsync(this)
 
 
         // Setup close button
@@ -267,7 +267,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         initializeRecyclerView()
 
         switchButton.setOnClickListener{
-            if(mapView.visibility == View.VISIBLE){
+            if(mapView?.visibility == View.VISIBLE){
                 hideMapAndShowStopList()
             } else{
                hideStopListAndShowMap()
@@ -328,7 +328,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                 Log.w(DEBUG_TAG, "The selectedPattern is null!")
                 return@observe
             }
-            if(mapView.visibility ==View.VISIBLE) {
+            if(mapView?.visibility ==View.VISIBLE) {
                 // We have the pattern and the stops here, time to display them
                 //TODO: Decide if we should follow the camera view given by the previous screen (probably the map fragment)
                 // use !restoredCameraInMap to do so
@@ -383,7 +383,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                 Log.d(DEBUG_TAG, "request stops for pattern ${patternWithStops.pattern.code}")
                 setPatternAndReqStops(patternWithStops)
 
-                if(mapView.visibility == View.VISIBLE) {
+                if(mapView?.visibility == View.VISIBLE) {
                     //Clear buses if we are changing direction
                     currentShownPattern?.let { patt ->
                         if(patt.directionId != patternWithStops.pattern.directionId){
@@ -425,7 +425,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     // ------------- UI switch stuff ---------
 
     private fun hideMapAndShowStopList(){
-        mapView.visibility = View.GONE
+        mapView?.visibility = View.GONE
         stopsRecyclerView.visibility = View.VISIBLE
         locationIcon?.visibility = View.GONE
         busPositionsIconButton?.visibility = View.GONE
@@ -447,7 +447,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
     private fun hideStopListAndShowMap(){
         stopsRecyclerView.visibility = View.GONE
-        mapView.visibility = View.VISIBLE
+        mapView?.visibility = View.VISIBLE
         locationIcon?.visibility = View.VISIBLE
         busPositionsIconButton.visibility = View.VISIBLE
 
@@ -648,7 +648,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             //Log.d(DEBUG_TAG, "Received ${updates.size} updates for the positions")
             val updates = pair.first
             val vehiclesNotOnCorrectDir = pair.second
-            if(mapView.visibility == View.GONE || patternShown ==null){
+            if(mapView?.visibility == View.GONE || patternShown ==null){
                 //DO NOTHING
                 Log.w(DEBUG_TAG, "not doing anything because map is not visible")
                 return@observe
@@ -1063,7 +1063,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
     override fun onPause() {
         super.onPause()
-        mapView.onPause()
         if(usingMQTTPositions) livePositionsViewModel.stopMatoUpdates()
         pausedFragment = true
         //save map
@@ -1076,7 +1075,6 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
     override fun onStop() {
         super.onStop()
-        mapView.onStop()
         if(locationInitialized)
             shouldMapLocationBeReactivated = locationComponent.isLocationComponentEnabled
         else

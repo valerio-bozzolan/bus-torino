@@ -44,7 +44,7 @@ import it.reyboz.bustorino.backend.Passaggio.Source
 import it.reyboz.bustorino.data.AppDataProvider
 import it.reyboz.bustorino.data.NextGenDB
 import it.reyboz.bustorino.data.UserDB
-import it.reyboz.bustorino.middleware.AsyncStopFavoriteAction
+import it.reyboz.bustorino.middleware.CoroutineFavoriteAction
 import it.reyboz.bustorino.util.LinesNameSorter
 import it.reyboz.bustorino.viewmodels.ArrivalsViewModel
 import java.util.*
@@ -61,7 +61,6 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
     private var lastUpdatedPalina: Palina? = null
     private var needUpdateOnAttach = false
     private var fetchersChangeRequestPending = false
-    private var stopIsInFavorites = false
 
     //Views
     protected lateinit var addToFavorites: ImageButton
@@ -132,6 +131,8 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         super.onCreate(savedInstanceState)
         stopID = requireArguments().getString(KEY_STOP_ID) ?: ""
         DEBUG_TAG = DEBUG_TAG_ALL + " " + stopID
+
+        arrivalsViewModel.setStopId(stopID)
 
         //this might really be null
         stopName = requireArguments().getString(KEY_STOP_NAME)
@@ -210,7 +211,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         addToFavorites.setClickable(true)
         addToFavorites.setOnClickListener(View.OnClickListener { v: View? ->
             // add/remove the stop in the favorites
-            toggleLastStopToFavorites()
+            toggleStopFavorites()
         })
 
         val displayName = requireArguments().getString(STOP_TITLE)
@@ -245,9 +246,10 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             timesSourceTextView.setText(sourcesTextViewData);
         }*/
         //need to do this when we recreate the fragment but we haven't updated the arrival times
-        if(lastUpdatedPalina == null && arrivalsViewModel.palinaLiveData.value != null) {
+        val tentPalina = arrivalsViewModel.palinaToShow.value
+        if(lastUpdatedPalina == null && tentPalina != null) {
             //this updates lastUpdatedPalina and also shows the arrival source
-            updateFragmentData(arrivalsViewModel.palinaLiveData.value!!)
+            updateFragmentData(tentPalina)
 
         }
         //lastUpdatedPalina?.let { showArrivalsSources(it) }
@@ -272,7 +274,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             }
         })
 
-        arrivalsViewModel.palinaLiveData.observe(viewLifecycleOwner){
+        arrivalsViewModel.palinaToShow.observe(viewLifecycleOwner){
             Log.d(DEBUG_TAG, "New result palina observed, has coords: ${it.hasCoords()}, title ${it?.stopDisplayName}, number of passages: ${it.totalNumberOfPassages}")
 
             val palinaIsValid = it!=null && (it.totalNumberOfPassages>0 || it.stopDisplayName!=null)
@@ -319,6 +321,9 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
                 else -> showFetcherMessage(R.string.internal_error, src)
             }
         }
+        arrivalsViewModel.stopInFavorites.observe(viewLifecycleOwner, { isFavorite ->
+            updateStarIcon(isFavorite)
+        })
         return root
     }
 
@@ -609,7 +614,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         when (id) {
             loaderFavId -> {
                 builder.appendPath("favorites").appendPath(stopID)
-                cl = CursorLoader(requireContext(), builder.build(), UserDB.getFavoritesColumnNamesAsArray, null, null, null)
+                cl = CursorLoader(requireContext(), builder.build(), UserDB.FAVORITES_COLUMNS_ARRAY, null, null, null)
             }
 
             loaderStopId -> {
@@ -630,9 +635,10 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
     }
 
     override fun onLoadFinished(loader: Loader<Cursor>, data: Cursor) {
+        /*
         when (loader.id) {
             loaderFavId -> {
-                val colUserName = data.getColumnIndex(UserDB.getFavoritesColumnNamesAsArray[1])
+                val colUserName = data.getColumnIndex(UserDB.FAVORITES_COLUMNS_ARRAY[1])
                 if (data.count > 0) {
                     // IT'S IN FAVORITES
                     data.moveToFirst()
@@ -646,7 +652,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
                     stopIsInFavorites = false
                 }
                 updateStarIcon()
-                /*
+
                 if (stopName == null) {
                     //stop is not inside the favorites and wasn't provided
                     Log.d("ArrivalsFragment$tag", "Stop wasn't in the favorites and has no name, looking in the DB")
@@ -655,10 +661,8 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
                         arguments, this
                     )
                 }
-                6
-                 */
             }
-            /*
+
             loaderStopId -> if (data.count > 0) {
                 data.moveToFirst()
                 val index = data.getColumnIndex(
@@ -673,9 +677,13 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
                 Log.w("ArrivalsFragment$tag", "Stop is not inside the database... CLOISTER BELL")
             }
 
-             */
+
         }
+
+         */
     }
+
+
 
     override fun onLoaderReset(loader: Loader<Cursor>) {
         //NOTHING TO DO
@@ -687,20 +695,22 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         arrivalsRecyclerView.visibility = View.VISIBLE
     }
 
-    fun toggleLastStopToFavorites() {
+    fun toggleStopFavorites() {
         val stop: Stop? = lastUpdatedPalina
         if (stop != null) {
             // toggle the status in background
+            CoroutineFavoriteAction(requireContext().applicationContext, CoroutineFavoriteAction.Action.TOGGLE){
 
-            AsyncStopFavoriteAction(
-                requireContext().applicationContext, AsyncStopFavoriteAction.Action.TOGGLE
-            ) { v: Boolean -> updateStarIconFromLastBusStop(v) }.execute(stop)
-        } else {
+            }.execute(stop)
+
+
+            } else {
             // this case have no sense, but just immediately update the favorite icon
-            updateStarIconFromLastBusStop(true)
+            //updateStarIconFromLastBusStop(true)
+                Log.d(DEBUG_TAG, "Stop is null!")
         }
     }
-
+    /*
     /**
      * Update the star "Add to favorite" icon
      */
@@ -709,28 +719,14 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         else toggleDone
 
         updateStarIcon()
-
-        // check if there is a last Stop
-        /*
-        if (stopID == null) {
-            addToFavorites.setVisibility(View.INVISIBLE);
-        } else {
-            // filled or outline?
-            if (isStopInFavorites(stopID)) {
-                addToFavorites.setImageResource(R.drawable.ic_star_filled);
-            } else {
-                addToFavorites.setImageResource(R.drawable.ic_star_outline);
-            }
-
-            addToFavorites.setVisibility(View.VISIBLE);
-        }
-         */
     }
+
+     */
 
     /**
      * Update the star icon according to `stopIsInFavorites`
      */
-    fun updateStarIcon() {
+    fun updateStarIcon(stopIsInFavorites: Boolean) {
         // no favorites no party!
 
         // check if there is a last Stop

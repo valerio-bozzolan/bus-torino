@@ -53,7 +53,6 @@ import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.DBUpdateCheckWorker;
 import it.reyboz.bustorino.data.DBUpdateWorker;
 import it.reyboz.bustorino.data.PreferencesHolder;
-import it.reyboz.bustorino.data.gtfs.GtfsDatabase;
 import it.reyboz.bustorino.fragments.*;
 import it.reyboz.bustorino.middleware.GeneralActivity;
 import it.reyboz.bustorino.viewmodels.ServiceAlertsViewModel;
@@ -74,10 +73,22 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     private boolean onCreateComplete = false;
 
     private ServiceAlertsViewModel  serviceAlertsViewModel;
-    private final OnBackPressedCallback callback = new OnBackPressedCallback(false) {
+
+    private long lastClosingAttempt = -1L;
+    private final OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(false) {
         @Override
         public void handleOnBackPressed() {
-            activityCustomBackPressed();
+            boolean isResolved = activityCustomBackPressed();
+            Log.d(DEBUG_TAG, "backpress resolved: " + isResolved);
+            if(!isResolved){
+                long currentTime = System.currentTimeMillis();
+                if(currentTime - lastClosingAttempt < 2000){
+                    finish();
+                } else{
+                    lastClosingAttempt = currentTime;
+                    Toast.makeText(getApplicationContext(),R.string.back_again_to_close,Toast.LENGTH_SHORT).show();
+                }
+            }
         }
     };
 
@@ -95,8 +106,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
          */
 
         //onBackPressed solution required from Android 16
-        callback.setEnabled(true);
-        this.getOnBackPressedDispatcher().addCallback( callback);
+        backPressedCallback.setEnabled(true);
+        this.getOnBackPressedDispatcher().addCallback(backPressedCallback);
         boolean showingArrivalsFromIntent = false;
 
         final Toolbar mToolbar = findViewById(R.id.default_toolbar);
@@ -218,7 +229,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                         }
                     }
                     if (showProgress) {
-                        createDefaultSnackbar();
+                        createDatabaseUpdateSnackbar();
                     } else {
                         if(snackbar!=null) {
                             snackbar.dismiss();
@@ -493,8 +504,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
      * Create and show the SnackBar with the message
      * The fragment shown points to which view to attach the snackbar
      */
-    private void createDefaultSnackbar() {
-
+    private void createDatabaseUpdateSnackbar() {
         View baseView = null;
         boolean showSnackbar = true;
         final Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainActContentFrame);
@@ -505,11 +515,13 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         if (baseView == null) baseView = findViewById(R.id.mainActContentFrame);
         //if (baseView == null) Log.e(DEBUG_TAG, "baseView null for default snackbar, probably exploding now");
         if (baseView !=null && showSnackbar) {
-            this.snackbar = Snackbar.make(baseView, R.string.database_update_msg_inapp, Snackbar.LENGTH_INDEFINITE);
+            snackbar = Snackbar.make(baseView, R.string.database_update_msg_inapp, Snackbar.LENGTH_INDEFINITE);
+            snackbar.setTextColor(getColor(android.R.color.white));
+            snackbar.setBackgroundTint(getColor(R.color.grey_800));
             if (frag instanceof ScreenBaseFragment){
-                ((ScreenBaseFragment) frag).setSnackbarPropertiesBeforeShowing(this.snackbar);
+                ((ScreenBaseFragment) frag).setSnackbarPropertiesBeforeShowing(snackbar);
             }
-            this.snackbar.show();
+            snackbar.show();
 
         } else{
             Log.e(DEBUG_TAG, "Asked to show the snackbar but the baseView is null");

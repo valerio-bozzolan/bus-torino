@@ -103,22 +103,6 @@ public class ResultListFragment extends Fragment{
         }
     }
 
-    /**
-     * Check if the last Bus Stop is in the favorites
-     * @return true if it iss
-     */
-    public boolean isStopInFavorites(String busStopId) {
-        boolean found = false;
-
-        // no stop no party
-        if(busStopId != null) {
-            SQLiteDatabase userDB = UserDB.getInstance(getContext()).getReadableDatabase();
-            found = UserDB.isStopInFavorites(userDB, busStopId);
-        }
-
-        return found;
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

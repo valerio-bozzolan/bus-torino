@@ -22,6 +22,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.database.DatabaseErrorHandler;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -33,7 +34,6 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -75,7 +75,7 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
 
     }
 
-    private void loadData() {
+    public void loadData() {
         loadData(false);
     }
     private static Uri.Builder getStopsBuilder(){
@@ -100,9 +100,19 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
         }
 
         isQueryRunning = true;
-        queryHandler.startQuery(FAV_TOKEN,null, FAVORITES_URI, UserDB.getFavoritesColumnNamesAsArray, null, null, null);
+        startQuery();
 
+    }
 
+    private void startQuery(){
+        Log.d(TAG, "startQuery for token "+FAV_TOKEN);
+        queryHandler.startQuery(FAV_TOKEN,null, FAVORITES_URI, UserDB.FAVORITES_COLUMNS_ARRAY, null, null, null);
+
+    }
+
+    public void stopQuery(){
+        queryHandler.cancelOperation(FAV_TOKEN);
+        isQueryRunning = false;
     }
 
     public void forceReload(){
@@ -140,17 +150,24 @@ public class FavoritesLiveData extends LiveData<List<Stop>> implements CustomAsy
     @Override
     public void onQueryComplete(int token, Object cookie, Cursor cursor) {
         if (cursor == null){
-            //Nothing to do
             Log.e(TAG, "Null cursor for token "+token);
+            if(token == FAV_TOKEN){
+                //restart query
+                Log.d(TAG, "Restarting query");
+                queryHandler.cancelOperation(FAV_TOKEN);
+
+                isQueryRunning = false;
+                loadData(true);
+            }
             return;
         }
         if (token == FAV_TOKEN) {
-            stopsFromFavorites = UserDB.getFavoritesFromCursor(cursor, UserDB.getFavoritesColumnNamesAsArray);
+            stopsFromFavorites = UserDB.getFavoritesFromCursor(cursor, UserDB.FAVORITES_COLUMNS_ARRAY);
             cursor.close();
             //reset counters
             stopNeededCount = stopsFromFavorites.size();
             stopsDone = new ArrayList<>();
-            if(stopsFromFavorites.size() == 0){
+            if(stopsFromFavorites.isEmpty()){
                 //we don't need to call the other query
                 setValue(stopsDone);
                 isQueryRunning = false;

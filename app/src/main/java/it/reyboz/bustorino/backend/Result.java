@@ -1,5 +1,6 @@
 package it.reyboz.bustorino.backend;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 
@@ -14,7 +15,7 @@ public class Result<T> {
     }
 
 
-    public static <T> Result<T> success(@Nullable T result) {
+    public static <T> Result<T> success(@NonNull T result) {
         return new Result<>(result);
     }
 
@@ -25,7 +26,7 @@ public class Result<T> {
         return new Result<>(error);
     }
 
-    private Result(@Nullable T result) {
+    private Result(@NonNull T result) {
         this.result = result;
         this.exception = null;
     }

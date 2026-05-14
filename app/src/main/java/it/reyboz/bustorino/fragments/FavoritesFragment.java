@@ -35,7 +35,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -50,8 +49,8 @@ import it.reyboz.bustorino.adapters.StopAdapterListener;
 import it.reyboz.bustorino.adapters.StopRecyclerAdapter;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.DatabaseUpdate;
-import it.reyboz.bustorino.data.FavoritesViewModel;
-import it.reyboz.bustorino.middleware.AsyncStopFavoriteAction;
+import it.reyboz.bustorino.middleware.CoroutineFavoriteAction;
+import it.reyboz.bustorino.viewmodels.FavoritesViewModel;
 
 public class FavoritesFragment extends ScreenBaseFragment {
 
@@ -140,7 +139,7 @@ public class FavoritesFragment extends ScreenBaseFragment {
         registerForContextMenu(favoriteRecyclerView);
 
 
-        model.getFavorites().observe(getViewLifecycleOwner(), this::showStops);
+        model.getFavoritesWithStop().observe(getViewLifecycleOwner(), this::showStops);
 
         // watch the DB update
         DatabaseUpdate.watchUpdateWorkStatus(getContext(), this, workInfos -> {
@@ -153,7 +152,7 @@ public class FavoritesFragment extends ScreenBaseFragment {
                 //force reload if it was previously running
                 if(model!=null && dbUpdateRunning) {
                     Log.d(DEBUG_TAG,"DB Finished updating, reload favorites");
-                    model.getFavorites().forceReload();
+                    //model.getFavorites().forceReload();
                 }
                 dbUpdateRunning = false;
             }
@@ -219,11 +218,9 @@ public class FavoritesFragment extends ScreenBaseFragment {
         switch (item.getItemId()) {
             case R.id.action_favourite_entry_delete:
                 if (getContext()!=null)
-                new AsyncStopFavoriteAction(getContext().getApplicationContext(), AsyncStopFavoriteAction.Action.REMOVE,
-                        result -> {
-
-                        }).execute(busStop);
-
+                    new CoroutineFavoriteAction(requireContext().getApplicationContext(), CoroutineFavoriteAction.Action.REMOVE,
+                            result -> {}
+                            ).execute(busStop);
                 return true;
 
             case R.id.action_rename_bus_stop_username:
@@ -325,10 +322,17 @@ public class FavoritesFragment extends ScreenBaseFragment {
 
     private void launchUpdate(Stop busStop){
         if (getContext()!=null)
-            new AsyncStopFavoriteAction(getContext().getApplicationContext(), AsyncStopFavoriteAction.Action.UPDATE,
+
+            new CoroutineFavoriteAction(requireContext().getApplicationContext(), CoroutineFavoriteAction.Action.UPDATE,
                     result -> {
                         //Toast.makeText(getApplicationContext(), R.string.tip_add_favorite, Toast.LENGTH_SHORT).show();
                     }).execute(busStop);
+            /*new AsyncStopFavoriteAction(getContext().getApplicationContext(), AsyncStopFavoriteAction.Action.UPDATE,
+                    result -> {
+                        //Toast.makeText(getApplicationContext(), R.string.tip_add_favorite, Toast.LENGTH_SHORT).show();
+                    }).execute(busStop);
+             */
+
     }
     /*
     THIS LOOKS TERRIBLE

@@ -106,7 +106,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     protected var fragmentListener: CommonFragmentListener? = null
 
     // Declare a variable for MapView
-    protected lateinit var mapView: MapView
+    protected var mapView: MapView? = null
     protected lateinit var mapStyle: Style
     protected lateinit var stopsSource: GeoJsonSource
     protected lateinit var busesSource: GeoJsonSource
@@ -120,7 +120,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     protected lateinit var locationProvider: FusedNativeLocationProvider
 
     protected var shownToastNoPosition = false
-    private var locationEnabledOnDevice = true
+    protected var locationEnabledOnDevice = true
 
     //TODO ACTIVATE THIS
     private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener(){ pref, key ->
@@ -271,8 +271,8 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     }
 
     override fun onResume() {
-        mapView.onResume()
         super.onResume()
+        mapView?.onResume()
         val newMapStyle = PreferencesHolder.getMapLibreStyleFile(requireContext())
         Log.d(DEBUG_TAG, "onResume newMapStyle: $newMapStyle, lastMapStyle: $lastMapStyle")
         if(newMapStyle!=lastMapStyle){
@@ -280,32 +280,38 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         }
     }
 
-
-
-    @Deprecated("Deprecated in Java")
     override fun onLowMemory() {
-        mapView.onLowMemory()
+        mapView?.onLowMemory()
         super.onLowMemory()
     }
 
     override fun onStart() {
         super.onStart()
-        mapView.onStart()
+        mapView?.onStart()
     }
 
     override fun onDestroy() {
-        mapView.onDestroy()
+        mapView?.onDestroy()
         Log.d(DEBUG_TAG, "Destroyed mapView Fragment!!")
         super.onDestroy()
     }
 
+    override fun onStop() {
+        mapView?.onStop()
+        super.onStop()
+    }
+
     override fun onPause() {
+        mapView?.onPause()
         super.onPause()
     }
+
 
     override fun onDestroyView() {
         bottomLayout = null
         locationProvider.removeListener(deviceLocationStatusListener)
+        mapInitialized = false
+        locationInitialized = false
         super.onDestroyView()
     }
 
@@ -405,7 +411,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     }
 
     protected fun initSymbolManager(mapReady: MapLibreMap , style: Style){
-        val sm = SymbolManager(mapView, mapReady, style)
+        val sm = SymbolManager(mapView!!, mapReady, style)
         sm.iconAllowOverlap = true
         sm.textAllowOverlap = false
         sm.addClickListener { _ ->
@@ -1084,6 +1090,8 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             Toast.makeText(it,textid,Toast.LENGTH_SHORT).show()
         }
     }
+
+
 
 
     companion object{

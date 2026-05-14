@@ -28,15 +28,16 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
-import java.io.IOException;
 import java.util.*;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import de.siegmar.fastcsv.reader.CloseableIterator;
 import de.siegmar.fastcsv.reader.CsvReader;
 import de.siegmar.fastcsv.reader.CsvRecord;
 import de.siegmar.fastcsv.writer.CsvWriter;
 import it.reyboz.bustorino.backend.Stop;
+import it.reyboz.bustorino.backend.StopFavoritesData;
 import it.reyboz.bustorino.backend.StopsDBInterface;
 
 public class UserDB extends SQLiteOpenHelper {
@@ -48,8 +49,11 @@ public class UserDB extends SQLiteOpenHelper {
     public final static String COL_USERNAME="username";
 
     public static final int FILE_INVALID=-10;
+    private static final String DEBUG_TAG = "BusTO-FavoritesUserDB";
     private final static String[] usernameColumnNameAsArray = {"username"};
-    public final static String[] getFavoritesColumnNamesAsArray = {COL_ID, COL_USERNAME};
+    public final static String[] FAVORITES_COLUMNS_ARRAY = {COL_ID, COL_USERNAME};
+
+    private final InvalidationTracker  invalidationTracker = new InvalidationTracker();
 
     private static final Uri FAVORITES_URI = AppDataProvider.getUriBuilderToComplete().appendPath(
             AppDataProvider.FAVORITES).build();
@@ -169,12 +173,13 @@ public class UserDB extends SQLiteOpenHelper {
 
     /**
      * Check if a stop ID is in the favorites
-     *
-     * @param db readable database
+     **
      * @param stopId stop ID
      * @return boolean
      */
-    public static boolean isStopInFavorites(SQLiteDatabase db, String stopId) {
+    public boolean isStopInFavorites(String stopId) {
+
+        SQLiteDatabase db = this.getReadableDatabase();
         boolean found = false;
 
         try {
@@ -193,43 +198,45 @@ public class UserDB extends SQLiteOpenHelper {
     /**
      * Gets stop name set by the user.
      *
-     * @param db readable database
      * @param stopID stop ID
      * @return name set by user, or null if not set\not found
      */
-    public static @Nullable String getStopUserName(SQLiteDatabase db, String stopID) {
+    private @Nullable String getStopUserName(SQLiteDatabase db,String stopID) {
         String username = null;
 
-        try {
-            Cursor c = db.query(TABLE_NAME, usernameColumnNameAsArray, "ID = ?", new String[] {stopID}, null, null, null);
+        try(Cursor c = db.query(TABLE_NAME, usernameColumnNameAsArray, "ID = ?",
+                new String[] {stopID}, null, null, null)) {
 
             if(c.moveToNext()) {
                 int userNameIndex = c.getColumnIndex("username");
                 if (userNameIndex>=0)
                     username = c.getString(userNameIndex);
             }
-            c.close();
         } catch(SQLiteException e) {
             Log.e("BusTO-UserDB","Cannot get stop User name for stop "+stopID+":\n"+e);
         }
 
         return username;
     }
+    public @Nullable String getStopUserName(String stopID) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return  getStopUserName(db,stopID);
+    }
 
     /**
      * Get all the bus stops marked as favorites
      *
-     * @param db
      * @param dbi
      * @return
      */
-    public static List<Stop> getFavorites(SQLiteDatabase db, StopsDBInterface dbi) {
+    public List<Stop> getFavorite( StopsDBInterface dbi) {
+        SQLiteDatabase db = this.getReadableDatabase();
         List<Stop> l = new ArrayList<>();
         Stop s;
         String stopID, stopUserName;
 
         try {
-            Cursor c = db.query(TABLE_NAME, getFavoritesColumnNamesAsArray, null, null, null, null, null, null);
+            Cursor c = db.query(TABLE_NAME, FAVORITES_COLUMNS_ARRAY, null, null, null, null, null, null);
             int colID = c.getColumnIndex("ID");
             int colUser = c.getColumnIndex("username");
 
@@ -264,7 +271,7 @@ public class UserDB extends SQLiteOpenHelper {
 
     public static ArrayList<Stop> getFavoritesFromCursor(Cursor cursor, String[] columns){
         List<String> colsList = Arrays.asList(columns);
-        if (!colsList.contains(getFavoritesColumnNamesAsArray[0]) || !colsList.contains(getFavoritesColumnNamesAsArray[1])){
+        if (!colsList.contains(FAVORITES_COLUMNS_ARRAY[0]) || !colsList.contains(FAVORITES_COLUMNS_ARRAY[1])){
             throw new IllegalArgumentException();
         }
         ArrayList<Stop> l = new ArrayList<>();
@@ -286,55 +293,162 @@ public class UserDB extends SQLiteOpenHelper {
 
     }
 
-    public static boolean addOrUpdateStop(Stop s, SQLiteDatabase db) {
+    @NonNull
+    public ArrayList<StopFavoritesData> getAllFavoritesData(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_NAME, FAVORITES_COLUMNS_ARRAY, null, null, null, null, null);
+
+        ArrayList<StopFavoritesData> l = new ArrayList<>();
+        final int colID = cursor.getColumnIndex("ID");
+        final int colUser = cursor.getColumnIndex("username");
+        while(cursor.moveToNext()) {
+            final String stopUserName = cursor.getString(colUser);
+            final String stopID = cursor.getString(colID);
+
+            l.add(new StopFavoritesData(stopID, stopUserName));
+        }
+        cursor.close();
+        return l;
+
+    }
+    @Nullable
+    public ArrayList<StopFavoritesData> queryDataForStopIds(List<String> stopIds) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        ArrayList<StopFavoritesData> result = null;
+
+        final String whereClause = NextGenDB.buildWhereClause(COL_ID, stopIds);
+        final String[] whereArgs = stopIds.toArray(new String[0]);
+        Log.d(DEBUG_TAG, "queryDtaForStopId: " + whereClause+ " args: " + Arrays.toString(whereArgs));
+        try(Cursor c =  db.query(
+                TABLE_NAME, FAVORITES_COLUMNS_ARRAY, whereClause,
+                whereArgs, null, null, null, null)){
+
+            result = getFavoritesDataFromCursor(c, FAVORITES_COLUMNS_ARRAY);
+        }
+        catch(SQLiteException e) {
+            Log.e(DEBUG_TAG, "queryDataForStopIds favorites failed for " + stopIds, e);
+            return null;
+        }
+
+        return result;
+    }
+
+    @NonNull
+    public QueryLiveData<List<StopFavoritesData>> getLiveDataForStopIds(List<String> stopIds) {
+        return new QueryLiveData<>(List.of(TABLE_NAME), invalidationTracker, () -> {
+            Log.d(DEBUG_TAG, "Favorites table changed, redoing query");
+            return queryDataForStopIds(stopIds);
+        });
+    }
+    @NonNull
+    public QueryLiveData<List<StopFavoritesData>> getFavoritesLiveData() {
+        return new QueryLiveData<>(List.of(TABLE_NAME), invalidationTracker, () -> {
+            Log.d(DEBUG_TAG, "Favorites table changed, redoing query");
+            return getAllFavoritesData();
+        });
+    }
+
+
+    @NonNull
+    public static ArrayList<StopFavoritesData> getFavoritesDataFromCursor(@NonNull Cursor cursor, String[] columns){
+        List<String> colsList = Arrays.asList(columns);
+        if (!colsList.contains(FAVORITES_COLUMNS_ARRAY[0]) || !colsList.contains(FAVORITES_COLUMNS_ARRAY[1])){
+            throw new IllegalArgumentException();
+        }
+        ArrayList<StopFavoritesData> l = new ArrayList<>();
+        final int colID = cursor.getColumnIndex("ID");
+        final int colUser = cursor.getColumnIndex("username");
+        while(cursor.moveToNext()) {
+            final String stopUserName = cursor.getString(colUser);
+            final String stopID = cursor.getString(colID);
+            l.add(new StopFavoritesData(stopID, stopUserName));
+        }
+        return l;
+
+    }
+    public boolean addOrUpdateStop(Stop s) {
+        return addOrUpdateStop(s.ID, s.getStopUserName());
+    }
+    public boolean addOrUpdateStop(@NonNull String stopID, @Nullable String stopUserName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return addOrUpdateStop(stopID, stopUserName, db);
+    }
+    private boolean addOrUpdateStop(@NonNull String stopID, @Nullable String stopUserName, SQLiteDatabase db) {
         ContentValues cv = new ContentValues();
         long result = -1;
-        String un = s.getStopUserName();
 
-        cv.put("ID", s.ID);
+        cv.put("ID", stopID);
         // is there an username?
-        if(un == null) {
+        if(stopUserName == null) {
             // no: see if it's in the database
-            cv.put("username", getStopUserName(db, s.ID));
+            cv.put("username", getStopUserName(db,stopID));
         } else {
             // yes: use it
-            cv.put("username", un);
+            cv.put("username", stopUserName);
         }
 
         try {
             //ignore and throw -1 if the row is already in the DB
             result = db.insertWithOnConflict(TABLE_NAME, null, cv,SQLiteDatabase.CONFLICT_IGNORE);
-        } catch (SQLiteException ignored) {}
-
+        } catch (SQLiteException ignored) {
+            Log.e(DEBUG_TAG, "cannot insert stop in user db, error: " + ignored);
+        }
+        if(result!=-1)
+            invalidationTracker.notifyInvalidation(TABLE_NAME);
         // Android Studio suggested this unreadable replacement: return true if insert succeeded (!= -1), or try to update and return
-        return (result != -1) || updateStop(s, db);
+        return (result != -1) || (updateStop(stopID,stopUserName, db));
+    }
+    private boolean addOrUpdateStop(@NonNull Stop s, SQLiteDatabase db) {
+        return addOrUpdateStop(s.ID, s.getStopUserName(), db);
     }
 
-    public static boolean updateStop(Stop s, SQLiteDatabase db) {
+    private boolean updateStop(@NonNull String stopID, @Nullable String stopUsername, @NonNull SQLiteDatabase db) {
         try {
             ContentValues cv = new ContentValues();
-            cv.put("username", s.getStopUserName());
-            db.update(TABLE_NAME, cv, "ID = ?", new String[]{s.ID});
+            cv.put("username", stopUsername);
+            db.update(TABLE_NAME, cv, "ID = ?", new String[]{stopID});
+            invalidationTracker.notifyInvalidation(TABLE_NAME);
+
             return true;
         } catch(SQLiteException e) {
+            Log.w(DEBUG_TAG, "setStopUsername failed",e);
             return false;
         }
+    }
+    public boolean updateStop(@NonNull Stop s) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return updateStop(s.ID, s.getStopUserName(), db);
     }
 
-    public static boolean deleteStop(Stop s, SQLiteDatabase db) {
+    private boolean deleteStop(@NonNull String stopID,@NonNull SQLiteDatabase db) {
         try {
-            db.delete(TABLE_NAME, "ID = ?", new String[]{s.ID});
+            db.delete(TABLE_NAME, "ID = ?", new String[]{stopID});
+            invalidationTracker.notifyInvalidation(TABLE_NAME);
             return true;
         } catch(SQLiteException e) {
+            Log.w(DEBUG_TAG, "failed to remove stop, ID: "+stopID);
             return false;
         }
     }
-    public static boolean checkStopInFavorites(String stopID, Context con){
+    private boolean deleteStop(@NonNull Stop s, @NonNull SQLiteDatabase db) {
+        return deleteStop(s.ID, db);
+    }
+    public boolean deleteStop(@NonNull String stopID) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return deleteStop(stopID, db);
+    }
+    public boolean deleteStop(@NonNull Stop s) {
+        return deleteStop(s.ID);
+    }
+
+
+
+    public boolean checkStopInFavorites(String stopID, Context con){
         boolean found = false;
         // no stop no party
         if (stopID != null) {
-            SQLiteDatabase userDB = new UserDB(con).getReadableDatabase();
-            found = UserDB.isStopInFavorites(userDB, stopID);
+            UserDB userDB = UserDB.getInstance(con);
+            found = userDB.isStopInFavorites(stopID);
         }
 
         return found;
@@ -346,7 +460,7 @@ public class UserDB extends SQLiteOpenHelper {
 
         String sortOrder =
                 COL_ID + " DESC";
-        Cursor cursor = db.query(TABLE_NAME, getFavoritesColumnNamesAsArray,null,null,null,null, sortOrder);
+        Cursor cursor = db.query(TABLE_NAME, FAVORITES_COLUMNS_ARRAY,null,null,null,null, sortOrder);
 
         final int nCols = 2;//cursor.getColumnCount();
         writer.writeRecord(cursor.getColumnNames());
@@ -401,4 +515,6 @@ public class UserDB extends SQLiteOpenHelper {
 
        return updated;
     }
+
+    //TODO: Copy method from @AppDataProvider to get all the favorites
 }
