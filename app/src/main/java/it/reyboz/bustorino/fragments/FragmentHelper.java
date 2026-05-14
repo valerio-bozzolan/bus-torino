@@ -29,10 +29,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import it.reyboz.bustorino.R;
-import it.reyboz.bustorino.backend.Fetcher;
-import it.reyboz.bustorino.backend.Palina;
-import it.reyboz.bustorino.backend.Stop;
-import it.reyboz.bustorino.backend.utils;
+import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.middleware.*;
 
 import java.lang.ref.WeakReference;
@@ -52,7 +49,7 @@ public class FragmentHelper {
     private final Context context;
     public static final int NO_FRAME = -3;
     private static final String DEBUG_TAG = "BusTO FragmHelper";
-    private WeakReference<AsyncTask> lastTaskRef;
+    private final StopSearcher stopSearcher;
     private boolean shouldHaltAllActivities=false;
 
 
@@ -66,6 +63,7 @@ public class FragmentHelper {
         this.primaryFrameLayout = primaryFrameLayout;
         this.secondaryFrameLayout = secondaryFrameLayout;
         this.context = context.getApplicationContext();
+        stopSearcher = new StopSearcher(this);
     }
 
     /**
@@ -81,9 +79,6 @@ public class FragmentHelper {
         this.lastSuccessfullySearchedBusStop = stop;
     }
 
-    public void setLastTaskRef(AsyncTask task) {
-        this.lastTaskRef = new WeakReference<>(task);
-    }
 
     /**
      * Called when you need to create a fragment for a specified Palina
@@ -199,12 +194,19 @@ public class FragmentHelper {
         this.shouldHaltAllActivities = shouldI;
     }
 
-    public void stopLastRequestIfNeeded(boolean interruptIfRunning){
-        if(lastTaskRef == null) return;
+    public void stopLastRequestIfNeeded(){
+        /*if(lastTaskRef == null) return;
         AsyncTask task = lastTaskRef.get();
         if(task!=null){
             task.cancel(interruptIfRunning);
         }
+
+         */
+        stopSearcher.cancelLastRequest();
+    }
+    public void requestStopSearch(String query){
+        stopSearcher.cancelLastRequest();
+        stopSearcher.runRequest(query, new StopsFinderByName[]{new GTTStopsFetcher(), new FiveTStopsFetcher()}); // run with the default fetchers
     }
 
     /**

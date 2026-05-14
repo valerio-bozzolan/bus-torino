@@ -346,7 +346,7 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="location_permission_not_granted">Location permission has not been granted</string>
     <string name="no_permission_dialog_title">Missing permission</string>
     <!-- If more permissions are needed, adapt this string to make if "fillable" -->
-    <string name="no_permission_dialog_text_location">To use this functionality, the application needs access to the location, which can not only be granted in the system settings.</string>
+    <string name="no_permission_dialog_text_location">To use this functionality, the application needs access to the location, which now can only be granted in the system settings.</string>
     <string name="no_permission_dialog_open">Open settings</string>
 
     <string name="close_tutorial">OK, close the tutorial</string>
