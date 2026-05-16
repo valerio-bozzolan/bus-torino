@@ -27,6 +27,13 @@
         <item name="android:windowLightStatusBar">true</item>
     </style>
 
+    <style name="BackupTheme" parent="AppThemeDayNight.NoActionBar">
+        <item name="colorPrimary">@color/orange_500</item>
+        <item name="colorPrimaryDark">@color/orange_700</item>
+        <item name="colorAccent">@color/teal_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
+
 
 
 </resources>

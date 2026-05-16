@@ -569,36 +569,31 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     private void requestMapFragment(final boolean allowReturn){
         // starting from Android 11, we don't need to have the STORAGE permission anymore for the map cache
-
-        /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
-            //nothing to do
-            Log.d(DEBUG_TAG, "Build codes allow the showing of the map");
-            createAndShowMapFragment(null, allowReturn);
-            return;
-        }
-        final String permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-        int result = askForPermissionIfNeeded(permission, STORAGE_PERMISSION_REQ);
-        Log.d(DEBUG_TAG, "Permission for storage: "+result);
-        switch (result) {
-            case PERMISSION_OK:
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment fragment = fm.findFragmentById(R.id.mainActContentFrame);
+        if(fragment instanceof MapLibreFragment){
+            Log.d(DEBUG_TAG, "Requested map fragment, but it is already open");
+        } else {
+            fragment = fm.findFragmentByTag(MapLibreFragment.FRAGMENT_TAG);
+            if(fragment != null){
+                Log.d(DEBUG_TAG, "Found map fragment, reopening it");
+                var ft = fm.beginTransaction();
+                ft.replace(R.id.mainActContentFrame,fragment, MapLibreFragment.FRAGMENT_TAG);
+                if(allowReturn) ft.addToBackStack(null);
+                ft.commit();
+            } else {
+                //create from scratch
+                //The permissions are handled in the MapLibreFragment instead
                 createAndShowMapFragment(null, allowReturn);
-                break;
-            case PERMISSION_ASKING:
-                permissionDoneRunnables.put(permission,
-                        () -> createAndShowMapFragment(null, allowReturn));
-                break;
-            case PERMISSION_NEG_CANNOT_ASK:
-                String storage_perm = getString(R.string.storage_permission);
-                String text = getString(R.string.too_many_permission_asks,  storage_perm);
-                Toast.makeText(getApplicationContext(),text, Toast.LENGTH_LONG).show();
+            }
         }
-
-         */
-        //The permissions are handled in the MapLibreFragment instead
-        createAndShowMapFragment(null, allowReturn);
     }
 
-    private static void checkAndShowFavoritesFragment(FragmentManager fragmentManager,  boolean addToBackStack){
+    private void checkAndShowFavoritesFragment(FragmentManager fragmentManager,  boolean addToBackStack){
+        if(getSupportFragmentManager().findFragmentById(R.id.mainActContentFrame) instanceof FavoritesFragment){
+            Log.d(DEBUG_TAG, "Requested favorites fragment, but it is already open");
+            return;
+        }
         FragmentTransaction ft = fragmentManager.beginTransaction();
         Fragment fragment = fragmentManager.findFragmentByTag(TAG_FAVORITES);
         if(fragment!=null){
@@ -614,7 +609,11 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         ft.commit();
     }
 
-    private static void showLinesFragment(@NonNull FragmentManager fragmentManager,  boolean addToBackStack, @Nullable Bundle fragArgs){
+    private void showLinesFragment(@NonNull FragmentManager fragmentManager,  boolean addToBackStack, @Nullable Bundle fragArgs){
+        if(getSupportFragmentManager().findFragmentById(R.id.mainActContentFrame) instanceof LinesGridShowingFragment){
+            Log.d(DEBUG_TAG, "Requested lines grid fragment, but it is already open");
+            return;
+        }
         FragmentTransaction ft = fragmentManager.beginTransaction();
         Fragment f = fragmentManager.findFragmentByTag(LinesGridShowingFragment.FRAGMENT_TAG);
         if(f!=null){

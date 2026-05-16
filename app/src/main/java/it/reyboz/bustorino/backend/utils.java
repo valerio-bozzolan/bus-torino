@@ -32,6 +32,8 @@ import android.util.TypedValue;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -404,5 +406,10 @@ public abstract class utils {
         Date date = new Date(timestamp * 1000L); // seconds to milliseconds
         SimpleDateFormat format = new SimpleDateFormat(patternFormat, Locale.getDefault());
         return format.format(date);
+    }
+
+    public static Double roundDecimalUsingBigDecimal(Double value, int decimalPlace) {
+        return new BigDecimal(value).setScale(decimalPlace,
+                RoundingMode.HALF_UP).stripTrailingZeros().doubleValue();
     }
 }

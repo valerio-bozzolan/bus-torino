@@ -36,7 +36,6 @@
     <string name="location_permission_not_granted">Permission d\'accès à la localisation refusée</string>
     <string name="close_tutorial">OK, fermer le tutoriel</string>
     <string name="backup_restore">Sauvegarder et restaurer</string>
-    <string name="backup_activity">Importer/Exporter les préférences</string>
     <string name="data_imported_backup">La sauvegarde a été importée</string>
     <string name="message_check_at_least_one">Vérifiez cocher au moins un élément à importer !</string>
     <string name="load_file_favorites">Importer les favoris depuis une sauvegarde</string>

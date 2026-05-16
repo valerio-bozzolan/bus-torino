@@ -49,9 +49,9 @@
             android:theme="@style/AppTheme.NoActionBar">
         <activity
                 android:name=".ActivityBackup"
-                android:label="@string/backup_activity"
+                android:label="@string/backup_restore"
                 android:parentActivityName=".ActivityPrincipal"
-                android:theme="@style/MapTheme"
+                android:theme="@style/BackupTheme"
                 android:exported="false"/>
         <activity
                 android:name=".ActivityIntro"

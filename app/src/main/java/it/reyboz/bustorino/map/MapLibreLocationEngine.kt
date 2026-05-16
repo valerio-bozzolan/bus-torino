@@ -17,10 +17,6 @@ import it.reyboz.bustorino.middleware.FusedNativeLocationProvider
  * Separa completamente la logica di fusione dei provider (in [FusedNativeLocationProvider])
  * dalla traduzione nel contratto MapLibre (qui).
  *
- * Uso:
- *   val provider = FusedNativeLocationProvider(context)
- *   val engine   = MapLibreLocationEngine(provider)
- *   // poi passa engine a LocationComponentActivationOptions
  */
 class MapLibreLocationEngine(
     private val provider: FusedNativeLocationProvider,
@@ -111,8 +107,6 @@ class MapLibreLocationEngine(
 
     companion object {
         const val DEBUG_TAG = "BusTO-MapLocationEngine"
-
-
 
     }
 }

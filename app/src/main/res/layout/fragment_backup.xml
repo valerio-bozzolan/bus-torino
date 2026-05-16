@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context=".fragments.BackupImportFragment"
+                android:padding="10dp"
+                android:paddingEnd="5dp"
+                android:paddingStart="5dp"
+>
+
+        <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:id="@+id/topPartCardView"
+                app:cardElevation="5dp"
+                app:cardCornerRadius="10dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentEnd="true"
+                android:layout_margin="5dp"
+                android:layout_marginBottom="10dp"
+        >
+            <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:padding="10dp"
+                    android:layout_height="wrap_content"
+ >
+                <TextView android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:fontFamily="@font/lato_bold"
+                          android:text="@string/backup_title"
+                          android:textSize="22sp"
+                          android:id="@+id/backupTitleText"
+                          app:layout_constraintTop_toTopOf="parent"
+                          app:layout_constraintStart_toStartOf="parent"
+                          app:layout_constraintEnd_toEndOf="parent"
+                          android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                          android:layout_marginBottom="10dp"
+                          app:layout_constraintBottom_toTopOf="@id/saveButton"
+                />
+            <Button
+                    android:text="@string/btn_backup_message"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/saveButton"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/backupTitleText"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    app:layout_constraintVertical_bias="0.0"
+                    app:layout_constraintVertical_chainStyle="packed"
+                    android:backgroundTint="?attr/colorAccent"
+
+            />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+
+
+    <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/bottomPartCardview"
+            android:layout_below="@id/topPartCardView"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="10dp"
+            android:layout_margin="5dp"
+    >
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:padding="10dp"
+                android:layout_height="wrap_content">
+
+            <TextView android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:fontFamily="@font/lato_bold"
+                      android:text="@string/restore_title"
+                      android:textSize="22sp"
+                      android:id="@+id/restoreTitleText"
+                      app:layout_constraintTop_toTopOf="parent"
+                      app:layout_constraintStart_toStartOf="parent"
+                      app:layout_constraintEnd_toEndOf="parent"
+                      android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                      android:layout_marginBottom="10dp"
+                      app:layout_constraintBottom_toTopOf="@id/favoritesCheckBox"
+                      />
+
+        <CheckBox
+                android:text="@string/load_file_favorites"
+                android:layout_width="wrap_content"
+                android:checked="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/restoreTitleText"
+                app:layout_constraintBottom_toTopOf="@id/preferencesCheckBox"
+                app:layout_constraintHorizontal_bias="0.0"
+                android:layout_marginStart="15dp"
+                android:minHeight="48dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/favoritesCheckBox"/>
+        <CheckBox
+                android:text="@string/load_preferences"
+                android:layout_width="wrap_content"
+                android:checked="true"
+                app:layout_constraintTop_toBottomOf="@id/favoritesCheckBox"
+                app:layout_constraintBottom_toTopOf="@id/loadDataButton"
+                app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                android:layout_marginStart="15dp"
+                android:minHeight="48dp"
+                android:layout_marginTop="8dp"
+
+                android:layout_height="wrap_content" android:id="@+id/preferencesCheckBox"/>
+        <Button
+                android:text="@string/btn_load_backup_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/loadDataButton"
+                app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferencesCheckBox"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginTop="18dp"
+                app:layout_constraintVertical_bias="0.0"
+                android:backgroundTint="?attr/colorAccent"
+
+
+        />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</RelativeLayout>

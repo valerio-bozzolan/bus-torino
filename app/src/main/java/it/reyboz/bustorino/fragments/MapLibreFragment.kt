@@ -277,13 +277,11 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         mapReady.addOnCameraIdleListener {
             map?.let {
                 val newBbox = it.projection.visibleRegion.latLngBounds
-                if ((newBbox.center==lastBBox.center) && (newBbox.latitudeSpan==lastBBox.latitudeSpan) && (newBbox.longitudeSpan==lastBBox.latitudeSpan)){
-                    //do nothing
-                } else {
-                    stopsViewModel.loadStopsInLatLngBounds(newBbox)
-                    lastBBox = newBbox
 
-                }
+                stopsViewModel.loadStopsInLatLngBounds(newBbox)
+                lastBBox = newBbox
+
+
 
             }
 
@@ -539,7 +537,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         if (stops.isNullOrEmpty()) return
 
         if (stops.size==lastStopsSizeShown){
-            Log.d(DEBUG_TAG, "Not updating, have same number of stops. After 3 times")
+            Log.d(DEBUG_TAG, "Not updating, have same number of stops")
             return
         }
         /*if(stops.size> lastStopsSizeShown){
@@ -559,7 +557,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
 
         }
-        Log.d(DEBUG_TAG,"Have put ${features.size} stops to display")
+        Log.d(DEBUG_TAG,"Displaying ${features.size} stops")
 
         // if the layer is already started, substitute the stops inside, otherwise start it
         if (stopsLayerStarted) {

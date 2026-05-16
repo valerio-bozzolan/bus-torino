@@ -141,7 +141,7 @@ class ArrivalsViewModel(application: Application): AndroidViewModel(application)
         requestArrivalsForStop(stopId, fetchers)
     }
 
-    private suspend fun runArrivalsFetching(stopId: String, fetchers: List<ArrivalsFetcher>, appContext: Context) {
+    private fun runArrivalsFetching(stopId: String, fetchers: List<ArrivalsFetcher>, appContext: Context) {
 
         if (fetchers.isEmpty()) {
             //do nothing

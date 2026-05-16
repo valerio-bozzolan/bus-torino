@@ -95,7 +95,7 @@ class BackupImportFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        val rootview= inflater.inflate(R.layout.fragment_test_saving, container, false)
+        val rootview= inflater.inflate(R.layout.fragment_backup, container, false)
 
         saveButton = rootview.findViewById(R.id.saveButton)
         saveButton.setOnClickListener {
@@ -141,7 +141,7 @@ class BackupImportFragment : Fragment() {
                 val userDB = UserDB.getInstance(context)
                 userDB.writeFavoritesToCsv(csvWriter)
                 csvWriter.close()
-                Toast.makeText(context, R.string.saved_data, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, R.string.backup_completed_toast, Toast.LENGTH_SHORT).show()
             }
 
         }
@@ -198,7 +198,7 @@ class BackupImportFragment : Fragment() {
 
             zipOutputStream.close()
 
-            Toast.makeText(context, R.string.saved_data, Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, R.string.backup_completed_toast, Toast.LENGTH_SHORT).show()
         }
     }
     private fun loadZipData(uri: Uri, loadFavorites: Boolean, loadPreferences: Boolean){

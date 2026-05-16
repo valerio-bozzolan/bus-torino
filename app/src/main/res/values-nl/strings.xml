@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="grant_location_permission">Geef locatietoestemming</string>
-    <string name="backup_activity">Importeer/exporteer voorkeuren</string>
     <string name="tutorial_permissions"><![CDATA[De app heeft toestemming nodig voor <b>Notificaties</b>  om informatie te laten zien over achtergrondprocessen.
          Druk op de knop hieronder om deze toestemming te geven]]></string>
     <string name="location_permission_not_granted">Locatie toestemming is niet verleend</string>

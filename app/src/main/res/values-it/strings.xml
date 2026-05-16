@@ -217,8 +217,11 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
     <string name="notification_permission_granted">Notifiche abilitate</string>
     <!-- BACKUP -->
     <string name="backup_restore">Backup e ripristino</string>
-    <string name="backup_activity">Importa / esporta dati</string>
     <string name="saved_data">Dati salvati</string>
+    <string name="backup_title">Backup</string>
+    <string name="restore_title">Ripristino</string>
+    <string name="backup_completed_toast">Backup completato</string>
+    <string name="backup_restore_pref_description">Salva o ripristina i dati</string>
     <string name="btn_backup_message">Salva backup</string>
     <string name="btn_load_backup_message">Importa i dati dal backup</string>
     <string name="data_imported_backup">Backup importato</string>

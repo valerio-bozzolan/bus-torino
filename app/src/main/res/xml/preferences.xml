@@ -124,7 +124,7 @@
 
     <androidx.preference.PreferenceCategory android:title="@string/backup_restore">
         <androidx.preference.Preference
-            android:title="@string/backup_activity"
+            android:title="@string/backup_restore_pref_description"
             android:key="pref_backup_open"
             />
     </androidx.preference.PreferenceCategory>

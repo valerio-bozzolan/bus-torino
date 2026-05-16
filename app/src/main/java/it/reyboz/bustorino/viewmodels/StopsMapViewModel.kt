@@ -19,7 +19,6 @@ package it.reyboz.bustorino.viewmodels
 
 import android.app.Application
 import android.location.Location
-import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MediatorLiveData
@@ -27,6 +26,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.switchMap
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.data.OldDataRepository
+import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.geojson.BoundingBox
 import java.util.concurrent.Executors
@@ -43,15 +43,7 @@ class StopsMapViewModel(application: Application): AndroidViewModel(application)
     //private var allStopsLoaded = HashMap<String,Stop>()
 
     private val boundingBoxLoaded = MutableLiveData<BoundingBox>()
-    val stopsInBoundingBox = MutableLiveData<ArrayList<Stop>>()
-
-    private val callback =
-        OldDataRepository.Callback<ArrayList<Stop>> { res ->
-                if(res.isSuccess){
-                    stopsInBoundingBox.postValue(res.result)
-                    Log.d(DEBUG_TAG, "Setting value of stops in bounding box")
-                }
-        }
+    //val stopsToShow = MediatorLiveData<ArrayList<Stop>>()
 
     fun getStopByID(id: String): Stop? {
         return stopsToShow.value?.firstOrNull{ s-> s.ID == id}
@@ -61,30 +53,37 @@ class StopsMapViewModel(application: Application): AndroidViewModel(application)
         return stopsToShow.value
     }
 
-    /*fun requestStopsInBoundingBox(bb: BoundingBox) {
-        bb.let {
-            Log.d(DEBUG_TAG, "Launching stop request")
-            oldRepo.requestStopsInArea(it.latSouth, it.latNorth, it.lonWest, it.lonEast, callback)
-        }
+    private fun checkDistanceBbox(boxCurrent: BoundingBox, boxNew: BoundingBox): Double{
+        val d1 = LatLng(boxCurrent.north(), boxCurrent.east()).distanceTo(
+            LatLng(boxNew.north(), boxNew.east())
+        )
+        val d2 = LatLng(boxCurrent.south(), boxCurrent.west()).distanceTo(
+            LatLng(boxNew.south(), boxNew.west())
+        )
+        return Math.max(d1,d2)
     }
-
-     */
     private fun updateBoundingBox(boundingBox: BoundingBox){
         val current = boundingBoxLoaded.value
         if(current == null){
             boundingBoxLoaded.value = boundingBox
         } else{
             val bb = boundingBox
-            val mix = BoundingBox.fromLngLats(Math.min(current.west(), bb.west()),
+            val bnew = BoundingBox.fromLngLats(Math.min(current.west(), bb.west()),
                 Math.min(current.south(), bb.south()), Math.max(current.north(), bb.east()),
                 Math.max(current.north(), bb.north()))
 
-            boundingBoxLoaded.value = mix
+            val newDistance = checkDistanceBbox(current, bnew)
+            if(newDistance > 5) {
+                Log.d(DEBUG_TAG, "New box is larger than current, new max distance: $newDistance")
+                boundingBoxLoaded.value = bnew
+            } else{
+                //Log.d(DEBUG_TAG, "New box is NOT larger than current, not updating")
+            }
         }
     }
 
     fun loadStopsInLatLngBounds(bb: LatLngBounds){
-        val extra = 0.05
+        val extra = 0.01
         val deltaLong = abs(bb.longitudeEast - bb.longitudeWest) * extra
         val deltaLat = abs(bb.latitudeNorth - bb.latitudeSouth) * extra
 
@@ -104,38 +103,6 @@ class StopsMapViewModel(application: Application): AndroidViewModel(application)
 
     }
 
-    /*private val addStopsCallback =
-        OldDataRepository.Callback<ArrayList<Stop>> { res ->
-            if(res.isSuccess) res.result?.let{ newStops ->
-                //val stopsAdd = stopsToShow.value ?: ArrayList()
-                /*for (s in newStops){
-                    if (s.ID !in stopsShownIDs){
-                        stopsShownIDs.add(s.ID)
-                        stopsAdd.add(s)
-                        allStopsLoaded[s.ID] = s
-                    }
-                }
-
-                 */
-                allStopsLoaded.clear()
-                for(stop in newStops){
-                    allStopsLoaded[stop.ID] = stop
-                }
-                Log.d(DEBUG_TAG, "Loaded ${newStops.size} stops")
-                stopsToShow.postValue(newStops)
-                //Log.d(DEBUG_TAG, "Loaded ${stopsAdd.size} stops in total")
-            }
-        }
-
-     */
-    /*stopsToShow.addSource(boundingBoxLoaded){
-        oldRepo.requestStopsInArea(it.south(), it.north(),
-            it.west(), it.east(),
-            addStopsCallback)
-    }
-
-     */
-
     val stopsToShow = boundingBoxLoaded.switchMap {
         oldRepo.requestStopsInAreaLiveData(it.south(), it.north(), it.west(), it.east())
     }
@@ -146,5 +113,7 @@ class StopsMapViewModel(application: Application): AndroidViewModel(application)
 
     companion object{
         private const val DEBUG_TAG = "BusTOStopMapViewModel"
+
+        private const val DECIMAL_PLACES = 8
     }
 }

@@ -132,10 +132,13 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         if(key == SettingsFragment.LIBREMAP_STYLE_PREF_KEY){
             Log.d(DEBUG_TAG,"ASKING RELOAD OF MAP")
 
-            reloadMap()
+            //reloadMap()
         }
     }
 
+    /**
+     * What to do when requesting the permission, when it's ok, initialize the map location component
+     */
     protected val positionRequestResponder = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(), ActivityResultCallback{ res ->
             if(!(res.containsKey(PERM_LOC_COARSE)&&res.containsKey(PERM_LOC_FINE))){
@@ -215,7 +218,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             }
 
             if(receivedFirstLocation){
-                //remove this
+                //remove this listener once we have received the location
                 locationEngine?.removeLocationUpdates(this)
             }
 
@@ -275,9 +278,10 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         mapView?.onResume()
         val newMapStyle = PreferencesHolder.getMapLibreStyleFile(requireContext())
         Log.d(DEBUG_TAG, "onResume newMapStyle: $newMapStyle, lastMapStyle: $lastMapStyle")
-        if(newMapStyle!=lastMapStyle){
-            reloadMap()
-        }
+        // TODO: reload style if user changed preferences
+        //if(newMapStyle!=lastMapStyle){
+        //    reloadMap()
+        //}
     }
 
     override fun onLowMemory() {
@@ -335,7 +339,6 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         }
 
          */
-        //TODO figure out how to switch map safely
     }
 
     //For extra stuff to do when the map is destroyed
@@ -474,9 +477,8 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 .build()
             locationComponent.activateLocationComponent(options)
 
-            if(BuildConfig.DEBUG) Log.d(DEBUG_TAG, "Requesting location updates")
-            locationEngine!!.requestLocationUpdates(LocationEngineRequest.Builder(500).setDisplacement(20.0f).build(),
-                    mapLibreLocationCallback, null)
+            if(BuildConfig.DEBUG) Log.d(DEBUG_TAG, "Initializing location, request initial position")
+            startInitialPositionRequest()
 
             if(!locationEnabledOnDevice){
                 warnLocationNotEnabledOnDevice()
@@ -486,6 +488,16 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             locationInitialized = true
             onMapLocationComponentInitialized()
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    protected fun startInitialPositionRequest(){
+        locationEngine?.requestLocationUpdates(LocationEngineRequest.Builder(500).setDisplacement(20.0f).build(),
+            mapLibreLocationCallback, null)
+
+    }
+    protected fun stopInitialPositionRequest(){
+        locationEngine?.removeLocationUpdates(mapLibreLocationCallback)
     }
 
 
@@ -970,6 +982,11 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         val enabled = if(locationInitialized) locationComponent.isLocationComponentEnabled else false
         val context = context ?: return
         if(enabled) {
+            if(!receivedFirstLocation){
+                //use case: the user has decided to disable the location before the first position arrived
+                stopInitialPositionRequest()
+            }
+            // we have to disable it
             setMapLocationEnabled(false)
         }
         else if(deviceHasLocationProvider()) {
@@ -987,6 +1004,8 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             context.let {
                 Toast.makeText(it, R.string.no_gps_on_device, Toast.LENGTH_SHORT).show()
             }
+            //adjust ui
+            setLocationIconEnabled(false)
         }
 
     }
@@ -1002,6 +1021,12 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         mapStateViewModel.locationUserActive.value = enabled
         onMapLocationEnabled(enabled)
     }
+
+    /**
+     * Function to run at the first time the fragment is opened
+     * Check if we have the permissions, and then initialize the map location component
+     * If we don't have it, request the permission
+     */
     protected fun checkInitMapLocation(mapReady: MapLibreMap,style: Style, context: Context) {
         //enable location
         val hasGps = deviceHasLocationProvider()
@@ -1045,7 +1070,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
 
     protected fun deviceHasLocationProvider(): Boolean{
         val locManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
-        return locManager.allProviders.size > 0
+        return locManager.allProviders.isNotEmpty()
     }
 
     /**

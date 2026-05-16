@@ -80,11 +80,14 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
     }
     fun matchFavoritesStopsAndUpdate(fav: List<StopFavoritesData>, stops: List<Stop>) {
         //copy favorites info
-        for(s in stops) {
-            val di = fav.first{ it.stopID == s.ID}
-            di.addToStop(s)
+        val stopsSave = ArrayList<Stop>()
+        for (f in fav) {
+           stops.firstOrNull{ it.ID == f.stopID }?.let { s ->
+               f.addToStop(s)
+               stopsSave.add(s)
+           }
         }
-        favoritesWithStop.value = stops
+        favoritesWithStop.value = stopsSave
     }
     companion object {
         const val DEBUG_TAG = "BusTO-FavoritesViewM"
