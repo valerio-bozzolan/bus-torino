@@ -151,7 +151,7 @@ if( $diff_ids ) {
 	// Start from commit hash and get Diff PHIDs
 	// https://we.phorge.it/conduit/method/edge.search/
 	$commit_revisions = $client->callMethodSynchronous( 'edge.search', [
-		'sourcePHIDs' => $git_commits_after_last_tag,
+		'sourcePHIDs' => $diffusion_commit_phids,
 		'types' => [
 			'commit.revision',
 		],

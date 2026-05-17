@@ -1,0 +1,20 @@
+New features:
+    - Show realtime alerts from GTT into each line (if the API endpoint ever works again)
+    - Improve the style of the backup screen
+    
+Bug fixes:
+    - Map: rewrite handling of user location, now the map updates it correctly
+    - Fix backup not saving favorites
+    - Fix crash due to locked database 
+    - Fix illegible taskbar (grey text on black background)
+    - Fix not showing favorites stop while database is being updated
+    - Add mechanism to close app after back presses
+    - Fix fragment transitions avoiding recreating shown fragments
+    
+Under the hood improvements:
+    - Produce LiveData from old databases
+    - Make new location listener fusing many providers
+    - Rewrite asynctasks using Kotlin coroutines
+    - Raise JDK version to 21
+
+Version implemented by Fabio Mazza! \o/

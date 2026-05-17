@@ -1,0 +1,20 @@
+Nuove funzionalità:
+    - Visualizzazione degli avvisi in tempo reale da GTT nella schermata delle linee (se il server GTT ritornerà mai a funzionare)
+    - Migliorato design della schermata di backup
+    
+Correzioni di bug:
+    - Mappa: riscrittura della gestione della posizione dell'utente, ora si aggiorna correttamente
+    - Risoluzione del problema che impediva il salvataggio dei preferiti durante il backup
+    - Risoluzione del crash dovuto al database bloccato
+    - Fix: messaggio inferiore illeggibile (testo grigio su sfondo nero)
+    - Fix: preferiti spariscono durante (e dopo) l'aggiornamento del database
+    - Aggiunta di un meccanismo per chiudere l'app dopo aver premuto il tasto Indietro
+    - Fix delle transizioni tra schermate evitando la ricreazione dei frammenti visualizzati
+    
+Miglioramenti interni:
+    - Generazione di LiveData dai vecchi database
+    - Creazione di un nuovo listener di posizione che unisce molti provider
+    - Riscrittura degli asynctask utilizzando le coroutine Kotlin
+    - Aumento della versione JDK a 21
+
+Versione implementata da Fabio Mazza! \o/
