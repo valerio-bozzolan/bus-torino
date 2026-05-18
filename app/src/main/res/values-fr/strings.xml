@@ -248,4 +248,22 @@ Consultez les <b>Paramètres</b> pour personnaliser l\'application, et la sectio
 		 Si vous souhaitez obtenir plus d\'informations ou contribuer au développement, utilisez les boutons ci-dessous !</b>
     ]]></string>
     <string name="passages">Arrivées à:</string>
+    <string name="action_open_line">Afficher détails de la ligne</string>
+    <string name="action_show_direction">Afficher la direction complète</string>
+    <string name="no_gps_on_device">Aucun récepteur GPS n\'a été détecté sur l\'appareil !</string>
+    <string name="downloading_alerts_message">Téléchargement des alertes en temps réel</string>
+    <string name="no_permission_dialog_title">Autorisation manquante</string>
+    <string name="no_permission_dialog_text_location">Pour utiliser cette fonctionnalité, l\'application nécessite d\'accéder à la localisation, ce qui ne peut désormais être autorisé que dans les paramètres système.</string>
+    <string name="no_permission_dialog_open">Ouvrir les paramètres</string>
+    <string name="backup_title">Sauvegarde</string>
+    <string name="restore_title">Restauration</string>
+    <string name="backup_restore_pref_description">Sauvegarder ou restaurer les données</string>
+    <string name="backup_completed_toast">Sauvegarde terminée</string>
+    <string name="alert_line_fill">Alertes pour la ligne %1$s:</string>
+    <string name="no_alerts_in_your_language_fill">Les alertes ne sont pas disponibles en français et sont donc affichées en %1$s</string>
+    <string name="italian">italien</string>
+    <string name="english">anglais</string>
+    <string name="checking_alerts_update">Vérification des nouvelles alertes en cours</string>
+    <string name="back_again_to_close">Appuyez à nouveau sur le bouton de retour pour fermer l\'application</string>
+    <string name="updated_fill">Mise à jour le : %1$s</string>
 </resources>
