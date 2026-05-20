@@ -1,6 +1,5 @@
 package it.reyboz.bustorino.middleware
 
-import android.content.Context
 import android.util.Log
 import it.reyboz.bustorino.backend.Fetcher
 import it.reyboz.bustorino.backend.FiveTStopsFetcher
@@ -11,8 +10,6 @@ import it.reyboz.bustorino.fragments.FragmentHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.lang.ref.WeakReference

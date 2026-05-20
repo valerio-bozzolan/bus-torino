@@ -2,13 +2,10 @@ package it.reyboz.bustorino.fragments;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
@@ -17,6 +14,9 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -44,11 +44,17 @@ public abstract class ScreenBaseFragment extends Fragment {
         return getOption(mContext, optionName, optDefault);
     }
 
-    protected void showToastMessage(int messageID, boolean short_lenght) {
-        final int length = short_lenght ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG;
+    protected void showToastMessage(int messageID, boolean shortT) {
+        final int length = shortT ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG;
         final Context context = getContext();
         if(context!=null)
             Toast.makeText(context, messageID, length).show();
+    }
+    protected void makeToast(String message){
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+    }
+    protected void makeToast(int messageID){
+        Toast.makeText(getContext(), messageID, Toast.LENGTH_SHORT).show();
     }
 
     public void hideKeyboard() {
@@ -151,6 +157,20 @@ public abstract class ScreenBaseFragment extends Fragment {
     }
 
      */
+    public static void applyBottomInsetAsPadding(ViewGroup scrollableView) {
+        final int originalPaddingBottom = scrollableView.getPaddingBottom();
+        scrollableView.setClipToPadding(false); // ora lo trova
+        ViewCompat.setOnApplyWindowInsetsListener(scrollableView, (v, insets) -> {
+            Insets bars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime()
+            );
+            v.setPadding(
+                    v.getPaddingLeft(), v.getPaddingTop(),
+                    v.getPaddingRight(), originalPaddingBottom + bars.bottom
+            );
+            return insets;
+        });
+    }
 
     public interface LocationRequestListener{
         void onPermissionResult(boolean locationGranted);

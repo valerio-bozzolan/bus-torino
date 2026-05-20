@@ -3,12 +3,9 @@ package it.reyboz.bustorino.viewmodels
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
-import it.reyboz.bustorino.backend.Result
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.data.GtfsRepository
-import it.reyboz.bustorino.data.NextGenDB
 import it.reyboz.bustorino.data.OldDataRepository
-import it.reyboz.bustorino.data.gtfs.GtfsDatabase
 import it.reyboz.bustorino.data.gtfs.GtfsRoute
 import it.reyboz.bustorino.data.gtfs.MatoPatternWithStops
 import it.reyboz.bustorino.data.gtfs.PatternStop

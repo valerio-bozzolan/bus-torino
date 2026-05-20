@@ -19,5 +19,5 @@ package it.reyboz.bustorino.fragments;
 
 public enum FragmentKind {
     STOPS,ARRIVALS,FAVORITES,NEARBY_STOPS,NEARBY_ARRIVALS, MAP, MAIN_SCREEN_FRAGMENT,
-    LINES
+    LINES, HOME_BUTTONS
 }

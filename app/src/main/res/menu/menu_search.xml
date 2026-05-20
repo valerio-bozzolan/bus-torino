@@ -4,7 +4,7 @@
 >
     <item android:id="@+id/searchMenuItem"
           android:title="@string/search"
-          android:icon="@drawable/magnifying_glass"
+          android:icon="@drawable/magnifying_glass_larger"
           app:actionViewClass="androidx.appcompat.widget.SearchView"
           app:showAsAction="collapseActionView|ifRoom"/>
 

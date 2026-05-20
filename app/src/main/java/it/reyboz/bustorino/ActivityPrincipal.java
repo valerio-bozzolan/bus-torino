@@ -242,21 +242,21 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         Fragment f = getSupportFragmentManager().findFragmentById(R.id.mainActContentFrame);
         Log.d(DEBUG_TAG, "OnCreate the fragment is "+f);
         String vl = PreferenceManager.getDefaultSharedPreferences(this).getString(SettingsFragment.PREF_KEY_STARTUP_SCREEN, "");
-        //if (vl.length() == 0 || vl.equals("arrivals")) {
-        //    showMainFragment();
+
         Log.d(DEBUG_TAG, "The default screen to open is: "+vl);
         if (showingArrivalsFromIntent){
             //do nothing but exclude a case
         }else if (savedInstanceState==null) {
+            var framan = getSupportFragmentManager();
             //we are not restarting the activity from nothing
             if (vl.equals("map")) {
                 requestMapFragment(false);
             } else if (vl.equals("favorites")) {
-                checkAndShowFavoritesFragment(getSupportFragmentManager(), false);
+                checkAndShowFavoritesFragment(framan, false);
             } else if (vl.equals("lines")) {
-                showLinesFragment(getSupportFragmentManager(), false, null);
+                showLinesFragment(framan, false, null);
             } else {
-                showMainFragment(false);
+                showMainFragmentFromClick(false);
             }
         }
         onCreateComplete = true;
@@ -264,6 +264,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         //last but not least, set the good default values
         checkApplyDefaultSettingsValues();
         // handle the device "insets"
+        /*
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootRelativeLayout), (v, windowInsets) -> {
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
             // Apply the insets as a margin to the view. This solution sets only the
@@ -286,21 +287,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             return WindowInsetsCompat.CONSUMED;
         });
 
-        /*
-        ViewCompat.setOnApplyWindowInsetsListener(mToolbar, (v, windowInsets) -> {
-            Insets statusBarInsets = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars());
-            // Apply the insets as a margin to the view.
-            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
-            mlp.topMargin = statusBarInsets.top;
-            v.setLayoutParams(mlp);
-            v.setPadding(0, statusBarInsets.top, 0, 0);
 
-            // Return CONSUMED if you don't want the window insets to keep passing
-            // down to descendant views.
-            return WindowInsetsCompat.CONSUMED;
-        });
-
-         */
         //to properly handle IME
         WindowInsetsControllerCompat insetsController =
                 WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
@@ -310,6 +297,23 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                     WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             );
         }
+
+         */
+        // Toolbar: solo inset superiore (status bar)
+        ViewCompat.setOnApplyWindowInsetsListener(mToolbar, (v, windowInsets) -> {
+            Insets statusBar = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars());
+            v.setPadding(0, statusBar.top, 0, 0);
+            return windowInsets; // NON consumare: passa gli insets ai figli
+        });
+
+        // Content frame: insets laterali e inferiori (navigation bar)
+        // I fragment figli riceveranno gli insets e potranno gestirli a loro volta
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainActContentFrame), (v, windowInsets) -> {
+            Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // Solo left/right, bottom lo gestisce ogni fragment
+            v.setPadding(systemBars.left, 0, systemBars.right, 0);
+            return windowInsets; //WindowInsetsCompat.CONSUMED;  // NON consumare: passa ai fragment
+        });
 
 
 
@@ -355,7 +359,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                         return true;
                     } else if(menuItem.getItemId() == R.id.nav_arrivals){
                         closeDrawerIfOpen();
-                        showMainFragment(true);
+                        showMainFragmentFromClick(true);
                         return true;
                     } else if(menuItem.getItemId() == R.id.nav_map_item){
                         closeDrawerIfOpen();
@@ -529,7 +533,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     }
 
     /**
-     * Show the fragment by adding it to the backstack
+     * Show the actual fragment by adding it to the backstack
      * @param fraMan the fragmentManager
      * @param fragment the fragment
      */
@@ -548,11 +552,12 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         ft.commit();
     }
     /**
-     * Show the fragment by adding it to the backstack
+     * Create a new MainFragment for the arguments provided and show it in the layout
      * @param fraMan the fragmentManager
      * @param arguments args for the fragment
      */
     private static void createShowMainFragment(FragmentManager fraMan,@Nullable Bundle arguments, boolean addToBackStack){
+        //var frag = MainScreenFragment.newInstance();
         FragmentTransaction ft  = fraMan.beginTransaction()
                 .replace(R.id.mainActContentFrame, MainScreenFragment.class, arguments, MainScreenFragment.FRAGMENT_TAG)
                 .setReorderingAllowed(false)
@@ -565,6 +570,27 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         if (addToBackStack)  ft.addToBackStack(null);
         ft.commit();
+    }
+    private void showMainFragmentFromClick(@Nullable Bundle argsToCreate, boolean addToBackStack){
+        FragmentManager fraMan = getSupportFragmentManager();
+        Fragment fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
+        final MainScreenFragment mainScreenFragment;
+        if (fragment==null | !(fragment instanceof MainScreenFragment)){
+            createShowMainFragment(fraMan, argsToCreate, addToBackStack);
+        }
+        else if(!fragment.isVisible()){
+
+
+            mainScreenFragment = (MainScreenFragment) fragment;
+            showMainFragment(fraMan, mainScreenFragment, addToBackStack);
+            Log.d(DEBUG_TAG, "Found the main fragment");
+        } else{
+            mainScreenFragment = (MainScreenFragment) fragment;
+        }
+    }
+
+    private void showMainFragmentFromClick(boolean addToBackStack){
+        showMainFragmentFromClick(MainScreenFragment.makeArgsButtonsScreen(), addToBackStack);
     }
 
     private void requestMapFragment(final boolean allowReturn){
@@ -630,24 +656,6 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 .commit();
     }
 
-    private void showMainFragment(boolean addToBackStack){
-        FragmentManager fraMan = getSupportFragmentManager();
-        Fragment fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
-        final MainScreenFragment mainScreenFragment;
-        if (fragment==null | !(fragment instanceof MainScreenFragment)){
-            createShowMainFragment(fraMan, null, addToBackStack);
-        }
-        else if(!fragment.isVisible()){
-
-
-            mainScreenFragment = (MainScreenFragment) fragment;
-            showMainFragment(fraMan, mainScreenFragment, addToBackStack);
-            Log.d(DEBUG_TAG, "Found the main fragment");
-        } else{
-            mainScreenFragment = (MainScreenFragment) fragment;
-        }
-        //return mainScreenFragment;
-    }
     @Nullable
     private MainScreenFragment getMainFragmentIfVisible(){
         FragmentManager fraMan = getSupportFragmentManager();
@@ -661,6 +669,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     public void showFloatingActionButton(boolean yes) {
         //TODO
     }
+
     /*
     public void setDrawerSelectedItem(String fragmentTag){
         switch (fragmentTag){
@@ -683,7 +692,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         if (mainFragmentIfVisible!=null){
             mainFragmentIfVisible.readyGUIfor(fragmentType);
         }
-        int titleResId;
+        Integer titleResId = null;
         switch (fragmentType){
             case MAP:
                 mNavView.setCheckedItem(R.id.nav_map_item);
@@ -704,6 +713,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             case MAIN_SCREEN_FRAGMENT:
             case NEARBY_STOPS:
             case NEARBY_ARRIVALS:
+            case HOME_BUTTONS:
                 titleResId=R.string.app_name_full;
                 mNavView.setCheckedItem(R.id.nav_arrivals);
                 break;
@@ -711,10 +721,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 titleResId=R.string.lines;
                 mNavView.setCheckedItem(R.id.nav_lines_item);
                 break;
-            default:
-                titleResId = 0;
         }
-        if(getSupportActionBar()!=null && titleResId!=0)
+        if(getSupportActionBar()!=null && titleResId!=null)
             getSupportActionBar().setTitle(titleResId);
     }
 
@@ -737,9 +745,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 probableFragment.requestArrivalsForStopID(ID);
             } else {
                 // we have no fragment
-                final Bundle args = new Bundle();
-                args.putString(MainScreenFragment.PENDING_STOP_SEARCH, ID);
                 //if onCreate is complete, then we are not asking for the first showing fragment
+                final Bundle args = MainScreenFragment.makeArgsArrivals(ID);
                 boolean addtobackstack = onCreateComplete;
                 createShowMainFragment(fraMan, args ,addtobackstack);
             }
@@ -774,6 +781,32 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     }
 
     @Override
+    public void openNearbyStopsFragment() {
+        FragmentManager fraMan = getSupportFragmentManager();
+        var fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
+        if(fragment instanceof MainScreenFragment mainFrag){
+            if(!mainFrag.isVisible()){
+                showMainFragment(fraMan, mainFrag, false);
+            }
+            mainFrag.openNearbyStopsFragment();
+        } else{
+            // there is no fragment and it is not visible
+            // add to back stack the main fragment, as the NearbyStopsFragment will not be added
+            createShowMainFragment(fraMan, MainScreenFragment.makeArgsNearby(), true);
+        }
+    }
+
+    @Override
+    public void openLinesFragment() {
+        showLinesFragment(getSupportFragmentManager(), true, null);
+    }
+
+    @Override
+    public void openFavoritesFragment() {
+        checkAndShowFavoritesFragment(getSupportFragmentManager(), true);
+    }
+
+    @Override
     public void toggleSpinner(boolean state) {
         MainScreenFragment probableFragment = getMainFragmentIfVisible();
         if (probableFragment!=null){
@@ -791,9 +824,11 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
 
     @Override
-    public void showMapCenteredOnStop(Stop stop) {
+    public void showMapCenteredOnStop(@Nullable Stop stop) {
         createAndShowMapFragment(stop, true);
     }
+
+
 
     //Map Fragment stuff
     void createAndShowMapFragment(@Nullable Stop stop, boolean addToBackStack){

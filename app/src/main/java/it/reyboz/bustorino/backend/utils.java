@@ -67,9 +67,8 @@ public abstract class utils {
          return Math.toDegrees(distanceInMeters/ EARTH_RADIUS);
     }
 
-    public static int convertDipToPixelsInt(Context con,double dips)
-    {
-        return (int) (dips * con.getResources().getDisplayMetrics().density + 0.5f);
+    public static int convertDipToPixelInt(Context context, int dp) {
+        return Math.round(dp * context.getResources().getDisplayMetrics().density);
     }
 
     /**

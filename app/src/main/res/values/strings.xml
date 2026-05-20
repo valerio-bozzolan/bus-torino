@@ -51,6 +51,7 @@
     <string name="vehicle_fill">Vehicle %1$s</string>
     <string name="no_passages">No timetable found</string>
     <string name="no_qrcode">No QR code found, try using another app to scan</string>
+    <string name="scan_qr_code_stop">Scan QR code at the bus stop</string>
     <string name="internal_error">Unexpected internal error, cannot extract data from GTT/5T website</string>
     <string name="action_help">Help</string>
     <string name="action_about">About the app</string>
@@ -151,7 +152,8 @@
     <string name="list_fragment_debug" translatable="false">ListFragment - BusTO</string>
     <string name="mainSharedPreferences" translatable="false">it.reyboz.bustorino.preferences</string>
     <string name="databaseUpdatingPref" translatable="false">db_is_updating</string>
-    <!-- Settings -->
+    <!-- used in the buttons as generic title for "show what is near me" -->
+    <string name="nearby_message_home_card">Near me</string>
     <string name="nearby_stops_message">Nearby stops</string>
     <string name="nearby_arrivals_message">Nearby connections</string>
     <string name="app_version">App version</string>
@@ -250,6 +252,7 @@
         describe what you were doing before the crash: \n
     </string>
     <string name="nav_arrivals_text">Arrivals</string>
+    <string name="nav_home_text">Home</string>
     <string name="nav_map_text">Map</string>
     <string name="nav_favorites_text">Favorites</string>
     <string name="drawer_open">Open navigation drawer</string>
@@ -289,7 +292,7 @@
     <string name="long_press_stop_4_options">Long press the stop for options</string>
 
     <array name="first_screen_shown">
-        <item>@string/nav_arrivals_text</item>
+        <item>@string/nav_home_text</item>
         <item>@string/nav_favorites_text</item>
         <item>@string/nav_map_text</item>
         <item>@string/lines</item>

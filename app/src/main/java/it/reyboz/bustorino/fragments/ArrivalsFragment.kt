@@ -758,9 +758,13 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         return null
     }
 
-    fun isFragmentForTheSameStop(p: Palina): Boolean {
-        return if (tag != null) tag == getFragmentTag(p)
+    fun isFragmentForTheSameStop(stopID: String) : Boolean{
+        return if (tag != null) tag == getFragmentTag(stopID)
         else false
+    }
+
+    fun isFragmentForTheSameStop(p: Palina): Boolean {
+        return isFragmentForTheSameStop(p.ID)
     }
 
 
@@ -812,10 +816,13 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             return fragment
         }
 
+
+            //return "palina_" + p.ID
+
         @JvmStatic
-        fun getFragmentTag(p: Palina): String {
-            return "palina_" + p.ID
-        }
+        fun getFragmentTag(stopID: String) = "palina_$stopID"
+        @JvmStatic
+        fun getFragmentTag(p: Palina) = getFragmentTag(p.ID)
 
         @JvmStatic
         fun getArrivalsWorkID(stopID: String) = "arrivals_search_$stopID"

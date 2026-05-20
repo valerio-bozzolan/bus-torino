@@ -1,21 +1,15 @@
 package it.reyboz.bustorino.viewmodels
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.application
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
-import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.backend.StopFavoritesData
 import it.reyboz.bustorino.data.DBUpdateWorker.Companion.getWorkInfoLiveData
-import it.reyboz.bustorino.data.FavoritesLiveData
 import it.reyboz.bustorino.data.OldDataRepository
-import it.reyboz.bustorino.data.QueryLiveData
-import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 
 class FavoritesViewModel(application: Application) : AndroidViewModel(application) {

@@ -20,11 +20,12 @@ package it.reyboz.bustorino.fragments;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -50,7 +51,6 @@ public class FragmentHelper {
     public static final int NO_FRAME = -3;
     private static final String DEBUG_TAG = "BusTO FragmHelper";
     private final StopSearcher stopSearcher;
-    private boolean shouldHaltAllActivities=false;
 
 
     public FragmentHelper(FragmentListenerMain listener, FragmentManager framan, Context context, int mainFrame) {
@@ -84,48 +84,43 @@ public class FragmentHelper {
      * Called when you need to create a fragment for a specified Palina
      * @param p the Stop that needs to be displayed
      */
-    public void createOrUpdateStopFragment(Palina p, boolean addToBackStack){
-        boolean sameFragment;
+    public void showArrivalsFragmentForStop(@NonNull Palina p, boolean addToBackStack){
+        boolean sameFragment = false;
         ArrivalsFragment arrivalsFragment = null;
+        final FragmentManager fm = managerWeakRef.get();
+        if(fm == null) return;
 
-        if(managerWeakRef.get()==null || shouldHaltAllActivities) {
-            //SOMETHING WENT VERY WRONG
-            Log.e(DEBUG_TAG, "We are asked for a new stop but we can't show anything");
-            return;
+        if(fm.findFragmentById(primaryFrameLayout) instanceof ArrivalsFragment frag) {
+            sameFragment = frag.isFragmentForTheSameStop(p);
+            if(sameFragment) {
+                arrivalsFragment = frag;
+                Log.d("BusTO", "Same bus stop, accessing existing fragment");
+
+            }
         }
 
-        FragmentManager fm = managerWeakRef.get();
-
-        if(fm.findFragmentById(primaryFrameLayout) instanceof ArrivalsFragment) {
-            arrivalsFragment = (ArrivalsFragment) fm.findFragmentById(primaryFrameLayout);
-            //Log.d(DEBUG_TAG, "Arrivals are for fragment with same stop?");
-            if (arrivalsFragment == null) sameFragment = false;
-            else sameFragment = arrivalsFragment.isFragmentForTheSameStop(p);
-        } else {
-            sameFragment = false;
-            Log.d(DEBUG_TAG, "We aren't showing an ArrivalsFragment");
-
+        if(!sameFragment) {
+            // get old fragment
+            var frag = fm.findFragmentByTag(ArrivalsFragment.getFragmentTag(p));
+            if(frag instanceof ArrivalsFragment) {
+                attachFragmentToContainer(fm, frag, null, true, addToBackStack);
+                arrivalsFragment = (ArrivalsFragment) frag;
+            } else { // create new fragment
+                //set the String to be displayed on the fragment
+                String displayName = p.getStopDisplayName();
+                if (displayName != null && !displayName.isEmpty()) {
+                    arrivalsFragment = ArrivalsFragment.newInstance(p.ID, displayName);
+                } else {
+                    arrivalsFragment = ArrivalsFragment.newInstance(p.ID);
+                }
+                String probableTag = ArrivalsFragment.getFragmentTag(p);
+                attachFragmentToContainer(fm, arrivalsFragment, probableTag, true, addToBackStack);
+            }
         }
         setLastSuccessfullySearchedBusStop(p);
-        if (sameFragment){
-            Log.d("BusTO", "Same bus stop, accessing existing fragment");
-            arrivalsFragment = (ArrivalsFragment) fm.findFragmentById(primaryFrameLayout);
-            if (arrivalsFragment == null) sameFragment = false;
-        }
-        if(!sameFragment) {
-            //set the String to be displayed on the fragment
-            String displayName = p.getStopDisplayName();
-
-            if (displayName != null && displayName.length() > 0) {
-                arrivalsFragment = ArrivalsFragment.newInstance(p.ID,displayName);
-            } else {
-                arrivalsFragment = ArrivalsFragment.newInstance(p.ID);
-            }
-            String probableTag = ArrivalsFragment.getFragmentTag(p);
-            attachFragmentToContainer(fm,arrivalsFragment,new AttachParameters(probableTag, true, addToBackStack));
-        }
-        // DO NOT CALL `setListAdapter` ever on arrivals fragment
-        arrivalsFragment.updateFragmentData(p);
+        // update the data only if I have information about the passaggi
+        if(p.getTotalNumberOfPassages() > 0)
+            arrivalsFragment.updateFragmentData(p);
         // enable fragment auto refresh
         arrivalsFragment.setReloadOnResume(true);
 
@@ -141,13 +136,13 @@ public class FragmentHelper {
     public void createStopListFragment(List<Stop> resultList, String query, boolean addToBackStack){
         listenerMain.hideKeyboard();
         StopListFragment listfragment = StopListFragment.newInstance(query);
-        if(managerWeakRef.get()==null || shouldHaltAllActivities) {
+        if(managerWeakRef.get()==null) {
             //SOMETHING WENT VERY WRONG
             Log.e(DEBUG_TAG, "We are asked for a new stop but we can't show anything");
             return;
         }
-        attachFragmentToContainer(managerWeakRef.get(),listfragment,
-                new AttachParameters("search_"+query, false,addToBackStack));
+        attachFragmentToContainer(managerWeakRef.get(),
+                listfragment, "search_"+query, false, addToBackStack);
         listfragment.setStopList(resultList);
         //listenerMain.readyGUIfor(FragmentKind.STOPS);
         toggleSpinner(false);
@@ -163,35 +158,33 @@ public class FragmentHelper {
     }
 
     /**
-     * Attach a new fragment to a cointainer
+     * Attach a new fragment to the appropriate container
      * @param fm the FragmentManager
      * @param fragment the Fragment
-     * @param parameters attach parameters
+     * @param tagAttach attach tag (can be null, the fragment's own tag has preference)
+     * @param addToBackStack if the transaction is to be added to the stack
+     * @param toSecondaryFrame if the fragment goes to the secondary frame
      */
-    protected void attachFragmentToContainer(FragmentManager fm,Fragment fragment, AttachParameters parameters){
-        if(shouldHaltAllActivities) //nothing to do
-            return;
+    protected void attachFragmentToContainer(FragmentManager fm, Fragment fragment, @Nullable String tagAttach, boolean toSecondaryFrame, boolean addToBackStack){
+
         FragmentTransaction ft = fm.beginTransaction();
         int frameID;
-        if(parameters.attachToSecondaryFrame && secondaryFrameLayout!=NO_FRAME)
-           // ft.replace(secondaryFrameLayout,fragment,tag);
+        if(toSecondaryFrame && secondaryFrameLayout!=NO_FRAME)
             frameID = secondaryFrameLayout;
-        else frameID = primaryFrameLayout;
-        switch (parameters.transaction){
-            case REPLACE:
-                ft.replace(frameID,fragment,parameters.tag);
-
-        }
-        if (parameters.addToBackStack)
-            ft.addToBackStack("state_"+parameters.tag);
+        else
+            frameID = primaryFrameLayout;
+        var tag = fragment.getTag();
+        if(tag == null) tag = tagAttach;
+        // there is only one case
+        //switch (pars.transaction){
+        //    case REPLACE:
+        ft.replace(frameID,fragment,tag);
+        //}
+        if (addToBackStack)
+            ft.addToBackStack("state_"+tag);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE);
-        if(!fm.isDestroyed() && !shouldHaltAllActivities)
-            ft.commit();
+        ft.commit();
         //fm.executePendingTransactions();
-    }
-
-    public synchronized void setBlockAllActivities(boolean shouldI) {
-        this.shouldHaltAllActivities = shouldI;
     }
 
     public void stopLastRequestIfNeeded(){
@@ -260,11 +253,12 @@ public class FragmentHelper {
     private void showShortToast(int messageID){
         showToastMessage(messageID, true);
     }
-
+    /*
+    // 18/05/2026: Commenting, do not remove, might be useful later
     enum Transaction{
         REPLACE,
     }
-    static final class AttachParameters {
+    private static final class AttachParameters {
         String tag;
         boolean attachToSecondaryFrame;
         Transaction transaction;
@@ -284,4 +278,6 @@ public class FragmentHelper {
             this.transaction = Transaction.REPLACE;
         }
     }
+
+     */
 }

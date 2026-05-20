@@ -76,9 +76,20 @@ public class ActivityExperiments extends GeneralActivity implements CommonFragme
     }
 
     @Override
-    public void showMapCenteredOnStop(Stop stop) {
+    public void showMapCenteredOnStop(@Nullable Stop stop) {
 
     }
+
+    @Override
+    public void openLinesFragment() {
+        Log.d(DEBUG_TAG, "Asked to open lines grid fragment");
+    }
+
+    @Override
+    public void openFavoritesFragment() {
+
+    }
+
     @Override
     public void openLineFromStop(String routeGtfsId, @Nullable String stopIDFrom){
 
@@ -99,6 +110,11 @@ public class ActivityExperiments extends GeneralActivity implements CommonFragme
                 LinesDetailFragment.Companion.makeArgsPattern(routeGtfsId, optionalPatternId, args));
         tr.addToBackStack("Line-"+routeGtfsId);
         tr.commit();
+    }
+
+    @Override
+    public void openNearbyStopsFragment() {
+        Log.d(DEBUG_TAG, "Requested to open nearby stops fragment");
     }
 
 }

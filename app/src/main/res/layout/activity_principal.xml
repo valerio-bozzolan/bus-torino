@@ -3,7 +3,9 @@
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/drawer_layout"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+>
     <RelativeLayout
             android:id="@+id/rootRelativeLayout"
         android:layout_width="match_parent"
@@ -45,7 +47,7 @@
         app:itemIconTint="@color/teal_500"
         app:itemTextAppearance="?android:attr/textAppearanceMedium"
         app:itemTextColor="@color/black_900"
-        android:fitsSystemWindows="false"
+        android:fitsSystemWindows="true"
         app:menu="@menu/drawer_main" />
 
 

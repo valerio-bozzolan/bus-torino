@@ -35,7 +35,7 @@ public interface CommonFragmentListener {
      * We want to open the map on the specified stop
      * @param stop needs to have location data (latitude, longitude)
      */
-    void showMapCenteredOnStop(Stop stop);
+    void showMapCenteredOnStop(@Nullable Stop stop);
 
     /**
      * We want to show the line in detail for route coming from a stop
@@ -50,4 +50,16 @@ public interface CommonFragmentListener {
      * @param args extra arguments given as Bundle
      */
     void openLineFromVehicle(String routeGtfsId, @Nullable String optionalPatternId, @Nullable Bundle args);
+
+    /**
+     * Show the nearby stops fragment
+     */
+    void openNearbyStopsFragment();
+
+    /**
+     * Show the lines
+     */
+    void openLinesFragment();
+
+    void openFavoritesFragment();
 }

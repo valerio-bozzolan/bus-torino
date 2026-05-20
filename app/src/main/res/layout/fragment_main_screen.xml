@@ -1,79 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" xmlns:app="http://schemas.android.com/apk/res-auto"
                 tools:context=".fragments.MainScreenFragment"
                 android:paddingTop="10dip"
 >
-    >
     <ImageButton
             android:id="@+id/QRButton"
             style="?android:attr/borderlessButtonStyle"
             android:layout_width="40dip"
             android:layout_height="40dip"
-            android:layout_alignBottom="@+id/searchButton"
-            android:layout_marginLeft="16dp"
             android:layout_marginStart="16dp"
             android:background="@drawable/qrcode_button_custom"
-            android:contentDescription="@string/qrcode"
-        />
+            android:contentDescription="@string/scan_qr_code_stop"
+            android:scaleType="fitCenter"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+    />
+    <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/leftGuide"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintStart_toEndOf="@id/QRButton"
+    />
 
     <EditText
             android:id="@+id/busStopSearchByIDEditText"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="5dp"
-            android:layout_marginLeft="5dip"
-            android:layout_marginRight="5dip"
-            android:layout_toEndOf="@+id/QRButton"
-            android:layout_toLeftOf="@+id/searchButton"
-            android:layout_toRightOf="@+id/QRButton"
-            android:layout_toStartOf="@+id/searchButton"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="10dp"
             android:ems="10"
             android:hint="@string/insert_bus_stop_number"
             android:imeOptions="actionSearch"
+
             android:inputType="number"
             android:selectAllOnFocus="true"
             android:singleLine="true"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="@id/leftGuide"
+            app:layout_constraintEnd_toEndOf="@id/rightGuide"
     >
-
-        <requestFocus />
     </EditText>
 
     <!--android:layout_alignParentLeft="true"
     android:layout_alignParentStart="true"-->
     <EditText
         android:id="@+id/busStopSearchByNameEditText"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="5dp"
-        android:layout_marginLeft="5dip"
-        android:layout_marginRight="5dip"
-        android:layout_toEndOf="@+id/QRButton"
-        android:layout_toLeftOf="@+id/searchButton"
-        android:layout_toRightOf="@+id/QRButton"
-        android:layout_toStartOf="@+id/searchButton"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
         android:inputType="text"
         android:ems="10"
         android:hint="@string/insert_bus_stop_name"
         android:imeOptions="actionSearch"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="@id/leftGuide"
+        app:layout_constraintEnd_toEndOf="@id/rightGuide"
         android:singleLine="true"
         android:visibility="gone">
-
-        <requestFocus />
     </EditText>
-
+    <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/rightGuide"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toStartOf="@id/searchButton"
+    />
     <ImageButton
             android:id="@+id/searchButton"
             style="?android:attr/borderlessButtonStyle"
             android:layout_width="40dip"
             android:layout_height="40dip"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
             android:layout_alignTop="@+id/busStopSearchByIDEditText"
             android:layout_marginEnd="16dp"
-            android:layout_marginRight="16dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             android:background="@drawable/search_button_custom"
             android:contentDescription="@string/search"
             />
@@ -83,30 +88,32 @@
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="8dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentStart="true"
             android:layout_below="@+id/QRButton"
             android:layout_marginTop="3dp"
             android:layout_marginEnd="10dp"
             android:layout_marginStart="10dp"
             android:indeterminateOnly="true"
             android:minWidth="10dp"
-            android:visibility="gone" />
-
-
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/searchButton"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+    />
 
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:id="@+id/coord_layout"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
             android:layout_gravity="bottom|end"
             android:layout_below="@+id/searchButton"
-            android:layout_marginTop="5dp"
-
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/searchButton"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:flow_verticalBias="0.0"
+            app:layout_constraintVertical_bias="0.0"
     >
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/listRefreshLayout"
@@ -121,7 +128,6 @@
                     android:layout_width="match_parent"
                     android:id="@+id/resultFrame"
                     android:layout_height="fill_parent"
-                    android:layout_alignParentLeft="true"
                     android:layout_marginTop="5dp"
                     android:layout_alignParentStart="true"/>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
@@ -131,15 +137,16 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
                 android:layout_gravity="bottom|end"
                 android:layout_margin="13dp"
-                android:src="@drawable/alphabetical"
-                fabSize="normal"
-                backgroundTint="@color/teal_500"
-                rippleColor="@color/teal_300"
-                elevation="13dp"
+                app:srcCompat="@drawable/alphabetical"
+                app:tint="@android:color/white"
+                app:fabSize="normal"
+                app:backgroundTint="@color/teal_500"
+                app:rippleColor="@color/teal_300"
+                app:elevation="8dp"
+                style="?attr/floatingActionButtonMediumStyle"
 
         />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
