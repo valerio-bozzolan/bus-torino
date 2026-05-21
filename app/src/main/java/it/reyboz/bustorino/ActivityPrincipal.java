@@ -48,6 +48,7 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.DBUpdateCheckWorker;
@@ -73,6 +74,30 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     private boolean onCreateComplete = false;
 
     private ServiceAlertsViewModel  serviceAlertsViewModel;
+    private FragmentKind showingFragmentKind;
+
+    private final Map<Integer, Runnable> menuActions = Map.of(
+            R.id.drawer_action_settings, () -> {
+                Log.d("MAINBusTO", "Pressed button preferences");
+                startActivity(new Intent(this, ActivitySettings.class));
+            },
+
+            R.id.nav_favorites_item, () ->
+                    checkAndShowFavoritesFragment(getSupportFragmentManager(), true),
+
+            R.id.nav_home, () ->
+                    showHomeMainFragmentFromClick(true),
+
+            R.id.nav_map_item, () ->
+                    requestMapFragment(true),
+
+            R.id.nav_lines_item, () ->
+                    showLinesFragment(getSupportFragmentManager(), true, null),
+
+            R.id.drawer_action_info, () ->
+                    startActivity(new Intent(this, ActivityAbout.class)),
+            R.id.nav_nearby, this::openNearbyStopsFragment
+    );
 
     private long lastClosingAttempt = -1L;
     private final OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(false) {
@@ -99,7 +124,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         Log.d(DEBUG_TAG, "onCreate, savedInstanceState is: "+savedInstanceState);
         setContentView(R.layout.activity_principal);
         serviceAlertsViewModel = new ViewModelProvider(this).get(ServiceAlertsViewModel.class);
-
+        //Use LiveModel to sync fragment state
         /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             getWindow().setNavigationBarContrastEnforced(false);
         }
@@ -249,14 +274,12 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         }else if (savedInstanceState==null) {
             var framan = getSupportFragmentManager();
             //we are not restarting the activity from nothing
-            if (vl.equals("map")) {
-                requestMapFragment(false);
-            } else if (vl.equals("favorites")) {
-                checkAndShowFavoritesFragment(framan, false);
-            } else if (vl.equals("lines")) {
-                showLinesFragment(framan, false, null);
-            } else {
-                showMainFragmentFromClick(false);
+            switch (vl){
+                case "map" -> {requestMapFragment(false);}
+                case "favorites" -> checkAndShowFavoritesFragment(framan, false);
+                case "lines" -> showLinesFragment(framan, false, null);
+                case "nearby" -> createShowMainFragment(framan, MainScreenFragment.makeArgsNearby(), false);
+                default -> showHomeMainFragmentFromClick(false);
             }
         }
         onCreateComplete = true;
@@ -347,38 +370,15 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     private void setupDrawerContent(NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(
                 menuItem -> {
-                    if (menuItem.getItemId() == R.id.drawer_action_settings) {
-                        Log.d("MAINBusTO", "Pressed button preferences");
+                    int menuId = menuItem.getItemId();
+                    if( menuActions.containsKey(menuId)){
                         closeDrawerIfOpen();
-                        startActivity(new Intent(ActivityPrincipal.this, ActivitySettings.class));
+                        var runnable = menuActions.get(menuId);
+                        if(runnable!=null) runnable.run();
                         return true;
-                    } else if(menuItem.getItemId() == R.id.nav_favorites_item){
-                        closeDrawerIfOpen();
-                        //get Fragment
-                        checkAndShowFavoritesFragment(getSupportFragmentManager(), true);
-                        return true;
-                    } else if(menuItem.getItemId() == R.id.nav_arrivals){
-                        closeDrawerIfOpen();
-                        showMainFragmentFromClick(true);
-                        return true;
-                    } else if(menuItem.getItemId() == R.id.nav_map_item){
-                        closeDrawerIfOpen();
-                        requestMapFragment(true);
-                        return true;
-                    } else if (menuItem.getItemId() == R.id.nav_lines_item) {
-                        closeDrawerIfOpen();
-                        showLinesFragment(getSupportFragmentManager(), true,null);
-                        return true;
-                    } else if(menuItem.getItemId() ==  R.id.drawer_action_info) {
-                        closeDrawerIfOpen();
-                        startActivity(new Intent(ActivityPrincipal.this, ActivityAbout.class));
-                        return true;
+                    } else{
+                        return false;
                     }
-                    //selectDrawerItem(menuItem);
-                    Log.d(DEBUG_TAG, "pressed item "+menuItem);
-
-                    return true;
-
                 });
 
     }
@@ -451,10 +451,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-        int[] cases = {R.id.nav_arrivals, R.id.nav_favorites_item};
         Log.d(DEBUG_TAG, "Item pressed");
-
-
         if (item.getItemId() == android.R.id.home) {
             mDrawer.openDrawer(GravityCompat.START);
             return true;
@@ -479,24 +476,29 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     private boolean activityCustomBackPressed(){
         boolean resolved = true;
-        Fragment shownFrag = getSupportFragmentManager().findFragmentById(R.id.mainActContentFrame);
+        var mainFragManager = getSupportFragmentManager();
+        Fragment shownFrag = mainFragManager.findFragmentById(R.id.mainActContentFrame);
         if (mDrawer.isDrawerOpen(GravityCompat.START))
             mDrawer.closeDrawer(GravityCompat.START);
         else if(shownFrag != null && shownFrag.isVisible() && shownFrag.getChildFragmentManager().getBackStackEntryCount() > 0){
-            //if we have been asked to show a stop from another fragment, we should go back even in the main
             if(shownFrag instanceof MainScreenFragment){
                 //we have to stop the arrivals reload
                 ((MainScreenFragment) shownFrag).cancelReloadArrivalsIfNeeded();
             }
             shownFrag.getChildFragmentManager().popBackStack();
-            if(showingMainFragmentFromOther && getSupportFragmentManager().getBackStackEntryCount() > 0){
+            if(showingMainFragmentFromOther && mainFragManager.getBackStackEntryCount() > 0){
                 getSupportFragmentManager().popBackStack();
                 Log.d(DEBUG_TAG, "Popping main back stack also");
             }
         }
         else if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            getSupportFragmentManager().popBackStack();
-            Log.d(DEBUG_TAG, "Popping main frame backstack for fragments");
+            mainFragManager.popBackStack();
+            var newFrag = mainFragManager.findFragmentById(R.id.mainActContentFrame);
+            if(newFrag != null) {
+                int backStackCount = newFrag.getChildFragmentManager().getBackStackEntryCount();
+                Log.d(DEBUG_TAG, "new fragment is "+newFrag.getClass().getSimpleName() +", count of the backstack: "+backStackCount);
+            }
+            Log.d(DEBUG_TAG, "Popping main backstack");
         }
         else{
             resolved = false;
@@ -529,6 +531,18 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
         } else{
             Log.e(DEBUG_TAG, "Asked to show the snackbar but the baseView is null");
+        }
+    }
+    private void updateShowingFragmentKindInternal(@NonNull FragmentKind newKind){
+        if(BuildConfig.DEBUG)
+            Log.d(DEBUG_TAG, "Updating fragment kind, new: "+newKind+", current: "+showingFragmentKind);
+        if(showingFragmentKind == null){
+            showingFragmentKind = newKind;
+            showingMainFragmentFromOther = false;
+        } else if(newKind != showingFragmentKind) {
+            showingMainFragmentFromOther = (
+                    FragmentKind.getSuperKind(newKind) != FragmentKind.getSuperKind(showingFragmentKind));
+            showingFragmentKind = newKind;
         }
     }
 
@@ -589,8 +603,17 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         }
     }
 
-    private void showMainFragmentFromClick(boolean addToBackStack){
-        showMainFragmentFromClick(MainScreenFragment.makeArgsButtonsScreen(), addToBackStack);
+    private void showHomeMainFragmentFromClick(boolean addToBackStack){
+        FragmentManager fraMan = getSupportFragmentManager();
+        var fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
+        if(fragment instanceof MainScreenFragment mainFrag){
+            if(!mainFrag.isVisible()){
+                showMainFragment(fraMan, mainFrag, addToBackStack);
+            }
+            mainFrag.showButtonsFragmentIfNotNearby(addToBackStack);
+        } else{
+            createShowMainFragment(fraMan, MainScreenFragment.makeArgsButtonsScreen(), addToBackStack);
+        }
     }
 
     private void requestMapFragment(final boolean allowReturn){
@@ -667,7 +690,10 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     @Override
     public void showFloatingActionButton(boolean yes) {
-        //TODO
+        var frag =  getMainFragmentIfVisible();
+        if(frag!=null){
+            frag.showFloatingActionButton(yes);
+        }
     }
 
     /*
@@ -692,6 +718,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         if (mainFragmentIfVisible!=null){
             mainFragmentIfVisible.readyGUIfor(fragmentType);
         }
+        updateShowingFragmentKindInternal(fragmentType);
+
         Integer titleResId = null;
         switch (fragmentType){
             case MAP:
@@ -704,18 +732,24 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 break;
             case ARRIVALS:
                 titleResId = R.string.nav_arrivals_text;
-                mNavView.setCheckedItem(R.id.nav_arrivals);
+                mNavView.setCheckedItem(R.id.nav_home);
+                //TODO: Figure out way to change title
+                //mNavView.getCheckedItem().setTitle(R.string.nav_arrivals_text);
                 break;
             case STOPS:
                 titleResId = R.string.stop_search_view_title;
-                mNavView.setCheckedItem(R.id.nav_arrivals);
+                mNavView.setCheckedItem(R.id.nav_home);
                 break;
             case MAIN_SCREEN_FRAGMENT:
-            case NEARBY_STOPS:
-            case NEARBY_ARRIVALS:
             case HOME_BUTTONS:
                 titleResId=R.string.app_name_full;
-                mNavView.setCheckedItem(R.id.nav_arrivals);
+                mNavView.setCheckedItem(R.id.nav_home);
+                //mNavView.getCheckedItem().setTitle(R.string.nav_home_text);
+                break;
+            case NEARBY_STOPS:
+            case NEARBY_ARRIVALS:
+                titleResId=R.string.app_name_full;
+                mNavView.setCheckedItem(R.id.nav_nearby);
                 break;
             case LINES:
                 titleResId=R.string.lines;
@@ -730,9 +764,9 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     public void requestArrivalsForStopID(String ID) {
         //register if the request came from the main fragment or not
         MainScreenFragment probableFragment = getMainFragmentIfVisible();
-        showingMainFragmentFromOther = (probableFragment==null);
 
-        if (showingMainFragmentFromOther){
+        // this has some contorted logic, but it works
+        if (probableFragment == null){
             FragmentManager fraMan = getSupportFragmentManager();
             Fragment fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
             Log.d(DEBUG_TAG, "Requested main fragment, not visible. Search by TAG returned: "+fragment);
@@ -755,23 +789,21 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             probableFragment.requestArrivalsForStopID(ID);
         }
 
-        mNavView.setCheckedItem(R.id.nav_arrivals);
+        mNavView.setCheckedItem(R.id.nav_home);
     }
     @Override
     public void openLineFromStop(String routeGtfsId, @Nullable String stopIDFrom){
-
-        readyGUIfor(FragmentKind.LINES);
 
         FragmentTransaction tr = getSupportFragmentManager().beginTransaction();
         tr.replace(R.id.mainActContentFrame, LinesDetailFragment.class,
                 LinesDetailFragment.Companion.makeArgs(routeGtfsId, stopIDFrom));
         tr.addToBackStack("LineFromStop-"+routeGtfsId);
         tr.commit();
+
     }
 
     @Override
     public void openLineFromVehicle(String routeGtfsId, @Nullable String optionalPatternId, @Nullable Bundle args) {
-        readyGUIfor(FragmentKind.LINES);
 
         FragmentTransaction tr = getSupportFragmentManager().beginTransaction();
         tr.replace(R.id.mainActContentFrame, LinesDetailFragment.class,
@@ -786,7 +818,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         var fragment = fraMan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
         if(fragment instanceof MainScreenFragment mainFrag){
             if(!mainFrag.isVisible()){
-                showMainFragment(fraMan, mainFrag, false);
+                showMainFragment(fraMan, mainFrag, true);
             }
             mainFrag.openNearbyStopsFragment();
         } else{

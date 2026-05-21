@@ -80,6 +80,14 @@ public class RecyclerViewMargin extends RecyclerView.ItemDecoration {
             outRect.right = margin;
             sb.append("right ");
         }
+        if(position % columns != 0){
+            outRect.left = margin;
+            sb.append("left ");
+        }
+        if (position >= columns){
+            outRect.top = margin;
+            sb.append("top ");
+        }
         int row =  (int)((double) position / columns) ;
         if(nrows == -2 || row < nrows-1){
             outRect.bottom = margin;

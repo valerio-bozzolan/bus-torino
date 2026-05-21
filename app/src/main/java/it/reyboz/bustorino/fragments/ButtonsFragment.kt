@@ -1,3 +1,20 @@
+/*
+	BusTO  - Fragments components
+    Copyright (C) 2026 Fabio Mazza
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package it.reyboz.bustorino.fragments
 
 import android.content.Context
@@ -10,6 +27,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
@@ -42,7 +60,7 @@ class ButtonsFragment : BarcodeFragment() {
         }
     }
     private val marginHoriz = 30
-    private val margin = 22
+    private val margin = 11
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,8 +68,10 @@ class ButtonsFragment : BarcodeFragment() {
     ): View? {
         // Inflate the layout for this fragment
         val root = inflater.inflate(R.layout.fragment_buttons, container, false)
+
+        // this is the actual list of the buttons
         items = listOf(
-            CardMenuItem(CardAction.NEARBY, getString(R.string.nearby_message_home_card), R.drawable.compass_3_fill),
+            CardMenuItem(CardAction.NEARBY, getString(R.string.near_me_title), R.drawable.compass_3_fill),
             CardMenuItem(CardAction.MAP, getString(R.string.map), R.drawable.map),
             CardMenuItem(CardAction.FAVORITES_STOPS, getString(R.string.action_favorites), R.drawable.ic_star_filled_white),
             CardMenuItem(CardAction.LINES, getString(R.string.lines), R.drawable.ic_moving_emph),

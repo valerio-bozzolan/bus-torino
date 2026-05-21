@@ -8,7 +8,9 @@
 
 
     <array name="first_screen_values">
+        <!-- the "arrivals" key is just a placeholder for "home" screen, keeping for backwards compatibility -->
         <item>arrivals</item>
+        <item>nearby</item>
         <item>favorites</item>
         <item>map</item>
         <item>lines</item>

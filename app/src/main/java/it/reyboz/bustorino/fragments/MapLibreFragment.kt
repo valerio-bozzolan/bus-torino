@@ -196,13 +196,21 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         }
 
          */
-
-
         // Setup close button
         rootView.findViewById<View>(R.id.btnClose).setOnClickListener {
             hideStopOrBusBottomSheet()
         }
-        observeStatusLivePositions()
+
+
+        Log.d(DEBUG_TAG, "Fragment View Created!")
+
+        //TODO: Reshow last open stop when switching back to the map fragment
+        return rootView
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
         //observe change in source of the live positions
         livePositionsViewModel.useMQTTPositionsLiveData.observe(viewLifecycleOwner){ useMQTT->
             //Log.d(DEBUG_TAG, "Changed MQTT positions, now have to use MQTT: $useMQTT")
@@ -237,10 +245,8 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             setLocationIconEnabled(it)}
         mapStateViewModel.followingUserPosition.observe(viewLifecycleOwner){ updateFollowingIcon(it)}
 
-        Log.d(DEBUG_TAG, "Fragment View Created!")
+        observeStatusLivePositions()
 
-        //TODO: Reshow last open stop when switching back to the map fragment
-        return rootView
     }
 
     /**

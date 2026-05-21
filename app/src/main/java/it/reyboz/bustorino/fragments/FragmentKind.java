@@ -17,7 +17,19 @@
  */
 package it.reyboz.bustorino.fragments;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 public enum FragmentKind {
     STOPS,ARRIVALS,FAVORITES,NEARBY_STOPS,NEARBY_ARRIVALS, MAP, MAIN_SCREEN_FRAGMENT,
-    LINES, HOME_BUTTONS
+    LINES, HOME_BUTTONS;
+
+    @NonNull
+    public static FragmentKind getSuperKind(@NonNull FragmentKind kind){
+        return switch (kind) {
+            case STOPS, ARRIVALS, NEARBY_STOPS, NEARBY_ARRIVALS, HOME_BUTTONS ->
+                    MAIN_SCREEN_FRAGMENT;
+            default -> kind;
+        };
+    }
 }

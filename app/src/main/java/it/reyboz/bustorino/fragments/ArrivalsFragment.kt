@@ -1,6 +1,6 @@
 /*
 	BusTO  - Fragments components
-    Copyright (C) 2018 Fabio Mazza
+    Copyright (C) 2018-2026 Fabio Mazza
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ import androidx.recyclerview.widget.RecyclerView
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.adapters.PalinaAdapter
 import it.reyboz.bustorino.adapters.PalinaAdapter.PalinaClickListener
+import it.reyboz.bustorino.adapters.RouteAdapter
 import it.reyboz.bustorino.adapters.RouteOnlyLineAdapter
 import it.reyboz.bustorino.backend.*
 import it.reyboz.bustorino.backend.DBStatusManager.OnDBUpdateStatusChangeListener
@@ -89,8 +90,8 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
     private var fetchers: List<ArrivalsFetcher?> =  ArrayList()
     private val arrivalsViewModel : ArrivalsViewModel by viewModels()
 
-
     private var reloadOnResume = true
+    private var routesNoPassages = listOf<Route>()
 
     fun getStopID() = stopID
 
@@ -113,19 +114,22 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         }
 
         override fun requestShowingRoute(route: Route) {
-            Log.d(
-                DEBUG_TAG, """Need to show line for route: gtfsID ${route.gtfsId} name ${route.name}"""
-            )
-            if (route.gtfsId != null) {
-                mListener.openLineFromStop(route.gtfsId, stopID)
-            } else {
-                val gtfsID = FiveTNormalizer.getGtfsRouteID(route)
-                Log.d(DEBUG_TAG, "GtfsID for route is: $gtfsID")
-                mListener.openLineFromStop(gtfsID, stopID)
-            }
+            showRoutesInLinesFragment(route)
         }
     }
 
+    private fun showRoutesInLinesFragment(route: Route) {
+        Log.d(
+            DEBUG_TAG, """Need to show line for route: gtfsID ${route.gtfsId} name ${route.name}"""
+        )
+        if (route.gtfsId != null) {
+            mListener.openLineFromStop(route.gtfsId, stopID)
+        } else {
+            val gtfsID = FiveTNormalizer.getGtfsRouteID(route)
+            Log.d(DEBUG_TAG, "GtfsID for route is: $gtfsID")
+            mListener.openLineFromStop(gtfsID, stopID)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -230,13 +234,15 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         }
         //no arrivals stuff
         noArrivalsRecyclerView = root.findViewById(R.id.noArrivalsRecyclerView)
-        layoutManager = GridLayoutManager(context, 60)
+        /*layoutManager = GridLayoutManager(context, 60)
         layoutManager!!.spanSizeLookup = object : SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
                 return 12
             }
         }
-        noArrivalsRecyclerView.setLayoutManager(layoutManager)
+
+         */
+        noArrivalsRecyclerView.setLayoutManager(getFlexLayoutManager(requireContext()))
         noArrivalsTitleView = root.findViewById(R.id.noArrivalsMessageTextView)
 
         //canaryEndView = root.findViewById(R.id.canaryEndView);
@@ -253,6 +259,11 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
 
         }
         //lastUpdatedPalina?.let { showArrivalsSources(it) }
+        return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
 
         arrivalsViewModel.arrivalsRequestRunningLiveData.observe(viewLifecycleOwner, { running ->
@@ -324,9 +335,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         arrivalsViewModel.stopInFavorites.observe(viewLifecycleOwner, { isFavorite ->
             updateStarIcon(isFavorite)
         })
-        return root
     }
-
 
     private fun showShortToast(id: Int) = showToastMessage(id,true)
 
@@ -513,14 +522,20 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
             }
 
 
-            val routesWithNoPassages = lastUpdatedPalina!!.routesNamesWithNoPassages
+            val routesWithNoPassages = lastUpdatedPalina!!.routesWithNoPassages
             if (routesWithNoPassages.isEmpty()) {
                 //hide the views if there are no empty routes
                 noArrivalsRecyclerView.visibility = View.GONE
                 noArrivalsTitleView!!.visibility = View.GONE
             } else {
-                Collections.sort(routesWithNoPassages, LinesNameSorter())
-                noArrivalsAdapter = RouteOnlyLineAdapter(routesWithNoPassages, null)
+                val sorter = LinesNameSorter()
+
+                this.routesNoPassages = routesWithNoPassages.sortedWith{ r1, r2 ->  sorter.compare(r1.displayCode, r2.displayCode) }
+                noArrivalsAdapter = RouteOnlyLineAdapter(routesNoPassages.map{r->r.displayCode}, ){ idx,_ ->
+                    val route = routesNoPassages[idx]
+                    showRoutesInLinesFragment(route)
+
+                }
                 noArrivalsRecyclerView.adapter = noArrivalsAdapter
 
                 noArrivalsRecyclerView.visibility = View.VISIBLE

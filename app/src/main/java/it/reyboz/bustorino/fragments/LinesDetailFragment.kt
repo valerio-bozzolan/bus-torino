@@ -281,90 +281,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             LivePositionsDialogFragment().show(parentFragmentManager, "LivePositionsDialog")
         }
         //set
-        //INITIALIZE VIEW MODELS
-        viewModel.setRouteIDQuery(lineID)
-        livePositionsViewModel.setGtfsLineToFilterPos(lineID, null)
-        //observe the change, clear buses when switching position
-        livePositionsViewModel.useMQTTPositionsLiveData.observe(viewLifecycleOwner){ useMQTT->
-            //Log.d(DEBUG_TAG, "Changed MQTT positions, now have to use MQTT: $useMQTT")
-            if (isResumed) {
-                //Log.d(DEBUG_TAG, "Deciding to switch, the current source is using MQTT: $usingMQTTPositions")
-                if(useMQTT!=usingMQTTPositions){
-                    // we have to switch
-                    val clearPos = PreferenceManager.getDefaultSharedPreferences(requireContext()).getBoolean("positions_clear_on_switch_pref", true)
-                    livePositionsViewModel.clearOldPositionsUpdates()
-                    if(useMQTT){
-                        //switching to MQTT, the GTFS positions are disabled automatically
-                        livePositionsViewModel.requestMatoPosUpdates(GtfsUtils.getLineNameFromGtfsID(lineID))
-                    } else{
-                        //switching to GTFS RT: stop Mato, launch first request
-                        livePositionsViewModel.stopMatoUpdates()
-                        livePositionsViewModel.requestGTFSUpdates()
-                    }
-                    Log.d(DEBUG_TAG, "Should clear positions: $clearPos")
-                    if (clearPos) {
-                        livePositionsViewModel.clearAllPositions()
-                        //force clear of the viewed data
-                        if(vehShowing.isNotEmpty()) hideStopOrBusBottomSheet()
-                        clearAllBusPositionsInMap()
-                    }
 
-                }
-            }
-            usingMQTTPositions = useMQTT
-
-        }
-
-        val keySourcePositions = getString(R.string.pref_positions_source)
-        usingMQTTPositions = PreferenceManager.getDefaultSharedPreferences(requireContext())
-            .getString(keySourcePositions, "mqtt").contentEquals("mqtt")
-
-        viewModel.patternsWithStopsByRouteLiveData.observe(viewLifecycleOwner, this::savePatternsToShow)
-        /*
-         */
-        viewModel.stopsForPatternLiveData.observe(viewLifecycleOwner) { stops ->
-            val pattern = viewModel.selectedPatternLiveData.value
-            if (pattern == null) {
-                Log.w(DEBUG_TAG, "The selectedPattern is null!")
-                return@observe
-            }
-            if(mapView?.visibility ==View.VISIBLE) {
-                // We have the pattern and the stops here, time to display them
-                //TODO: Decide if we should follow the camera view given by the previous screen (probably the map fragment)
-                // use !restoredCameraInMap to do so
-
-               // val shouldZoom = (shownStopInBottomSheet == null) //use this if we want to avoid zoom when we're keeping the stop open
-                displayPatternWithStopsOnMap(pattern, stops, true)
-            } else {
-                if(stopsRecyclerView.visibility==View.VISIBLE) {
-                    patternShown = pattern
-                    showStopsInRecyclerView(stops)
-                }
-            }
-        }
-        viewModel.gtfsRoute.observe(viewLifecycleOwner){route->
-            if(route == null){
-                //need to close the fragment
-                activity?.supportFragmentManager?.popBackStack()
-                return@observe
-            }
-             descripTextView.text = route.longName
-            descripTextView.visibility = View.VISIBLE
-        }
-        mapStateViewModel.locationUserActive.observe(viewLifecycleOwner) {
-            setLocationIconEnabled(it)
-        }
-        // enable info button if there are alerts on the line
-        alertsViewModel.setGtfsLineFilter(lineID)
-        alertsViewModel.alertsByRouteLiveData.observe(viewLifecycleOwner){ list ->
-            Log.d(DEBUG_TAG, "alerts for line $lineID:  ${list.size}")
-
-            if(list.isNotEmpty()){
-                lineInfoButton.visibility = View.VISIBLE
-                //Log.d(DEBUG_TAG, "First alert is:\n ${list[0].longPrint()}")
-            } else
-                lineInfoButton.visibility = View.GONE
-        }
         lineInfoButton.setOnClickListener {
             AlertsDialogFragment(lineID).show(parentFragmentManager, "Alerts-Line$lineID")
         }
@@ -422,6 +339,94 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         return rootView
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        //reflect UI
+        //INITIALIZE VIEW MODELS
+        viewModel.setRouteIDQuery(lineID)
+        livePositionsViewModel.setGtfsLineToFilterPos(lineID, null)
+        //observe the change, clear buses when switching position
+        livePositionsViewModel.useMQTTPositionsLiveData.observe(viewLifecycleOwner){ useMQTT->
+            //Log.d(DEBUG_TAG, "Changed MQTT positions, now have to use MQTT: $useMQTT")
+            if (isResumed) {
+                //Log.d(DEBUG_TAG, "Deciding to switch, the current source is using MQTT: $usingMQTTPositions")
+                if(useMQTT!=usingMQTTPositions){
+                    // we have to switch
+                    val clearPos = PreferenceManager.getDefaultSharedPreferences(requireContext()).getBoolean("positions_clear_on_switch_pref", true)
+                    livePositionsViewModel.clearOldPositionsUpdates()
+                    if(useMQTT){
+                        //switching to MQTT, the GTFS positions are disabled automatically
+                        livePositionsViewModel.requestMatoPosUpdates(GtfsUtils.getLineNameFromGtfsID(lineID))
+                    } else{
+                        //switching to GTFS RT: stop Mato, launch first request
+                        livePositionsViewModel.stopMatoUpdates()
+                        livePositionsViewModel.requestGTFSUpdates()
+                    }
+                    Log.d(DEBUG_TAG, "Should clear positions: $clearPos")
+                    if (clearPos) {
+                        livePositionsViewModel.clearAllPositions()
+                        //force clear of the viewed data
+                        if(vehShowing.isNotEmpty()) hideStopOrBusBottomSheet()
+                        clearAllBusPositionsInMap()
+                    }
+
+                }
+            }
+            usingMQTTPositions = useMQTT
+
+        }
+
+        val keySourcePositions = getString(R.string.pref_positions_source)
+        usingMQTTPositions = PreferenceManager.getDefaultSharedPreferences(requireContext())
+            .getString(keySourcePositions, "mqtt").contentEquals("mqtt")
+
+        viewModel.patternsWithStopsByRouteLiveData.observe(viewLifecycleOwner, this::savePatternsToShow)
+        /*
+         */
+        viewModel.stopsForPatternLiveData.observe(viewLifecycleOwner) { stops ->
+            val pattern = viewModel.selectedPatternLiveData.value
+            if (pattern == null) {
+                Log.w(DEBUG_TAG, "The selectedPattern is null!")
+                return@observe
+            }
+            if(mapView?.visibility ==View.VISIBLE) {
+                // We have the pattern and the stops here, time to display them
+                //TODO: Decide if we should follow the camera view given by the previous screen (probably the map fragment)
+                // use !restoredCameraInMap to do so
+
+                // val shouldZoom = (shownStopInBottomSheet == null) //use this if we want to avoid zoom when we're keeping the stop open
+                displayPatternWithStopsOnMap(pattern, stops, true)
+            } else {
+                if(stopsRecyclerView.visibility==View.VISIBLE) {
+                    patternShown = pattern
+                    showStopsInRecyclerView(stops)
+                }
+            }
+        }
+        viewModel.gtfsRoute.observe(viewLifecycleOwner){route->
+            if(route == null){
+                //need to close the fragment
+                activity?.supportFragmentManager?.popBackStack()
+                return@observe
+            }
+            descripTextView.text = route.longName
+            descripTextView.visibility = View.VISIBLE
+        }
+        mapStateViewModel.locationUserActive.observe(viewLifecycleOwner) {
+            setLocationIconEnabled(it)
+        }
+        // enable info button if there are alerts on the line
+        alertsViewModel.setGtfsLineFilter(lineID)
+        alertsViewModel.alertsByRouteLiveData.observe(viewLifecycleOwner){ list ->
+            Log.d(DEBUG_TAG, "alerts for line $lineID:  ${list.size}")
+
+            if(list.isNotEmpty()){
+                lineInfoButton.visibility = View.VISIBLE
+                //Log.d(DEBUG_TAG, "First alert is:\n ${list[0].longPrint()}")
+            } else
+                lineInfoButton.visibility = View.GONE
+        }
+    }
     // ------------- UI switch stuff ---------
 
     private fun hideMapAndShowStopList(){

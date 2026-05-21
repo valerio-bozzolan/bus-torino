@@ -41,7 +41,6 @@ import it.reyboz.bustorino.backend.Palina;
 import it.reyboz.bustorino.backend.Route;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.data.UserDB;
-
 /**
  *  This is a generalized fragment that can be used both for
  *

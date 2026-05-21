@@ -486,6 +486,7 @@ public class NearbyStopsFragment extends ScreenBaseFragment {
         super.onViewCreated(view, savedInstanceState);
         gridRecyclerView.setVisibility(View.INVISIBLE);
         gridRecyclerView.addOnScrollListener(scrollListener);
+        if(mListener!=null) mListener.readyGUIfor(FragmentKind.NEARBY_STOPS);
     }
 
     @Override
@@ -711,4 +712,5 @@ public class NearbyStopsFragment extends ScreenBaseFragment {
     }
 
      */
+
 }

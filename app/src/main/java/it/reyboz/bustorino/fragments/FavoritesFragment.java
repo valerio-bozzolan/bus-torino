@@ -161,6 +161,7 @@ public class FavoritesFragment extends ScreenBaseFragment {
         showStops(new ArrayList<>());
         return root;
     }
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);

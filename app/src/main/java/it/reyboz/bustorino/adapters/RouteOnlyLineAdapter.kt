@@ -4,35 +4,28 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.FiveTNormalizer
-import it.reyboz.bustorino.backend.Palina
-import java.lang.ref.WeakReference
 
 class RouteOnlyLineAdapter (val routeNames: List<String>,
                             onItemClick: OnClick?) :
     RecyclerView.Adapter<RouteOnlyLineAdapter.ViewHolder>() {
 
 
-    private val clickreference: WeakReference<OnClick>?
-    init {
-        clickreference = if(onItemClick!=null) WeakReference(onItemClick) else null
-    }
+    private val clickreference = onItemClick
+
 
     /**
      * Provide a reference to the type of views that you are using
      * (custom ViewHolder)
      */
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val textView: TextView
+        val textView: TextView  = view.findViewById(R.id.routeBallID)
+        val cardView: CardView = view.findViewById(R.id.headerCardView)
 
-        init {
-            // Define click listener for the ViewHolder's View
-            textView = view.findViewById(R.id.routeBallID)
-        }
     }
-    constructor(palina: Palina, showOnlyEmpty: Boolean): this(palina.routesNamesWithNoPassages, null)
 
     // Create new views (invoked by the layout manager)
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
@@ -50,8 +43,8 @@ class RouteOnlyLineAdapter (val routeNames: List<String>,
         // contents of the view with that element
         // SHOW "STAR" as "ST"
         viewHolder.textView.text = FiveTNormalizer.filterFullStarName(routeNames[position])
-        viewHolder.itemView.setOnClickListener{
-            clickreference?.get()?.onItemClick(position, routeNames[position])
+        viewHolder.cardView.setOnClickListener{
+            clickreference?.onItemClick(position, routeNames[position])
         }
     }
 

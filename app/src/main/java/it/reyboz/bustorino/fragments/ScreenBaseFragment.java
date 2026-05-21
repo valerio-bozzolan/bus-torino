@@ -1,8 +1,26 @@
+/*
+	BusTO  - Fragments components
+    Copyright (C) 2018-2026 Fabio Mazza
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package it.reyboz.bustorino.fragments;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +37,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.flexbox.FlexDirection;
+import com.google.android.flexbox.FlexboxLayoutManager;
+import com.google.android.flexbox.JustifyContent;
 import com.google.android.material.snackbar.Snackbar;
 import it.reyboz.bustorino.BuildConfig;
 
@@ -29,6 +50,13 @@ import static android.content.Context.MODE_PRIVATE;
 public abstract class ScreenBaseFragment extends Fragment {
 
     protected final static String PREF_FILE= BuildConfig.APPLICATION_ID+".fragment_prefs";
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+
 
     protected void setOption(String optionName, boolean value) {
         Context mContext = getContext();
@@ -114,6 +142,14 @@ public abstract class ScreenBaseFragment extends Fragment {
             }
         });
     }
+
+    protected FlexboxLayoutManager getFlexLayoutManager(@NonNull Context context) {
+        var layoutManager = new FlexboxLayoutManager(context);
+        layoutManager.setFlexDirection(FlexDirection.ROW);
+        layoutManager.setJustifyContent(JustifyContent.FLEX_START);
+
+        return layoutManager;
+    }
     /*protected void runActionFavorites(@NonNull Stop s, @NonNull FavoritesChangeWorker.Action action, @NonNull FavoritesChangeWorker.Companion.ResultListener resultListener){
         Context mContext = requireContext();
 
@@ -171,6 +207,7 @@ public abstract class ScreenBaseFragment extends Fragment {
             return insets;
         });
     }
+
 
     public interface LocationRequestListener{
         void onPermissionResult(boolean locationGranted);

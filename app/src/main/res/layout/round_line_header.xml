@@ -3,10 +3,10 @@
                                    xmlns:app="http://schemas.android.com/apk/res-auto"
                                    android:layout_width="wrap_content"
                                    android:layout_height="wrap_content"
-
+                                   android:id="@+id/headerCardView"
                                    android:background="@color/orange_500"
                                    app:cardCornerRadius="26sp"
-                                   app:cardElevation="0sp"
+                                   app:cardElevation="1sp"
                                     android:layout_gravity="center_vertical"
                                    android:layout_margin="5dp"
                                    android:padding="3dp"

@@ -3,9 +3,14 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_arrivals"
+            android:id="@+id/nav_home"
             android:icon="@drawable/ic_baseline_departure_board_24"
             android:title="@string/nav_home_text" />
+        <item
+            android:id="@+id/nav_nearby"
+            android:icon="@drawable/compass_3_fill"
+            android:title="@string/near_me_title"
+            />
         <item
             android:id="@+id/nav_map_item"
             android:icon="@drawable/ic_baseline_map_24"

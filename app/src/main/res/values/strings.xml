@@ -152,8 +152,9 @@
     <string name="list_fragment_debug" translatable="false">ListFragment - BusTO</string>
     <string name="mainSharedPreferences" translatable="false">it.reyboz.bustorino.preferences</string>
     <string name="databaseUpdatingPref" translatable="false">db_is_updating</string>
-    <!-- used in the buttons as generic title for "show what is near me" -->
-    <string name="nearby_message_home_card">Near me</string>
+
+    <!-- used as generic title for "show what is near me" -->
+    <string name="near_me_title">Near me</string>
     <string name="nearby_stops_message">Nearby stops</string>
     <string name="nearby_arrivals_message">Nearby connections</string>
     <string name="app_version">App version</string>
@@ -293,6 +294,7 @@
 
     <array name="first_screen_shown">
         <item>@string/nav_home_text</item>
+        <item>@string/near_me_title</item>
         <item>@string/nav_favorites_text</item>
         <item>@string/nav_map_text</item>
         <item>@string/lines</item>

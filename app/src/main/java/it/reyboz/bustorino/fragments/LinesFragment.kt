@@ -127,40 +127,7 @@ class LinesFragment : ScreenBaseFragment() {
         Log.d(DEBUG_TAG, "OnCreateView, selected line spinner pos: ${linesSpinner.selectedItemPosition}")
         Log.d(DEBUG_TAG, "OnCreateView, selected patterns spinner pos: ${patternsSpinner.selectedItemPosition}")
 
-        //set requests
-        viewModel.routesGTTLiveData.observe(viewLifecycleOwner) {
-            setRoutes(it)
-        }
 
-        viewModel.patternsWithStopsByRouteLiveData.observe(viewLifecycleOwner){
-                patterns ->
-            run {
-                selectedPatterns = patterns.sortedBy { p-> p.pattern.code }
-                //patterns. //sortedBy {-1*it.stopsIndices.size}// "${p.pattern.directionId} - ${p.pattern.headsign}" }
-                patternsAdapter?.let {
-                    it.clear()
-                    it.addAll(selectedPatterns.map { p->"${p.pattern.directionId} - ${p.pattern.headsign}" })
-                    it.notifyDataSetChanged()
-                }
-                viewModel.selectedPatternLiveData.value?.let {
-                   setSelectedPattern(it)
-                }
-
-                val  pos = patternsSpinner.selectedItemPosition
-                //might be possible that the selectedItem is different (larger than list size)
-                if(pos!= INVALID_POSITION && pos >= 0 && (pos < selectedPatterns.size)){
-                    val p = selectedPatterns[pos]
-                    Log.d(DEBUG_TAG, "Setting patterns with pos $pos and p gtfsID ${p.pattern.code}")
-                    setPatternAndReqStops(selectedPatterns[pos])
-                }
-
-            }
-        }
-
-        viewModel.stopsForPatternLiveData.observe(viewLifecycleOwner){stops->
-            Log.d("BusTO-LinesFragment", "Setting stops from DB")
-            setCurrentStops(stops)
-        }
 
         if(context!=null) {
             patternsAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, ArrayList<String>())
@@ -207,6 +174,44 @@ class LinesFragment : ScreenBaseFragment() {
         }
 
         return rootView
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        //set requests
+        viewModel.routesGTTLiveData.observe(viewLifecycleOwner) {
+            setRoutes(it)
+        }
+
+        viewModel.patternsWithStopsByRouteLiveData.observe(viewLifecycleOwner){
+                patterns ->
+            run {
+                selectedPatterns = patterns.sortedBy { p-> p.pattern.code }
+                //patterns. //sortedBy {-1*it.stopsIndices.size}// "${p.pattern.directionId} - ${p.pattern.headsign}" }
+                patternsAdapter?.let {
+                    it.clear()
+                    it.addAll(selectedPatterns.map { p->"${p.pattern.directionId} - ${p.pattern.headsign}" })
+                    it.notifyDataSetChanged()
+                }
+                viewModel.selectedPatternLiveData.value?.let {
+                    setSelectedPattern(it)
+                }
+
+                val  pos = patternsSpinner.selectedItemPosition
+                //might be possible that the selectedItem is different (larger than list size)
+                if(pos!= INVALID_POSITION && pos >= 0 && (pos < selectedPatterns.size)){
+                    val p = selectedPatterns[pos]
+                    Log.d(DEBUG_TAG, "Setting patterns with pos $pos and p gtfsID ${p.pattern.code}")
+                    setPatternAndReqStops(selectedPatterns[pos])
+                }
+
+            }
+        }
+
+        viewModel.stopsForPatternLiveData.observe(viewLifecycleOwner){stops->
+            Log.d("BusTO-LinesFragment", "Setting stops from DB")
+            setCurrentStops(stops)
+        }
     }
 
     override fun onAttach(context: Context) {

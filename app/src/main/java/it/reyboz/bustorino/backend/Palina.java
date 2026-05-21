@@ -431,6 +431,10 @@ public class Palina extends Stop implements Parcelable {
         return  mList;
     }
 
+    public List<Route> getRoutesWithNoPassages(){
+       return routes.stream().filter(r -> r.numPassaggi()==0).toList();
+    }
+
     private static String pick(String a, String b) {
         return (a != null && !a.isEmpty()) ? a : b;
     }

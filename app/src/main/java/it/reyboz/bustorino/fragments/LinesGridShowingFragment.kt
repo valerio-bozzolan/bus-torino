@@ -1,3 +1,20 @@
+/*
+	BusTO  - Fragments components
+    Copyright (C) 2018-2026 Fabio Mazza
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package it.reyboz.bustorino.fragments
 
 import android.content.Context
@@ -81,14 +98,6 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
     private val lastQueryEmptyForAgency = HashMap<String, Boolean>(3)
     private var openRecyclerView = "AG_URBAN"
 
-    private fun getFlexLayoutManager(context: Context): FlexboxLayoutManager{
-        val layoutManager = FlexboxLayoutManager(context)
-        layoutManager.flexDirection = FlexDirection.ROW
-        layoutManager.justifyContent = JustifyContent.FLEX_START
-
-        return layoutManager
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -121,7 +130,6 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
         }
         //init favorites recyclerview
         favoritesRecyclerView.layoutManager = getFlexLayoutManager(requireContext())
-
 
         viewModel.getLinesLiveData().observe(viewLifecycleOwner){ rL ->
 
@@ -167,16 +175,6 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
             }
 
         }
-        viewModel.favoritesLines.observe(viewLifecycleOwner){ routes->
-            val routesNames = routes.map { it.shortName }
-            //create new item click listener every time
-            val adapter = RouteOnlyLineAdapter(routesNames){  pos, _ ->
-                val r = routes[pos]
-                fragmentListener.openLineFromStop(r.gtfsId, null)
-            }
-            favoritesRecyclerView.adapter = adapter
-        }
-
         //onClicks
         urbanLinesTitle.setOnClickListener {
             openLinesAndCloseOthersIfNeeded(AG_URBAN)
@@ -220,6 +218,7 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
 
         return rootView
     }
+
     fun setUserSearch(textSearch:String){
         viewModel.setLineQuery(textSearch)
     }
@@ -227,6 +226,16 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val menuHost: MenuHost = requireActivity()
+
+        viewModel.favoritesLines.observe(viewLifecycleOwner){ routes->
+            val routesNames = routes.map { it.shortName }
+            //create new item click listener every time
+            val adapter = RouteOnlyLineAdapter(routesNames){  pos, _ ->
+                val r = routes[pos]
+                fragmentListener.openLineFromStop(r.gtfsId, null)
+            }
+            favoritesRecyclerView.adapter = adapter
+        }
 
         // Add menu items without using the Fragment Menu APIs
         // Note how we can tie the MenuProvider to the viewLifecycleOwner
