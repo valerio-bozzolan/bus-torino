@@ -30,6 +30,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.RecyclerView
 import com.google.transit.realtime.GtfsRealtime
 import it.reyboz.bustorino.R
+import it.reyboz.bustorino.backend.Palina
 import it.reyboz.bustorino.viewmodels.ServiceAlertsViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -47,6 +48,7 @@ class AlertsFragment : ScreenBaseFragment() {
     private val alertsViewModel: ServiceAlertsViewModel by activityViewModels()
 
     private lateinit var textView: TextView
+    private lateinit var statusTextView: TextView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -62,20 +64,41 @@ class AlertsFragment : ScreenBaseFragment() {
         // Inflate the layout for this fragment
         val root = inflater.inflate(R.layout.fragment_alerts, container, false)
         textView = root.findViewById(R.id.simpleTextView)
+        statusTextView = root.findViewById(R.id.statusTextView)
 
         alertsViewModel.allAlertsLiveData.observe(viewLifecycleOwner, { alerts ->
-            val sb = StringBuilder()
-            val unixTimestamp = (System.currentTimeMillis() / 1000)
-            for (x in alerts) {
-               sb.append(x.longPrint())
-                sb.append("----- Alert active: ").append(x.isActive(unixTimestamp)).append("\n\n")
+            if(alerts==null){
+                return@observe
             }
+            if(alerts.isEmpty()){
+                textView.text = "No Alerts to show"
+            } else {
+                val sb = StringBuilder()
+                val unixTimestamp = (System.currentTimeMillis() / 1000)
+                for (x in alerts) {
+                    sb.append(x.longPrint())
+                    sb.append("----- Alert active: ").append(x.isActive(unixTimestamp)).append("\n\n")
+                }
 
-            textView.text = sb.toString()
+                textView.text = sb.toString()
+            }
+        })
+
+        alertsViewModel.getDownloadStatusLiveData(requireContext()).observe(viewLifecycleOwner, { workinfos ->
+            val sb = StringBuilder()
+            var c = 1
+            if(workinfos!=null && workinfos.isNotEmpty()){
+                for (worki in workinfos){
+                    sb.append("$c - state: ${worki.state}, attempt ${worki.runAttemptCount}").append("\n")
+                    c++
+                }
+            }
+            statusTextView.text = sb.toString()
         })
 
 
-        alertsViewModel.setStopFilter("472")
+
+        //alertsViewModel.setStopFilter(Palina("472")
         /*alertsViewModel.alertsForStop.observe(viewLifecycleOwner){
             Log.d(DEBUG_TAG, "Got ${it.size} alerts")
             it?.let {

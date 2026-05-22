@@ -398,6 +398,7 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
 
     <string name="updated_fill">Updated: %1$s</string>
     <string name="alert_line_fill">Alerts for line %1$s:</string>
+    <string name="alert_stop_fill">Alerts for stop %1$s:</string>
     <string name="no_alerts_in_your_language_fill">No alerts in your language, showing in %1$s</string>
     <string name="italian">Italian</string>
     <string name="english">English</string>

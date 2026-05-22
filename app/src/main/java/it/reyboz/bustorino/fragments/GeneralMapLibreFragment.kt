@@ -41,6 +41,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.cardview.widget.CardView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
@@ -55,6 +56,7 @@ import it.reyboz.bustorino.backend.FiveTNormalizer
 import it.reyboz.bustorino.backend.LivePositionTripPattern
 import it.reyboz.bustorino.backend.LivePositionsServiceStatus
 import it.reyboz.bustorino.backend.Stop
+import it.reyboz.bustorino.backend.VehicleUtils
 import it.reyboz.bustorino.backend.gtfs.GtfsUtils
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.utils
@@ -114,7 +116,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     protected lateinit var selectedBusSource: GeoJsonSource //= GeoJsonSource(SEL_BUS_SOURCE)
 
     protected lateinit var sharedPreferences: SharedPreferences
-    protected lateinit var bottomSheetBehavior: BottomSheetBehavior<RelativeLayout>
+    protected lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
 
     protected var locationEngine: MapLibreLocationEngine? = null
     protected lateinit var locationProvider: FusedNativeLocationProvider
@@ -161,7 +163,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         }
     )
     //Bottom sheet behavior in GeneralMapLibreFragment
-    protected var bottomLayout: RelativeLayout? = null
+    protected var bottomLayout: ConstraintLayout? = null
     protected lateinit var stopTitleTextView: TextView
     protected lateinit var stopNumberTextView: TextView
     protected lateinit var linesPassingTextView: TextView
@@ -171,6 +173,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     protected lateinit var bottomrightImage: ImageView
     protected lateinit var locationComponent: LocationComponent
     protected lateinit var busPositionsIconButton: ImageButton
+    protected lateinit var vehicleIcon: ImageView
 
     protected var lastLocation : Location? = null
 
@@ -255,22 +258,29 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         return super.onCreateView(inflater, container, savedInstanceState)
     }
 
+    protected fun initBottomSheet(view: View){
+        val bottomSheet = view.findViewById<ConstraintLayout>(R.id.bottom_sheet)
+        bottomLayout = bottomSheet
+        stopTitleTextView = view.findViewById(R.id.stopTitleTextView)
+        stopNumberTextView = view.findViewById(R.id.stopNumberTextView)
+        linesPassingTextView = view.findViewById(R.id.descriptionTextView)
+        arrivalsCard = view.findViewById(R.id.arrivalsCardButton)
+        directionsCard = view.findViewById(R.id.directionsCardButton)
+        vehicleIcon = view.findViewById(R.id.vehicleIcon)
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         //init bottom sheet
-        val bottomSheet = view.findViewById<RelativeLayout>(R.id.bottom_sheet)
-        bottomLayout = bottomSheet
-        stopTitleTextView = view.findViewById(R.id.stopTitleTextView)
-        stopNumberTextView = view.findViewById(R.id.stopNumberTextView)
-        linesPassingTextView = view.findViewById(R.id.linesPassingTextView)
-        arrivalsCard = view.findViewById(R.id.arrivalsCardButton)
-        directionsCard = view.findViewById(R.id.directionsCardButton)
+        initBottomSheet(view)
+
         bottomrightImage = view.findViewById(R.id.rightmostImageView)
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
         extraBottomTextView = view.findViewById(R.id.extraBottomTextView)
 
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
     override fun onResume() {
@@ -662,6 +672,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             bottomrightImage.setImageDrawable(
                 ResourcesCompat.getDrawable(resources, R.drawable.ic_magnifying_glass, activity?.theme)
             )
+            // if you change this, remember to change the color of the vehicleIcon
             val colorBlue = ResourcesCompat.getColor(resources, R.color.blue_500, activity?.theme)
             ViewCompat.setBackgroundTintList(directionsCard, ColorStateList.valueOf(colorBlue))
             linesPassingTextView.text = getString(R.string.vehicle_fill, data.posUpdate.vehicle)
@@ -669,6 +680,25 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
 
             extraBottomTextView.text = getString(R.string.updated_fill,  utils.unixTimestampToLocalTime(data.posUpdate.timestamp))
             extraBottomTextView.visibility = View.VISIBLE
+            val update = data.posUpdate
+            val vehInfo = VehicleUtils.getTypeForLabel(update.vehicle)
+            if(vehInfo == null){
+                vehicleIcon.visibility = View.GONE
+            } else{
+                val ico = when(vehInfo.type){
+                    VehicleUtils.VehicleType.BUS -> R.drawable.ic_bus_small
+                    VehicleUtils.VehicleType.ELECTRIC_BUS -> R.drawable.ic_bus_electric_small
+                    VehicleUtils.VehicleType.TRAM -> R.drawable.ic_tram_24
+                }
+                vehicleIcon.setImageDrawable(ResourcesCompat.getDrawable(resources, ico, activity?.theme))
+                vehicleIcon.visibility = View.VISIBLE
+
+                vehicleIcon.setOnClickListener {
+                    val print = "${vehInfo.type.getName()} ${vehInfo.name}"
+                    makeToast(print)
+                }
+            }
+
         }
         vehShowing = veh
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -821,6 +851,8 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             }
 
             bottomrightImage.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.navigation_right,  activity?.theme))
+
+            vehicleIcon.visibility = View.GONE
 
         }
         //add stop marker

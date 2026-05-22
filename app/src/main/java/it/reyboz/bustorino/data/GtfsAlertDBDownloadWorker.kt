@@ -3,12 +3,15 @@ package it.reyboz.bustorino.data
 import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.work.BackoffPolicy
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OutOfQuotaPolicy
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.android.volley.Response
 import com.android.volley.VolleyError
@@ -18,6 +21,7 @@ import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.NetworkVolleyManager
 import it.reyboz.bustorino.backend.Notifications
 import it.reyboz.bustorino.backend.gtfs.GtfsRtAlertsRequest
+import it.reyboz.bustorino.data.DBUpdateWorker.Companion.WORK_NAME
 import it.reyboz.bustorino.data.GtfsMaintenanceWorker.Companion.OPERATION_TYPE
 import it.reyboz.bustorino.data.gtfs.GtfsAlertsActivePeriods
 import it.reyboz.bustorino.data.gtfs.GtfsAlertsTranslation
@@ -48,26 +52,26 @@ class GtfsAlertDBDownloadWorker(appContext: Context, workerParams: WorkerParamet
 
             val req = GtfsRtAlertsRequest(object : Response.ErrorListener {
                 override fun onErrorResponse(err: VolleyError) {
-                    Log.e(DEBUG_TAG, "Error getting alerts: ${err.message}", err)
+                    Log.e(DEBUG_TAG, "Error getting alerts, message: ${err.message}", err)
                 }
             }, future)
 
             volleyManager.requestQueue.add(req)
             try {
-                resuList = future.get(10, TimeUnit.SECONDS)
+                resuList = future.get(15, TimeUnit.SECONDS)
                 if (resuList.isNotEmpty()){
                     Log.d(DEBUG_TAG, "Have no alerts, attempt $attempts")
                     notOK = false
                 }
             } catch (e: InterruptedException) {
-                e.printStackTrace()
-                Log.e(DEBUG_TAG, e.message, e)
+                //e.printStackTrace()
+                Log.w(DEBUG_TAG, "Interrupted: ", e)
             } catch (e: ExecutionException) {
-                e.printStackTrace()
-                Log.e(DEBUG_TAG, e.message, e)
+                //e.printStackTrace()
+                Log.w(DEBUG_TAG, e.message, e)
             } catch (e: TimeoutException) {
-                e.printStackTrace()
-                Log.e(DEBUG_TAG, e.message, e)
+                //e.printStackTrace()
+                Log.w(DEBUG_TAG, "Timeout for download", e)
             }
 
             attempts++
@@ -109,12 +113,20 @@ class GtfsAlertDBDownloadWorker(appContext: Context, workerParams: WorkerParamet
         private const val NOTIFICATION_ID = 271899102
         private const val DEBUG_TAG = "BusTO-GTFSRTAlertsDown"
 
+        @JvmStatic
         fun makeOneTimeRequest(tag: String): OneTimeWorkRequest {
             //val data = Data.Builder().putString(OPERATION_TYPE, type).build()
             return OneTimeWorkRequest.Builder(GtfsAlertDBDownloadWorker::class.java)
                 .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.SECONDS)
                 .addTag(tag)
                 .build()
+        }
+
+        @JvmStatic
+        fun getWorkInfoLiveData(context: Context): LiveData<List<WorkInfo>> {
+            val workManager = WorkManager.getInstance(context)
+            return workManager.getWorkInfosForUniqueWorkLiveData(WORK_NAME)
         }
     }
 }

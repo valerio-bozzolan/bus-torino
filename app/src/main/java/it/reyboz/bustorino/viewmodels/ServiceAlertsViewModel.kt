@@ -18,17 +18,21 @@
 package it.reyboz.bustorino.viewmodels
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.room.concurrent.AtomicBoolean
 import androidx.work.ExistingWorkPolicy
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.transit.realtime.GtfsRealtime.Alert
 import it.reyboz.bustorino.backend.NetworkVolleyManager
+import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.data.GtfsAlertDBDownloadWorker
 import it.reyboz.bustorino.data.GtfsRepository
 import it.reyboz.bustorino.data.gtfs.GtfsDatabase
@@ -48,7 +52,7 @@ class ServiceAlertsViewModel(app: Application) : AndroidViewModel(app) {
 
     //val alertsLiveData = MutableLiveData<ArrayList<Alert>>(ArrayList())
 
-    private val stopToFilter = MutableLiveData("")
+    private val stopGtfsIdToFilter = MutableLiveData<Stop>()
     private val routeToFilter = MutableLiveData("")
 
     val lastTimeRunningDownload = MutableLiveData(0L)
@@ -64,8 +68,8 @@ class ServiceAlertsViewModel(app: Application) : AndroidViewModel(app) {
         gtfsRepo.getAlertsByRouteID(it).map{ l -> l.filter { al->al.isActive(unixTimestamp) }}
     }
 
-    val alertsByStopLiveData = stopToFilter.switchMap {
-        gtfsRepo.alertsDao.getAlertsForStop(it)
+    val alertsByStopLiveData = stopGtfsIdToFilter.switchMap {
+        if(it.gtfsID!=null) gtfsRepo.alertsDao.getAlertsForStopGtfsId(it.gtfsID!!) else MutableLiveData()
     }
 
     val allAlertsLiveData = gtfsRepo.alertsDao.getAllAlertsLiveData()
@@ -94,9 +98,15 @@ class ServiceAlertsViewModel(app: Application) : AndroidViewModel(app) {
     }
 
      */
-    fun setStopFilter(stopId: String) {
-        stopToFilter.value = stopId
+    /// WE DO NOT KNOW HOW TO GET THE GTFS STOP ID, the one given by MaTO is the same as the stop CODE
+    /// but we need the ID from the stops.txt table of GTT GTFS data
+    /// DISABLING THIS FUNCTION
+    /*fun setStopFilter(stop: Stop) {
+        Log.d(DEBUG_TAG, "Setting stop to filter: ${stop.ID} - ${stop.stopDisplayName}, gtfsID: ${stop.gtfsID}")
+        stopGtfsIdToFilter.value = stop
     }
+
+     */
     fun setGtfsLineFilter(routeId: String) {
         routeToFilter.value = routeId
     }
@@ -111,7 +121,7 @@ class ServiceAlertsViewModel(app: Application) : AndroidViewModel(app) {
             currentTime > lastTimeRunningDownload.value!! + MINUTES_CHECK*60*1000){
             //actually enqueue request
             Log.d(DEBUG_TAG, "Launching request to download alerts")
-            val req = GtfsAlertDBDownloadWorker.makeOneTimeRequest("alertsrn")
+            val req = GtfsAlertDBDownloadWorker.makeOneTimeRequest(WORK_TAG)
             workManager.enqueueUniqueWork("AlertsDownloadsRun", ExistingWorkPolicy.KEEP, req)
             lastTimeRunningDownload.postValue(System.currentTimeMillis())
         }
@@ -129,7 +139,10 @@ class ServiceAlertsViewModel(app: Application) : AndroidViewModel(app) {
             downloadWorkIfTimePassed()
     }
 
-
+    fun getDownloadStatusLiveData(context: Context): LiveData<List<WorkInfo>>{
+        val workManager = WorkManager.getInstance(context)
+        return workManager.getWorkInfosByTagLiveData(WORK_TAG)
+    }
 
     private fun filterAlertsForStop(stopId: String, alerts: ArrayList<Alert>) : ArrayList<Alert>{
 
@@ -191,6 +204,7 @@ class ServiceAlertsViewModel(app: Application) : AndroidViewModel(app) {
 
     companion object{
         private const val DEBUG_TAG = "BusTO-GTFSRTAlerts"
+        public const val WORK_TAG = "AlertsDownloadWorker"
 
     }
 }

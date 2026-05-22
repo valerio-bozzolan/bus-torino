@@ -137,13 +137,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         mapView!!.getMapAsync(this)
 
         //init bottom sheet
-        val bottomSheet = rootView.findViewById<RelativeLayout>(R.id.bottom_sheet)
-        bottomLayout = bottomSheet
-        stopTitleTextView = bottomSheet.findViewById(R.id.stopTitleTextView)
-        stopNumberTextView = bottomSheet.findViewById(R.id.stopNumberTextView)
-        linesPassingTextView = bottomSheet.findViewById(R.id.linesPassingTextView)
-        arrivalsCard = bottomSheet.findViewById(R.id.arrivalsCardButton)
-        directionsCard = bottomSheet.findViewById(R.id.directionsCardButton)
+        initBottomSheet(rootView)
 
         userLocationButton = rootView.findViewById(R.id.locationEnableIcon)
         userLocationButton.setOnClickListener(this::switchUserLocationStatus)
@@ -153,8 +147,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         busPositionsIconButton.setOnClickListener {
             LivePositionsDialogFragment().show(parentFragmentManager, "LivePositionsDialog")
         }
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
 
         arrivalsCard.setOnClickListener {
             if(context!=null){

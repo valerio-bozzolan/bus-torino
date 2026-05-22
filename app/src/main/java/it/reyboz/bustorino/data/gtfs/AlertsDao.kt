@@ -110,10 +110,10 @@ interface AlertsDao {
     @Query("""
         SELECT a.* FROM gtfsrt_alerts a
         INNER JOIN alerts_informed_entities ie ON ie.alertId = a.id
-        WHERE ie.stopId = :stopId
+        WHERE ie.stopId = :stopGtfsId
         ORDER BY a.fetchedAt DESC
     """)
-    fun getAlertsForStop(stopId: String): LiveData<List<AlertWithDetails>>
+    fun getAlertsForStopGtfsId(stopGtfsId: String): LiveData<List<AlertWithDetails>>
 
     @Transaction
     @Query("""

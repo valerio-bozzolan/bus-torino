@@ -108,7 +108,7 @@ public object GtfsAlertsDBConverter {
                 //agencyId = if (e.hasAgencyId()) e.agencyId else null,
                 routeId = if (e.hasRouteId()) "gtt:${e.routeId}" else null,
                 routeType = if (e.hasRouteType()) e.routeType else null,
-                stopId = if (e.hasStopId()) e.stopId else null,
+                stopId = if (e.hasStopId()) "gtt:${e.stopId}" else null,
                 tripId = tripId,
                 tripRouteId = tripRouteId,
                 directionId = directionId

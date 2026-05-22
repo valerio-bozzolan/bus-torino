@@ -283,7 +283,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         //set
 
         lineInfoButton.setOnClickListener {
-            AlertsDialogFragment(lineID).show(parentFragmentManager, "Alerts-Line$lineID")
+            AlertsDialogFragment.newInstanceForLine(lineID).show(parentFragmentManager, "Alerts-Line$lineID")
         }
         /*
 
@@ -425,6 +425,9 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                 //Log.d(DEBUG_TAG, "First alert is:\n ${list[0].longPrint()}")
             } else
                 lineInfoButton.visibility = View.GONE
+        }
+        lineInfoButton.setOnClickListener {
+            AlertsDialogFragment.newInstanceForLine(lineID).show(parentFragmentManager, "Alerts-Line$lineID")
         }
     }
     // ------------- UI switch stuff ---------

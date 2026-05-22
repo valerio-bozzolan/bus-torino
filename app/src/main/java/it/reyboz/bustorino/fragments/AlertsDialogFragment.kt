@@ -44,7 +44,7 @@ import kotlin.getValue
 import kotlin.collections.HashMap
 
 
-class AlertsDialogFragment(private val gtfsLineShow: String) : DialogFragment() {
+class AlertsDialogFragment(private val gtfsLineShow: String, private val stopToShow: String) : DialogFragment() {
 
     private lateinit var titleTextView: TextView
     private lateinit var messageTextView: TextView
@@ -55,7 +55,7 @@ class AlertsDialogFragment(private val gtfsLineShow: String) : DialogFragment() 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(DEBUG_TAG, "created DialogFragment for line ${gtfsLineShow}")
+        Log.d(DEBUG_TAG, "created DialogFragment for line ${gtfsLineShow} and/or stop ${stopToShow}")
     }
 
     override fun onCreateView(
@@ -66,13 +66,24 @@ class AlertsDialogFragment(private val gtfsLineShow: String) : DialogFragment() 
         val root = inflater.inflate(R.layout.fragment_dialog_alerts_line, container, false)
 
         titleTextView = root.findViewById<TextView>(R.id.titleTextView)
-        titleTextView.setText(getString(R.string.alert_line_fill,GtfsUtils.lineNameDisplayFromGtfsID(gtfsLineShow)))
+        val text = if (gtfsLineShow.isNotEmpty())
+            getString(R.string.alert_line_fill,GtfsUtils.lineNameDisplayFromGtfsID(gtfsLineShow))
+        else if(stopToShow.isNotEmpty()){
+            getString(R.string.alert_stop_fill,stopToShow)
+        } else{
+            throw Exception("Either text or line has to be filled")
+        }
+        titleTextView.setText(text)
         recyclerView =  root.findViewById(R.id.alertsRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         messageTextView = root.findViewById(R.id.alertMessageTextView)
         statusCardView = root.findViewById(R.id.statusCard)
-        alertsViewModel.alertsByRouteLiveData.observe(viewLifecycleOwner){ alerts ->
-            showAlerts(alerts)
+        if(gtfsLineShow.isNotEmpty())
+            alertsViewModel.alertsByRouteLiveData.observe(viewLifecycleOwner){ alerts ->
+                showAlerts(alerts)
+            }
+        else if(stopToShow.isNotEmpty()){
+            alertsViewModel.alertsByStopLiveData.observe(viewLifecycleOwner){ alerts -> showAlerts(alerts) }
         }
 
         val btnClose = root.findViewById<ImageButton>(R.id.btnClose)
@@ -150,8 +161,11 @@ class AlertsDialogFragment(private val gtfsLineShow: String) : DialogFragment() 
          * @return A new instance of fragment LineAlertsDialogFragment.
          */
         @JvmStatic
-        fun newInstance(gtfsLine: String) =
-            AlertsDialogFragment(gtfsLine)
+        fun newInstanceForLine(gtfsLine: String) =
+            AlertsDialogFragment(gtfsLine, "")
+        @JvmStatic
+        fun newInstanceForStop(stop: String) =
+            AlertsDialogFragment("", stop)
 
         private const val GTFS_LINE_ARG = "gtfsLine"
 

@@ -23,10 +23,10 @@ import it.reyboz.bustorino.backend.ServiceType;
 
 abstract public class GtfsUtils {
 
-    public static final String GTFSRT_URL_POSITION =  "http://percorsieorari.gtt.to.it/das_gtfsrt/vehicle_position.aspx";
+    public static final String GTFSRT_URL_POSITION =  "https://percorsieorari.gtt.to.it/das_gtfsrt/vehicle_position.aspx";
 
-    public static final String GTFSRT_URL_TRIP_UPDATES ="http://percorsieorari.gtt.to.it/das_gtfsrt/trip_update.aspx";
-    public static final String GTFSRT_URL_ALERTS = "http://percorsieorari.gtt.to.it/das_gtfsrt/alerts.aspx";
+    public static final String GTFSRT_URL_TRIP_UPDATES ="https://percorsieorari.gtt.to.it/das_gtfsrt/trip_update.aspx";
+    public static final String GTFSRT_URL_ALERTS = "https://percorsieorari.gtt.to.it/das_gtfsrt/alerts.aspx";
 
     public static String stripGtfsPrefix(String routeID){
         String[] explo = routeID.split(":");

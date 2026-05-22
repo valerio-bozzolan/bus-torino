@@ -25,6 +25,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.cardview.widget.CardView
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.loader.app.LoaderManager
 import androidx.loader.content.CursorLoader
@@ -48,6 +50,7 @@ import it.reyboz.bustorino.data.UserDB
 import it.reyboz.bustorino.middleware.CoroutineFavoriteAction
 import it.reyboz.bustorino.util.LinesNameSorter
 import it.reyboz.bustorino.viewmodels.ArrivalsViewModel
+import it.reyboz.bustorino.viewmodels.ServiceAlertsViewModel
 import java.util.*
 
 
@@ -79,6 +82,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
     private lateinit var howDoesItWorkTextView: TextView
     private lateinit var hideHintButton: Button
 
+    private lateinit var alertsCardView : CardView
 
     //private NestedScrollView theScrollView;
     protected lateinit var noArrivalsRecyclerView: RecyclerView
@@ -89,7 +93,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
     //private View canaryEndView;
     private var fetchers: List<ArrivalsFetcher?> =  ArrayList()
     private val arrivalsViewModel : ArrivalsViewModel by viewModels()
-
+    private val alertsViewModel: ServiceAlertsViewModel by activityViewModels()
     private var reloadOnResume = true
     private var routesNoPassages = listOf<Route>()
 
@@ -179,6 +183,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         resultsLayout  = root.findViewById(R.id.resultsLayout)
         loadingMessageTextView = root.findViewById(R.id.loadingMessageTextView)
         progressBar = root.findViewById(R.id.circularProgressBar)
+        alertsCardView = root.findViewById(R.id.alertsCardView)
 
         hideHintButton.setOnClickListener { v: View? -> this.onHideHint(v) }
 
@@ -335,6 +340,17 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         arrivalsViewModel.stopInFavorites.observe(viewLifecycleOwner, { isFavorite ->
             updateStarIcon(isFavorite)
         })
+
+        alertsViewModel.alertsByStopLiveData.observe(viewLifecycleOwner) { alerts ->
+            if(alerts!=null && alerts.isNotEmpty()){
+                        alertsCardView.visibility = View.VISIBLE
+                        alertsCardView.setOnClickListener {
+                             AlertsDialogFragment.newInstanceForStop(stopID).show(parentFragmentManager, "AlertsDialogStop$stopID")
+                         }
+                } else{
+                      alertsCardView.visibility = View.GONE
+                  }
+        }
     }
 
     private fun showShortToast(id: Int) = showToastMessage(id,true)
@@ -432,6 +448,8 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         if (needUpdateOnAttach) {
             updateFragmentData(null)
             needUpdateOnAttach = false
+        } else{
+            updateFragmentData(lastUpdatedPalina ?: Palina(stopID))
         }
     }
 
@@ -494,7 +512,16 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
      * @param p the full Palina
      */
     fun updateFragmentData(p: Palina?) {
-        if (p != null) lastUpdatedPalina = p
+        if (p != null) {
+            lastUpdatedPalina = p
+            //set the gtfsID for the alerts
+            if(isAdded){
+                //alertsViewModel.setStopFilter(p)
+            } else{
+                Log.w(DEBUG_TAG, "Cannot filter alerts for palina $p, the fragment is not added")
+            }
+        }
+
 
         if (!isAdded) {
             //defer update at next show
