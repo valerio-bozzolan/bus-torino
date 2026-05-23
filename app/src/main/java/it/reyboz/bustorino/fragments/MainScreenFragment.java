@@ -49,8 +49,10 @@ import android.widget.Toast;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.util.Permissions;
@@ -65,7 +67,7 @@ import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSIONS;
  * Use the {@link MainScreenFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MainScreenFragment extends BarcodeFragment implements  FragmentListenerMain{
+public class MainScreenFragment extends BarcodeFragment implements  FragmentListenerMain, ParentFragmentManagerFromChild{
 
 
     private static final String SAVED_FRAGMENT="saved_fragment";
@@ -140,7 +142,8 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
     private CoordinatorLayout coordLayout;
 
     //this is really a hackish thing, but it works
-    private LinkedBlockingQueue<Runnable> thingsToDoOnStart = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<Runnable> thingsToDoOnStart = new LinkedBlockingQueue<>();
+
 
     private void refreshStop() {
         if(getContext() == null){
@@ -243,7 +246,6 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
     }
 
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -261,6 +263,18 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
             pendingSearchQuery = args.getString(ARG_SEARCH_QUERY);
         }
 
+        fragmentHelper = new FragmentHelper(this, getChildFragmentManager(), getContext(), R.id.resultFrame);
+
+    }
+
+    @Override
+    public boolean needToPopMainStackOnBack() {
+        return fragmentHelper.needToPopMainStackOnBack();
+    }
+
+    @Override
+    public void setMainFragmentManagerTransition(boolean yes) {
+        fragmentHelper.setMainFragmentManagerTransition(yes);
     }
 
     @Override
@@ -324,8 +338,6 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
         // Fragment stuff
         childFragMan = getChildFragmentManager();
         childFragMan.addOnBackStackChangedListener(() -> Log.d("BusTO Main Fragment", "BACK STACK CHANGED"));
-
-        fragmentHelper = new FragmentHelper(this, getChildFragmentManager(), getContext(), R.id.resultFrame);
 
         /*
         cr.setAccuracy(Criteria.ACCURACY_FINE);
@@ -793,8 +805,7 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
      */
     @Override
     public void readyGUIfor(FragmentKind fragmentType) {
-
-
+        if(BuildConfig.DEBUG) Log.d(DEBUG_TAG, "Readying main fragment for type "+fragmentType);
         //if we are getting results, already, stop waiting for nearbyStops
         if (fragmentType == FragmentKind.ARRIVALS || fragmentType == FragmentKind.STOPS) {
             hideKeyboard();
@@ -815,7 +826,7 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
                     prepareGUIForBusStops();
                     break;
                 default:
-                    Log.d(DEBUG_TAG, "Fragment type is unknown");
+                    //Log.d(DEBUG_TAG, "Fragment type is unknown");
                     return;
             }
         // Shows hints

@@ -19,6 +19,7 @@
 package it.reyboz.bustorino.backend;
 
 import android.util.Log;
+import androidx.annotation.NonNull;
 
 /**
  * Converts some weird stop IDs found on the 5T website to the form used everywhere else (including GTT website).
@@ -254,6 +255,7 @@ public abstract class FiveTNormalizer {
                 return null;
         }
     }
+    @NonNull
     public static String fixShortNameForDisplay(String routeID, boolean withBarratoSpace) {
         /*if (routeID.length() == 3 && routeID.charAt(2) == 'B') {
             return routeID.substring(0, 2).concat("/");

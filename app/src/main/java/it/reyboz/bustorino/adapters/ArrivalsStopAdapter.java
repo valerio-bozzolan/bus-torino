@@ -24,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -34,8 +35,6 @@ import android.widget.TextView;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.fragments.FragmentListenerMain;
-import it.reyboz.bustorino.util.RoutePositionSorter;
-import it.reyboz.bustorino.util.StopSorterByDistance;
 
 import java.util.*;
 
@@ -44,7 +43,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
     //private List<Stop> stops;
     private @NonNull GPSPoint userPosition;
     private FragmentListenerMain listener;
-    private List< Pair<Stop, Route> > routesPairList;
+    private List< RouteWithStop > routesPairList;
     private final Context context;
     //Maximum number of stops to keep
     private final int MAX_STOPS = 20; //TODO: make it programmable
@@ -52,7 +51,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
     private NameCapitalize capit;
 
 
-    public ArrivalsStopAdapter(@Nullable List< Pair<Stop, Route> > routesPairList, FragmentListenerMain fragmentListener, Context con, @NonNull GPSPoint pos) {
+    public ArrivalsStopAdapter(@Nullable List< RouteWithStop > routesPairList, FragmentListenerMain fragmentListener, Context con, @NonNull GPSPoint pos) {
         listener  = fragmentListener;
         userPosition = pos;
         this.routesPairList = routesPairList;
@@ -81,10 +80,10 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             //DO THE ACTUAL WORK TO PUT THE DATA
         if(routesPairList==null || routesPairList.size() == 0) return; //NO STOPS
-        final Pair<Stop,Route> stopRoutePair = routesPairList.get(position);
-        if(stopRoutePair!=null && stopRoutePair.first!=null){
-            final Stop stop = stopRoutePair.first;
-            final Route r = stopRoutePair.second;
+        final var stopRoutePair = routesPairList.get(position);
+        if(stopRoutePair != null){
+            final Stop stop = stopRoutePair.getStop();
+            final Route r = stopRoutePair.getRoute();
             final Double distance = stop.getDistanceFromLocation(userPosition.getLatitude(), userPosition.longitude);
             if(distance!=Double.POSITIVE_INFINITY){
                 holder.distancetextView.setText(distance.intValue()+" m");
@@ -165,7 +164,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
         }
 
     }
-
+    /*
     public void resetRoutesPairList(List<Palina> stopList){
         Collections.sort(stopList,new StopSorterByDistance(userPosition));
 
@@ -181,59 +180,92 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
         }
     }
 
-    public void setUserPosition(@Nullable GPSPoint userPosition) {
-        this.userPosition = userPosition;
-    }
+     */
 
-    public void setRoutesPairListAndPosition(List<Pair<Stop, Route>> mRoutesPairList, @Nullable GPSPoint pos) {
-        if(pos!=null){
-            this.userPosition = pos;
+
+
+    public void setRoutesPairListAndPosition(@NonNull List<RouteWithStop> newList) {
+        if (routesPairList == null) {
+            routesPairList = new ArrayList<>(newList);
+            notifyItemRangeInserted(0, newList.size());
+            return;
         }
-        if(mRoutesPairList!=null){
-            //this.routesPairList = routesPairList;
-            //remove duplicates
-            sortAndRemoveDuplicates(mRoutesPairList, this.userPosition);
-            //routesPairList = mRoutesPairList;
-            //STUPID CODE
-            if (this.routesPairList == null || routesPairList.size() == 0){
-                routesPairList = mRoutesPairList;
-                notifyDataSetChanged();
-            } else{
 
-                final HashMap<Pair<String,String>, Integer> indexMapIn = getRouteIndexMap(mRoutesPairList);
-                final HashMap<Pair<String,String>, Integer> indexMapExisting = getRouteIndexMap(routesPairList);
-                //List<Pair<Stop,Route>> oldList = routesPairList;
-                routesPairList = mRoutesPairList;
-                /*
-                for (Pair<String,String> pair: indexMapIn.keySet()){
-                    final Integer posIn = indexMapIn.get(pair);
-                    if (posIn == null) continue;
-                    if (indexMapExisting.containsKey(pair)){
-                        final Integer posExisting = indexMapExisting.get(pair);
-                        //THERE IS ALREADY
-                        //routesPairList.remove(posExisting.intValue());
-                        //routesPairList.add(posIn,mRoutesPairList.get(posIn));
-
-                        notifyItemMoved(posExisting, posIn);
-                        indexMapExisting.remove(pair);
-                    } else{
-                        //INSERT IT
-                        //routesPairList.add(posIn,mRoutesPairList.get(posIn));
-                        notifyItemInserted(posIn);
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+                    @Override
+                    public int getOldListSize() {
+                        return routesPairList.size();
                     }
-                }//
-                //REMOVE OLD STOPS
-                for (Pair<String,String> pair: indexMapExisting.keySet()) {
-                    final Integer posExisting = indexMapExisting.get(pair);
-                    if (posExisting == null) continue;
-                    //routesPairList.remove(posExisting.intValue());
-                    notifyItemRemoved(posExisting);
-                }
-                //*/notifyDataSetChanged();
 
+                    @Override
+                    public int getNewListSize() {
+                        return newList.size();
+                    }
+
+                    @Override
+                    public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+
+                        RouteWithStop oldItem = routesPairList.get(oldItemPosition);
+                        RouteWithStop newItem = newList.get(newItemPosition);
+
+                        // usa un ID univoco
+                        return oldItem.getId().equals(newItem.getId());
+                    }
+
+                    @Override
+                    public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+
+                        RouteWithStop oldItem = routesPairList.get(oldItemPosition);
+                        RouteWithStop newItem = newList.get(newItemPosition);
+
+                        // confronta il contenuto
+                        return oldItem.equals(newItem);
+                    }
+                }
+        );
+
+        routesPairList.clear();
+        routesPairList.addAll(newList);
+
+        diffResult.dispatchUpdatesTo(this);
+
+
+        /*if (this.routesPairList == null || routesPairList.size() == 0){
+            routesPairList = mRoutesPairList;
+            notifyDataSetChanged();
+        } else{
+
+            final var indexMapIn = getRouteIndexMap(mRoutesPairList);
+            final var indexMapExisting = getRouteIndexMap(routesPairList);
+            //List<Pair<Stop,Route>> oldList = routesPairList;
+            routesPairList = mRoutesPairList;
+            /*
+            for (Pair<String,String> pair: indexMapIn.keySet()){
+                final Integer posIn = indexMapIn.get(pair);
+                if (posIn == null) continue;
+                if (indexMapExisting.containsKey(pair)){
+                    final Integer posExisting = indexMapExisting.get(pair);
+                    //THERE IS ALREADY
+                    //routesPairList.remove(posExisting.intValue());
+                    //routesPairList.add(posIn,mRoutesPairList.get(posIn));
+
+                    notifyItemMoved(posExisting, posIn);
+                    indexMapExisting.remove(pair);
+                } else{
+                    //INSERT IT
+                    //routesPairList.add(posIn,mRoutesPairList.get(posIn));
+                    notifyItemInserted(posIn);
+                }
+            }//
+            //REMOVE OLD STOPS
+            for (Pair<String,String> pair: indexMapExisting.keySet()) {
+                final Integer posExisting = indexMapExisting.get(pair);
+                if (posExisting == null) continue;
+                //routesPairList.remove(posExisting.intValue());
+                notifyItemRemoved(posExisting);
             }
-            //remove and join the
-        }
+
+        */
 
     }
 
@@ -241,52 +273,27 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
      * Sort and remove the repetitions for the routesPairList
      */
     private void resetListAndPosition(){
-        Collections.sort(this.routesPairList,new RoutePositionSorter(userPosition));
+        //Collections.sort(this.routesPairList,new RoutePositionSorter(userPosition));
         //All of this to get only the first occurrences of a line (name & direction)
-        ListIterator<Pair<Stop,Route>> iterator = routesPairList.listIterator();
+        var iterator = routesPairList.listIterator();
         Set<Pair<String,String>> allRoutesDirections = new HashSet<>();
         while(iterator.hasNext()){
-            final Pair<Stop,Route> stopRoutePair = iterator.next();
-            if (stopRoutePair.second != null) {
-                final Pair<String, String> routeNameDirection = new Pair<>(stopRoutePair.second.getName(), stopRoutePair.second.destinazione);
-                if (allRoutesDirections.contains(routeNameDirection)) {
-                    iterator.remove();
-                } else {
-                    allRoutesDirections.add(routeNameDirection);
-                }
-            }
-        }
-    }
-    /**
-     * Sort and remove the repetitions in the list
-     */
-    private static void sortAndRemoveDuplicates(List< Pair<Stop, Route> > routesPairList, GPSPoint positionToSort ){
-        Collections.sort(routesPairList,new RoutePositionSorter(positionToSort));
-        //All of this to get only the first occurrences of a line (name & direction)
-        ListIterator<Pair<Stop,Route>> iterator = routesPairList.listIterator();
-        Set<Pair<String,String>> allRoutesDirections = new HashSet<>();
-        while(iterator.hasNext()){
-            final Pair<Stop,Route> stopRoutePair = iterator.next();
-            if (stopRoutePair.second != null) {
-                final Pair<String, String> routeNameDirection = new Pair<>(stopRoutePair.second.getName(), stopRoutePair.second.destinazione);
-                if (allRoutesDirections.contains(routeNameDirection)) {
-                    iterator.remove();
-                } else {
-                    allRoutesDirections.add(routeNameDirection);
-                }
+            final var stopRoutePair = iterator.next();
+            stopRoutePair.getRoute();
+            final Pair<String, String> routeNameDirection = new Pair<>(stopRoutePair.getRoute().getName(), stopRoutePair.getRoute().destinazione);
+            if (allRoutesDirections.contains(routeNameDirection)) {
+                iterator.remove();
+            } else {
+                allRoutesDirections.add(routeNameDirection);
             }
         }
     }
 
-    private static HashMap<Pair<String, String>, Integer> getRouteIndexMap(List<Pair<Stop, Route>> routesPairList){
-        final HashMap<Pair<String, String>, Integer> myMap = new HashMap<>();
+
+    private static HashMap<RouteWithStop, Integer> getRouteIndexMap(List<RouteWithStop> routesPairList){
+        final HashMap<RouteWithStop, Integer> myMap = new HashMap<>();
         for (int i=0; i<routesPairList.size(); i++){
-            final Route r = routesPairList.get(i).second;
-            if (r==null) continue;
-            final String name = r.getName();
-            final String destination = r.destinazione;
-            if (name!= null && destination!=null)
-                myMap.put(new Pair<>(name.toLowerCase(Locale.ROOT).trim(),destination.toLowerCase(Locale.ROOT).trim()), i);
+            myMap.put(routesPairList.get(i), i);
         }
         return myMap;
     }

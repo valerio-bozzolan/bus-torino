@@ -17,21 +17,19 @@
  */
 package it.reyboz.bustorino.util;
 
-import android.location.Location;
 import androidx.core.util.Pair;
 import android.util.Log;
 
 import it.reyboz.bustorino.backend.*;
 
-import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class RoutePositionSorter implements Comparator<Pair<Stop, Route>> {
+public class RoutePositionSorter implements Comparator<RouteWithStop> {
     private final double latPos, longPos;
-    private final double minutialmetro = 6.0/100; //v = 5km/h
-    private final double distancemultiplier = 2./3;
+    public final double MINUTI_PER_METRO = 6.0/100; //v = 5km/h
+    public final double DISTANCE_MULTIPLIER = 2./3;
     public RoutePositionSorter(double latitude, double longitude){
         latPos = latitude;
         longPos = longitude;
@@ -41,16 +39,16 @@ public class RoutePositionSorter implements Comparator<Pair<Stop, Route>> {
     }
 
     @Override
-    public int compare(Pair<Stop, Route> pair1, Pair<Stop, Route> pair2) throws NullPointerException{
+    public int compare(RouteWithStop pair1, RouteWithStop pair2) throws NullPointerException{
         int delta = 0;
-        final Stop stop1 = pair1.first, stop2 = pair2.first;
+        final Stop stop1 = pair1.getStop(), stop2 = pair2.getStop();
         double dist1 = utils.measuredistanceBetween(latPos,longPos,
                 stop1.getLatitude(),stop1.getLongitude());
         double dist2 = utils.measuredistanceBetween(latPos,longPos,
                 stop2.getLatitude(),stop2.getLongitude());
-        final List<Passaggio> passaggi1 = pair1.second.passaggi,
-                passaggi2 = pair2.second.passaggi;
-        if(passaggi1.size()<=0 || passaggi2.size()<=0){
+        final List<Passaggio> passaggi1 = pair1.getRoute().passaggi,
+                passaggi2 = pair2.getRoute().passaggi;
+        if(passaggi1.isEmpty() || passaggi2.isEmpty()){
             Log.e("ArrivalsStopAdapter","Cannot compare: No arrivals in one of the stops");
         } else {
             Collections.sort(passaggi1);
@@ -66,7 +64,7 @@ public class RoutePositionSorter implements Comparator<Pair<Stop, Route>> {
 
             delta = (int) passaggi1.get(0).getDifferenceMinutes(passaggi2.get(0));
         }
-        delta += (int)((dist1 -dist2)*minutialmetro*distancemultiplier);
+        delta += (int)((dist1 -dist2)* MINUTI_PER_METRO * DISTANCE_MULTIPLIER);
         return delta;
     }
 

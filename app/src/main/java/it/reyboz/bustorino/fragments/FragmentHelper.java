@@ -35,13 +35,14 @@ import it.reyboz.bustorino.middleware.*;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * Helper class to manage the fragments and their needs
  */
 public class FragmentHelper {
     //GeneralActivity act;
-    private final FragmentListenerMain listenerMain;
+    private final FragmentListenerMain mainFragment;
     private final WeakReference<FragmentManager> managerWeakRef;
     private Stop lastSuccessfullySearchedBusStop;
     //support for multiple frames
@@ -52,13 +53,16 @@ public class FragmentHelper {
     private static final String DEBUG_TAG = "BusTO FragmHelper";
     private final StopSearcher stopSearcher;
 
+    //this is for deciding whether to popMain Fragment stack with children
+    private final LinkedBlockingDeque<Boolean> popMainQueueOnMainFragStack = new LinkedBlockingDeque<>();
+
 
     public FragmentHelper(FragmentListenerMain listener, FragmentManager framan, Context context, int mainFrame) {
         this(listener,framan, context,mainFrame,NO_FRAME);
     }
 
     public FragmentHelper(FragmentListenerMain listener, FragmentManager fraMan, Context context, int primaryFrameLayout, int secondaryFrameLayout) {
-        this.listenerMain = listener;
+        this.mainFragment = listener;
         this.managerWeakRef = new WeakReference<>(fraMan);
         this.primaryFrameLayout = primaryFrameLayout;
         this.secondaryFrameLayout = secondaryFrameLayout;
@@ -79,7 +83,16 @@ public class FragmentHelper {
         this.lastSuccessfullySearchedBusStop = stop;
     }
 
-
+    public boolean needToPopMainStackOnBack(){
+        if(popMainQueueOnMainFragStack.isEmpty()){
+            return true;
+        }
+        return popMainQueueOnMainFragStack.pop();
+    }
+    public void setMainFragmentManagerTransition(boolean popMain){
+        Log.d(DEBUG_TAG, "Adding child fragment pop for main screen: " + popMain);
+        popMainQueueOnMainFragStack.addFirst(popMain);
+    }
     /**
      * Called when you need to create a fragment for a specified Palina
      * @param p the Stop that needs to be displayed
@@ -124,7 +137,7 @@ public class FragmentHelper {
         // enable fragment auto refresh
         arrivalsFragment.setReloadOnResume(true);
 
-        listenerMain.hideKeyboard();
+        mainFragment.hideKeyboard();
         toggleSpinner(false);
     }
 
@@ -134,7 +147,7 @@ public class FragmentHelper {
      * @param query String queried
      */
     public void createStopListFragment(List<Stop> resultList, String query, boolean addToBackStack){
-        listenerMain.hideKeyboard();
+        mainFragment.hideKeyboard();
         StopListFragment listfragment = StopListFragment.newInstance(query);
         if(managerWeakRef.get()==null) {
             //SOMETHING WENT VERY WRONG
@@ -143,6 +156,8 @@ public class FragmentHelper {
         }
         attachFragmentToContainer(managerWeakRef.get(),
                 listfragment, "search_"+query, false, addToBackStack);
+        //DO NOT DO THE SAME ON THE ARRIVALS (the call goes through MainActivity)
+        setMainFragmentManagerTransition(false);
         listfragment.setStopList(resultList);
         //listenerMain.readyGUIfor(FragmentKind.STOPS);
         toggleSpinner(false);
@@ -154,7 +169,7 @@ public class FragmentHelper {
      * @param on new status of spinner system
      */
     public void toggleSpinner(boolean on){
-        listenerMain.toggleSpinner(on);
+        mainFragment.toggleSpinner(on);
     }
 
     /**
