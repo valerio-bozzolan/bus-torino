@@ -47,7 +47,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
     private final Context context;
     //Maximum number of stops to keep
     private final int MAX_STOPS = 20; //TODO: make it programmable
-    private String KEY_CAPITALIZE;
+    private final String KEY_CAPITALIZE;
     private NameCapitalize capit;
 
 
@@ -182,9 +182,13 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
 
      */
 
+    public void updatePosition(@NonNull GPSPoint pos){
+        userPosition = pos;
+    }
 
+    public void setRoutesPairListAndPosition(@NonNull List<RouteWithStop> newList, @Nullable GPSPoint pos) {
+        if(pos!=null) updatePosition(pos);
 
-    public void setRoutesPairListAndPosition(@NonNull List<RouteWithStop> newList) {
         if (routesPairList == null) {
             routesPairList = new ArrayList<>(newList);
             notifyItemRangeInserted(0, newList.size());

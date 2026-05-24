@@ -29,7 +29,7 @@ class LinesGridShowingViewModel(application: Application) : AndroidViewModel(app
     val isTouristExpanded = MutableLiveData(false)
     val favoritesExpanded = MutableLiveData(true)
 
-    val favoritesLinesIDs = MutableLiveData<HashSet<String>>()
+    val favoritesLinesIDs = MutableLiveData<Set<String>>()
 
     private val queryLiveData = MutableLiveData("")
     fun setLineQuery(query: String){
@@ -77,9 +77,13 @@ class LinesGridShowingViewModel(application: Application) : AndroidViewModel(app
     }
 
     fun setFavoritesLinesIDs(linesIds: HashSet<String>){
-        favoritesLinesIDs.value = linesIds
-    }
+        val sameSet = favoritesLinesIDs.value?.let{
+            linesIds.containsAll(it) && it.containsAll(linesIds)
+        } ?: false
+        if(!sameSet)// trigger LiveData
+            favoritesLinesIDs.value = linesIds.toSet()
 
+    }
 
     val favoritesLines = favoritesLinesIDs.map {lineIds ->
         val linesList = ArrayList<GtfsRoute>()

@@ -24,13 +24,23 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
+import androidx.lifecycle.viewModelScope
+import com.android.volley.Response
 import it.reyboz.bustorino.BuildConfig
 import it.reyboz.bustorino.backend.*
+import it.reyboz.bustorino.backend.mato.MapiArrivalRequest
 import it.reyboz.bustorino.data.OldDataRepository
-import it.reyboz.bustorino.fragments.NearbyArrivalsDownloader
 import it.reyboz.bustorino.util.StopSorterByDistance
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.time.Duration.Companion.seconds
 
 class NearbyStopsViewModel(application: Application): AndroidViewModel(application) {
 
@@ -39,10 +49,16 @@ class NearbyStopsViewModel(application: Application): AndroidViewModel(applicati
 
     val arrivalsNearby = MutableLiveData<List<Palina>>()
 
+    // map of arrivals by stopID
+    private val arrivalsMapStopID = ConcurrentHashMap<String, Palina>()
+
     val progressPerc = MutableLiveData<Int>()
 
     val downloadingArrivals = MutableLiveData<Boolean>()
-    private val arrivalsListener = object : NearbyArrivalsDownloader.ArrivalsListener {
+    val lastTimeFinished = AtomicLong(0)
+    private var job : Job? = null
+
+    /*private val arrivalsListener = object : NearbyArrivalsDownloader.ArrivalsListener {
         override fun setProgress(completedRequests: Int, pendingRequests: Int) {
             val totalReq = completedRequests + pendingRequests
             progressPerc.postValue( (completedRequests * 100) / totalReq )
@@ -61,12 +77,91 @@ class NearbyStopsViewModel(application: Application): AndroidViewModel(applicati
 
     }
 
-    private val nearbyArrivalsDownloader = NearbyArrivalsDownloader(application,arrivalsListener )
+     */
 
-    fun requestArrivalsForStops(stops: List<Stop>) {
-        nearbyArrivalsDownloader.requestArrivalsForStops(stops)
+    //private val nearbyArrivalsDownloader = NearbyArrivalsDownloader(application,arrivalsListener )
+
+    private val volleyManager = NetworkVolleyManager.getInstance(application)
+
+    /**
+     * Response listener for the requests
+     */
+    private val responseListener = Response.Listener<Palina> { p ->
+        val key = p.ID
+        arrivalsMapStopID[key] = p
+
+        arrivalsNearby.postValue(arrivalsMapStopID.values.toList())
+
+        val c = completedRequests.incrementAndGet()
+        val r = runningRequests.decrementAndGet()
+        updateProgressPost(c,errorRequests.get(), totalReqs.get())
+        if(r==0){
+           setFinishedPost()
+        }
     }
 
+    /**
+     * Error listener for the requests
+     */
+    private val errorListener = Response.ErrorListener { error ->
+        val e = errorRequests.incrementAndGet()
+        val r = runningRequests.decrementAndGet()
+        updateProgressPost(completedRequests.get(), e, totalReqs.get())
+        if(r==0){
+            setFinishedPost()
+        }
+        if(BuildConfig.DEBUG) Log.d(DEBUG_TAG,"query to palina, error "+ error.toString())
+    }
+
+    private fun setFinishedPost(){
+        downloadingArrivals.postValue(false)
+        //val time = System.currentTimeMillis()
+        //lastTimeFinished.set(time)
+        job?.cancel()
+        job = viewModelScope.launch {
+            delay(30.seconds)
+            launch(Dispatchers.Main) {
+                Log.d(DEBUG_TAG, "Updating arrivals from job")
+                stopsAtDistance.value?.let {
+                    requestArrivalsForStops(it)
+                }
+            }
+        }
+    }
+
+    private val totalReqs = AtomicInteger(0)
+    private val completedRequests = AtomicInteger(0)
+    private val errorRequests = AtomicInteger(0)
+    private val runningRequests = AtomicInteger(0)
+
+    /**
+     * Run new batch of requests
+     */
+    fun requestArrivalsForStops(stops: List<Stop>) {
+        //nearbyArrivalsDownloader.requestArrivalsForStops(stops)
+        if(runningRequests.get() > 0) {
+            volleyManager.requestQueue.cancelAll(REQUEST_TAG)
+        }
+        val currentDate = Date()
+        val timeRange = 3600
+        val departures = 10
+        totalReqs.set(stops.size)
+        runningRequests.set(stops.size)
+        completedRequests.set(0)
+        errorRequests.set(0)
+        arrivalsMapStopID.clear()
+        for (s in stops) {
+            val req = MapiArrivalRequest(s.ID, currentDate, timeRange, departures, responseListener, errorListener)
+            req.setTag(REQUEST_TAG)
+            volleyManager.addToRequestQueue(req)
+        }
+        downloadingArrivals.value = (true)
+    }
+    private fun updateProgressPost(completed: Int, error: Int, total: Int) {
+        val done = completed + error
+        progressPerc.postValue( (done * 100) / total )
+    }
+    //// ------- LOCATION STUFF ---------
     val locationLiveData = MutableLiveData<GPSPoint>()
     val distanceMtLiveData = MutableLiveData<Int>(40)
 
@@ -243,8 +338,15 @@ class NearbyStopsViewModel(application: Application): AndroidViewModel(applicati
 
     }
 
+    override fun onCleared() {
+        volleyManager.requestQueue.cancelAll(REQUEST_TAG)
+        super.onCleared()
+    }
+
     companion object{
         private const val DEBUG_TAG = "BusTO-NearbyStopVwModel"
+
+        const val REQUEST_TAG: String = "NearbyArrivals"
 
         const val MINUTI_PER_METRO: Double = 6.0 / 100 //v = 5km/h
         const val DISTANCE_MULTIPLIER: Double = 2.0 / 3

@@ -39,7 +39,6 @@ import it.reyboz.bustorino.adapters.ArrivalsStopAdapter
 import it.reyboz.bustorino.adapters.SquareStopAdapter
 import it.reyboz.bustorino.backend.*
 import it.reyboz.bustorino.data.DatabaseUpdate
-import it.reyboz.bustorino.fragments.NearbyArrivalsDownloader.ArrivalsListener
 import it.reyboz.bustorino.middleware.AutoFitGridLayoutManager
 import it.reyboz.bustorino.middleware.FusedNativeLocationProvider
 import it.reyboz.bustorino.middleware.FusedNativeLocationProvider.LocationUpdateListener
@@ -99,7 +98,6 @@ class NearbyStopsFragment : ScreenBaseFragment() {
     private var stopsMinNumber = -1
 
     //These are useful for the case of nearby arrivals
-    private var arrivalsManager: NearbyArrivalsDownloader? = null
     private var arrivalsStopAdapter: ArrivalsStopAdapter? = null
 
     private var currentNearbyStops = ArrayList<Stop>()
@@ -122,18 +120,10 @@ class NearbyStopsFragment : ScreenBaseFragment() {
             }
         }
     }
-    private val locationOptionsArrivals = FusedNativeLocationProvider.Options(5 * 1000L, 50f)
+    // Two different settings for the location provider
+    private val locationOptionsArrivals = FusedNativeLocationProvider.Options(5 * 1000L, 25f)
     private val locationOptionsStops = FusedNativeLocationProvider.Options(1000L, 5f)
 
-
-    /*
-    TODO: we do not request the permission in this fragment, only showing it when we have the location. Request position if this changes.
-    private final ActivityResultLauncher<String[]> permissionsResultLauncher = getPositionRequestLauncher(
-            granted ->{
-
-            }
-    );
-     */
     private var locationProvider: FusedNativeLocationProvider? = null
 
 
@@ -249,7 +239,7 @@ class NearbyStopsFragment : ScreenBaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         gridRecyclerView.setVisibility(View.INVISIBLE)
         gridRecyclerView.addOnScrollListener(scrollListener!!)
-        mListener?.readyGUIfor(FragmentKind.NEARBY_STOPS)
+        //mListener?.readyGUIfor(FragmentKind.NEARBY_STOPS)
 
         //observe the livedata
         viewModel.stopsAtDistance.observe(getViewLifecycleOwner()) {stops ->
@@ -291,16 +281,16 @@ class NearbyStopsFragment : ScreenBaseFragment() {
                 return@observe
             }
             if (firstLocForArrivals) {
-                arrivalsStopAdapter = ArrivalsStopAdapter(stoprouteList, mListener, getContext(), lastPosition!!)
+                arrivalsStopAdapter = ArrivalsStopAdapter(stoprouteList, mListener, context, lastPosition!!)
                 gridRecyclerView.setAdapter(arrivalsStopAdapter)
                 firstLocForArrivals = false
             } else {
-                arrivalsStopAdapter!!.setRoutesPairListAndPosition(stoprouteList)
+                arrivalsStopAdapter!!.setRoutesPairListAndPosition(stoprouteList, lastPosition)
             }
 
             //arrivalsStopAdapter.notifyDataSetChanged();
             showRecyclerHidingLoadMessage()
-            if (mListener != null) mListener!!.readyGUIfor(FragmentKind.NEARBY_ARRIVALS)
+            //if (mListener != null) mListener!!.readyGUIfor(FragmentKind.NEARBY_ARRIVALS)
         }
     }
 
@@ -477,7 +467,7 @@ class NearbyStopsFragment : ScreenBaseFragment() {
     override fun onDetach() {
         super.onDetach()
         mListener = null
-        if (arrivalsManager != null) arrivalsManager!!.cancelAllRequests()
+        //if (arrivalsManager != null) arrivalsManager!!.cancelAllRequests()
     }
 
     /**
@@ -549,29 +539,41 @@ class NearbyStopsFragment : ScreenBaseFragment() {
      */
     private fun prepareForFragmentType() {
         if (fragment_type == FragType.STOPS) {
-            switchButton!!.setText(getString(R.string.show_arrivals))
-            titleTextView!!.setText(getString(R.string.nearby_stops_message))
-            if (arrivalsManager != null) arrivalsManager!!.cancelAllRequests()
-            if (dataAdapter != null) gridRecyclerView!!.setAdapter(dataAdapter)
+            switchButton!!.text = getString(R.string.show_arrivals)
+            titleTextView!!.text = getString(R.string.nearby_stops_message)
+
+            dataAdapter?.let{ gridRecyclerView.adapter = it}
+
+            mListener?.readyGUIfor(FragmentKind.NEARBY_STOPS)
+
         } else if (fragment_type == FragType.ARRIVALS) {
-            titleTextView!!.setText(getString(R.string.nearby_arrivals_message))
-            switchButton!!.setText(getString(R.string.show_stops))
-            if (arrivalsStopAdapter != null) gridRecyclerView!!.setAdapter(arrivalsStopAdapter)
+            titleTextView!!.text = getString(R.string.nearby_arrivals_message)
+            switchButton!!.text = getString(R.string.show_stops)
+            val arrivalsSorted = viewModel.arrivalsDecoupled.value
+            arrivalsSorted?.let{
+                lastPosition?.let{pos ->
+                    arrivalsStopAdapter = ArrivalsStopAdapter(it,mListener,requireContext(), pos )
+                }
+            }
+            arrivalsStopAdapter?.let{
+                gridRecyclerView.setAdapter(it)
+            }
+
+            mListener?.readyGUIfor(FragmentKind.NEARBY_ARRIVALS)
         }
     }
 
     //useful methods
     /**//// GUI METHODS //////// */
     private fun showStopsInRecycler(stops: MutableList<Stop>?) {
-        if (firstLocForStops) {
+        if (dataAdapter == null) {
             dataAdapter = SquareStopAdapter(stops, mListener, lastPosition)
             gridRecyclerView!!.setAdapter(dataAdapter)
             firstLocForStops = false
         } else {
-            dataAdapter!!.setStops(stops)
             dataAdapter!!.setUserPosition(lastPosition)
+            dataAdapter!!.setStops(stops)
         }
-        dataAdapter!!.notifyDataSetChanged()
 
         //showRecyclerHidingLoadMessage();
         if (gridRecyclerView!!.getVisibility() != View.VISIBLE) {
@@ -581,7 +583,6 @@ class NearbyStopsFragment : ScreenBaseFragment() {
         }
         messageTextView!!.setVisibility(View.GONE)
 
-        if (mListener != null) mListener!!.readyGUIfor(FragmentKind.NEARBY_STOPS)
     }
 
     private fun showArrivalsInRecycler(routesPairList: List<Pair<Stop, Route>>) {

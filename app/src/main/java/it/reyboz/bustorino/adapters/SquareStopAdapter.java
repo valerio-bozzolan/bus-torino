@@ -19,6 +19,7 @@ package it.reyboz.bustorino.adapters;
 
 import android.location.Location;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,6 +28,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.GPSPoint;
+import it.reyboz.bustorino.backend.RouteWithStop;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.util.StopSorterByDistance;
 import it.reyboz.bustorino.fragments.FragmentListenerMain;
@@ -113,8 +115,36 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
 
     }
 
-    public void setStops(List<Stop> stops) {
-        this.stops = stops;
+    public void setStops(List<Stop> newStops) {
+       // this.stops = stops;
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+            @Override
+            public int getOldListSize() {
+                return stops.size();
+            }
+            @Override
+            public int getNewListSize() {
+                return newStops.size();
+            }
+            @Override
+            public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+                var oldItem = stops.get(oldItemPosition);
+                var newItem = newStops.get(newItemPosition);
+
+                // usa un ID univoco
+                return oldItem.ID.equals(newItem.ID);
+            }
+
+            @Override
+            public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+                var oldItem = stops.get(oldItemPosition);
+                var newItem = newStops.get(newItemPosition);
+                return oldItem.equals(newItem);
+            }
+        });
+        this.stops.clear();
+        this.stops.addAll(newStops);
+        diffResult.dispatchUpdatesTo(this);
     }
 
     public void setUserPosition(@Nullable GPSPoint userPosition) {

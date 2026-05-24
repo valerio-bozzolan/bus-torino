@@ -73,7 +73,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
     private Snackbar snackbar;
 
     private ServiceAlertsViewModel  serviceAlertsViewModel;
-    private FragmentKind showingFragmentKind;
+    //private FragmentKind showingFragmentKind;
 
     private final Map<Integer, Runnable> menuActions = Map.of(
             R.id.drawer_action_settings, () -> {
@@ -541,6 +541,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             Log.e(DEBUG_TAG, "Asked to show the snackbar but the baseView is null");
         }
     }
+    /*
     private void updateShowingFragmentKindInternal(@NonNull FragmentKind newKind){
         if(BuildConfig.DEBUG)
             Log.d(DEBUG_TAG, "Updating fragment kind, new: "+newKind+", current: "+showingFragmentKind);
@@ -554,6 +555,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             showingFragmentKind = newKind;
         }
     }
+
+     */
 
     /**
      * Show the actual fragment by adding it to the backstack
@@ -708,8 +711,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     @Override
     public void readyGUIfor(FragmentKind fragmentType) {
-
-        updateShowingFragmentKindInternal(fragmentType);
+        //updateShowingFragmentKindInternal(fragmentType);
+        if(BuildConfig.DEBUG) Log.d(DEBUG_TAG, "readyGUIfor fragment kind: " + fragmentType);
 
         Integer titleResId = null;
         switch (fragmentType){

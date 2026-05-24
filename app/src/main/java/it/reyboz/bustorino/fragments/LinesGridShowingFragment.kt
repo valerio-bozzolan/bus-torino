@@ -90,7 +90,8 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
     }
 
     private val routeClickListener = RouteAdapter.ItemClicker {
-        fragmentListener.openLineFromStop(it.gtfsId, null)
+        //fragmentListener.openLineFromStop(it.gtfsId, null)
+        openLine(it)
     }
     private val arrows = HashMap<String, ImageView>()
     private val durations = HashMap<String, Long>()
@@ -223,6 +224,10 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
         viewModel.setLineQuery(textSearch)
     }
 
+    fun openLine(route: GtfsRoute){
+        fragmentListener.openLineFromStop(route.gtfsId, null)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val menuHost: MenuHost = requireActivity()
@@ -232,7 +237,8 @@ class LinesGridShowingFragment : ScreenBaseFragment() {
             //create new item click listener every time
             val adapter = RouteOnlyLineAdapter(routesNames){  pos, _ ->
                 val r = routes[pos]
-                fragmentListener.openLineFromStop(r.gtfsId, null)
+                //fragmentListener.openLineFromStop(r.gtfsId, null)
+                openLine(r)
             }
             favoritesRecyclerView.adapter = adapter
         }
