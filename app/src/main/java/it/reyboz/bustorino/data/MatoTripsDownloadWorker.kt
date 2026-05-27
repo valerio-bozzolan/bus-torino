@@ -28,6 +28,7 @@ import kotlin.math.min
 
 class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameters)
     : CoroutineWorker(appContext, workerParams) {
+    private val DOWNLOAD_STEP = 50
 
 
     override suspend fun doWork(): Result {
@@ -41,7 +42,7 @@ class MatoTripsDownloadWorker(appContext: Context, workerParams: WorkerParameter
         var i = 0
         var totDown = 0
         while (i <numTrips){
-            val res = downloadGtfsTrips(tripsList.copyOfRange(i, min(i+100, numTrips)))
+            val res = downloadGtfsTrips(tripsList.copyOfRange(i, min(i+DOWNLOAD_STEP, numTrips)))
             if (res < 0){
                 return Result.failure();
             }

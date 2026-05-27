@@ -224,7 +224,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                     if (clearPos) {
                         livePositionsViewModel.clearAllPositions()
                         //force clear of the viewed data
-                        if(vehShowing.isNotEmpty()) hideStopOrBusBottomSheet()
+                        if(!vehShowing.isNullOrEmpty()) hideStopOrBusBottomSheet()
                         clearAllBusPositionsInMap()
                     }
 
@@ -628,20 +628,24 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             })
         }
         if(locationEnabledOnDevice){
-            setFollowUserLocation(true)
+            if(shownStopInBottomSheet == null && vehShowing == null)
+                setFollowUserLocation(true)
         }
 
     }
 
     override fun onMapLocationEnabled(active: Boolean) {
         //Extra stuff to do
-        setFollowUserLocation(active)
+        // this check should always pass
+        if(shownStopInBottomSheet == null && vehShowing == null)
+            setFollowUserLocation(active)
     }
 
     @SuppressLint("MissingPermission")
     override fun onFirstReceivedLocation(location: Location) {
 
         val it = location
+        val notShowingStopOrVehicle = vehShowing.isNullOrEmpty() && shownStopInBottomSheet != null
         if(locationInitialized && !receivedFirstLocation) {
             //only zoom if the user position is close enough to the center
             val newPoint = LatLng(it.latitude, it.longitude)
@@ -655,7 +659,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 //Update UI Status
                 mapStateViewModel.locationUserActive.value = false
                 mapStateViewModel.followingUserPosition.value = false
-            } else {
+            } else if(notShowingStopOrVehicle) {
                 map?.apply {
                     animateCamera(
                         CameraUpdateFactory.newCameraPosition(
@@ -668,6 +672,10 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                     mapStateViewModel.locationUserActive.value = true
                 }
                 setFollowUserLocation(true)
+            } else{
+                map?.apply {
+                    setLocationComponentEnabled(true)
+                }
             }
         }
         else{

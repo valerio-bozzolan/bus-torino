@@ -35,7 +35,6 @@ import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultCallback
@@ -47,6 +46,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.JsonObject
@@ -69,6 +69,7 @@ import it.reyboz.bustorino.util.Permissions
 import it.reyboz.bustorino.util.ViewUtils
 import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
 import it.reyboz.bustorino.viewmodels.MapStateViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.maplibre.android.MapLibre
@@ -119,10 +120,11 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     protected lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
 
     protected var locationEngine: MapLibreLocationEngine? = null
-    protected lateinit var locationProvider: FusedNativeLocationProvider
+    protected var locationProvider: FusedNativeLocationProvider? = null
 
     protected var shownToastNoPosition = false
     protected var locationEnabledOnDevice = true
+    protected var busLayerStarted = false
 
     //TODO ACTIVATE THIS
     private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener(){ pref, key ->
@@ -183,10 +185,11 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     //BUS POSITIONS
     protected val updatesByVehDict = HashMap<String, LivePositionTripPattern>(5)
     protected val animatorsByVeh = HashMap<String, ValueAnimator>()
-    protected var vehShowing = ""
+    protected var vehShowing: String? = null
     protected var lastUpdateTime:Long = -2
+    protected var jobUpdate: Job? = null
 
-    private val lifecycleOwnerLiveData = getViewLifecycleOwnerLiveData()
+    //private val lifecycleOwnerLiveData = viewLifecycleOwnerLiveData
 
 
     //extra items to use the LibreMap
@@ -253,6 +256,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        //TODO: Re-create map when this preference changes
         lastMapStyle = PreferencesHolder.getMapLibreStyleFile(requireContext())
         Log.d(DEBUG_TAG, "onCreateView lastMapStyle: $lastMapStyle")
         return super.onCreateView(inflater, container, savedInstanceState)
@@ -292,6 +296,8 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         //if(newMapStyle!=lastMapStyle){
         //    reloadMap()
         //}
+        if(busLayerStarted)
+            updatePositionsIcons(false)
     }
 
     override fun onLowMemory() {
@@ -307,15 +313,18 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     override fun onDestroy() {
         mapView?.onDestroy()
         Log.d(DEBUG_TAG, "Destroyed mapView Fragment!!")
+        busLayerStarted = false
         super.onDestroy()
     }
 
     override fun onStop() {
+        locationProvider?.removeListener(deviceLocationStatusListener)
         mapView?.onStop()
         super.onStop()
     }
 
     override fun onPause() {
+        jobUpdate?.cancel()
         mapView?.onPause()
         super.onPause()
     }
@@ -323,7 +332,6 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
 
     override fun onDestroyView() {
         bottomLayout = null
-        locationProvider.removeListener(deviceLocationStatusListener)
         mapInitialized = false
         locationInitialized = false
         super.onDestroyView()
@@ -414,9 +422,9 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
 
         //reset states
         shownStopInBottomSheet = null
-        if (vehShowing!=""){
+        if (vehShowing!=null){
             //we are hiding a vehicle
-            vehShowing = ""
+            vehShowing = null
             updatePositionsIcons(true)
         }
         extraBottomTextView.visibility = View.GONE
@@ -478,9 +486,10 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         mStyle?.let{ style ->
             locationComponent = map.locationComponent
 
-            locationProvider = FusedNativeLocationProvider(context)
-            locationProvider.addListener(deviceLocationStatusListener)
-            locationEngine = MapLibreLocationEngine(locationProvider)
+            val locProvider = FusedNativeLocationProvider(context)
+            locProvider.addListener(deviceLocationStatusListener)
+            locationEngine = MapLibreLocationEngine(locProvider)
+            locationProvider = locProvider
             val options = LocationComponentActivationOptions.builder(context, style)
                 .useDefaultLocationEngine(false)
                 .locationEngine(locationEngine)
@@ -522,7 +531,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
      */
     protected fun updateBusPositionsInMap(
         incomingData: HashMap<String, Pair<LivePositionUpdate,TripAndPatternWithStops?>>,
-        hasVehicleTracking: Boolean = false,
+        hasVehicleTracking: Boolean = true,
         trackVehicleCallback: ((String) -> Unit)? = null
     ) {
         val vehsNew = HashSet(incomingData.values.map { up -> up.first.vehicle })
@@ -613,7 +622,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             }
 
             // Update vehicle details if this is the shown/tracked vehicle
-            if (hasVehicleTracking && vehShowing.isNotEmpty() && vehID == vehShowing) {
+            if (hasVehicleTracking && vehShowing?.isNotEmpty() == true && vehID == vehShowing) {
                 trackVehicleCallback?.invoke(vehID)
             }
         }
@@ -700,7 +709,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             }
 
         }
-        vehShowing = veh
+        vehShowing = null
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         updatePositionsIcons(true)
         Log.d(DEBUG_TAG, "Shown vehicle $veh in bottom sheet")
@@ -709,19 +718,29 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     /**
      * Update the bus positions displayed on the map, from the existing data
      *
-     * @param forced If true, forces immediate update ignoring the 60ms throttle
+     * @param forced If true, forces immediate update ignoring the 100ms throttle
      */
     protected fun updatePositionsIcons(forced: Boolean) {
         // Avoid frequent updates - throttle to max once per 60ms
         val currentTime = System.currentTimeMillis()
-        if (!forced && currentTime - lastUpdateTime < 60) {
+        val isStarted = (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
+        if(forced){
+            // if we're running a forced update, cancel the pending one
+            jobUpdate?.cancel()
+        }
+        else if (currentTime - lastUpdateTime < 100) {
             // Schedule delayed update
-            if(lifecycleOwnerLiveData.value != null)
-                viewLifecycleOwner.lifecycleScope.launch {
-                    delay(200.milliseconds)
-                    updatePositionsIcons(forced)
+            if(viewLifecycleOwnerLiveData.value != null) {
+                jobUpdate?.cancel()
+                jobUpdate = viewLifecycleOwner.lifecycleScope.launch {
+                    delay(100.milliseconds)
+                    updatePositionsIcons(false)
                 }
+            }
             return
+        }
+        if(!isStarted){
+            Log.w(DEBUG_TAG, "fragment is not started, ")
         }
 
         val busFeatures = ArrayList<Feature>()
@@ -742,7 +761,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             )
 
             // Separate selected vehicle from others
-            if (vehShowing.isNotEmpty() && vehShowing == dat.posUpdate.vehicle) {
+            if (vehShowing?.isNotEmpty() == true && vehShowing == dat.posUpdate.vehicle) {
                 selectedBusFeatures.add(newFeature)
             } else {
                 busFeatures.add(newFeature)
@@ -1005,7 +1024,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         }
 
         style.addLayerAbove(selectedBusLayer, BUSES_LAYER_ID)
-
+        busLayerStarted = true
     }
     /**
      * Method used for enabling / disabling the location from the buttons

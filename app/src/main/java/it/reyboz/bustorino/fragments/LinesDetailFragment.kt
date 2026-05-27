@@ -366,7 +366,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                     if (clearPos) {
                         livePositionsViewModel.clearAllPositions()
                         //force clear of the viewed data
-                        if(vehShowing.isNotEmpty()) hideStopOrBusBottomSheet()
+                        if(!vehShowing.isNullOrEmpty()) hideStopOrBusBottomSheet()
                         clearAllBusPositionsInMap()
                     }
 
@@ -595,7 +595,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
                     val id = feature.getStringProperty("id")
                     val stop = viewModel.getStopByID(id)
                     stop?.let {
-                        if (isBottomSheetShowing() || vehShowing.isNotEmpty()) {
+                        if (isBottomSheetShowing()) {
                             hideStopOrBusBottomSheet()
                         }
                         openStopInBottomSheet(it)

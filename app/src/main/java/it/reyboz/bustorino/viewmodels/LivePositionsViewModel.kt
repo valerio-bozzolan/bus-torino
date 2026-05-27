@@ -46,6 +46,7 @@ import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 import androidx.core.content.edit
 import androidx.lifecycle.MutableLiveData
+import kotlin.text.contains
 
 typealias FullPositionUpdatesMap = HashMap<String, Pair<LivePositionUpdate, TripAndPatternWithStops?>>
 typealias FullPositionUpdate = Pair<LivePositionUpdate, TripAndPatternWithStops?>
@@ -177,7 +178,9 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
     //find the trip IDs in the updates
     private val tripsIDsInUpdates = positionsToBeMatchedLiveData.map { it ->
         //Log.d(DEBUG_TI, "Updates map has keys ${upMap.keys}")
-        it.map { pos -> "gtt:"+pos.tripID  }
+        it.map { pos -> "gtt:"+pos.tripID }.filter{ s->
+            !(s.contains("null") || s.trim() =="gtt:")
+        }
 
     }
     // get the trip IDs in the DB
@@ -191,7 +194,9 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
         val tripNames=tripswithPatterns.map { twp-> twp.trip.tripID }
         Log.i(DEBUG_TI, "Have ${tripswithPatterns.size} trips in the DB")
         if (tripsIDsInUpdates.value!=null)
-            return@map tripsIDsInUpdates.value!!.filter { !(tripNames.contains(it) || it.contains("null"))}
+            return@map tripsIDsInUpdates.value!!.filter { !(
+                    tripNames.contains(it) || it.contains("null") || it =="gtt:"
+                    )}.distinct()
         else {
             Log.e(DEBUG_TI,"Got results for gtfsTripsInDB but not tripsIDsInUpdates??")
             return@map ArrayList<String>()

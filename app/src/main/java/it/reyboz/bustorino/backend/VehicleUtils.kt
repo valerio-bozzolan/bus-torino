@@ -46,8 +46,8 @@ object VehicleUtils {
         VehicleClassInfo(9000, "BYD K9", "E-Bus", 9120, 9121),
         VehicleClassInfo(9200, "Citymood", "Bus", 9200, 9251),
         VehicleClassInfo(9200, "Citymood", "Bus", 9252, 9261),
-        VehicleClassInfo(9400, "E-Way", "E-Bus", 9400, 9599),
-        VehicleClassInfo(9600, "E-Way 18m", "E-Bus", 9600, 9699)
+        VehicleClassInfo(9400, "Iveco E-Way", "E-Bus", 9400, 9599),
+        VehicleClassInfo(9600, "Iveco E-Way 18m", "E-Bus", 9600, 9699)
     )
 
     fun getTypeForLabel(label: String): VehicleClassInfo? {
