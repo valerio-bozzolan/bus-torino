@@ -43,6 +43,8 @@
                     android:layout_margin="4dp"
                     android:layout_marginStart="16dp"
                     android:rotation="90"
+                    app:tint="?android:textColorPrimary"
+
             />
             <TextView android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
@@ -50,7 +52,7 @@
                       android:textAppearance="@style/TextAppearance.AppCompat.Body2"
                       android:textSize="@dimen/subtitle_size"
                       android:layout_margin="4dp"
-                      android:textColor="@color/black_900"
+                      android:textColor="?android:textColorPrimary"
                       android:gravity="center"
                       android:id="@+id/favoritesTitleView"
                       app:layout_constraintTop_toBottomOf="@id/updateMessageTextView"
@@ -81,6 +83,8 @@
                     android:layout_margin="4dp"
                     android:layout_marginStart="16dp"
                     android:rotation="0"
+                    app:tint="?android:textColorPrimary"
+
             />
             <TextView android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
@@ -88,7 +92,7 @@
                       android:textAppearance="@style/TextAppearance.AppCompat.Body2"
                       android:textSize="@dimen/subtitle_size"
                       android:layout_margin="4dp"
-                      android:textColor="@color/black_900"
+                      android:textColor="?android:textColorPrimary"
                       android:gravity="center"
                       android:id="@+id/urbanLinesTitleView"
                       app:layout_constraintTop_toBottomOf="@id/favoritesRecyclerView"
@@ -120,13 +124,14 @@
                     android:layout_margin="4dp"
                     android:layout_marginStart="16dp"
                     android:rotation="0"
+                    app:tint="?android:textColorPrimary"
             />
             <TextView android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
                       android:text="@string/turist_lines"
                       android:textAppearance="@style/TextAppearance.AppCompat.Body2"
                       android:textSize="@dimen/subtitle_size"
-                      android:textColor="@color/black_900"
+                      android:textColor="?android:textColorPrimary"
                       android:layout_margin="4dp"
                       android:layout_marginStart="6dp"
                       android:gravity="center"
@@ -158,6 +163,8 @@
                     android:layout_margin="4dp"
                     android:layout_marginStart="16dp"
                     android:rotation="0"
+                    app:tint="?android:textColorPrimary"
+
             />
             <TextView android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
@@ -165,7 +172,7 @@
                       android:textAppearance="@style/TextAppearance.AppCompat.Body2"
                       android:textSize="@dimen/subtitle_size"
                       android:layout_margin="4dp"
-                      android:textColor="@color/black_900"
+                      android:textColor="?android:textColorPrimary"
                       android:gravity="center"
                       android:layout_marginStart="6dp"
                       android:id="@+id/extraurbanLinesTitleView"

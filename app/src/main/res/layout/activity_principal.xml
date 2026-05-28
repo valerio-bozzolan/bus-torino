@@ -41,14 +41,14 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="@color/grey_050"
-        android:theme="@style/ThemeOverlay.AppCompat.Light"
+        android:theme="@style/ThemeOverlay.AppCompat.DayNight"
         app:headerLayout="@layout/nav_header"
         app:itemIconTint="@color/teal_500"
         app:itemTextAppearance="?android:attr/textAppearanceMedium"
-        app:itemTextColor="@color/black_900"
+        app:itemTextColor="?android:textColorPrimary"
         android:fitsSystemWindows="true"
-        app:menu="@menu/drawer_main" />
+        app:menu="@menu/drawer_main"
+    />
 
 
 

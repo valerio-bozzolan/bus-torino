@@ -257,4 +257,11 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
     <string name="no_permission_dialog_text_location">Per usare questa funzionalità, l\'app necessita dell\'accesso alla posizione, che ora può essere dato solo dalle impostazioni di sistema.</string>
     <string name="no_permission_dialog_open">Apri le impostazioni</string>
     <string name="back_again_to_close">Premi ancora \"indietro\" per uscire dall\'app</string>
+
+    <!-- Theme -->
+    <string name="day_night_theme_set_light">Chiaro</string>
+    <string name="day_night_theme_set_dark">Scuro</string>
+    <string name="day_night_theme_keep_system">Segui il sistema</string>
+
+    <string name="pref_theme_day_night_title">Imposta tema scuro o chiaro</string>
 </resources>

@@ -37,9 +37,9 @@ public class StopRecyclerAdapter extends RecyclerView.Adapter<StopRecyclerAdapte
     private List<Stop> stops;
     private static final int ITEM_LAYOUT_FAVORITES = R.layout.entry_bus_stop;
     private static final int ITEM_LAYOUT_LINES = R.layout.stop_line_element;
-    private static final int busIcon = R.drawable.bus;
-    private static final int trainIcon = R.drawable.subway;
-    private static final int tramIcon = R.drawable.tram;
+    private static final int busIcon = R.drawable.ic_bus;
+    private static final int trainIcon = R.drawable.ic_subway_filled;
+    private static final int tramIcon = R.drawable.ic_tram_filled_24;
     private static final int cityIcon = R.drawable.city;
 
     private NameCapitalize capitalizeLocation = NameCapitalize.DO_NOTHING;
@@ -174,6 +174,8 @@ public class StopRecyclerAdapter extends RecyclerView.Adapter<StopRecyclerAdapte
             vh.busStopLinesTextView.setText(whatStopsHere);
             vh.busStopLinesTextView.setVisibility(View.VISIBLE); // might be GONE due to View Holder Pattern
         }
+        /*
+        //This is deprecated, always showing a bus
 
         if(stop.type == null) {
             vh.busStopLinesTextView.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
@@ -195,6 +197,8 @@ public class StopRecyclerAdapter extends RecyclerView.Adapter<StopRecyclerAdapte
                     vh.busStopLinesTextView.setCompoundDrawablesWithIntrinsicBounds(cityIcon, 0, 0, 0);
             }
         }
+
+         */
 
         if (stop.location == null || stop.location.toLowerCase(Locale.ROOT).equals("null")) {
             vh.busStopLocaLityTextView.setVisibility(View.GONE);

@@ -70,7 +70,7 @@ class LivePositionsDialogFragment : DialogFragment() {
 
         builder.setView(view)
         val res =  builder.create()
-        res.window?.setBackgroundDrawableResource(R.color.grey_100)
+        res.window?.setBackgroundDrawableResource(R.color.card_background)
         return res
     }
 

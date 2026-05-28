@@ -33,6 +33,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.*;
@@ -49,6 +50,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
 
@@ -71,6 +73,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     private final static String TAG_FAVORITES="favorites_frag";
     private Snackbar snackbar;
+
 
     private ServiceAlertsViewModel  serviceAlertsViewModel;
     //private FragmentKind showingFragmentKind;
@@ -116,6 +119,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         }
     };
 
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,10 +128,6 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         setContentView(R.layout.activity_principal);
         serviceAlertsViewModel = new ViewModelProvider(this).get(ServiceAlertsViewModel.class);
         //Use LiveModel to sync fragment state
-        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            getWindow().setNavigationBarContrastEnforced(false);
-        }
-         */
 
         //onBackPressed solution required from Android 16
         backPressedCallback.setEnabled(true);
@@ -282,8 +283,8 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         }
         //boolean onCreateComplete = true;
 
-        //last but not least, set the good default values
-        checkApplyDefaultSettingsValues();
+        //default values are set in the BustoApp
+        //checkApplyDefaultSettingsValues();
         // handle the device "insets"
         /*
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootRelativeLayout), (v, windowInsets) -> {

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:paddingTop="8dip"
-    android:paddingBottom="8dip"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:paddingTop="8dip"
+                android:paddingBottom="8dip"
                 android:background="?android:attr/selectableItemBackground"
 >
 
@@ -39,21 +39,30 @@
             android:layout_alignParentStart="true"
             android:textColor="@color/grey_600"
             android:textAppearance="?android:attr/textAppearanceMedium"/>
+    <ImageView
+            android:id="@+id/arrivalsBusIcon"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_alignParentStart="true"
+            android:layout_below="@id/busStopLocality"
+            android:layout_marginStart="16sp"
+            android:src="@drawable/ic_bus"
+            android:scaleType="fitCenter"
+            app:tint="@color/black_icon_text"
+
+    />
 
     <TextView
             android:id="@+id/routesThatStopHere"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/busStopLocality"
-            android:layout_marginLeft="16sp"
-            android:layout_marginStart="16sp"
-            android:layout_marginRight="16sp"
-            android:layout_marginEnd="16sp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="16dp"
             android:gravity="center_vertical"
-            android:layout_toLeftOf="@id/busStopID"
             android:layout_toStartOf="@id/busStopID"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
+            android:layout_toEndOf="@id/arrivalsBusIcon"
+            android:layout_marginTop="3dp"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="@color/grey_600"/>
 

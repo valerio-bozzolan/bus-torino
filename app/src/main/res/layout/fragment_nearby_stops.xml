@@ -72,28 +72,46 @@
             android:indeterminate="true"
             android:indeterminateTint="@color/blue_620"
             android:layout_below="@+id/titleTextView"
-            android:layout_centerHorizontal="true"/>
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:visibility="gone"
+    />
+    <TextView android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
               android:id="@+id/positionLoadingTextView"
               android:layout_below="@id/circularProgressBar"
               android:text="@string/position_searching_message"
               android:layout_marginTop="8dp"
               android:textSize="15sp"
               android:layout_centerHorizontal="true"
+              android:visibility="gone"
               />
     <TextView
-            android:text="@string/enable_location_message"
+            android:text="@string/enable_position_message_nearby"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/messageTextView"
             android:fontFamily="@font/lato_regular"
-            android:visibility="gone"
+            android:visibility="visible"
             android:textAppearance="@style/Base.ThemeOverlay.AppCompat.Light"
             android:layout_below="@+id/titleTextView"
             android:layout_centerHorizontal="true"
             android:textSize="17sp"
-            android:layout_margin="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="30dp"
+            android:textColor="?android:textColorSecondary"
     />
+
+    <com.google.android.material.button.MaterialButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/messageTextView"
+            android:layout_centerHorizontal="true"
+            android:text="@string/grant_location_permission"
+            android:visibility="visible"
+            android:id="@+id/grantLocationButton"
+            android:layout_marginTop="15dp"
+            />
 
 
 

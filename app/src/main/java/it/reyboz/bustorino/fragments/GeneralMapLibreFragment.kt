@@ -29,6 +29,7 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -170,6 +171,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     protected lateinit var stopNumberTextView: TextView
     protected lateinit var linesPassingTextView: TextView
     protected lateinit var extraBottomTextView: TextView
+    protected lateinit var linesBottomTextView: TextView
     protected lateinit var arrivalsCard: CardView
     protected lateinit var directionsCard: CardView
     protected lateinit var bottomrightImage: ImageView
@@ -271,6 +273,8 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         arrivalsCard = view.findViewById(R.id.arrivalsCardButton)
         directionsCard = view.findViewById(R.id.directionsCardButton)
         vehicleIcon = view.findViewById(R.id.vehicleIcon)
+        linesBottomTextView = view.findViewById(R.id.linesBottomTextView)
+        linesBottomTextView.text = getString(R.string.lines_fill, "")
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
 
@@ -682,9 +686,11 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 ResourcesCompat.getDrawable(resources, R.drawable.ic_magnifying_glass, activity?.theme)
             )
             // if you change this, remember to change the color of the vehicleIcon
-            val colorBlue = ResourcesCompat.getColor(resources, R.color.blue_500, activity?.theme)
+            val colorBlue = ResourcesCompat.getColor(resources, R.color.bus_marker_color_selected, activity?.theme)
             ViewCompat.setBackgroundTintList(directionsCard, ColorStateList.valueOf(colorBlue))
             linesPassingTextView.text = getString(R.string.vehicle_fill, data.posUpdate.vehicle)
+            linesPassingTextView.gravity = Gravity.CENTER_VERTICAL
+            linesBottomTextView.visibility = View.GONE
             arrivalsCard.visibility = View.GONE
 
             extraBottomTextView.text = getString(R.string.updated_fill,  utils.unixTimestampToLocalTime(data.posUpdate.timestamp))
@@ -695,21 +701,21 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 vehicleIcon.visibility = View.GONE
             } else{
                 val ico = when(vehInfo.type){
-                    VehicleUtils.VehicleType.BUS -> R.drawable.ic_bus_small
-                    VehicleUtils.VehicleType.ELECTRIC_BUS -> R.drawable.ic_bus_electric_small
-                    VehicleUtils.VehicleType.TRAM -> R.drawable.ic_tram_24
+                    VehicleUtils.VehicleType.BUS -> R.drawable.ic_bus
+                    VehicleUtils.VehicleType.ELECTRIC_BUS -> R.drawable.ic_bus_electric_filled
+                    VehicleUtils.VehicleType.TRAM -> R.drawable.ic_tram_material
                 }
                 vehicleIcon.setImageDrawable(ResourcesCompat.getDrawable(resources, ico, activity?.theme))
                 vehicleIcon.visibility = View.VISIBLE
 
                 vehicleIcon.setOnClickListener {
-                    val print = "${vehInfo.type.getName()} ${vehInfo.name}"
+                    val print = "${vehInfo.type.getName()}: ${vehInfo.name}"
                     makeToast(print)
                 }
             }
 
         }
-        vehShowing = null
+        vehShowing = veh
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         updatePositionsIcons(true)
         Log.d(DEBUG_TAG, "Shown vehicle $veh in bottom sheet")
@@ -726,7 +732,11 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         val isStarted = (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
         if(forced){
             // if we're running a forced update, cancel the pending one
-            jobUpdate?.cancel()
+            jobUpdate?.apply{
+                cancel()
+                //Log.d(DEBUG_TAG, "Cancelled update")
+            }
+
         }
         else if (currentTime - lastUpdateTime < 100) {
             // Schedule delayed update
@@ -734,8 +744,10 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 jobUpdate?.cancel()
                 jobUpdate = viewLifecycleOwner.lifecycleScope.launch {
                     delay(100.milliseconds)
+                    //Log.d(DEBUG_TAG, "Running update from delayed")
                     updatePositionsIcons(false)
                 }
+                //Log.d(DEBUG_TAG, "Cancelled previous job, delaying update")
             }
             return
         }
@@ -763,6 +775,8 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             // Separate selected vehicle from others
             if (vehShowing?.isNotEmpty() == true && vehShowing == dat.posUpdate.vehicle) {
                 selectedBusFeatures.add(newFeature)
+                //Log.d(DEBUG_TAG, "Update position for bus $vehShowing")
+                //TODO: Recenter the map on the vehicle
             } else {
                 busFeatures.add(newFeature)
             }
@@ -849,9 +863,11 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             stopTitleTextView.visibility = View.VISIBLE
 
             val string_show = if (stop.numRoutesStopping==0) ""
-            else requireContext().getString(R.string.lines_fill, stop.routesThatStopHereToString())
+            else stop.routesThatStopHereToString() //requireContext().getString(R.string.lines_fill, stop.routesThatStopHereToString())
             linesPassingTextView.text = string_show
             linesPassingTextView.visibility = View.VISIBLE
+            linesPassingTextView.gravity = Gravity.TOP
+            linesBottomTextView.visibility =View.VISIBLE
 
             //SET ON CLICK LISTENER
             arrivalsCard.setOnClickListener{
@@ -865,7 +881,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 ViewUtils.openStopInOutsideApp(stop, context)
             }
             context?.let {
-                val colorIcon = ViewUtils.getColorFromTheme(it, android.R.attr.colorAccent)//ResourcesCompat.getColor(resources,R.attr.colorAccent,activity?.theme)
+                val colorIcon = ViewUtils.getColorFromTheme(it, R.attr.colorAccent)//ResourcesCompat.getColor(resources,R.attr.colorAccent,activity?.theme)
                 ViewCompat.setBackgroundTintList(directionsCard, ColorStateList.valueOf(colorIcon))
             }
 
@@ -924,12 +940,17 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
 
     protected fun initStopsLayer(style: Style, stopsFeatures: FeatureCollection?){
         //determine default layer
-        var layerAbove = ""
-        if (lastMapStyle == MapLibreUtils.STYLE_OSM_RASTER){
-            layerAbove = "osm-raster"
-        } else if (lastMapStyle == MapLibreUtils.STYLE_VECTOR){
-            layerAbove = "symbol-transit-airfield"
+
+        val layerAbove = if (lastMapStyle == MapLibreUtils.STYLE_OSM_RASTER){
+           "osm-raster"
+        } else// if (lastMapStyle == MapLibreUtils.STYLE_VERSATILES_ECLIPSE_JSON){
+            "symbol-transit-airfield"
+        /*} else {
+            //
+            "poi_park"
         }
+
+         */
         initStopsLayer(style, stopsFeatures, layerAbove)
     }
 

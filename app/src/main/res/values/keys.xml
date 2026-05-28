@@ -40,4 +40,17 @@
         <item>osm_legacy</item>
     </array>
 
+    <!-- Tema scuro / chiaro da Material -->
+    <array name="day_night_keys" translatable="false">
+        <item>day</item>
+        <item>night</item>
+        <item>system</item>
+    </array>
+
+    <array name="day_night_values">
+        <item>@string/day_night_theme_set_light</item>
+        <item>@string/day_night_theme_set_dark</item>
+        <item>@string/day_night_theme_keep_system</item>
+    </array>
+
 </resources>

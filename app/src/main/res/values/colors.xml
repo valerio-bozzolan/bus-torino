@@ -13,6 +13,12 @@
     <color name="blue_700">#2060dd</color>
     <color name="brown_vd">#8A4247</color><!-- #1976D2 -->
     <color name="dialog_background">#FFF3E0</color>
+    <color name="orange_background">#fff5e5</color>
+    <!-- night color, from 50 to 44 luminosity -->
+    <color name="orange_500_night">#e08700</color>
+
+    <!-- night color, to 41 luminosity -->
+    <color name="orange_700_night">#d16900</color>
 
     <color name="blue_mid_2">#2378e8</color>
     <color name="blue_c_or_700">#0079f5</color>
@@ -25,7 +31,10 @@
     <color name="forest_green">#228b22</color>
     <color name="green_extra">#0ABA34</color>
 
-    <color name="teal_500">#009688</color>
+    <color name="OLD_teal_500">#009688</color>
+    <color name="teal_500">#00a38d</color>
+    <color name="teal_500_night">#009480</color>
+    <color name="teal_500_proposal">#00a887</color>
     <color name="teal_300">#4DB6AC</color>
     <color name="teal_200">#80cbc4</color>
     <color name="teal_900">#008175</color>
@@ -38,6 +47,8 @@
     <color name="grey_700">#444</color>
     <color name="grey_800">#353535</color>
     <color name="grey_900">#303030</color>
+
+    <color name="grey_L95">#f2f2f2</color>
 
     <!--<color name="white">#FFFFFF</color>
     <color name="accent">#009688</color>-->
@@ -59,14 +70,20 @@
     <color name="line_drawn_poly">@color/red_dark</color>
 
     <color name="bus_marker_color">@color/blue_extra</color>
+    <color name="bus_marker_color_selected">#3089e8</color>
     <color name="light_blue_600">#FF039BE5</color>
     <color name="light_blue_900">#FF01579B</color>
     <color name="light_blue_A200">#FF40C4FF</color>
     <color name="light_blue_A400">#FF00B0FF</color>
     <color name="black_overlay">#66000000</color>
+    <color name="black_icon_text">#555</color>
+    <color name="text_secondary_night">#cccccc</color>
 
-
+    <color name="card_border">@color/grey_500</color>
     <color name="colorTransparent">#00000000</color>
+    <color name="orange_700_display">@color/orange_700</color>
+    <color name="message_background_on_black">@color/grey_200</color>
+    <color name="card_background">@color/grey_050</color>
 
     <color name="urban_bus_bg">@color/orange_500</color>
     <color name="extraurban_bus_bg">@color/blue_extraurbano</color>
@@ -74,4 +91,6 @@
     <color name="map_icon_background_active">@color/orange_icons_10light</color>
     <color name="map_icon_background_inactive">@color/grey_400</color>
     <color name="alerts_color_button">@color/orange_750_l45</color>
+    <color name="color_text_grey">@color/grey_700</color>
+    <color name="lines_nearby_color">@color/blue_700</color>
 </resources>

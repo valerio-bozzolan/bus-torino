@@ -26,8 +26,11 @@
 					android:id="@+id/stop_nameText"
 					style="@style/TextAppearance.AppCompat.Medium"
 					android:layout_alignParentLeft="true"
-					android:layout_alignParentStart="true" android:paddingLeft="6dp"
-					android:textColor="@color/primary_material_dark" android:layout_marginBottom="6dp"
+					android:layout_alignParentStart="true"
+					android:paddingLeft="6dp"
+					android:textSize="20sp"
+					android:textColor="?android:textColorPrimary"
+					android:layout_marginBottom="6dp"
 					android:layout_marginTop="6dp" android:layout_marginLeft="6dp"
 					android:layout_marginStart="6dp" android:layout_marginRight="6dp" android:layout_marginEnd="6dp"/>
 			<TextView
@@ -35,10 +38,10 @@
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:text="stopNumber"
-					android:textSize="16sp"
+					android:textSize="18sp"
 					android:layout_below="@id/stop_nameText"
 					android:textIsSelectable="true" android:layout_marginTop="6dp"
-					android:textColor="@color/orange_700"
+					android:textColor="?colorPrimaryDark"
 					android:layout_marginStart="12dp" android:layout_marginEnd="8dp"
 					android:layout_marginBottom="8dp"/>
 			<TextView
@@ -49,7 +52,8 @@
 					android:layout_marginStart="10dp"
 					android:minWidth="50dp"
 					android:textSize="16sp"
-					android:id="@+id/stop_distanceTextView" android:layout_toEndOf="@+id/stop_numberText"
+					android:id="@+id/stop_distanceTextView"
+					android:layout_toEndOf="@+id/stop_numberText"
 					android:layout_toRightOf="@id/stop_numberText"
 					android:layout_alignTop="@+id/stop_numberText"
 			/>
@@ -101,7 +105,7 @@
 		<TextView
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:text=""
+				android:text="1,2,3,4"
 				android:id="@+id/stop_linesText"
 				android:layout_toRightOf="@+id/stop_distanceTextView"
 				android:minWidth="80dp"
@@ -110,7 +114,10 @@
 				android:layout_alignTop="@+id/stop_nameText"
 				android:nestedScrollingEnabled="true"
 				android:gravity="center_horizontal|center"
-				android:textColor="@color/blue_700" android:textSize="14sp" android:layout_weight="1"
+				android:textColor="@color/lines_nearby_color"
+				android:fontFamily="@font/nevermind_compact"
+				android:textSize="16sp"
+				android:layout_weight="1"
 				android:padding="5dp" android:maxWidth="100sp" android:layout_gravity="center_vertical|end"
 				android:layout_marginRight="5dp"/>
 	</LinearLayout>

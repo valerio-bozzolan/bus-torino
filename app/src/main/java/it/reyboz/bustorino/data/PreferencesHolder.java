@@ -20,11 +20,13 @@ package it.reyboz.bustorino.data;
 import android.content.Context;
 import android.content.SharedPreferences;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
 import it.reyboz.bustorino.R;
 
 import static android.content.Context.MODE_PRIVATE;
 
 import androidx.preference.PreferenceManager;
+import it.reyboz.bustorino.backend.KotlinUtils;
 import it.reyboz.bustorino.fragments.SettingsFragment;
 import it.reyboz.bustorino.map.MapLibreUtils;
 
@@ -41,6 +43,9 @@ public abstract class PreferencesHolder {
     public static final String DB_GTT_VERSION_KEY = "NextGenDB.GTTVersion";
     public static final String DB_LAST_UPDATE_KEY = "NextGenDB.LastDBUpdate";
     public static final String PREF_FAVORITE_LINES = "pref_favorite_lines";
+
+    // match the one in preferences.xml
+    public static final String PREF_THEME_DAY_NIGHT = "app_theme_day_night";
 
     public static final Set<String> KEYS_MERGE_SET = Set.of(PREF_FAVORITE_LINES);
     public static final Set<String> IGNORE_KEYS_LOAD_MAIN = Set.of(PREF_GTFS_DB_VERSION, PREF_INTRO_ACTIVITY_RUN, DB_GTT_VERSION_KEY, DB_LAST_UPDATE_KEY);
@@ -98,11 +103,31 @@ public abstract class PreferencesHolder {
     public static String getMapLibreStyleFile(Context con){
         final SharedPreferences pref = getAppPreferences(con);
         final String mapStyle_val = pref.getString(SettingsFragment.LIBREMAP_STYLE_PREF_KEY, "");
-        return switch (mapStyle_val) {
+        final boolean isNightMode = KotlinUtils.isDarkTheme(con);
+        String styleFile;
+        switch (mapStyle_val) {
             //MUST MATCH IN keys.xml ->  map_style_pref_values
-            case "versatiles_c" -> MapLibreUtils.STYLE_VERSATILES_COLORFUL_JSON;
-            case "osm_legacy" -> MapLibreUtils.STYLE_OSM_RASTER;
-            default -> MapLibreUtils.getDefaultStyleJson();
+            case "osm_legacy":
+                styleFile = MapLibreUtils.STYLE_OSM_RASTER;
+                break;
+            case "versatiles_c":
+            default:
+                styleFile = (isNightMode) ? MapLibreUtils.STYLE_VERSATILES_ECLIPSE_JSON : MapLibreUtils.STYLE_VERSATILES_COLORFUL_JSON;
+        }
+        return styleFile;
+    }
+
+    public static Integer getAppThemeDayNight(Context context){
+        final SharedPreferences pref = getAppPreferences(context);
+        final var value = pref.getString(PREF_THEME_DAY_NIGHT, "");
+        return getAppThemeDayNight(value);
+    }
+    public static Integer getAppThemeDayNight(String prefValue){
+        return switch (prefValue){
+            case "day" -> AppCompatDelegate.MODE_NIGHT_NO;
+            case "night" -> AppCompatDelegate.MODE_NIGHT_YES;
+            case "system" -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
+            default -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
         };
     }
 }

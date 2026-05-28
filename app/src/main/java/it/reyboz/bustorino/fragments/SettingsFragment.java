@@ -29,6 +29,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.lifecycle.Observer;
 import androidx.preference.*;
 import androidx.work.OneTimeWorkRequest;
@@ -38,6 +39,7 @@ import it.reyboz.bustorino.ActivityBackup;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.data.DBUpdateWorker;
 import it.reyboz.bustorino.data.GtfsMaintenanceWorker;
+import it.reyboz.bustorino.data.PreferencesHolder;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
@@ -70,8 +72,10 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         //getPreferenceManager().setSharedPreferencesName(getString(R.string.mainSharedPreferences));
         convertStringPrefToIntIfNeeded(getString(R.string.pref_key_num_recents), getContext());
-
-        getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+        var sharedPrefs = getPreferenceManager().getSharedPreferences();
+        if(sharedPrefs!=null) {
+            sharedPrefs.registerOnSharedPreferenceChangeListener(this);
+        }
         setPreferencesFromResource(R.xml.preferences,rootKey);
         /*EditTextPreference editPref = findPreference(getString(R.string.pref_key_num_recents));
         editPref.setOnBindEditTextListener(editText -> {
@@ -159,6 +163,17 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
         if(key.equals(PREF_KEY_STARTUP_SCREEN) && setSummaryStartupPref && pref !=null){
             ListPreference listPref = (ListPreference) pref;
             pref.setSummary(listPref.getEntry());
+        }
+
+        if(key.equals(PreferencesHolder.PREF_THEME_DAY_NIGHT)){
+            String value = sharedPreferences.getString(key, "");
+            Log.d(TAG, "New value is: "+ value);
+            if(!value.isEmpty()){
+                var state = PreferencesHolder.getAppThemeDayNight(value);
+                AppCompatDelegate.setDefaultNightMode(state);
+
+            }
+
         }
         /*
         THIS CODE STAYS COMMENTED FOR FUTURE REFERENCES

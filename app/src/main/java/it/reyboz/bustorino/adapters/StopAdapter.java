@@ -18,6 +18,7 @@
 package it.reyboz.bustorino.adapters;
 
 import android.content.Context;
+import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,18 +37,25 @@ import it.reyboz.bustorino.backend.Stop;
 public class StopAdapter extends ArrayAdapter<Stop> {
     private LayoutInflater li;
     private static final int row_layout = R.layout.entry_bus_stop;
-    private static final int busIcon = R.drawable.bus;
-    private static final int trainIcon = R.drawable.subway;
-    private static final int tramIcon = R.drawable.tram;
+    private static final int busIcon = R.drawable.ic_bus;
+    private static final int trainIcon = R.drawable.ic_subway_filled;
+    private static final int tramIcon = R.drawable.ic_tram_filled_24;
     private static final int cityIcon = R.drawable.city;
 
 
     private static class ViewHolder {
-        TextView busStopIDTextView;
-        TextView busStopNameTextView;
+        final TextView busStopIDTextView;
+        final TextView busStopNameTextView;
         //TextView busLineVehicleIcon;
-        TextView busStopLinesTextView;
-        TextView busStopLocaLityTextView;
+        final TextView busStopLinesTextView;
+        final TextView busStopLocaLityTextView;
+
+        ViewHolder(View view) {
+            busStopIDTextView = view.findViewById(R.id.busStopID);
+            busStopNameTextView = view.findViewById(R.id.busStopName);
+            busStopLinesTextView = view.findViewById(R.id.routesThatStopHere);
+            busStopLocaLityTextView = view.findViewById(R.id.busStopLocality);
+        }
     }
 
     public StopAdapter(Context context, List<Stop> stops) {
@@ -62,11 +70,7 @@ public class StopAdapter extends ArrayAdapter<Stop> {
 
         if(convertView == null) {
             convertView = li.inflate(row_layout, null);
-            vh = new ViewHolder();
-            vh.busStopIDTextView = (TextView) convertView.findViewById(R.id.busStopID);
-            vh.busStopNameTextView = (TextView) convertView.findViewById(R.id.busStopName);
-            vh.busStopLinesTextView = (TextView) convertView.findViewById(R.id.routesThatStopHere);
-            vh.busStopLocaLityTextView = (TextView) convertView.findViewById(R.id.busStopLocality);
+            vh = new ViewHolder(convertView);
             convertView.setTag(vh);
         } else {
             vh = (ViewHolder) convertView.getTag();
@@ -85,8 +89,10 @@ public class StopAdapter extends ArrayAdapter<Stop> {
             vh.busStopLinesTextView.setVisibility(View.VISIBLE); // might be GONE due to View Holder Pattern
         }
 
+        /*
+        // DEPRECATED CODE: ALWAYS USE BUS STOP ICON
         if(stop.type == null) {
-            vh.busStopLinesTextView.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
+                //vh.busStopLinesTextView.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
         } else {
             switch(stop.type) {
                 case BUS:
@@ -105,6 +111,8 @@ public class StopAdapter extends ArrayAdapter<Stop> {
                     vh.busStopLinesTextView.setCompoundDrawablesWithIntrinsicBounds(cityIcon, 0, 0, 0);
             }
         }
+
+         */
 
         if (stop.location == null) {
             vh.busStopLocaLityTextView.setVisibility(View.GONE);

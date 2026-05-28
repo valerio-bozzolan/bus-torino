@@ -10,6 +10,6 @@
     android:fitsSystemWindows="false"
 
     android:elevation="4dp"
-    app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+    >
 
 </androidx.appcompat.widget.Toolbar>

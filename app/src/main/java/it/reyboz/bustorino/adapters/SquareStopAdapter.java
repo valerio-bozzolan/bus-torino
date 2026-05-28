@@ -17,7 +17,6 @@
  */
 package it.reyboz.bustorino.adapters;
 
-import android.location.Location;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
@@ -28,7 +27,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.backend.GPSPoint;
-import it.reyboz.bustorino.backend.RouteWithStop;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.util.StopSorterByDistance;
 import it.reyboz.bustorino.fragments.FragmentListenerMain;
@@ -37,7 +35,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.SquareViewHolder> {
-    private final static int layoutRes = R.layout.stop_card;
+    private final static int layoutRes = R.layout.item_stop_nearby_card;
     //private List<Stop> stops;
     private @Nullable GPSPoint userPosition;
     private FragmentListenerMain listener;

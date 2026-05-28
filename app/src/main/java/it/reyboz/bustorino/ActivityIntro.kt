@@ -32,8 +32,6 @@ class ActivityIntro : GeneralActivity(), IntroFragment.IntroListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_intro)
-        //check default settings and apply them
-        checkApplyDefaultSettingsValues()
         viewPager = findViewById(R.id.viewPager)
         btnBackward = findViewById(R.id.btnPrevious)
         btnForward = findViewById(R.id.btnNext)

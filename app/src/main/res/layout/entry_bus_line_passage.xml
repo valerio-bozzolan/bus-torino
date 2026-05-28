@@ -50,6 +50,17 @@
             </TextView>
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
+    <ImageView
+            android:id="@+id/arrivalsBusIcon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_alignParentTop="true"
+            android:layout_toEndOf="@id/routeCard"
+            android:src="@drawable/ic_bus"
+            android:scaleType="fitCenter"
+            app:tint="@color/black_icon_text"
+
+    />
 
     <!--the icon comes from setCompoundDrawables in PalinaAdapter -->
     <!--android:drawableLeft="@drawable/bus"
@@ -57,11 +68,12 @@
     <TextView
         android:id="@+id/routeDestination"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="@color/grey_600"
+        android:textColor="@color/black_icon_text"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
-        android:layout_toEndOf="@id/routeCard"
+        android:layout_toEndOf="@id/arrivalsBusIcon"
         android:layout_alignTop="@id/routeCard"
+        android:textSize="21sp"
         android:maxLines="1"
         android:drawablePadding="0dp"
         android:singleLine="true">

@@ -44,6 +44,7 @@ import com.google.android.material.snackbar.Snackbar;
 import it.reyboz.bustorino.BuildConfig;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -122,7 +123,7 @@ public abstract class ScreenBaseFragment extends Fragment {
         editor.putBoolean(optionName, value);
         editor.apply();
     }
-    public ActivityResultLauncher<String[]> getPositionRequestLauncher(LocationRequestListener listener){
+    public ActivityResultLauncher<String[]> getPositionRequestLauncher(Consumer<Boolean> listener){
         return registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<>() {
             @Override
             public void onActivityResult(Map<String, Boolean> result) {
@@ -138,7 +139,7 @@ public abstract class ScreenBaseFragment extends Fragment {
                             coarseGranted +", fineGranted "+fineGranted);
                 }
 
-                listener.onPermissionResult(coarseGranted || fineGranted);
+                listener.accept(coarseGranted && fineGranted);
             }
         });
     }

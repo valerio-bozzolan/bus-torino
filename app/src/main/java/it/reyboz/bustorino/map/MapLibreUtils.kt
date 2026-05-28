@@ -18,13 +18,21 @@ class MapLibreUtils {
     companion object{
         //const val STYLE_BRIGHT_DEFAULT_JSON = "map_style_good_noshops.json"
         const val STYLE_VERSATILES_COLORFUL_JSON = "versatiles_colorful_light.json"
+        const val STYLE_VERSATILES_ECLIPSE_JSON = "versatiles_eclipse_modif.json" //"versatiles_eclipse.json"
         const val STYLE_OSM_RASTER="openstreetmap_raster.json"
 
-        const val STYLE_VECTOR = STYLE_VERSATILES_COLORFUL_JSON
         private const val DEBUG_TAG ="BusTO-MapLibreUtils"
 
         @JvmStatic
-        fun getDefaultStyleJson() = STYLE_VECTOR
+        fun isStyleVector(styleFile: String): Boolean {
+            return when(styleFile){
+                //be careful to include all the style cases
+                STYLE_OSM_RASTER -> false
+                STYLE_VERSATILES_COLORFUL_JSON -> true
+                STYLE_VERSATILES_ECLIPSE_JSON -> true
+                else -> true
+            }
+        }
 
         @JvmStatic
         fun shortestRotation(from: Float, to: Float): Float {

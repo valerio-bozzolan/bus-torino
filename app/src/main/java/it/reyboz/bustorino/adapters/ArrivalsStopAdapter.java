@@ -19,7 +19,6 @@ package it.reyboz.bustorino.adapters;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.location.Location;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
@@ -39,7 +38,7 @@ import it.reyboz.bustorino.fragments.FragmentListenerMain;
 import java.util.*;
 
 public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapter.ViewHolder> implements SharedPreferences.OnSharedPreferenceChangeListener {
-    private final static int layoutRes = R.layout.arrivals_nearby_card;
+    private final static int layoutRes = R.layout.item_arrivals_nearby_card;
     //private List<Stop> stops;
     private @NonNull GPSPoint userPosition;
     private FragmentListenerMain listener;
@@ -51,7 +50,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
     private NameCapitalize capit;
 
 
-    public ArrivalsStopAdapter(@Nullable List< RouteWithStop > routesPairList, FragmentListenerMain fragmentListener, Context con, @NonNull GPSPoint pos) {
+    public ArrivalsStopAdapter(@Nullable List< RouteWithStop > routesPairList,@NonNull FragmentListenerMain fragmentListener, @NonNull Context con, @NonNull GPSPoint pos) {
         listener  = fragmentListener;
         userPosition = pos;
         this.routesPairList = routesPairList;

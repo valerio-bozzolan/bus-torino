@@ -4,6 +4,14 @@
 
     <androidx.preference.PreferenceCategory android:title="@string/general_settings">
         <androidx.preference.ListPreference
+            android:key="app_theme_day_night"
+            android:entryValues="@array/day_night_keys"
+            android:entries="@array/day_night_values"
+            android:title="@string/pref_theme_day_night_title"
+            android:summary="%s"
+            />
+
+        <androidx.preference.ListPreference
             android:key="startup_screen_to_show"
             android:entries="@array/first_screen_shown"
             android:entryValues="@array/first_screen_values"

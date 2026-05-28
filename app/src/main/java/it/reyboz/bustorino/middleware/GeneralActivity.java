@@ -231,44 +231,4 @@ public abstract class GeneralActivity extends AppCompatActivity {
         return WindowInsetsCompat.CONSUMED;
     };
 
-    /**
-     * Adjust setting to match the default ones
-     */
-    protected void checkApplyDefaultSettingsValues(){
-        SharedPreferences mainSharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = mainSharedPref.edit();
-        //Main fragment to show
-        String screen = mainSharedPref.getString(SettingsFragment.PREF_KEY_STARTUP_SCREEN, "");
-        boolean edit = false;
-        if (screen.isEmpty()){
-            editor.putString(SettingsFragment.PREF_KEY_STARTUP_SCREEN, "arrivals");
-            edit=true;
-        }
-        //Fetchers
-        final Set<String> setSelected = mainSharedPref.getStringSet(SettingsFragment.KEY_ARRIVALS_FETCHERS_USE, new HashSet<>());
-        if (setSelected.isEmpty()){
-            String[] defaultVals = getResources().getStringArray(R.array.arrivals_sources_values_default);
-            editor.putStringSet(SettingsFragment.KEY_ARRIVALS_FETCHERS_USE, utils.convertArrayToSet(defaultVals));
-            edit=true;
-        }
-        //Live bus positions
-        final String keySourcePositions=getString(R.string.pref_positions_source);
-        final String positionsSource = mainSharedPref.getString(keySourcePositions, "");
-        if(positionsSource.isEmpty()){
-            String[] defaultVals = getResources().getStringArray(R.array.positions_source_values);
-            editor.putString(keySourcePositions, defaultVals[0]);
-            edit=true;
-        }
-        //Map style
-        final String mapStylePref = mainSharedPref.getString(SettingsFragment.LIBREMAP_STYLE_PREF_KEY, "");
-        if(mapStylePref.isEmpty()){
-            final String[] defaultVals = getResources().getStringArray(R.array.map_style_pref_values);
-            editor.putString(SettingsFragment.LIBREMAP_STYLE_PREF_KEY, defaultVals[0]);
-            edit=true;
-        }
-        if (edit){
-            editor.commit();
-        }
-
-    }
 }

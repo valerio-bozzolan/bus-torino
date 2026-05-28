@@ -46,7 +46,7 @@
                     app:layout_constraintBottom_toTopOf="@id/openTutorialButton"
                     android:autoLink="web"
                     android:fontFamily="@font/nevermind_compact"
-                    android:textColor="@color/grey_700"
+                    android:textColor="@color/color_text_grey"
             />
             <com.google.android.material.button.MaterialButton
                     style="@style/Widget.MaterialComponents.Button.Icon"
@@ -76,7 +76,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     android:autoLink="web"
                     android:fontFamily="@font/nevermind_compact"
-                    android:textColor="@color/grey_700"
+                    android:textColor="@color/color_text_grey"
             />
             <com.google.android.material.button.MaterialButton
                     style="@style/Widget.MaterialComponents.Button.Icon"
@@ -108,7 +108,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     android:autoLink="web"
                     android:fontFamily="@font/nevermind_compact"
-                    android:textColor="@color/grey_700"
+                    android:textColor="@color/color_text_grey"
             />
 
             <com.google.android.material.button.MaterialButton
@@ -157,7 +157,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 android:autoLink="web"
                 android:fontFamily="@font/nevermind_compact"
-                android:textColor="@color/grey_700"
+                android:textColor="@color/color_text_grey"
         /><!--android:layout_weight="0.85"-->
 
             <!--<Button
@@ -211,7 +211,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:textColor="@color/black" android:layout_marginTop="10dp" android:layout_marginEnd="10dp"
+            android:textColor="?android:textColorPrimary"
+            android:layout_marginTop="10dp" android:layout_marginEnd="10dp"
             android:layout_marginBottom="10dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

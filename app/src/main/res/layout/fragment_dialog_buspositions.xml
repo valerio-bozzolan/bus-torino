@@ -5,7 +5,7 @@
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:padding="15dp"
-              android:orientation="vertical">
+> <!-- background color set in Code -->
 
 
         <!-- Label fissa (SX) -->
@@ -17,7 +17,7 @@
                 android:textStyle="bold"
                 android:textSize="18sp"
                 android:fontFamily="@font/lato_bold"
-                android:textColor="@color/black_900"
+                android:textColor="?android:textColorPrimary"
                 app:layout_constraintHorizontal_bias="0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -39,7 +39,7 @@
             android:layout_marginTop="5dp"
             android:layout_marginEnd="5dp"
             android:layout_marginStart="4dp"
-            android:textColor="@color/black"
+            android:textColor="?android:textColorPrimary"
             android:fontFamily="@font/lato_regular"
             android:textAppearance="@style/TextAppearance.AppCompat.Display3"/>
 
@@ -59,7 +59,7 @@
             app:cardElevation="1dp"
             app:strokeWidth="1dp"
             android:layout_marginBottom="16dp"
-            android:backgroundTint="@color/grey_200"
+            android:backgroundTint="@color/message_background_on_black"
             app:strokeColor="@color/grey_050">
 
         <TextView
@@ -69,7 +69,7 @@
                 android:text="Messaggio di stato..."
                 android:fontFamily="@font/lato_regular"
                 android:textSize="16sp"
-                android:textColor="@color/black"
+                android:textColor="?android:textColorPrimary"
                 android:padding="8dp"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
 

@@ -71,7 +71,23 @@
     </style>
 
     <!-- styles that support night mode -->
+    <!-- copied all things inside AppTheme -->
     <style name="AppThemeDayNight" parent="Theme.MaterialComponents.DayNight">
+
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+        <item name="colorPrimary">@color/orange_500</item>
+        <item name="colorPrimaryDark">@color/orange_700</item>
+        <item name="colorAccent">@color/teal_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- For the preferences Fragment -->
+        <!--<item name="preferenceTheme">@style/PreferenceThemeOverlay</item>-->
+
+        <item name="android:textColor">@color/black_800</item>
+        <!-- keep default for day, change for night-->
+        <!--
+        <item name="android:textColorPrimary">@color/grey_700</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        -->
     </style>
 
     <style name="AppThemeDayNight.NoActionBar" parent="AppThemeDayNight">

@@ -19,6 +19,8 @@ package it.reyboz.bustorino.adapters;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
+import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.res.ResourcesCompat;
@@ -63,9 +65,9 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
     private static final int busBg = R.drawable.route_background_bus;
     private static final int extraurbanoBg = R.drawable.route_background_bus_long_distance;
 
-    private static final int busIcon = R.drawable.bus;
-    private static final int trainIcon = R.drawable.subway;
-    private static final int tramIcon = R.drawable.tram;
+    private static final int busIcon = R.drawable.ic_bus;
+    private static final int trainIcon = R.drawable.ic_subway_filled;
+    private static final int tramIcon = R.drawable.ic_tram_filled_24;
 
     private final String KEY_CAPITALIZE;
     private Capitalize capit;
@@ -123,7 +125,8 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
             }
             vh.rowRouteDestination.setText(dest);
         }
-
+        Drawable drawable = null;
+        final var resources = con.getResources();
         switch (route.type) {
             //UNKNOWN = BUS for the moment
             case UNKNOWN:
@@ -131,28 +134,36 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
             default:
                 // convertView could contain another background, reset it
                 //vh.rowStopIcon.setBackgroundResource(busBg);
-
-                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
+                //drawable = ResourcesCompat.getDrawable(con.getResources(), busIcon, con.getTheme());
+                //vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
+                vh.busIcon.setImageDrawable(ResourcesCompat.getDrawable(resources, busIcon, con.getTheme()));
                 break;
             case LONG_DISTANCE_BUS:
                 //vh.rowStopIcon.setBackgroundResource(extraurbanoBg);
                 vh.routeCard.setCardBackgroundColor(ResourcesCompat.getColor(res, R.color.extraurban_bus_bg, null));
-                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(busIcon, 0, 0, 0);
+                vh.busIcon.setImageDrawable(ResourcesCompat.getDrawable(resources, extraurbanoBg, con.getTheme()));
                 break;
             case METRO:
                 //vh.rowStopIcon.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
                 //vh.rowStopIcon.setBackgroundResource(metroBg);
                 vh.routeIDTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
                 vh.routeCard.setCardBackgroundColor(ResourcesCompat.getColor(res, R.color.metro_bg, null));
-                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(trainIcon, 0, 0, 0);
+               // vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(trainIcon, 0, 0, 0);
+                vh.busIcon.setImageDrawable(ResourcesCompat.getDrawable(resources, trainIcon, con.getTheme()));
                 break;
             case RAILWAY:
                 //vh.rowStopIcon.setBackgroundResource(busBg);
-                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(trainIcon, 0, 0, 0);
+                //vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(trainIcon, 0, 0, 0);
+                vh.busIcon.setImageDrawable(ResourcesCompat.getDrawable(resources, trainIcon, con.getTheme()));
                 break;
             case TRAM: // never used but whatever.
                 //vh.rowStopIcon.setBackgroundResource(busBg);
-                vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(tramIcon, 0, 0, 0);
+                drawable = ResourcesCompat.getDrawable(resources, trainIcon, con.getTheme());
+                assert drawable != null;
+                drawable.setTint(resources.getColor(R.color.black_icon_text, con.getTheme()) );
+                //vh.rowRouteDestination.setCompoundDrawablesWithIntrinsicBounds(tramIcon, 0, 0, 0);
+                vh.busIcon.setImageDrawable(ResourcesCompat.getDrawable(resources, tramIcon, con.getTheme()));
+
                 break;
         }
 
@@ -181,19 +192,15 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
         final CardView routeCard;
         final TextView rowRouteDestination;
         final TextView rowRouteTimetable;
+        final ImageView busIcon;
 
         public PalinaViewHolder(@NonNull @NotNull View view) {
             super(view);
-            /*
-            convertView.findViewById(R.id.routeID);
-            vh.rowRouteDestination = (TextView) convertView.findViewById(R.id.routeDestination);
-            vh.rowRouteTimetable = (TextView) convertView.findViewById(R.id.routesThatStopHere);
-             */
-            //rowStopIcon = view.findViewById(R.id.routeID);
             routeIDTextView = view.findViewById(R.id.routeNameTextView);
             routeCard = view.findViewById(R.id.routeCard);
             rowRouteDestination = view.findViewById(R.id.routeDestination);
             rowRouteTimetable = view.findViewById(R.id.routesThatStopHere);
+            busIcon = view.findViewById(R.id.arrivalsBusIcon);
         }
     }
     private static Capitalize getCapitalize(SharedPreferences shPr, String key){

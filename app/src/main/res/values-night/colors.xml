@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black_icon_text">#ababab</color>
+    <!-- luminosity from 52 to 40 -->
+    <color name="blue_500">#0b6fc1</color>
+    <color name="black_800">#bfbfbf</color>
+    <!-- darker color, 40% luminosity -->
+    <color name="blue_700">#1a4db2</color>
+    <!-- lighter color, 55% luminosity -->
+    <!--<color name="blue_7F00">#3770e2</color>-->
+
+    <color name="lines_nearby_color">#3770e2</color>
+
+    <color name="red_orange">#c34322</color>
+    <!-- color of the polyline in line screen-->
+    <color name="red_dark">#861313</color>
+    <!-- bus marker in the map -->
+    <color name="bus_marker_color">#3657b0</color>
+    <color name="bus_marker_color_selected">#2270c3</color>F
+    <color name="card_background">@color/grey_900</color>
+    <color name="card_border">@color/grey_900</color>
+
+    <color name="orange_700_display">@color/orange_700_night</color>
+    <color name="message_background_on_black">#666666</color>
+
+    <!-- Proposal: change the grey_100 so it's less intense
+    <color name="grey_100">#d9d9d9</color> --> <!-- Also 42*3 -->
+
+    <color name="color_text_grey">@color/grey_400</color>
+
+</resources>

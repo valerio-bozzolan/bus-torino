@@ -17,7 +17,6 @@
  */
 package it.reyboz.bustorino.fragments
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
 import android.os.Bundle
@@ -33,6 +32,7 @@ import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
+import com.google.android.material.button.MaterialButton
 import it.reyboz.bustorino.BuildConfig
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.adapters.ArrivalsStopAdapter
@@ -42,12 +42,11 @@ import it.reyboz.bustorino.data.DatabaseUpdate
 import it.reyboz.bustorino.middleware.AutoFitGridLayoutManager
 import it.reyboz.bustorino.middleware.FusedNativeLocationProvider
 import it.reyboz.bustorino.middleware.FusedNativeLocationProvider.LocationUpdateListener
-import it.reyboz.bustorino.util.Permissions.Companion.anyLocationPermissionsGranted
+import it.reyboz.bustorino.util.Permissions
 import it.reyboz.bustorino.util.Permissions.Companion.bothLocationPermissionsGranted
 import it.reyboz.bustorino.util.StopSorterByDistance
 import it.reyboz.bustorino.viewmodels.NearbyStopsViewModel
 import java.util.*
-import kotlin.math.min
 
 class NearbyStopsFragment : ScreenBaseFragment() {
     override fun getBaseViewForSnackBar(): View? {
@@ -70,7 +69,7 @@ class NearbyStopsFragment : ScreenBaseFragment() {
     }
 
     private enum class LocationShowingStatus {
-        SEARCHING, FIRST_FIX, DISABLED, NO_PERMISSION
+        SEARCHING, POSITION_FOUND, DISABLED, NO_PERMISSION
     }
 
     private var mListener: FragmentListenerMain? = null
@@ -88,6 +87,7 @@ class NearbyStopsFragment : ScreenBaseFragment() {
     //protected SharedPreferences globalSharedPref;
     //private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
     private var messageTextView: TextView? = null
+    private lateinit var enableLocationButton : MaterialButton
     private var titleTextView: TextView? = null
     private var loadingTextView: TextView? = null
     private var scrollListener: CommonScrollListener? = null
@@ -119,6 +119,11 @@ class NearbyStopsFragment : ScreenBaseFragment() {
                 setShowingStatus(LocationShowingStatus.DISABLED)
             }
         }
+    }
+
+    private val locationPermissionLauncher = getPositionRequestLauncher(){ granted ->
+        startLocationUpdatesByType()
+        setShowingStatus(LocationShowingStatus.SEARCHING)
     }
     // Two different settings for the location provider
     private val locationOptionsArrivals = FusedNativeLocationProvider.Options(5 * 1000L, 25f)
@@ -176,18 +181,19 @@ class NearbyStopsFragment : ScreenBaseFragment() {
         savedInstanceState: Bundle?
     ): View {
         // Inflate the layout for this fragment
-        if (getContext() == null) throw RuntimeException()
+        val context = requireContext()
         val root = inflater.inflate(R.layout.fragment_nearby_stops, container, false)
         gridRecyclerView = root.findViewById<RecyclerView>(R.id.stopGridRecyclerView)
         gridLayoutManager = AutoFitGridLayoutManager(
-            requireContext().getApplicationContext(),
-            utils.convertDipToPixels(getContext(), COLUMN_WIDTH_DP.toFloat()).toInt()
+            context.getApplicationContext(),
+            utils.convertDipToPixels(context, COLUMN_WIDTH_DP.toFloat()).toInt()
         )
         gridRecyclerView.setLayoutManager(gridLayoutManager)
         gridRecyclerView.setHasFixedSize(false)
         circlingProgressBar = root.findViewById<ProgressBar>(R.id.circularProgressBar)
         flatProgressBar = root.findViewById(R.id.horizontalProgressBar)
         messageTextView = root.findViewById<TextView>(R.id.messageTextView)
+        enableLocationButton = root.findViewById(R.id.grantLocationButton)
         titleTextView = root.findViewById<TextView>(R.id.titleTextView)
         loadingTextView = root.findViewById<TextView>(R.id.positionLoadingTextView)
         switchButton = root.findViewById<AppCompatButton>(R.id.switchButton)
@@ -209,31 +215,34 @@ class NearbyStopsFragment : ScreenBaseFragment() {
                     viewModel.setDBUpdateRunning(true)
                 } else {
                     //start the request
-                    if (bothLocationPermissionsGranted(requireContext())) {
-                        if (!locationProvider!!.isRunning()) {
-                            startLocationUpdatesByType()
-                        }
-                    } else {
-                        setShowingStatus(LocationShowingStatus.NO_PERMISSION)
-                    }
-
+                    checkPermissionLocationStart()
                     viewModel.setDBUpdateRunning(false)
                     //actually restart request
                 }
         }
 
-
-        if (anyLocationPermissionsGranted(appContext)) {
-            setShowingStatus(LocationShowingStatus.SEARCHING)
-        } else {
-            setShowingStatus(LocationShowingStatus.NO_PERMISSION)
-        }
         //add location listener
         locationProvider!!.addListener(locationUpdateListener)
+
+        enableLocationButton.setOnClickListener {
+            locationPermissionLauncher.launch(Permissions.LOCATION_PERMISSIONS)
+        }
 
         return root
     }
 
+
+    private fun checkPermissionLocationStart(){
+        Log.d(DEBUG_TAG, "Check permission and start location updates")
+        if (bothLocationPermissionsGranted(requireContext())) {
+            if (!locationProvider!!.isRunning()) {
+                startLocationUpdatesByType()
+                setShowingStatus(LocationShowingStatus.SEARCHING)
+            }
+        } else {
+            setShowingStatus(LocationShowingStatus.NO_PERMISSION)
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -256,6 +265,7 @@ class NearbyStopsFragment : ScreenBaseFragment() {
             }
             if (!stops.isEmpty()) {
                 currentNearbyStops = stops
+                setShowingStatus(LocationShowingStatus.POSITION_FOUND)
                 showStopsInViews(currentNearbyStops, lastPosition)
             }
         }
@@ -280,18 +290,29 @@ class NearbyStopsFragment : ScreenBaseFragment() {
                 Log.e(DEBUG_TAG, "Trying to show arrivals in Recycler but we're not attached")
                 return@observe
             }
+            val context = requireContext()
             if (firstLocForArrivals) {
-                arrivalsStopAdapter = ArrivalsStopAdapter(stoprouteList, mListener, context, lastPosition!!)
-                gridRecyclerView.setAdapter(arrivalsStopAdapter)
-                firstLocForArrivals = false
+                mListener?.let{
+                    lastPosition?.let{ pos ->
+                        arrivalsStopAdapter = ArrivalsStopAdapter(stoprouteList, it, context, pos)
+                        gridRecyclerView.setAdapter(arrivalsStopAdapter)
+                        firstLocForArrivals = false
+                    }
+                }
             } else {
-                arrivalsStopAdapter!!.setRoutesPairListAndPosition(stoprouteList, lastPosition)
+                lastPosition?.let{ pos ->
+                    arrivalsStopAdapter?.setRoutesPairListAndPosition(stoprouteList, pos)
+                }
             }
 
             //arrivalsStopAdapter.notifyDataSetChanged();
+            setShowingStatus(LocationShowingStatus.POSITION_FOUND)
             showRecyclerHidingLoadMessage()
             //if (mListener != null) mListener!!.readyGUIfor(FragmentKind.NEARBY_ARRIVALS)
         }
+
+        //added
+        checkPermissionLocationStart()
     }
 
 
@@ -343,28 +364,32 @@ class NearbyStopsFragment : ScreenBaseFragment() {
 
     private fun setShowingStatus(newStatus: LocationShowingStatus) {
         var newStatus = newStatus
-        if (BuildConfig.DEBUG) Log.d(DEBUG_TAG, "Asked to set showing status : $newStatus")
         if (newStatus == showingStatus) {
             return
         }
+        if (BuildConfig.DEBUG) Log.d(DEBUG_TAG, "Changing showing status from $showingStatus to $newStatus")
+
         if (!isLocationEnabled && newStatus != LocationShowingStatus.NO_PERMISSION) {
             Log.d(DEBUG_TAG, "asked to show status: $newStatus but the position is disabled")
             newStatus = LocationShowingStatus.DISABLED
         }
 
         when (newStatus) {
-            LocationShowingStatus.FIRST_FIX -> {
+            LocationShowingStatus.POSITION_FOUND -> {
                 circlingProgressBar!!.setVisibility(View.GONE)
                 loadingTextView!!.setVisibility(View.GONE)
                 gridRecyclerView.setVisibility(View.VISIBLE)
                 messageTextView!!.setVisibility(View.GONE)
+                enableLocationButton.setVisibility(View.GONE)
+
             }
 
             LocationShowingStatus.NO_PERMISSION -> {
-                circlingProgressBar!!.setVisibility(View.GONE)
-                loadingTextView!!.setVisibility(View.GONE)
-                messageTextView!!.setText(R.string.enable_position_message_nearby)
-                messageTextView!!.setVisibility(View.VISIBLE)
+                circlingProgressBar?.setVisibility(View.GONE)
+                loadingTextView?.setVisibility(View.GONE)
+                messageTextView?.setText(R.string.enable_position_message_nearby)
+                messageTextView?.setVisibility(View.VISIBLE)
+                enableLocationButton.setVisibility(View.VISIBLE)
             }
 
             LocationShowingStatus.DISABLED -> {
@@ -374,6 +399,7 @@ class NearbyStopsFragment : ScreenBaseFragment() {
                 //}
                 messageTextView!!.setText(R.string.enable_location_message)
                 messageTextView!!.setVisibility(View.VISIBLE)
+                enableLocationButton.setVisibility(View.GONE)
             }
 
             LocationShowingStatus.SEARCHING -> {
@@ -381,6 +407,7 @@ class NearbyStopsFragment : ScreenBaseFragment() {
                 loadingTextView!!.setVisibility(View.VISIBLE)
                 gridRecyclerView.setVisibility(View.GONE)
                 messageTextView!!.setVisibility(View.GONE)
+                enableLocationButton.setVisibility(View.GONE)
             }
         }
         showingStatus = newStatus
@@ -456,9 +483,7 @@ class NearbyStopsFragment : ScreenBaseFragment() {
             "Max distance for stops: $stopsMaxDistance, Min number of stops: $stopsMinNumber"
         )
 
-        if (!locationProvider!!.isRunning()) {
-            startLocationUpdatesByType()
-        }
+        //checkPermissionLocationStart()
     }
 
 
@@ -468,6 +493,12 @@ class NearbyStopsFragment : ScreenBaseFragment() {
         super.onDetach()
         mListener = null
         //if (arrivalsManager != null) arrivalsManager!!.cancelAllRequests()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if(BuildConfig.DEBUG) Log.d(DEBUG_TAG, "onStart called")
+        //checkPermissionLocationStart()
     }
 
     /**
@@ -542,7 +573,9 @@ class NearbyStopsFragment : ScreenBaseFragment() {
             switchButton!!.text = getString(R.string.show_arrivals)
             titleTextView!!.text = getString(R.string.nearby_stops_message)
 
-            dataAdapter?.let{ gridRecyclerView.adapter = it}
+            dataAdapter?.let{ gridRecyclerView.adapter = it
+
+            }
 
             mListener?.readyGUIfor(FragmentKind.NEARBY_STOPS)
 
@@ -552,7 +585,7 @@ class NearbyStopsFragment : ScreenBaseFragment() {
             val arrivalsSorted = viewModel.arrivalsDecoupled.value
             arrivalsSorted?.let{
                 lastPosition?.let{pos ->
-                    arrivalsStopAdapter = ArrivalsStopAdapter(it,mListener,requireContext(), pos )
+                    arrivalsStopAdapter = ArrivalsStopAdapter(it,mListener!!,requireContext(), pos )
                 }
             }
             arrivalsStopAdapter?.let{

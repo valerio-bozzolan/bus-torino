@@ -32,7 +32,7 @@ class GtfsMaintenanceWorker(appContext: Context, workerParams: WorkerParameters)
 
         val notification = NotificationCompat.Builder(context, Notifications.DB_UPDATE_CHANNELS_ID)
             //.setContentIntent(PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), Constants.PENDING_INTENT_FLAG_IMMUTABLE))
-            .setSmallIcon(R.drawable.bus)
+            .setSmallIcon(R.drawable.ic_bus)
             .setOngoing(true)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)

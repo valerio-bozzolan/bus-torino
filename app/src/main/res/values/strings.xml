@@ -156,7 +156,7 @@
     <!-- used as generic title for "show what is near me" -->
     <string name="near_me_title">Near me</string>
     <string name="nearby_stops_message">Nearby stops</string>
-    <string name="nearby_arrivals_message">Nearby connections</string>
+    <string name="nearby_arrivals_message">Nearby arrivals</string>
     <string name="app_version">App version</string>
     <string name="num_stops_nearby_not_number">The number of stops to show in the recent stops is invalid</string>
     <string name="invalid_number">Invalid value, put a valid number</string>
@@ -299,6 +299,14 @@
         <item>@string/nav_map_text</item>
         <item>@string/lines</item>
     </array>
+
+
+    <string name="day_night_theme_set_light">Light</string>
+    <string name="day_night_theme_set_dark">Dark</string>
+    <string name="day_night_theme_keep_system">Change it with the system</string>
+
+    <!-- title used in the preferences screen -->
+    <string name="pref_theme_day_night_title">Set dark or light theme</string>
     <string name="positions_source_pref_title">Source of real time positions for buses and trams</string>
     <string name="positions_source_mato_descr">MaTO (updated more frequently, might have errors)</string>
     <string name="positions_source_gtfsrt_descr">GTFS RT (less frequently updated, more accurate)</string>
