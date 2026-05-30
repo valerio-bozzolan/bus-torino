@@ -338,6 +338,9 @@ class NearbyStopsFragment : ScreenBaseFragment() {
 
                     }
                     FragType.ARRIVALS -> {
+                        lastPosition?.let{
+                            Collections.sort(stops, StopSorterByDistance(loc))
+                        }
                         viewModel.requestArrivalsForStops(stops)
                     }
                 }

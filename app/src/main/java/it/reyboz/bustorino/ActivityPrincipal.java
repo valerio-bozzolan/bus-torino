@@ -73,9 +73,30 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     private final static String TAG_FAVORITES="favorites_frag";
     private Snackbar snackbar;
-
+    private boolean startedFromIntent = false;
 
     private ServiceAlertsViewModel  serviceAlertsViewModel;
+
+    private final DrawerLayout.DrawerListener drawerListener = new DrawerLayout.DrawerListener() {
+        @Override
+        public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
+
+        }
+
+        @Override
+        public void onDrawerOpened(@NonNull View drawerView) {
+            hideKeyboard();
+        }
+
+        @Override
+        public void onDrawerClosed(@NonNull View drawerView) {
+
+        }
+
+        @Override
+        public void onDrawerStateChanged(int newState) {
+        }
+    };
     //private FragmentKind showingFragmentKind;
 
     private final Map<Integer, Runnable> menuActions = Map.of(
@@ -108,13 +129,17 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             boolean isResolved = activityCustomBackPressed();
             Log.d(DEBUG_TAG, "backpress resolved: " + isResolved);
             if(!isResolved){
-                long currentTime = System.currentTimeMillis();
-                if(currentTime - lastClosingAttempt < 2000){
-                    finish();
-                } else{
-                    lastClosingAttempt = currentTime;
-                    Toast.makeText(getApplicationContext(),R.string.back_again_to_close,Toast.LENGTH_SHORT).show();
-                }
+                //if(startedFromIntent){
+                //    finish();
+                //} else{
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - lastClosingAttempt < 2000)
+                        finish();
+                    else {
+                        lastClosingAttempt = currentTime;
+                        Toast.makeText(getApplicationContext(), R.string.back_again_to_close, Toast.LENGTH_SHORT).show();
+                    }
+                //}
             }
         }
     };
@@ -132,7 +157,6 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         //onBackPressed solution required from Android 16
         backPressedCallback.setEnabled(true);
         this.getOnBackPressedDispatcher().addCallback(backPressedCallback);
-        boolean showingArrivalsFromIntent = false;
 
         final Toolbar mToolbar = findViewById(R.id.default_toolbar);
         setSupportActionBar(mToolbar);
@@ -150,27 +174,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         drawerToggle.syncState();
         mDrawer.addDrawerListener(drawerToggle);
 
-        mDrawer.addDrawerListener(new DrawerLayout.DrawerListener() {
-            @Override
-            public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
-
-            }
-
-            @Override
-            public void onDrawerOpened(@NonNull View drawerView) {
-                hideKeyboard();
-            }
-
-            @Override
-            public void onDrawerClosed(@NonNull View drawerView) {
-
-            }
-
-            @Override
-            public void onDrawerStateChanged(int newState) {
-            }
-        });
-
+        mDrawer.addDrawerListener(drawerListener);
 
         mNavView = findViewById(R.id.nvView);
 
@@ -186,32 +190,38 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         // Intercept calls from URL intent
         boolean tryedFromIntent = false;
 
-        String busStopID = null;
-        Uri data = getIntent().getData();
-        if (data != null) {
+        String initialBusStopID = null;
+        var intent = getIntent();
+        if(intent != null){
+            var data = intent.getData();
+            if(data != null){
+                //var rest = data.getSchemeSpecificPart();
+                //Log.d(DEBUG_TAG, "the rest is: "+rest);
 
-            busStopID = getBusStopIDFromUri(data);
-            Log.d(DEBUG_TAG, "Opening Intent: busStopID: "+busStopID);
-            tryedFromIntent = true;
-        }
+                initialBusStopID = getBusStopIDFromUri(data);
+                tryedFromIntent = true;
+                Log.d(DEBUG_TAG, "Opening Intent: initialBusStopID: "+initialBusStopID);
 
-        // Intercept calls from other activities
-        if (!tryedFromIntent) {
-            Bundle b = getIntent().getExtras();
-            if (b != null) {
-                busStopID = b.getString("bus-stop-ID");
+            }
+            // Intercept calls from other activities
+            if(!tryedFromIntent){
+                Bundle b =intent.getExtras();
+                if (b != null) {
+                    initialBusStopID = b.getString("bus-stop-ID");
 
-                /*
-                 * I'm not very sure if you are coming from an Intent.
-                 * Some launchers work in strange ways.
-                 */
-                tryedFromIntent = busStopID != null;
+                    /*
+                     * I'm not very sure if you are coming from an Intent.
+                     * Some launchers work in strange ways.
+                     */
+                    tryedFromIntent = initialBusStopID != null;
+                }
             }
         }
 
+
         //---------------------------- END INTENT CHECK QUEUE --------------------------------------
 
-        if (busStopID == null) {
+        if (initialBusStopID == null) {
             // Show keyboard if can't start from intent
             // JUST DON'T
             // showKeyboard();
@@ -223,20 +233,14 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 Toast.makeText(getApplicationContext(),
                         R.string.insert_bus_stop_number_error, Toast.LENGTH_SHORT).show();
             }
-        } else {
-            // If you are here an intent has worked successfully
-            //setBusStopSearchByIDEditText(busStopID);
-            //Log.d(DEBUG_TAG, "Requesting arrivals for stop "+busStopID+" from intent");
-            requestArrivalsForStopID(busStopID); //this shows the fragment, too
-            showingArrivalsFromIntent = true;
         }
-        //database check
+        //save whether we started from intent
+        startedFromIntent = tryedFromIntent;
 
-        //        DatabaseUpdate.requestDBUpdateWithWork(this, false, false);
+        //period database check
         DBUpdateCheckWorker.Companion.schedulePeriodicCheck(this,false);
-        /*
-        Watch for database update
-         */
+
+        //Watch for database update
         DBUpdateWorker.getWorkInfoLiveData(this)
                 .observe(this, workInfoList -> {
                     // If there are no matching work info, do nothing
@@ -268,10 +272,12 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         String vl = PreferenceManager.getDefaultSharedPreferences(this).getString(SettingsFragment.PREF_KEY_STARTUP_SCREEN, "");
 
         Log.d(DEBUG_TAG, "The default screen to open is: "+vl);
-        if (showingArrivalsFromIntent){
-            //do nothing but exclude a case
+        var framan = getSupportFragmentManager();
+
+        if (initialBusStopID!=null) {
+            Log.d(DEBUG_TAG, "Opening Main Fragment on arrivals, bus Stop: "+initialBusStopID);
+            createShowMainFragment(framan, MainScreenFragment.makeArgsArrivals(initialBusStopID), false);
         }else if (savedInstanceState==null) {
-            var framan = getSupportFragmentManager();
             //we are not restarting the activity from nothing
             switch (vl){
                 case "map" -> {requestMapFragment(false);}

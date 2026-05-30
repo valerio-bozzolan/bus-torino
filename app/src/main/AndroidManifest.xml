@@ -56,7 +56,7 @@
         <activity
                 android:name=".ActivityIntro"
                 android:exported="false"
-                android:theme="@style/AppThemeDayNight.NoActionBar"
+                android:theme="@style/AppThemeIntro"
         />
         <activity
                 android:name=".ActivityExperiments"
@@ -76,36 +76,12 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
-
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data
-                        android:host="www.gtt.to.it"
-                        android:pathPrefix="/cms/percorari/arrivi"
-                        android:scheme="http"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data
-                        android:host="gtt.to.it"
-                        android:pathPrefix="/cms/percorari/arrivi"
-                        android:scheme="http"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data
-                        android:host="m.gtt.to.it"
-                        android:pathPrefix="/m/it/arrivi.jsp"
-                        android:scheme="http"/>
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="www.gtt.to.it" />
+                <data android:pathPrefix="/cms/percorari/arrivi" />
             </intent-filter>
         </activity>
         <activity

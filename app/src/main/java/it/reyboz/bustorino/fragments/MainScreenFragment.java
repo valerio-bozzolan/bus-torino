@@ -259,8 +259,10 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
                 internalScreen = (parsed != null) ? parsed : InternalScreen.HOME_BUTTONS;
             }
             String stopId = args.getString(ARG_STOP_ID);
-            if (stopId != null) pendingStopID = stopId;
-            pendingSearchQuery = args.getString(ARG_SEARCH_QUERY);
+            if (stopId != null)
+                pendingSearchQuery = stopId;
+            else
+                pendingSearchQuery = args.getString(ARG_SEARCH_QUERY);
         }
 
         fragmentHelper = new FragmentHelper(this, getChildFragmentManager(), getContext(), R.id.resultFrame);
@@ -413,6 +415,13 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
                 break;
             case ARRIVALS:
                 // pendingStopID is consumed in onResume → requestArrivalsForStopID
+                if(pendingSearchQuery != null && isResumed()) {
+                    swipeRefreshLayout.setVisibility(View.VISIBLE);
+                    Log.d(DEBUG_TAG, "Searching arrivals for initial stop: "+pendingSearchQuery);
+                    requestsArrivalsInternal(pendingSearchQuery, false);
+                    pendingSearchQuery = null;
+                }
+
                 break;
             case STOP_SEARCH:
                 if (pendingSearchQuery != null && pendingSearchQuery.length() >= 2) {
@@ -591,22 +600,6 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
         //this is the second time we are attaching this fragment ->
         Log.d(DEBUG_TAG, "Waiting for new stop request: "+ suppressArrivalsReload);
 
-        if(!suppressArrivalsReload && pendingStopID==null){
-            //none of the following cases are true
-            // check if we are showing any fragment
-            /*
-            //TODO: check if this is needed
-            final Fragment fragment = getChildFragmentManager().findFragmentById(R.id.resultFrame);
-
-            if(fragment==null || swipeRefreshLayout.getVisibility() != View.VISIBLE){
-                //we are not showing anything
-                if(Permissions.anyLocationPermissionsGranted(getContext())){
-                    showNearbyFragmentIfPossible();
-                }
-            }
-
-             */
-        }
         if (suppressArrivalsReload){
             // we have to suppress the reloading of the (possible) ArrivalsFragment
             Fragment fragment = getChildFragmentManager().findFragmentById(R.id.resultFrame);
@@ -617,8 +610,12 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
             //deactivate
             suppressArrivalsReload = false;
         }
-
-        if(pendingStopID!=null){
+        // check if the fragment start query is null
+        if(pendingSearchQuery!=null) {
+            requestsArrivalsInternal(pendingSearchQuery, false);
+            pendingSearchQuery = null;
+        }
+        else if(pendingStopID!=null){
 
             Log.d(DEBUG_TAG, "Pending request for arrivals at stop ID: "+pendingStopID);
             requestArrivalsForStopID(pendingStopID);
@@ -872,17 +869,11 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
         if(mListener!=null) mListener.showMapCenteredOnStop(stop);
     }
 
-
-    /**
-     * Main method for stops requests
-     * @param ID the Stop ID
-     */
-    @Override
-    public void requestArrivalsForStopID(String ID) {
+    private void requestsArrivalsInternal(String stopID, boolean addToBackStack) {
         if (!isResumed()){
-            //defer request
-            pendingStopID = ID;
-            Log.d(DEBUG_TAG, "Deferring update for stop "+ID+ " saved: "+pendingStopID);
+            //defer request to onResume - it will be added to the backstack
+            pendingStopID = stopID;
+            Log.d(DEBUG_TAG, "Deferring update for stop "+stopID+ " saved: "+pendingStopID);
             return;
         }
         final boolean delayedRequest = !(pendingStopID==null);
@@ -891,12 +882,15 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
             Log.e(DEBUG_TAG, "Asked for arrivals with null context");
             return;
         }
-        if (ID == null || ID.isEmpty()) {
+        if (stopID == null || stopID.isEmpty()) {
             // we're still in UI thread, no need to mess with Progress
             showToastMessage(R.string.insert_bus_stop_number_error, true);
             toggleSpinner(false);
         } else{
-            var palinaTrial = new Palina(ID);
+            // ensure that the new sub-fragment is gonna be visible
+            swipeRefreshLayout.setVisibility(View.VISIBLE);
+
+            var palinaTrial = new Palina(stopID);
             if (framan.findFragmentById(R.id.resultFrame) instanceof ArrivalsFragment fragment) {
                 if (fragment.isFragmentForTheSameStop(palinaTrial)){
                     // Run with previous fetchers
@@ -904,16 +898,25 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
                     fragment.requestArrivalsForTheFragment();
                 } else{
                     // The rest of the case is handled by the fragment Helper
-                    fragmentHelper.showArrivalsFragmentForStop(palinaTrial, true);
+                    fragmentHelper.showArrivalsFragmentForStop(palinaTrial, addToBackStack);
                 }
             }
             else {
                 // this is not needed any more
                 //prepareGUIForArrivals();
-                fragmentHelper.showArrivalsFragmentForStop(palinaTrial, true);
+                fragmentHelper.showArrivalsFragmentForStop(palinaTrial, addToBackStack);
 
             }
         }
+    }
+
+    /**
+     * Main method for stops requests
+     * @param ID the Stop ID
+     */
+    @Override
+    public void requestArrivalsForStopID(String ID) {
+        requestsArrivalsInternal(ID, true);
     }
 
     private boolean checkLocationPermission(){
