@@ -12,7 +12,8 @@
         app:cardCornerRadius="6dp"
         app:strokeColor="@color/card_border"
         app:strokeWidth="1dp"
-        android:layout_margin="5dp" android:padding="6dp">
+        android:layout_margin="5dp" android:padding="6dp"
+>
 
 
     <RelativeLayout
@@ -27,7 +28,7 @@
                   android:minWidth="40dp"
                   android:id="@+id/lineNameTextView"
                   android:text="10"
-                  android:textSize="22sp"
+                  android:textSize="21sp"
                   android:textColor="@color/orange_700_display"
                   android:layout_marginStart="8dp"
                   android:gravity="center"
@@ -36,15 +37,16 @@
                   android:layout_alignParentTop="true"
                   android:layout_alignParentStart="true"
                   android:layout_alignBottom="@id/lineDirectionTextView"
-
+                  android:fontFamily="@font/lato_bold"
         />
 
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/lineDirectionTextView"
-                android:text="MADONNA DEL PILONE, LARGO TABACCHI"
+                android:text="MADONNA DEL PILONE,"
                 android:textSize="20sp"
+                android:fontFamily="@font/lato_regular"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:layout_toStartOf="@id/arrivalsDistanceTextView"
                 android:layout_toEndOf="@id/lineNameTextView"
@@ -52,7 +54,9 @@
                 android:layout_marginEnd="6dp"
                 android:layout_alignParentTop="true"
                 android:layout_marginTop="10dp"
-                android:layout_marginStart="10dp"/>
+                android:layout_marginStart="10dp"
+                android:gravity="center_vertical"
+        />
         <TextView android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
                   android:layout_alignBaseline="@id/arrivalsTimeTextView"
@@ -66,7 +70,7 @@
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                   android:layout_toRightOf="@id/arrivalsDescriptionTextView"
                   android:layout_marginStart="6dp"
-                  android:layout_marginTop="8dp"
+                  android:layout_marginTop="13dp"
                   android:layout_marginEnd="8dp"
                   android:layout_marginBottom="8dp"
                   android:id="@+id/arrivalsTimeTextView" android:text="Orario" android:textSize="@dimen/text_size_nearby"
@@ -95,14 +99,15 @@
                   android:layout_marginStart="6dp"
                   android:textAppearance="?android:attr/textAppearanceLarge"
         />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        <TextView android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
                   android:layout_marginTop="12dp"
                   android:layout_marginBottom="10dp"
                   android:layout_marginEnd="10dp"
-                  android:id="@+id/arrivalsDistanceTextView" android:text="200 m" android:textSize="15sp"
+                  android:id="@+id/arrivalsDistanceTextView"
+                  android:text="200 m" android:textSize="15sp"
                   android:layout_marginStart="5dp"
                   android:textAppearance="?android:attr/textAppearanceSmall"
-                  android:layout_alignParentRight="true"
                   android:layout_alignParentEnd="true"
         />
 

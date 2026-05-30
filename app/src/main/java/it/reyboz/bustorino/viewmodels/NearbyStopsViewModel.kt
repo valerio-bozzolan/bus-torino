@@ -54,6 +54,8 @@ class NearbyStopsViewModel(application: Application): AndroidViewModel(applicati
 
     val progressPerc = MutableLiveData<Int>()
 
+    //val fragmentType = MutableLiveData<NearbyStopsFragment.FragType>()
+
     val downloadingArrivals = MutableLiveData<Boolean>()
     val lastTimeFinished = AtomicLong(0)
     private var job : Job? = null
@@ -134,13 +136,16 @@ class NearbyStopsViewModel(application: Application): AndroidViewModel(applicati
     private val errorRequests = AtomicInteger(0)
     private val runningRequests = AtomicInteger(0)
 
+    fun cancelAllArrivalsRequests() {
+        volleyManager.requestQueue.cancelAll(REQUEST_TAG)
+    }
     /**
      * Run new batch of requests
      */
     fun requestArrivalsForStops(stops: List<Stop>) {
         //nearbyArrivalsDownloader.requestArrivalsForStops(stops)
         if(runningRequests.get() > 0) {
-            volleyManager.requestQueue.cancelAll(REQUEST_TAG)
+            cancelAllArrivalsRequests()
         }
         val currentDate = Date()
         val timeRange = 3600
@@ -339,7 +344,7 @@ class NearbyStopsViewModel(application: Application): AndroidViewModel(applicati
     }
 
     override fun onCleared() {
-        volleyManager.requestQueue.cancelAll(REQUEST_TAG)
+        cancelAllArrivalsRequests()
         super.onCleared()
     }
 

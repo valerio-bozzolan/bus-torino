@@ -95,7 +95,7 @@ public class ArrivalsStopAdapter extends RecyclerView.Adapter<ArrivalsStopAdapte
             if (r!=null) {
                 holder.lineNameTextView.setText(r.getDisplayCode());
                 holder.lineDirectionTextView.setText(NameCapitalize.capitalizePass(r.destinazione, capit));
-                holder.arrivalsTextView.setText(r.getPassaggiToString(0,2,true));
+                holder.arrivalsTextView.setText(r.getPassaggiToString(0,3,true));
             } else {
                 holder.lineNameTextView.setVisibility(View.INVISIBLE);
                 holder.lineDirectionTextView.setVisibility(View.INVISIBLE);

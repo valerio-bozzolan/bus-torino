@@ -163,6 +163,8 @@
 
     <string name="position_searching_message">Finding location</string>
     <string name="no_stops_nearby">No stops nearby</string>
+    <string name="searching_arrivals_indefinite">Loading arrival times</string>
+    <string name="no_stops_nearby_arrivals">No stops nearby to search arrival times for</string>
     <string name="pref_num_elements">Minimum number of stops</string>
     <string name="main_menu_pref">Preferences</string>
     <string name="title_activity_settings">Settings</string>

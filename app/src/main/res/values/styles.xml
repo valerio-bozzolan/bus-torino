@@ -98,6 +98,9 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="AppThemeDayNight.Card" parent="AppThemeDayNight">
+        <item name="android:fontFamily">@font/lato_regular</item>
+    </style>
 
 
 </resources>

@@ -17,6 +17,7 @@
  */
 package it.reyboz.bustorino.adapters;
 
+import android.content.Context;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
@@ -63,6 +64,7 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
             //DO THE ACTUAL WORK TO PUT THE DATA
         if(stops==null || stops.size() == 0) return; //NO STOPS
         final Stop stop = stops.get(position);
+        final Context context = holder.itemView.getContext();
         if(stop!=null){
             if(stop.getDistanceFromLocation(userPosition)!=Double.POSITIVE_INFINITY){
                 Double distance = stop.getDistanceFromLocation(userPosition);
@@ -70,13 +72,15 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
             } else {
                 holder.distancetextView.setVisibility(View.GONE);
             }
-            holder.stopNameView.setText(stop.getStopDisplayName());
+            holder.stopNameView.setText(context.getString(
+                    R.string.two_strings_format,"", stop.getStopDisplayName()));
+                    // stop.ID +" - "+ stop.getStopDisplayName());
             holder.stopIDView.setText(stop.ID);
             String whatStopsHere = stop.routesThatStopHereToString();
             if(whatStopsHere == null) {
                 holder.routesView.setVisibility(View.GONE);
             } else {
-                holder.routesView.setText(whatStopsHere);
+                holder.routesView.setText(context.getString(R.string.lines_fill, whatStopsHere));
                 holder.routesView.setVisibility(View.VISIBLE); // might be GONE due to View Holder Pattern
             }
             holder.stopID =stop.ID;
