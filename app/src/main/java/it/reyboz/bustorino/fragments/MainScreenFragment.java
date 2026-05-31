@@ -704,6 +704,7 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
     }
     @Override
     public void enableRefreshLayout(boolean yes) {
+        Log.d(DEBUG_TAG, "Enabling refresh layout: " + yes);
         swipeRefreshLayout.setEnabled(yes);
     }
 

@@ -27,10 +27,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
+import it.reyboz.bustorino.ActivityAbout
 import it.reyboz.bustorino.ActivitySettings
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.adapters.RecyclerViewMargin
@@ -54,10 +54,6 @@ class ButtonsFragment : BarcodeFragment() {
         arguments?.let {
 
         }
-        if(listener is FragmentListenerMain){
-            val ll = listener as FragmentListenerMain
-            ll.enableRefreshLayout(false)
-        }
     }
     private val marginHoriz = 30
     private val margin = 11
@@ -76,8 +72,13 @@ class ButtonsFragment : BarcodeFragment() {
             CardMenuItem(CardAction.FAVORITES_STOPS, getString(R.string.action_favorites), R.drawable.ic_star_filled_white),
             CardMenuItem(CardAction.LINES, getString(R.string.lines), R.drawable.ic_moving_emph),
             CardMenuItem(CardAction.SETTINGS, getString(R.string.action_settings), R.drawable.ic_baseline_settings_24),
-            CardMenuItem(CardAction.QR_SCAN, getString(R.string.scan_qr_code_stop), R.drawable.qr_code_scan)
-        )
+            CardMenuItem(CardAction.QR_SCAN, getString(R.string.scan_qr_code_stop),
+                R.drawable.qr_code_scan),
+            CardMenuItem(CardAction.INFO,
+                getString(R.string.action_about), R.drawable.ic_baseline_info_24
+                ),
+
+            )
 
         recyclerView = root.findViewById(R.id.buttonsRecyclerView)
 
@@ -88,32 +89,6 @@ class ButtonsFragment : BarcodeFragment() {
         val margins = RecyclerViewMargin.makeMarginsDip(requireContext(), margin, 2)
         recyclerView.addItemDecoration(margins)
 
-
-        /*gridLayout = root.findViewById(R.id.homeGridLayout)
-
-        items.forEach { item ->
-            // Inflate base layout
-            val cardView = LayoutInflater.from(requireContext())
-                .inflate(R.layout.item_card_button, gridLayout, false)
-
-            // Popola icona e testo
-            cardView.findViewById<ImageView>(R.id.cardIcon).setImageResource(item.iconRes)
-            cardView.findViewById<TextView>(R.id.cardLabel).text = item.label
-            // Parametri griglia: colonna flessibile + margini
-            cardView.layoutParams = GridLayout.LayoutParams().apply {
-                width = 0
-                height = GridLayout.LayoutParams.WRAP_CONTENT
-                columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
-                setMargins(marginHoriz, marginVer, marginHoriz, marginVer)  // margini tra le card
-            }
-
-            // Click
-            cardView.setOnClickListener { onCardClicked(item) }
-
-            gridLayout.addView(cardView)
-        }
-
-         */
 
         return root
     }
@@ -136,6 +111,9 @@ class ButtonsFragment : BarcodeFragment() {
                 CardAction.FAVORITES_STOPS -> { list.openFavoritesFragment() }
                 CardAction.QR_SCAN -> {
                     launchBarcodeScan()
+                }
+                CardAction.INFO ->{
+                   startActivity(Intent(requireContext(), ActivityAbout::class.java))
                 }
         }
     }
@@ -169,6 +147,10 @@ class ButtonsFragment : BarcodeFragment() {
     override fun onResume() {
         super.onResume()
         listener?.readyGUIfor(FragmentKind.HOME_BUTTONS)
+        if(listener is FragmentListenerMain){
+            val ll = listener as FragmentListenerMain
+            ll.enableRefreshLayout(false)
+        }
     }
 
     companion object {
@@ -192,7 +174,7 @@ class ButtonsFragment : BarcodeFragment() {
         val iconRes: Int
     )
     enum class CardAction {
-        NEARBY, MAP, FAVORITES_STOPS, LINES, SETTINGS, QR_SCAN
+        NEARBY, MAP, FAVORITES_STOPS, LINES, SETTINGS, QR_SCAN, INFO
     }
 }
 
@@ -203,7 +185,7 @@ class ActionsCardAdapter(val actions: List<ButtonsFragment.CardMenuItem>,
         parent: ViewGroup,
         viewType: Int
     ): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_card_button, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_card_button_home, parent, false)
     /*
         // Altezza match_parent per uniformare le card della stessa riga
         view.layoutParams = RecyclerView.LayoutParams(

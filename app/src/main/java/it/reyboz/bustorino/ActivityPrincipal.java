@@ -682,7 +682,7 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                 .commit();
     }
-
+    /*
     @Nullable
     private MainScreenFragment getMainFragmentIfVisible(){
         FragmentManager fraMan = getSupportFragmentManager();
@@ -691,12 +691,17 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         else return null;
     }
 
+     */
+
 
     @Override
     public void showFloatingActionButton(boolean yes) {
-        var frag =  getMainFragmentIfVisible();
-        if(frag!=null){
-            frag.showFloatingActionButton(yes);
+        var framan = getSupportFragmentManager();
+        var frag =  framan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
+        if(frag instanceof MainScreenFragment mainFrag){
+            mainFrag.showFloatingActionButton(yes);
+        } else{
+            Log.d(DEBUG_TAG, "No main screen fragment found to set showFloatingActionButton");
         }
     }
 
@@ -759,9 +764,10 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
         }
         if(getSupportActionBar()!=null && titleResId!=null)
             getSupportActionBar().setTitle(titleResId);
-        MainScreenFragment mainFragmentIfVisible = getMainFragmentIfVisible();
-        if (mainFragmentIfVisible!=null){
-            mainFragmentIfVisible.readyGUIfor(fragmentType);
+        //MainScreenFragment mainFragmentIfVisible = getMainFragmentIfVisible();
+        var frag = getSupportFragmentManager().findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
+        if (frag instanceof MainScreenFragment mainFrag){
+            mainFrag.readyGUIfor(fragmentType);
         }
     }
 
@@ -836,17 +842,19 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
 
     @Override
     public void toggleSpinner(boolean state) {
-        MainScreenFragment probableFragment = getMainFragmentIfVisible();
-        if (probableFragment!=null){
-            probableFragment.toggleSpinner(state);
+        var frag = getSupportFragmentManager().findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
+        if (frag instanceof MainScreenFragment mainFrag) {
+            mainFrag.toggleSpinner(state);
         }
     }
 
     @Override
     public void enableRefreshLayout(boolean yes) {
-        MainScreenFragment probableFragment = getMainFragmentIfVisible();
-        if (probableFragment!=null){
-            probableFragment.enableRefreshLayout(yes);
+        Log.d(DEBUG_TAG, "enableRefreshLayout: "+yes);
+        var framan = getSupportFragmentManager();
+        var frag = framan.findFragmentByTag(MainScreenFragment.FRAGMENT_TAG);
+        if (frag instanceof MainScreenFragment mainFrag){
+            mainFrag.enableRefreshLayout(yes);
         }
     }
 

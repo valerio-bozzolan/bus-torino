@@ -40,7 +40,7 @@
     <string name="no_qrcode">Nessun QR code trovato, riprova</string>
     <string name="action_favorites">Preferiti</string>
     <string name="action_help">Aiuto</string>
-    <string name="action_about">Informazioni</string>
+    <string name="action_about">Informazioni sull\'app</string>
     <string name="action_about_more">Più informazioni</string>
     <string name="action_wiki">Vai alla wiki</string>
     <string name="hack_url">https://gitpull.it/w/librebusto/it/</string>

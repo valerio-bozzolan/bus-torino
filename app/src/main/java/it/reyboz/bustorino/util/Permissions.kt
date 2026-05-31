@@ -35,15 +35,6 @@ class Permissions private constructor(private val appContext: Context) {
      */
     private var askedTimesLocation = AtomicInteger(0)
 
-    fun anyLocationProviderMatchesCriteria(mng: LocationManager, cr: Criteria, enabled: Boolean): Boolean {
-        val providers = mng.getProviders(cr, enabled)
-        Log.d(DEBUG_TAG, "Getting enabled location providers: ")
-        for (s in providers) {
-            Log.d(DEBUG_TAG, "Provider " + s)
-        }
-        return !providers.isEmpty()
-    }
-
 
     fun checkRequestLocationPermissions(activity: Activity, launcher: ActivityResultLauncher<Array<String>>): Boolean {
 

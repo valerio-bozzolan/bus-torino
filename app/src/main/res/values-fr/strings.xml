@@ -97,8 +97,8 @@
     <string name="next">Suivant</string>
     <string name="insert_bus_stop_name">Nom de l\'arrêt de bus</string>
     <string name="no_arrivals_stop">Aucune arrivée prévue pour cette arrêt</string>
-    <string name="no_bus_stop_have_this_name">Il semble qu\'il n\\\'y a aucun arrêt de bus avec ce nom</string>
-    <string name="action_about">À propos de l\\\'application</string>
+    <string name="no_bus_stop_have_this_name">Il semble qu\'il n\'y a aucun arrêt de bus avec ce nom</string>
+    <string name="action_about">À propos de l\'application</string>
     <string name="no_lines_found">Aucune ligne trouvée dans cette catégorie</string>
     <string name="no_lines_found_query">Aucune ligne ne correspond à la recherche</string>
     <string name="line_fill">Ligne %1$s</string>
