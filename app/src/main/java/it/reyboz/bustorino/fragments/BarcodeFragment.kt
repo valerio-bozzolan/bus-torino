@@ -41,10 +41,11 @@ abstract class BarcodeFragment : ScreenBaseFragment(){
     abstract fun onQrScanSuccess(busIDToSearch: String)
 
     protected fun launchBarcodeScan() {
+        val context = getContext() ?: return
         val scanOptions = BarcodeScanOptions()
         val intent = scanOptions.createScanIntent()
-        if (!BarcodeScanUtils.checkTargetPackageExists(getContext(), intent)) {
-            BarcodeScanUtils.showDownloadDialog(null, this)
+        if (!BarcodeScanUtils.checkTargetPackageExists(context, intent)) {
+            BarcodeScanUtils.showDownloadDialog(context)
         } else {
             barcodeLauncher.launch(scanOptions)
         }

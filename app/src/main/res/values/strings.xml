@@ -14,9 +14,10 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
-    <string name="title_barcode_scanner_install">Install Barcode Scanner?</string>
-    <string name="message_install_barcode_scanner">This application requires an app to scan the QR codes. Would you like
-        to install Barcode Scanner now?
+    <string name="title_barcode_scanner_install">Barcode scanner app is needed</string>
+    <!-- make nice message indicating that we like this app and want to install it if clicking OK-->
+    <string name="message_install_barcode_scanner">This functionality requires another app to scan the QR codes, which has not been found on the device. We suggest using Binary Eye, which
+        is open source software, would you like to install it now?
     </string>
 
     <string name="insert_bus_stop_number">Bus stop number</string>
@@ -50,7 +51,7 @@
     <string name="stop_fill">Stop %1$s</string>
     <string name="vehicle_fill">Vehicle %1$s</string>
     <string name="no_passages">No timetable found</string>
-    <string name="no_qrcode">No QR code found, try using another app to scan</string>
+    <string name="no_qrcode">No QR code found, retry</string>
     <string name="scan_qr_code_stop">Scan QR code at the bus stop</string>
     <string name="internal_error">Unexpected internal error, cannot extract data from GTT/5T website</string>
     <string name="action_help">Help</string>

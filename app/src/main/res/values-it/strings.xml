@@ -8,8 +8,8 @@
     <string name="no">No</string>
     <string name="next">Prossimo</string>
     <string name="previous">Precedente</string>
-    <string name="title_barcode_scanner_install">Installare Barcode Scanner?</string>
-    <string name="message_install_barcode_scanner">Questa azione richiede un\'altra app per scansionare i codici QR. Vuoi installare Barcode Scanner?</string>
+    <string name="title_barcode_scanner_install">Necessaria app per leggere i codici QR</string>
+    <string name="message_install_barcode_scanner">Questa azione richiede un\'altra app per scansionare i codici QR, ma non è stata trovata sul dispositivo. Vuoi installare Binary Eye?</string>
     <string name="insert_bus_stop_number">Numero fermata</string>
     <string name="insert_bus_stop_name">Nome fermata</string>
     <string name="insert_bus_stop_number_error">Inserisci il numero della fermata</string>
@@ -37,7 +37,7 @@
     <string name="results">Scegli la fermata…</string>
     <string name="vehicle_fill">Matricola %1$s</string>
     <string name="no_passages">Nessun passaggio</string>
-    <string name="no_qrcode">Nessun QR code trovato, prova ad usare un\'altra app</string>
+    <string name="no_qrcode">Nessun QR code trovato, riprova</string>
     <string name="action_favorites">Preferiti</string>
     <string name="action_help">Aiuto</string>
     <string name="action_about">Informazioni</string>

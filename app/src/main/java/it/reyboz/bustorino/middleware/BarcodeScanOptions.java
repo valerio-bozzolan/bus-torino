@@ -19,6 +19,7 @@ import java.util.Map;
 public class BarcodeScanOptions {
 
     public static final String BS_PACKAGE = "com.google.zxing.client.android";
+    public static final String BINARY_EYE_PACKAGE = "de.markusfisch.android.binaryeye";
 
     // supported barcode formats
 
