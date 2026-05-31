@@ -1,0 +1,11 @@
+Nuove funzionalità:
+- Nuova schermata home, per accedere alle funzionalità più velocemente
+- Introdotto tema scuro automatico, anche per la mappa! 
+- Nuovo design delle fermate vicine e degli arrivi
+- Apertura degli orari di arrivo da scansione QR code esternamente all'app
+
+Altri miglioramenti e bug fix:
+- Ripristinati i dati GTFS realtime, per rendere di nuovo funzionanti le posizioni in tempo reale dei bus e gli avvisi di servizio delle linee
+- Miglioramenti della mappa: ora viene mostrato il tipo di veicolo (bus, tram, bus elettrico) e più info toccando l'icona
+- L'app ora chiede di installare un'app esistente per la scansione dei QR
+- Miglioramento dei colori della barra di navigazione e dei layout dell'app in generale

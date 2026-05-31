@@ -1,0 +1,11 @@
+New features:
+- New home screen when the app launches, for quicker access to various features
+- Introduced automatic dark theme, including for the map! 
+- New design for nearby stops and arrivals
+- View arrival times by scanning a QR code outside the app
+
+Other improvements and bug fixes:
+- Restored real-time GTFS data, to restore real-time bus locations and service alerts for routes
+- Map: show the vehicle type (bus, tram, electric bus) and further info when you tap the icon
+- The app now prompts you to install an existing app for QR code scanning
+- Improved colours of the navigation bar, improved app’s overall layout
