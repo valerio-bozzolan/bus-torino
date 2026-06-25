@@ -141,7 +141,7 @@ public class PalinaAdapter extends RecyclerView.Adapter<PalinaAdapter.PalinaView
             case LONG_DISTANCE_BUS:
                 //vh.rowStopIcon.setBackgroundResource(extraurbanoBg);
                 vh.routeCard.setCardBackgroundColor(ResourcesCompat.getColor(res, R.color.extraurban_bus_bg, null));
-                vh.busIcon.setImageDrawable(ResourcesCompat.getDrawable(resources, extraurbanoBg, con.getTheme()));
+                vh.busIcon.setImageDrawable(ResourcesCompat.getDrawable(resources, busIcon, con.getTheme()));
                 break;
             case METRO:
                 //vh.rowStopIcon.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
