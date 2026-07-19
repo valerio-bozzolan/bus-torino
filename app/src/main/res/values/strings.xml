@@ -123,11 +123,11 @@
 		- <b>JSoup</b> web scraper library.<br>
 		- <b>makovkastar</b> floating buttons.<br>
         - <b>Google</b> for icons and support and design libraries.<br>
-        - Other icons from <b>Bootstrap</b>, <b>Feather</b>, and <b>Hero Icons</b>.<br>
+        - Other icons from <b>Bootstrap</b>, <b>Feather</b>, <b>Remix</b> and <b>Hero Icons</b>.<br>
 		- All the contributors, and the beta testers, too!
 		</p>
 		<br>
-		 If you want more information or want to contribute to development, use the buttons below!</b>
+		 <p>If you want more detailed information, or want to donate money to support the development, use the buttons below!</p>
     ]]></string>
     <string name="about_history_bottom">
         <![CDATA[
@@ -415,5 +415,6 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="english">English</string>
     <string name="checking_alerts_update">Checking new alerts now</string>
     <string name="back_again_to_close">Press back again to close the app</string>
+    <string name="action_donate">Donate</string>
 
 </resources>

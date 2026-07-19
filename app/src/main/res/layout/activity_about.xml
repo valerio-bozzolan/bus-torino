@@ -127,19 +127,20 @@
                     android:fontFamily="@font/pitagon_semibold"
 
             />
+
             <com.google.android.material.button.MaterialButton
                     style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:id="@+id/openSourceButton"
+                    android:id="@+id/donateButton"
                     android:paddingTop="8dp"
                     android:paddingBottom="8dp"
-                    app:icon="@drawable/file_earmark_code_fill"
+                    app:icon="@drawable/donate_heart_filled"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/openContributeButton"
                     app:iconGravity="start"
-                    android:text="@string/action_source"
+                    android:text="@string/action_donate"
                     android:fontFamily="@font/pitagon_semibold"
 
             />
@@ -151,14 +152,31 @@
                 android:layout_marginLeft="@dimen/activity_horizontal_margin"
                 android:layout_marginRight="@dimen/activity_horizontal_margin"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                app:layout_constraintTop_toBottomOf="@id/openSourceButton"
+                app:layout_constraintTop_toBottomOf="@id/donateButton"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
                 android:autoLink="web"
                 android:fontFamily="@font/nevermind_compact"
                 android:textColor="@color/color_text_grey"
-        /><!--android:layout_weight="0.85"-->
+        />
+            <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.MaterialComponents.Button.Icon"
+                    android:id="@+id/openSourceButton"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    app:icon="@drawable/file_earmark_code_fill"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/bottomAboutTextView"
+                    app:iconGravity="start"
+                    android:text="@string/action_source"
+                    android:fontFamily="@font/pitagon_semibold"
+
+            />
+
+            <!--android:layout_weight="0.85"-->
 
             <!--<Button
                     android:text="@string/open_telegram"

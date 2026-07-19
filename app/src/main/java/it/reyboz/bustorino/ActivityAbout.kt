@@ -96,6 +96,10 @@ class ActivityAbout : AppCompatActivity() {
         openTutorialButton.setOnClickListener {
             startIntroductionActivity()
         }
+        val openDonationButton = findViewById<Button>(R.id.donateButton)
+        openDonationButton.setOnClickListener {
+            utils.openIceweasel("https://liberapay.com/Libre_BusTO", this)
+        }
 
         // handle the device "insets"
         ViewCompat.setOnApplyWindowInsetsListener(versionTextView,

@@ -245,7 +245,7 @@ Consultez les <b>Paramètres</b> pour personnaliser l\'application, et la sectio
 		- Tous les contributeurs, ainsi que les bêta-testeurs !
 		</p>
 		<br>
-		 Si vous souhaitez obtenir plus d\'informations ou contribuer au développement, utilisez les boutons ci-dessous !</b>
+		 <p>Si vous souhaitez obtenir plus d\'informations ou contribuer au développement, utilisez les boutons ci-dessous !</p>
     ]]></string>
     <string name="passages">Arrivées à:</string>
     <string name="action_open_line">Afficher détails de la ligne</string>
