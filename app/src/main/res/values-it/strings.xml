@@ -264,4 +264,7 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
     <string name="day_night_theme_set_dark">Scuro</string>
     <string name="day_night_theme_keep_system">Segui il sistema</string>
     <string name="pref_theme_day_night_title">Imposta tema scuro o chiaro</string>
+
+    <string name="no_trip_info_warning">Nessuna informazione trasmessa sulla direzione o sul viaggio del veicolo.</string>
+    <string name="downloading_trip_info">Download in corso delle informazioni sul viaggio</string>
 </resources>

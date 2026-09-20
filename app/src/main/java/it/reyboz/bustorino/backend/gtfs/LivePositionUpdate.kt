@@ -61,6 +61,11 @@ data class LivePositionUpdate(
     fun getLineGTFSFormat(): String{
         return "gtt:$routeID"
     }
+
+    fun hasTripId(): Boolean{
+        val r = tripID.isEmpty() || tripID == "null"
+        return !r
+    }
 }
 
 

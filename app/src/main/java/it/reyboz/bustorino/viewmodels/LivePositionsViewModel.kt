@@ -207,15 +207,22 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
      * This livedata object contains the final updates with patterns present in the DB
      */
     val updatesWithTripAndPatterns = gtfsTripsPatternsInDB.map { tripPatterns->
-        //TODO: Change the mapping in the final updates, I don't know why the key is the tripID and not the vehicle ID
-        Log.i(DEBUG_TI, "Mapping trips and patterns")
-        val mdict = HashMap<String,FullPositionUpdate>()
+        //Integrate trips and patterns
+        //Log.i(DEBUG_TI, "Mapping trips and patterns")
+        //val mdict = HashMap<String,FullPositionUpdate>()
+        val upsByVeh = HashMap<String, FullPositionUpdate>()
         //missing patterns
         val routesToDownload = HashSet<String>()
         if(positionsToBeMatchedLiveData.value!=null)
             for(update in positionsToBeMatchedLiveData.value!!){
+                if(!update.hasTripId()){
+                    //when there is no trip information
+                    upsByVeh[update.vehicle] = Pair(update, null)
+                    continue
+                }
 
-                val trID:String = update.tripID
+                val trID = update.tripID
+                val veh = update.vehicle
                 var found = false
                 for(trip in tripPatterns){
                     if (trip.pattern == null){
@@ -226,14 +233,14 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
                     if (trip.trip.tripID == "gtt:$trID"){
                         found = true
                         //insert directly
-                        mdict[trID] = Pair(update,trip)
+                        upsByVeh[veh] = Pair(update,trip)
                         break
                     }
                 }
                 if (!found){
                     //Log.d(DEBUG_TI, "Cannot find pattern ${tr}")
                     //give the update anyway
-                    mdict[trID] = Pair(update,null)
+                    upsByVeh[veh] = Pair(update,null)
                 }
             }
         //have to request download of missing Patterns
@@ -243,7 +250,7 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
             MatoPatternsDownloadWorker.downloadPatternsForRoutes(routesToDownload.toList(), getApplication())
         }
 
-        return@map mdict
+        return@map upsByVeh
     }
 
     fun clearOldPositionsUpdates(){
@@ -297,14 +304,14 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
             Pair<HashMap<String,FullPositionUpdate>, List<String>>{
         val gtfsLineId = linePatt.first
         val pattern = linePatt.second
-        val updsForTripId = HashMap<String, Pair<LivePositionUpdate, TripAndPatternWithStops?>>()
+        val updsByVeh = HashMap<String, Pair<LivePositionUpdate, TripAndPatternWithStops?>>()
         val vehicleOnWrongDirection = mutableListOf<String>()
 
         //supporting the eventual null case when there is no need to filter
         if (gtfsLineId == "ALL"){
             //copy the dict
-            for ((tripId, pair) in updates.entries) {
-                updsForTripId[tripId] = pair
+            for ((vehicle, pair) in updates.entries) {
+                updsByVeh[vehicle] = pair
             }
         } else {
 
@@ -318,11 +325,11 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
             )
             // cannot understand where this is used
             //val patternsDirections = HashMap<String,Int>()
-            for ((tripId, pair) in updates.entries) {
+            for ((veh, pair) in updates.entries) {
                 //remove trips with wrong line
                 val posUp = pair.first
                 val vehicle = pair.first.vehicle
-                if (pair.first.routeID != filtdLineID)
+                if (posUp.routeID != filtdLineID)
                     continue
 
                 if (directionId != -100 && pair.second != null && pair.second?.pattern != null) {
@@ -330,22 +337,22 @@ class LivePositionsViewModel(application: Application): AndroidViewModel(applica
 
                     if (dir == directionId) {
                         //add the trip
-                        updsForTripId[tripId] = pair
+                        updsByVeh[veh] = pair
                         //Log.d(DEBUG_TI, "Add vehicle ${pair.first.vehicle}, route ${pair.first.routeID}")
                     } else {
                         vehicleOnWrongDirection.add(vehicle)
                     }
-                    //patternsDirections[tripId] = dir ?: -10
+                    //patternsDirections[veh] = dir ?: -10
                 } else {
-                    updsForTripId[tripId] = pair
-                    //Log.d(DEBUG_TAG, "No pattern for tripID: $tripId")
-                    //patternsDirections[tripId] = -10
+                    updsByVeh[veh] = pair
+                    //Log.d(DEBUG_TAG, "No pattern for tripID: $veh")
+                    //patternsDirections[veh] = -10
                 }
             }
         }
-        Log.d(DEBUG_TI, "Filtered updates are ${updsForTripId.keys.size}") // Original updates directs: $patternsDirections\n
+        Log.d(DEBUG_TI, "Filtered updates are ${updsByVeh.keys.size}") // Original updates directs: $patternsDirections\n
 
-        return  Pair(updsForTripId, vehicleOnWrongDirection)
+        return  Pair(updsByVeh, vehicleOnWrongDirection)
     }
 
 

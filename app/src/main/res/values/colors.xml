@@ -99,4 +99,5 @@
     <color name="lines_nearby_color">@color/blue_700</color>
     <color name="stop_number_color">@color/light_blue_900</color>
 
+    <color name="yellow_warning">#fbb504</color>
 </resources>

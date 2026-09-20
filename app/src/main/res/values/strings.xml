@@ -417,4 +417,6 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="back_again_to_close">Press back again to close the app</string>
     <string name="action_donate">Donate</string>
 
+    <string name="no_trip_info_warning">No information on the direction or trip of the vehicle was transmitted.</string>
+    <string name="downloading_trip_info">Downloading trip information…</string>
 </resources>

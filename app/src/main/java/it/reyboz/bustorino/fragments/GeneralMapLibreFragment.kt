@@ -57,6 +57,7 @@ import it.reyboz.bustorino.backend.FiveTNormalizer
 import it.reyboz.bustorino.backend.LivePositionTripPattern
 import it.reyboz.bustorino.backend.LivePositionsServiceStatus
 import it.reyboz.bustorino.backend.Stop
+import it.reyboz.bustorino.backend.VehicleClassInfo
 import it.reyboz.bustorino.backend.VehicleUtils
 import it.reyboz.bustorino.backend.gtfs.GtfsUtils
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
@@ -178,6 +179,8 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     protected lateinit var locationComponent: LocationComponent
     protected lateinit var busPositionsIconButton: ImageButton
     protected lateinit var vehicleIcon: ImageView
+    protected lateinit var warningTripIcon: ImageView
+    private lateinit var loadingTripIcon: ImageView
 
     protected var lastLocation : Location? = null
 
@@ -273,11 +276,18 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         arrivalsCard = view.findViewById(R.id.arrivalsCardButton)
         directionsCard = view.findViewById(R.id.directionsCardButton)
         vehicleIcon = view.findViewById(R.id.vehicleIcon)
+        loadingTripIcon = view.findViewById(R.id.downloadingIcon)
+        warningTripIcon = view.findViewById(R.id.warningIconTrip)
         linesBottomTextView = view.findViewById(R.id.linesBottomTextView)
         linesBottomTextView.text = getString(R.string.lines_fill, "")
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
 
+        //set onclick listener for warning trip icon
+        warningTripIcon.setOnClickListener {
+            showToastMessage(R.string.no_trip_info_warning, true)
+        }
+        loadingTripIcon.setOnClickListener { showToastMessage(R.string.downloading_trip_info, true) }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -523,6 +533,11 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         locationEngine?.removeLocationUpdates(mapLibreLocationCallback)
     }
 
+    protected fun showVehClassInfo(vehInfo: VehicleClassInfo){
+        val print = "${vehInfo.type.getName()}: ${vehInfo.name}"
+        makeToast(print)
+    }
+
 
     /**
      * Update function for the bus positions
@@ -538,6 +553,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         hasVehicleTracking: Boolean = true,
         trackVehicleCallback: ((String) -> Unit)? = null
     ) {
+        //TODO: Eventually change this (incomingData should be keyed by vehicle)
         val vehsNew = HashSet(incomingData.values.map { up -> up.first.vehicle })
         val vehsOld = HashSet(updatesByVehDict.keys)
 
@@ -670,13 +686,17 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 GtfsUtils.getLineNameFromGtfsID(data.posUpdate.routeID), false
             )
             val pat = data.pattern
+            val update = data.posUpdate
+
             if (pat != null) {
                 stopTitleTextView.text = pat.headsign
                 stopTitleTextView.visibility = View.VISIBLE
                 stopNumberTextView.text = getString(R.string.line_fill_towards, lineName)
+                loadingTripIcon.visibility = View.GONE
             } else {
                 stopTitleTextView.visibility = View.GONE
                 stopNumberTextView.text = getString(R.string.line_fill, lineName)
+                loadingTripIcon.visibility = if (update.hasTripId()) View.VISIBLE else View.GONE
             }
             directionsCard.setOnClickListener {
                 onDirectionsClick(pat?.code ?: "", veh)
@@ -695,10 +715,10 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
 
             extraBottomTextView.text = getString(R.string.updated_fill,  utils.unixTimestampToLocalTime(data.posUpdate.timestamp))
             extraBottomTextView.visibility = View.VISIBLE
-            val update = data.posUpdate
             val vehInfo = VehicleUtils.getTypeForLabel(update.vehicle)
             if(vehInfo == null){
                 vehicleIcon.visibility = View.GONE
+                linesPassingTextView.setOnClickListener {  } //empty click listener
             } else{
                 val ico = when(vehInfo.type){
                     VehicleUtils.VehicleType.BUS -> R.drawable.ic_bus
@@ -709,9 +729,14 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 vehicleIcon.visibility = View.VISIBLE
 
                 vehicleIcon.setOnClickListener {
-                    val print = "${vehInfo.type.getName()}: ${vehInfo.name}"
-                    makeToast(print)
+                    showVehClassInfo(vehInfo)
                 }
+                linesPassingTextView.setOnClickListener { showVehClassInfo(vehInfo) }
+            }
+            if (!update.hasTripId()){
+                warningTripIcon.visibility = View.VISIBLE
+            } else{
+                warningTripIcon.visibility = View.GONE
             }
 
         }
@@ -866,6 +891,8 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             else stop.routesThatStopHereToString() //requireContext().getString(R.string.lines_fill, stop.routesThatStopHereToString())
             linesPassingTextView.text = string_show
             linesPassingTextView.visibility = View.VISIBLE
+            linesPassingTextView.setOnClickListener {  } //empty click listener (needed when switching from vehicle)
+
             linesPassingTextView.gravity = Gravity.TOP
             linesBottomTextView.visibility =View.VISIBLE
 
@@ -880,14 +907,17 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
             directionsCard.setOnClickListener {
                 ViewUtils.openStopInOutsideApp(stop, context)
             }
+
             context?.let {
                 val colorIcon = ViewUtils.getColorFromTheme(it, R.attr.colorAccent)//ResourcesCompat.getColor(resources,R.attr.colorAccent,activity?.theme)
                 ViewCompat.setBackgroundTintList(directionsCard, ColorStateList.valueOf(colorIcon))
             }
 
             bottomrightImage.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.navigation_right,  activity?.theme))
-
+            // icons for the vehicles
             vehicleIcon.visibility = View.GONE
+            warningTripIcon.visibility = View.GONE
+            loadingTripIcon.visibility = View.GONE
 
         }
         //add stop marker
