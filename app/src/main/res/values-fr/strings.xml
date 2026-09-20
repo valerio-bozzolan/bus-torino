@@ -5,7 +5,7 @@
     <string name="search">Rechercher</string>
     <string name="insert_bus_stop_number">Numéro de l\'arrêt de bus</string>
     <string name="insert_bus_stop_number_error">Insérer le numéro de l\'arrêt de bus</string>
-    <string name="message_install_barcode_scanner">Cette application nécessite une autre application pour scanner les codes QR. Souhaitez-vous installer Barcode Scanner maintenant ?</string>
+    <string name="message_install_barcode_scanner">Cette application nécessite une autre application pour scanner les codes QR. Souhaitez-vous installer Barcode Scanner maintenant ?</string>
     <string name="insert_bus_stop_name_error">Insérer le nom de l\'arrêt de bus</string>
     <string name="route_towards_destination">%1$s vers %2$s</string>
     <string name="route_towards_unknown">%s (destination inconnue)</string>
@@ -86,7 +86,7 @@
     <string name="grant_notification_permission">Activer les notifications</string>
     <string name="notification_permission_granted">Notifications activées</string>
     <string name="btn_load_backup_message">Importer depuis une sauvegarde</string>
-    <string name="title_barcode_scanner_install">Installer Barcode Scanner ?</string>
+    <string name="title_barcode_scanner_install">Installer Barcode Scanner ?</string>
     <string name="howDoesItWork"><b>Appuyez sur l\\\'étoile</b> pour ajouter l\'arrêt de bus à vos favoris\n\n<b>Pour lire les fiches horaires:</b>\n<b> 12:56*</b> Heures d\'arrivée en temps réel\n<b> 12:56</b> Heures d\'arrivée programmées\n\n<b>Tirez vers le bas pour actualiser</b> la fiche\n <b>Appui long sur la source des arrivées</b> pour la modifier</string>
     <string name="about_channel"><![CDATA[
     <h2>Actualités et mises à jour</h2>
