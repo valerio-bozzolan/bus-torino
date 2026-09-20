@@ -192,27 +192,7 @@ Kijk in de <b>Instellingen</b> om het gedrag van de app aan te passen, en in <b>
     <string name="tutorial_first"><![CDATA[Dank voor het installeren van BusTO, de gratis en <b>open source</b> app voor Turijns openbaar vervoer. Dit is een <b>onafhankelijke</b> app, zonder reclame en zonder tracking.]]></string>
     <string name="location_permission_granted">Locatietoestemming gegeven</string>
     <string name="load_file_favorites">Importeer favorieten vanuit backup</string>
-    <string name="about_how"><![CDATA[
-    <h2>Deze app is mede mogelijk gemaakt door</h2>
-        <p>De app werkt dankzij de data te gebruiken van <b>www.gtt.to.it</b>, <b>www.5t.torino.it</b> of <b>muoversiatorino.it</b> "voor persoonlijke doeleinden", tezamen met de open data van de AperTO (aperto.comune.torino.it) website.</p>
-        <br>
-		<p>Het werk van diverse mensen achter deze app, in het bijzonder:<br>
-		- <b>Fabio Mazza</b>, huidige senior rockstar developer.<br>
-        - <b>Andrea Ugo</b>, huidige junior rockstar developer.<br>
-		- <b>Silviu Chiriac</b>, ontwerper van het 2021 logo.<br>
-		- <b>Marco M</b>, rockstar tester en bug hunter.<br>
-		- <b>Ludovico Pavesi</b>, vorige senior rockstar developer (asd).<br>
-		- <b>Valerio Bozzolan</b>, maintainer en infrastructuur (sponsor).<br>
-		- <b>Marco Gagino</b>, bijdrager en ontwerper van het eerste logo.<br>
-		- <b>JSoup</b> web schraper bibliotheek.<br>
-		- <b>makovkastar</b> zwevende knoppen.<br>
-        - <b>Google</b> for iconen en ondersteuning en ontwerpbibliotheken.<br>
-        - Andere iconen van  <b>Bootstrap</b>, <b>Feather</b>, en <b>Hero Icons</b>.<br>
-		- Alle bijdragers en tevens de betatesters!
-		</p>
-		<br>
-		 Als je meer technische informatie wilt of zelf wilt bijdragen aan de ontwikkeling, gebruik dan de knoppen hieronder!</b>
-    ]]></string>
+    <string name="about_how"><![CDATA["\n    <h2>Deze app is mede mogelijk gemaakt door</h2>\n        <p>De app werkt dankzij de data te gebruiken van <b>www.gtt.to.it</b>, <b>www.5t.torino.it</b> of <b>muoversiatorino.it</b> \"voor persoonlijke doeleinden\", tezamen met de open data van de AperTO (aperto.comune.torino.it) website.</p>\n        <br>\n\t\t<p>Het werk van diverse mensen achter deze app, in het bijzonder:<br>\n\t\t- <b>Fabio Mazza</b>, huidige senior rockstar developer.<br>\n        - <b>Andrea Ugo</b>, huidige junior rockstar developer.<br>\n\t\t- <b>Silviu Chiriac</b>, ontwerper van het 2021 logo.<br>\n\t\t- <b>Marco M</b>, rockstar tester en bug hunter.<br>\n\t\t- <b>Ludovico Pavesi</b>, vorige senior rockstar developer (asd).<br>\n\t\t- <b>Valerio Bozzolan</b>, maintainer en infrastructuur (sponsor).<br>\n\t\t- <b>Marco Gagino</b>, bijdrager en ontwerper van het eerste logo.<br>\n\t\t- <b>JSoup</b> web schraper bibliotheek.<br>\n\t\t- <b>makovkastar</b> zwevende knoppen.<br>\n        - <b>Google</b> for iconen en ondersteuning en ontwerpbibliotheken.<br>\n        - Andere iconen van  <b>Bootstrap</b>, <b>Feather</b>, en <b>Hero Icons</b>.<br>\n\t\t- Alle bijdragers en tevens de betatesters!\n\t\t</p>\n\t\t<br>\n\t\t Als je meer technische informatie wilt of zelf wilt bijdragen aan de ontwikkeling, gebruik dan de knoppen hieronder!</b>\n    "]]></string>
     <string name="about_history_bottom"><![CDATA[
 		<h2>Licenties</h2>
 		<p>De app en de bijbehorende broncode is gepubliceerd door Valerio Bozzolan en andere ontwikkelaars onder de voorwaarden van de <i>GNU General Public License v3+</i>).
