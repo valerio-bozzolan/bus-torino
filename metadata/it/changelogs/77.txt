@@ -1,0 +1,4 @@
+- Migliorata la visualizzazione dei veicoli senza informazioni sulla corsa, o con informazioni in download: https://gitpull.it/D257
+- Aggiunta pulsante donazioni nella sezione Informazioni: https://gitpull.it/D256
+- Risolto un problema minore relativo agli autobus extraurbani: https://gitpull.it/D254
+- Aggiornate le traduzioni italiana, francese e olandese tramite Weblate.

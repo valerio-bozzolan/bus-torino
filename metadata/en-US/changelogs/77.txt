@@ -1,0 +1,4 @@
+- Improved the display of vehicles with no trip information or with information currently downloading: https://gitpull.it/D257
+- Added a donation button to the About section: https://gitpull.it/D256
+- Fixed a minor issue related to suburban buses: https://gitpull.it/D254
+- Updated the Italian, French, and Dutch translations via Weblate.
