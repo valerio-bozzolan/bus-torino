@@ -267,4 +267,6 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
 
     <string name="no_trip_info_warning">Nessuna informazione trasmessa sulla direzione o sul viaggio del veicolo.</string>
     <string name="downloading_trip_info">Download in corso delle informazioni sul viaggio</string>
+    <string name="no_stop_found_search_name">Nessuna fermata trovata con questo nome</string>
+    <string name="no_stop_found_search_number">Nessuna fermata trovata con questo numero</string>
 </resources>

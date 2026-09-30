@@ -18,7 +18,6 @@
 package it.reyboz.bustorino.fragments
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
@@ -28,7 +27,6 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatButton
-import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
@@ -37,7 +35,7 @@ import com.google.android.material.button.MaterialButton
 import it.reyboz.bustorino.BuildConfig
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.adapters.ArrivalsStopAdapter
-import it.reyboz.bustorino.adapters.SquareStopAdapter
+import it.reyboz.bustorino.adapters.StopNearbyAdapter
 import it.reyboz.bustorino.backend.*
 import it.reyboz.bustorino.data.DatabaseUpdate
 import it.reyboz.bustorino.middleware.AutoFitGridLayoutManager
@@ -46,7 +44,6 @@ import it.reyboz.bustorino.middleware.FusedNativeLocationProvider.LocationUpdate
 import it.reyboz.bustorino.util.Permissions
 import it.reyboz.bustorino.util.Permissions.Companion.bothLocationPermissionsGranted
 import it.reyboz.bustorino.util.StopSorterByDistance
-import it.reyboz.bustorino.util.ViewUtils
 import it.reyboz.bustorino.viewmodels.NearbyStopsViewModel
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -81,7 +78,7 @@ class NearbyStopsFragment : ScreenBaseFragment() {
 
     private lateinit var gridRecyclerView: RecyclerView
 
-    private var dataAdapter: SquareStopAdapter? = null
+    private var dataAdapter: StopNearbyAdapter? = null
     private var gridLayoutManager: AutoFitGridLayoutManager? = null
     private var lastPosition: GPSPoint? = null
     private var circlingProgressBar: ProgressBar? = null
@@ -732,7 +729,9 @@ class NearbyStopsFragment : ScreenBaseFragment() {
 
         Collections.sort(stops, StopSorterByDistance(location))
         if (dataAdapter == null) {
-            dataAdapter = SquareStopAdapter(stops, mListener, lastPosition)
+            dataAdapter = StopNearbyAdapter(ArrayList(stops), lastPosition, false){
+                stop-> mListener?.requestArrivalsForStopID(stop.ID)
+            }
             firstLocForStops = false
         } else {
             dataAdapter!!.setUserPosition(lastPosition)

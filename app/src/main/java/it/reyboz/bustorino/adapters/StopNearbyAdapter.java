@@ -31,21 +31,25 @@ import it.reyboz.bustorino.backend.GPSPoint;
 import it.reyboz.bustorino.backend.Stop;
 import it.reyboz.bustorino.util.StopSorterByDistance;
 import it.reyboz.bustorino.fragments.FragmentListenerMain;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
-public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.SquareViewHolder> {
+public class StopNearbyAdapter extends RecyclerView.Adapter<StopNearbyAdapter.SquareViewHolder> {
     private final static int layoutRes = R.layout.item_stop_nearby_card;
     //private List<Stop> stops;
     private @Nullable GPSPoint userPosition;
-    private FragmentListenerMain listener;
-    private List<Stop> stops;
+    private OnStopClickListener listener;
+    private boolean showLocation;
+    private ArrayList<Stop> stops;
 
-    public SquareStopAdapter(@Nullable List<Stop> stopList, FragmentListenerMain fragmentListener, @Nullable GPSPoint pos) {
+    public StopNearbyAdapter(@NotNull ArrayList<Stop> stopList,
+                             @Nullable GPSPoint pos, boolean showLocation, OnStopClickListener fragmentListener) {
         listener  = fragmentListener;
         userPosition = pos;
         stops = stopList;
+        this.showLocation = showLocation;
     }
 
 
@@ -54,21 +58,24 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
     public SquareViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false);
         //sort the stops by distance
-        if(stops != null && stops.size() > 0)
-            Collections.sort(stops,new StopSorterByDistance(userPosition));
+        if (userPosition!=null) {
+            if (stops != null && stops.size() > 0)
+                stops.sort(new StopSorterByDistance(userPosition));
+        }
         return new SquareViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(SquareViewHolder holder, int position) {
             //DO THE ACTUAL WORK TO PUT THE DATA
-        if(stops==null || stops.size() == 0) return; //NO STOPS
+        if(stops==null || stops.isEmpty()) return; //NO STOPS
         final Stop stop = stops.get(position);
         final Context context = holder.itemView.getContext();
         if(stop!=null){
-            if(stop.getDistanceFromLocation(userPosition)!=Double.POSITIVE_INFINITY){
+            if(userPosition!=null && stop.getDistanceFromLocation(userPosition)!=Double.POSITIVE_INFINITY){
                 Double distance = stop.getDistanceFromLocation(userPosition);
                 holder.distancetextView.setText(distance.intValue()+" m");
+                holder.distancetextView.setVisibility(View.VISIBLE);
             } else {
                 holder.distancetextView.setVisibility(View.GONE);
             }
@@ -80,10 +87,19 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
             if(whatStopsHere == null) {
                 holder.routesView.setVisibility(View.GONE);
             } else {
-                holder.routesView.setText(context.getString(R.string.lines_fill, whatStopsHere));
+                holder.routesView.setText(whatStopsHere);
+                //context.getString(R.string.lines_fill, whatStopsHere));
                 holder.routesView.setVisibility(View.VISIBLE); // might be GONE due to View Holder Pattern
             }
-            holder.stopID =stop.ID;
+            holder.itemView.setOnClickListener(view -> {listener.onStopClick(stop);});
+            if (showLocation && !(
+                    stop.location==null || stop.location.isEmpty() || stop.location.contains("null"))
+            ){
+                holder.locationTextView.setText(stop.location);
+                holder.locationTextView.setVisibility(View.VISIBLE);
+            } else {
+                holder.locationTextView.setVisibility(View.GONE);
+            }
         } else {
             Log.w("SquareStopAdapter","!! The selected stop is null !!");
         }
@@ -94,26 +110,30 @@ public class SquareStopAdapter extends RecyclerView.Adapter<SquareStopAdapter.Sq
         return stops.size();
     }
 
-    class SquareViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener  {
+    class SquareViewHolder extends RecyclerView.ViewHolder  {
         TextView stopIDView;
         TextView stopNameView;
+        TextView locationTextView;
         TextView routesView;
         TextView distancetextView;
-        String stopID;
+        //Stop stop;
 
         SquareViewHolder(View holdView){
             super(holdView);
-            holdView.setOnClickListener(this);
+            //holdView.setOnClickListener(this);
             stopIDView = (TextView) holdView.findViewById(R.id.stop_numberText);
             stopNameView = (TextView) holdView.findViewById(R.id.stop_nameText);
             routesView = (TextView) holdView.findViewById(R.id.stop_linesText);
+            locationTextView = holdView.findViewById(R.id.stop_locationTextView);
             distancetextView = (TextView) holdView.findViewById(R.id.stop_distanceTextView);
         }
 
-        @Override
+        /*@Override
         public void onClick(View v) {
-            listener.requestArrivalsForStopID(stopID);
+            listener.onStopClick(stop);
         }
+
+         */
 
     }
 

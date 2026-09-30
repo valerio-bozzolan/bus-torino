@@ -337,6 +337,28 @@ public class NextGenDB extends SQLiteOpenHelper{
         });
     }
 
+    @NonNull
+    public synchronized List<Stop> searchStopsByCodeOrName(String query, boolean searchById){
+        String escaped = query.replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+        String sql;
+        final String like = "%" + escaped + "%";
+        if (searchById){
+            sql = "SELECT * FROM "+StopsTable.TABLE_NAME+" WHERE "+StopsTable.COL_ID+"  LIKE ? ESCAPE '\\'";
+        } else{
+            sql = "SELECT * FROM "+StopsTable.TABLE_NAME+" WHERE "+StopsTable.COL_NAME+" LIKE ? ESCAPE '\\'";
+        }
+        final List<Stop> out =  new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        try (Cursor c= db.rawQuery(sql, new String[]{like}
+        ) ) {
+            out.addAll(getStopsFromCursorAllFields(c));
+        }
+
+        return out;
+    }
+
 
     /**
      * Get the list of stop in the query, with all the possible fields {NextGenDB.QUERY_COLUMN_stops_all}

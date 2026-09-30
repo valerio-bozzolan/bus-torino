@@ -22,18 +22,23 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
+import android.text.InputType;
+import android.widget.TextView;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.appcompat.widget.SearchView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.util.Log;
@@ -48,15 +53,18 @@ import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.R;
+import it.reyboz.bustorino.adapters.StopNearbyAdapter;
 import it.reyboz.bustorino.backend.*;
 import it.reyboz.bustorino.util.Permissions;
 import it.reyboz.bustorino.viewmodels.IntroViewModel;
+import it.reyboz.bustorino.viewmodels.SearchStopsDBViewModel;
 import org.jetbrains.annotations.NotNull;
 
 import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSIONS;
@@ -81,7 +89,7 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
     public final static String FRAGMENT_TAG = "MainScreenFragment";
 
     private enum SearchMode {SEARCH_ID,SEARCH_NAME,INITIAL}
-    public enum InternalScreen {
+    public enum InitialScreen {
         HOME_BUTTONS(0),
         NEARBY_STOPS(1),
         ARRIVALS(2),
@@ -89,21 +97,21 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
         NEARBY_ARRIVALS(4);
 
         public final int code;
-        InternalScreen(int code) { this.code = code; }
+        InitialScreen(int code) { this.code = code; }
 
         @Nullable
-        public static InternalScreen fromCode(int code) {
-            for (InternalScreen c : values()) if (c.code == code) return c;
+        public static InitialScreen fromCode(int code) {
+            for (InitialScreen c : values()) if (c.code == code) return c;
             return null;
         }
         @NonNull
-        public static InternalScreen fromFragmentKind(@NonNull FragmentKind kind){
+        public static InitialScreen fromFragmentKind(@NonNull FragmentKind kind){
             switch (kind){
-                case HOME_BUTTONS -> { return  InternalScreen.HOME_BUTTONS; }
-                case NEARBY_STOPS -> { return  InternalScreen.NEARBY_STOPS; }
-                case FragmentKind.ARRIVALS -> { return  InternalScreen.ARRIVALS; }
-                case FragmentKind.STOPS -> { return  InternalScreen.STOP_SEARCH; }
-                case FragmentKind.NEARBY_ARRIVALS -> { return  InternalScreen.NEARBY_ARRIVALS; }
+                case HOME_BUTTONS -> { return  InitialScreen.HOME_BUTTONS; }
+                case NEARBY_STOPS -> { return  InitialScreen.NEARBY_STOPS; }
+                case FragmentKind.ARRIVALS -> { return  InitialScreen.ARRIVALS; }
+                case FragmentKind.STOPS -> { return  InitialScreen.STOP_SEARCH; }
+                case FragmentKind.NEARBY_ARRIVALS -> { return  InitialScreen.NEARBY_ARRIVALS; }
                 default -> {
                     throw new IllegalArgumentException("Unknown fragment kind");
                 }
@@ -113,13 +121,14 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
 
     private FragmentHelper fragmentHelper;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private EditText busStopSearchByIDEditText;
-    private EditText busStopSearchByNameEditText;
+    //private EditText busStopSearchByIDEditText;
+    //private EditText busStopSearchByNameEditText;
+
+    private SearchView busStopSearchView;
     private ProgressBar progressBar;
     private FloatingActionButton floatingActionButton;
 
-    /// VIEW MODELS in BaseFragment
-
+    private SearchStopsDBViewModel searchStopsViewModel;
 
     private boolean setupOnStart = true;
     private boolean suppressArrivalsReload = false;
@@ -138,12 +147,23 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
 
     private String pendingStopID = null;
     private String pendingSearchQuery = null;
-    private InternalScreen internalScreen = InternalScreen.HOME_BUTTONS;
+    private InitialScreen initialScreen = InitialScreen.HOME_BUTTONS;
     private CoordinatorLayout coordLayout;
+
+    private RecyclerView suggestionsRecyclerView;
+    private StopNearbyAdapter suggestionsAdapter = null;
+    private TextView stopSearchMessageTextView;
 
     //this is really a hackish thing, but it works
     private final LinkedBlockingQueue<Runnable> thingsToDoOnStart = new LinkedBlockingQueue<>();
 
+    private boolean isSearchModeById(){
+        return  searchMode != SearchMode.SEARCH_NAME;
+    }
+
+    private void emptySearchQueryViewModel(){
+        searchStopsViewModel.searchStops("",isSearchModeById());
+    }
 
     private void refreshStop() {
         if(getContext() == null){
@@ -203,14 +223,14 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
     }
 
 
-    public static MainScreenFragment newInstance(@NonNull InternalScreen kind,
+    public static MainScreenFragment newInstance(@NonNull InitialScreen kind,
                                             @Nullable String stopId,
                                             @Nullable String query) {
         MainScreenFragment f = new MainScreenFragment();
         f.setArguments(makeArgs(kind, stopId, query));
         return f;
     }
-    public static MainScreenFragment newInstance(@NonNull InternalScreen kind, @Nullable Bundle args){
+    public static MainScreenFragment newInstance(@NonNull InitialScreen kind, @Nullable Bundle args){
         MainScreenFragment f = new MainScreenFragment();
         if (args != null) {
             f.setArguments(args);
@@ -225,7 +245,7 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
      * @param query
      * @return
      */
-    public static Bundle makeArgs(@NonNull InternalScreen kind, @Nullable String stopId, @Nullable String query) {
+    public static Bundle makeArgs(@NonNull InitialScreen kind, @Nullable String stopId, @Nullable String query) {
         Bundle b = new Bundle();
         b.putInt(ARG_INITIAL_CONTENT, kind.code);
         if (stopId != null) b.putString(ARG_STOP_ID, stopId);
@@ -233,16 +253,16 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
         return b;
     }
     public static Bundle makeArgsArrivals(@NonNull String stopID){
-        return makeArgs(InternalScreen.ARRIVALS, stopID, null);
+        return makeArgs(InitialScreen.ARRIVALS, stopID, null);
     }
     public static Bundle makeArgsStops(@NonNull String query){
-        return makeArgs(InternalScreen.STOP_SEARCH, query, null);
+        return makeArgs(InitialScreen.STOP_SEARCH, query, null);
     }
     public static Bundle makeArgsNearby(){
-        return makeArgs(InternalScreen.NEARBY_STOPS, null, null);
+        return makeArgs(InitialScreen.NEARBY_STOPS, null, null);
     }
     public static Bundle makeArgsButtonsScreen(){
-        return makeArgs(InternalScreen.HOME_BUTTONS, null, null);
+        return makeArgs(InitialScreen.HOME_BUTTONS, null, null);
     }
 
 
@@ -254,9 +274,9 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
             Log.d(DEBUG_TAG, "ARGS ARE NOT NULL: "+ args);
 
             if (args.containsKey(ARG_INITIAL_CONTENT)) {
-                int code = args.getInt(ARG_INITIAL_CONTENT, InternalScreen.HOME_BUTTONS.code);
-                InternalScreen parsed = InternalScreen.fromCode(code);
-                internalScreen = (parsed != null) ? parsed : InternalScreen.HOME_BUTTONS;
+                int code = args.getInt(ARG_INITIAL_CONTENT, InitialScreen.HOME_BUTTONS.code);
+                InitialScreen parsed = InitialScreen.fromCode(code);
+                initialScreen = (parsed != null) ? parsed : InitialScreen.HOME_BUTTONS;
             }
             String stopId = args.getString(ARG_STOP_ID);
             if (stopId != null)
@@ -266,7 +286,6 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
         }
 
         fragmentHelper = new FragmentHelper(this, getChildFragmentManager(), getContext(), R.id.resultFrame);
-
     }
 
     @Override
@@ -285,14 +304,31 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_main_screen, container, false);
         /// UI ELEMENTS //
-        busStopSearchByIDEditText = root.findViewById(R.id.busStopSearchByIDEditText);
-        busStopSearchByNameEditText = root.findViewById(R.id.busStopSearchByNameEditText);
+        //busStopSearchByIDEditText = root.findViewById(R.id.busStopSearchByIDEditText);
+        //busStopSearchByNameEditText = root.findViewById(R.id.busStopSearchByNameEditText);
+        busStopSearchView = root.findViewById(R.id.busStopSearchView);
         progressBar = root.findViewById(R.id.progressBar);
 
         swipeRefreshLayout = root.findViewById(R.id.listRefreshLayout);
         floatingActionButton = root.findViewById(R.id.floatingActionButton);
-        busStopSearchByIDEditText.setSelectAllOnFocus(true);
-        busStopSearchByIDEditText
+        stopSearchMessageTextView = root.findViewById(R.id.stopSearchMessageTextView);
+        suggestionsRecyclerView = root.findViewById(R.id.suggestionsRecyclerView);
+        suggestionsRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(),LinearLayoutManager.VERTICAL, false));
+        EditText searchEditText = busStopSearchView.findViewById(androidx.appcompat.R.id.search_src_text);
+        searchEditText.setSelectAllOnFocus(true);
+        searchEditText.setOnFocusChangeListener( (view,hasFocus) ->{
+            if(hasFocus){
+                showFloatingActionButton(true);
+            }
+        });
+
+        busStopSearchView.setOnFocusChangeListener( (view, hasFocus) ->{
+            if(hasFocus){
+                showFloatingActionButton(true);
+            }
+        });
+        //busStopSearchView.setSelectAllOnFocus(true);
+        /*busStopSearchByIDEditText
                 .setOnEditorActionListener((v, actionId, event) -> {
                     // IME_ACTION_SEARCH alphabetical option
                     if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -301,7 +337,9 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
                     }
                     return false;
                 });
-        busStopSearchByNameEditText
+
+         */
+        /*searchEditText
                 .setOnEditorActionListener((v, actionId, event) -> {
                     // IME_ACTION_SEARCH alphabetical option
                     if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -310,6 +348,24 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
                     }
                     return false;
                 });
+
+         */
+
+        busStopSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String q) {
+                onSearchClick(null);
+                emptySearchQueryViewModel();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String q) {
+                //Log.d(DEBUG_TAG, "Changed query text");
+                searchStopsViewModel.searchStops(q, isSearchModeById());
+                return true;
+            }
+        });
 
         swipeRefreshLayout
                 .setOnRefreshListener(this::refreshStop);
@@ -319,7 +375,7 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
         floatingActionButton.setImageResource(R.drawable.magnifying_glass_larger);
         floatingActionButton.setOnClickListener((this::onToggleKeyboardLayout));
 
-        busStopSearchByIDEditText.setOnFocusChangeListener((v, hasFocus) -> {
+        /*busStopSearchByIDEditText.setOnFocusChangeListener((v, hasFocus) -> {
             //Log.d(DEBUG_TAG, "stop search by ID has focus: " + hasFocus);
             if(hasFocus)
                 setSearchModeBusStopID();
@@ -330,6 +386,8 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
             if(hasFocus)
                 setSearchModeBusStopName();
         });
+
+         */
 
         AppCompatImageButton qrButton = root.findViewById(R.id.QRButton);
         qrButton.setOnClickListener(this::onQRButtonClick);
@@ -379,18 +437,14 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Log.d(DEBUG_TAG, "onViewCreated, SwipeRefreshLayout visible: "+(swipeRefreshLayout.getVisibility()==View.VISIBLE));
-        Log.d(DEBUG_TAG, "Saved instance state is: "+savedInstanceState);
-        //Restore instance state
-        /*if (savedInstanceState!=null){
-            Fragment fragment = getChildFragmentManager().getFragment(savedInstanceState, SAVED_FRAGMENT);
-            if (fragment!=null){
-                getChildFragmentManager().beginTransaction().add(R.id.resultFrame, fragment).commit();
-                setupOnStart = false;
-            }
-        }
+        Log.d(DEBUG_TAG, "onViewCreated, have savedInstanceState: "+ (savedInstanceState!=null) +
+                "; SwipeRefreshLayout visible: "+(swipeRefreshLayout.getVisibility()==View.VISIBLE));
+        //Log.d(DEBUG_TAG, "Saved instance state is: "+savedInstanceState);
+        searchStopsViewModel = new ViewModelProvider(requireActivity()).get(SearchStopsDBViewModel.class);
 
-         */
+        searchStopsViewModel.getFilteredStopsSearch().observe(getViewLifecycleOwner(),
+                stops -> setSuggestionsStopRecyclerView(stops, true));
+
         if (getChildFragmentManager().findFragmentById(R.id.resultFrame)!= null){
             swipeRefreshLayout.setVisibility(View.VISIBLE);
             // The child FragmentManager has restored its content — don't dispatch again
@@ -399,13 +453,13 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
 
         if (savedInstanceState != null) return;
 
-        showDifferentSubFragments(internalScreen);
+        showDifferentSubFragments(initialScreen);
     }
 
     /**
      * Installs the initial child fragment based on the arguments supplied as arguments
      */
-    private void showDifferentSubFragments(@NonNull InternalScreen screen) {
+    private void showDifferentSubFragments(@NonNull InitialScreen screen) {
         boolean firstTime = !initialScreenShown;
         switch (screen) {
             case NEARBY_STOPS:
@@ -449,6 +503,39 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
             getChildFragmentManager().putFragment(outState, SAVED_FRAGMENT, fragment);
         //if (fragmentHelper!=null) fragmentHelper.setBlockAllActivities(true);
 
+    }
+
+    public void setSuggestionsStopRecyclerView(List<Stop> stops, boolean showMessage){
+
+        var res = !stops.isEmpty();
+        var query = searchStopsViewModel.getQueryStops();
+        //Log.d(DEBUG_TAG, "received stops suggestions, are "+stops.size());
+        if(res){
+            if(suggestionsAdapter!=null){
+                suggestionsAdapter.setStops(stops);
+            } else{
+                suggestionsAdapter = new StopNearbyAdapter(new ArrayList<>(stops), null, true, (stop)->{
+                    requestArrivalsForStopID(stop.ID);
+                    //clear query
+                    emptySearchQueryViewModel();
+                    //setSuggestionsStopRecyclerView(List.of(), false);
+                });
+                suggestionsRecyclerView.setAdapter(suggestionsAdapter);
+            }
+            suggestionsRecyclerView.setVisibility(View.VISIBLE);
+
+        } else{
+            if(suggestionsAdapter !=null) suggestionsAdapter = null;
+            suggestionsRecyclerView.setVisibility(View.GONE);
+            if(showMessage && query!=null && !query.trim().isEmpty()){
+                stopSearchMessageTextView.setText( searchMode == SearchMode.SEARCH_NAME ?
+                        R.string.no_stop_found_search_name : R.string.no_stop_found_search_number);
+                stopSearchMessageTextView.setVisibility(View.VISIBLE);
+            } else{
+                stopSearchMessageTextView.setVisibility(View.GONE);
+            }
+
+        }
     }
 
     public void setSuppressArrivalsReload(boolean value){
@@ -513,18 +600,19 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
         }
         if (setupOnStart) {
             if (pendingStopID==null){
-
                 if(!pendingIntroRun){
                     //show the fragment
                     //showButtonsFragment();
                 }
-
             }
             else{
                 ///TODO: if there is a stop displayed, we need to hold the update
             }
-
             setupOnStart = false;
+        }
+        // this happens when the fragment is recreated and the query is set on the searchView
+        if(!searchStopsViewModel.getShowingSearchSuggestions()){
+            emptySearchQueryViewModel();
         }
     }
 
@@ -621,7 +709,6 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
             requestArrivalsForStopID(pendingStopID);
             pendingStopID = null;
         }
-
         //mListener.readyGUIfor(FragmentKind.MAIN_SCREEN_FRAGMENT);
 
         //fragmentHelper.setBlockAllActivities(false);
@@ -634,6 +721,7 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
         //locationManager.removeLocationRequestFor(requester);
         //fragmentHelper.setBlockAllActivities(true);
         fragmentHelper.stopLastRequestIfNeeded();
+        searchStopsViewModel.saveOpenSearchSuggestions();
         super.onPause();
     }
 
@@ -644,7 +732,8 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
 
     @Override
     public void onQrScanSuccess(@NotNull String busIDToSearch) {
-        busStopSearchByIDEditText.setText(busIDToSearch);
+        EditText searchEditText = busStopSearchView.findViewById(androidx.appcompat.R.id.search_src_text);
+        searchEditText.setText(busIDToSearch);
         requestArrivalsForStopID(busIDToSearch);
     }
 
@@ -664,13 +753,13 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
      */
     public void onSearchClick(View v) {
         //final StopsFinderByName[] stopsFinderByNames = new StopsFinderByName[]{new GTTStopsFetcher(), new FiveTStopsFetcher()};
-        if (searchMode == SearchMode.SEARCH_ID) {
-            String busStopID = busStopSearchByIDEditText.getText().toString();
+        if (searchMode == SearchMode.SEARCH_ID || searchMode == SearchMode.INITIAL) {
+            String busStopID = busStopSearchView.getQuery().toString();
             fragmentHelper.stopLastRequestIfNeeded();
             requestArrivalsForStopID(busStopID);
         } else if (searchMode == SearchMode.SEARCH_NAME) {
             // searchMode == SEARCH_BY_NAME
-            String query = busStopSearchByNameEditText.getText().toString();
+            String query = busStopSearchView.getQuery().toString();
             query = query.trim();
             if(getContext()!=null) {
                 if (query.length() < 1) {
@@ -688,17 +777,17 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
     public void onToggleKeyboardLayout(View v) {
         switch (searchMode){
             case SEARCH_ID:
-                setSearchModeBusStopName();
-                if (busStopSearchByNameEditText.requestFocus()) {
+                setSearchMode(SearchMode.SEARCH_NAME);
+                if (busStopSearchView.requestFocus())
                     showKeyboard();
-                }
+                //}
                 break;
             case SEARCH_NAME:
             case INITIAL:
-                setSearchModeBusStopID();
-                if (busStopSearchByIDEditText.requestFocus()) {
-                    showKeyboard();
-                }
+                setSearchMode(SearchMode.SEARCH_ID);
+                if (busStopSearchView.requestFocus())
+                   showKeyboard();
+                //}
         }
 
     }
@@ -709,51 +798,51 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
     }
 
     ////////////////////////////////////// GUI HELPERS /////////////////////////////////////////////
+
+    private EditText getSearchEditText() {
+        return busStopSearchView.findViewById(androidx.appcompat.R.id.search_src_text);
+    }
     public void showKeyboard() {
         if(getActivity() == null) return;
-        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        View view;
-        if(searchMode == SearchMode.SEARCH_ID)
-             view= busStopSearchByIDEditText;
-        else if(searchMode == SearchMode.SEARCH_NAME)
-            view = busStopSearchByNameEditText;
-        else{
-            Log.e(DEBUG_TAG, "Asking to show keyboard but SearchMode is "+searchMode+", ignoring");
-            return;
-        }
-
-        imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+        final EditText et = getSearchEditText();
+        et.requestFocus();
+        et.post(() -> {
+            InputMethodManager imm = (InputMethodManager)
+                    requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm == null) return;
+            imm.restartInput(et);                                  // applica il nuovo inputType
+            imm.showSoftInput(et, InputMethodManager.SHOW_IMPLICIT);
+        });
     }
 
-    private void setSearchModeBusStopID() {
-        searchMode = SearchMode.SEARCH_ID;
-        busStopSearchByNameEditText.setVisibility(View.GONE);
-        busStopSearchByNameEditText.setText("");
-        busStopSearchByIDEditText.setVisibility(View.VISIBLE);
-        floatingActionButton.setImageResource(R.drawable.alphabetical);
-    }
 
-    private void setSearchModeBusStopName() {
-        searchMode = SearchMode.SEARCH_NAME;
-        busStopSearchByIDEditText.setVisibility(View.GONE);
-        busStopSearchByIDEditText.setText("");
-        busStopSearchByNameEditText.setVisibility(View.VISIBLE);
-        floatingActionButton.setImageResource(R.drawable.numeric);
-    }
     protected boolean isNearbyFragmentShown(){
         Fragment fragment = getChildFragmentManager().findFragmentByTag(NearbyStopsFragment.FRAGMENT_TAG);
         return (fragment!= null && fragment.isResumed());
     }
 
-    /**
+    private void setSearchMode(SearchMode mode) {
+        searchMode = mode;
+        busStopSearchView.setQuery("", false);
+        boolean byId = mode != SearchMode.SEARCH_NAME;
+        busStopSearchView.setInputType(byId ? InputType.TYPE_CLASS_NUMBER : InputType.TYPE_CLASS_TEXT);
+        floatingActionButton.setImageResource(byId ? R.drawable.numeric : R.drawable.alphabetical);
+        busStopSearchView.setQueryHint(getString(byId ? R.string.insert_bus_stop_number : R.string.insert_bus_stop_name));
+    }
+
+    /*
      * Having that cursor at the left of the edit text makes me cancer.
      *
      * @param busStopID bus stop ID
      */
+    //
+    /*
     private void setBusStopSearchByIDEditText(String busStopID) {
         busStopSearchByIDEditText.setText(busStopID);
         busStopSearchByIDEditText.setSelection(busStopID.length());
     }
+
+     */
 
     @Nullable
     @Override
@@ -777,12 +866,16 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
     private void prepareGUIForArrivals() {
         swipeRefreshLayout.setEnabled(true);
         swipeRefreshLayout.setVisibility(View.VISIBLE);
+        //this is to hide the eventual search results from the text
+        //setSuggestionsStopRecyclerView(List.of(), false);
         //actionHelpMenuItem.setVisible(true);
     }
 
     private void prepareGUIForBusStops() {
         swipeRefreshLayout.setEnabled(false);
         swipeRefreshLayout.setVisibility(View.VISIBLE);
+        //setSuggestionsStopRecyclerView(List.of(), false);
+
         //actionHelpMenuItem.setVisible(false);
     }
 
@@ -831,6 +924,37 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
 
 
     }
+
+    /*
+    // KEEPING THIS METHODS AS EXAMPLES FOR SHOW
+    boolean searchStopsResultsFragmentShown(){
+        Fragment frag = childFragMan.findFragmentById(R.id.resultFrame);
+        return frag instanceof StopSearchResultFragment;
+    }
+    void showSearchStopsResultsFragment(){
+        final String TAG = "stopSearchResult";
+        Fragment frag = childFragMan.findFragmentById(R.id.resultFrame);
+        if (frag instanceof StopSearchResultFragment){
+            return; //nothing to do
+        }
+        boolean exists = frag != null;
+        var trans = childFragMan.beginTransaction();
+
+        frag = childFragMan.findFragmentByTag(TAG);
+        if (!(frag instanceof  StopSearchResultFragment)) {
+            frag = StopSearchResultFragment.newInstance();
+        }
+        if(exists){
+            //show the fragment
+            trans.replace(R.id.resultFrame,frag, TAG);
+        } else{
+            //create new fragment
+            trans.add(R.id.resultFrame,frag, TAG);
+        }
+        trans.addToBackStack(null);
+        trans.commit();
+    }
+     */
 
     @Override
     public void openLineFromStop(String routeGtfsId, @Nullable String stopIDFrom) {
