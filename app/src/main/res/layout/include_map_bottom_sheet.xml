@@ -205,14 +205,53 @@
 
 
     <!-- Additional details -->
+    <ImageView
+            android:layout_width="35sp"
+            android:layout_height="35sp"
+            app:srcCompat="@drawable/ic_map_pin"
+            android:id="@+id/centerBottomLayoutImage"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginStart="12dp"
+            app:layout_constraintEnd_toStartOf="@id/directionsCardButton"
+            app:layout_constraintTop_toBottomOf="@id/directionsCardButton"
+            android:foreground="?selectableItemBackground"
+            app:tint="?colorPrimary"
+    />
+    <!--
+    <androidx.cardview.widget.CardView
+            android:id="@+id/centerMapCardView"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="10dp"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="2dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintTop_toBottomOf="@id/directionsCardButton"
+            app:layout_constraintEnd_toStartOf="@id/btnClose"
+            android:foreground="?selectableItemBackground"
+            android:backgroundTint="@color/colorTransparent"
+    >
 
+        <ImageView
+                android:layout_width="30sp"
+                android:layout_height="30sp"
+                android:layout_gravity="center"
+                app:tint="?colorPrimary"
+                android:backgroundTint="@color/colorTransparent"
+                app:srcCompat="@drawable/ic_map_center_carbon" />
+
+    </androidx.cardview.widget.CardView>
+    -->
     <!-- Close button -->
     <ImageView
             android:layout_width="30sp"
             android:layout_height="30sp"
             app:srcCompat="@drawable/baseline_close_16"
             android:id="@+id/btnClose"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="17dp"
             android:layout_marginEnd="15dp"
             android:layout_marginBottom="5dp"
             android:layout_marginStart="10dp"

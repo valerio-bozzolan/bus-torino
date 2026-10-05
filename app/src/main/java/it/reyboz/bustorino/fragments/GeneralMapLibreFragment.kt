@@ -76,6 +76,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.location.LocationComponent
 import org.maplibre.android.location.LocationComponentActivationOptions
@@ -100,6 +101,7 @@ import org.maplibre.android.style.sources.GeoJsonSource
 import org.maplibre.geojson.Feature
 import org.maplibre.geojson.FeatureCollection
 import org.maplibre.geojson.Point
+import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.milliseconds
 
 abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback {
@@ -181,6 +183,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     protected lateinit var vehicleIcon: ImageView
     protected lateinit var warningTripIcon: ImageView
     private lateinit var loadingTripIcon: ImageView
+    protected lateinit var centerBottomImage: ImageView
 
     protected var lastLocation : Location? = null
 
@@ -282,7 +285,8 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         linesBottomTextView.text = getString(R.string.lines_fill, "")
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-
+        centerBottomImage = view.findViewById(R.id.centerBottomLayoutImage)
+        centerBottomImage.setOnClickListener(){ centerOnOpenItemInBottomSheet() }
         //set onclick listener for warning trip icon
         warningTripIcon.setOnClickListener {
             showToastMessage(R.string.no_trip_info_warning, true)
@@ -1216,6 +1220,44 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         context?.let{
             Toast.makeText(it,textid,Toast.LENGTH_SHORT).show()
         }
+    }
+
+    protected fun centerOnOpenItemInBottomSheet(){
+        var latlng: LatLng? = null
+        var found = 0
+        if(shownStopInBottomSheet!=null){
+            val stop = shownStopInBottomSheet!!
+            latlng = LatLng(stop.latitude!!, stop.longitude!!)
+            found = 1
+        }else if(vehShowing!=null){
+            val update = updatesByVehDict.getOrDefault(vehShowing!!, null)
+            update?.let{
+                latlng = LatLng(it.posUpdate.latitude, it.posUpdate.longitude)
+                found = 2
+            }
+
+        }
+        if (latlng!=null) {
+            map?.apply{
+                //complicated part: make toast if the position is the same
+                //val newBbox = projection.visibleRegion.latLngBounds
+                val ll = cameraPosition.target
+                if(ll!=null && (ll.latitude - latlng.latitude).absoluteValue < 1e-4 && (ll.longitude-latlng.longitude).absoluteValue < 1e-4){
+                    Toast.makeText(requireContext(),
+                        if(found==1) R.string.already_center_bottom_sheet_stop else R.string.already_center_bottom_sheet_vehicle,
+                        Toast.LENGTH_SHORT
+                        ).show()
+                } else {
+                    animateCamera(
+                        CameraUpdateFactory.newLatLng(latlng),
+                        700
+                    )
+                }
+            }
+        }else {
+            Log.d(DEBUG_TAG, "Asked to center on open thing in bottom sheet but no position found")
+        }
+
     }
 
 

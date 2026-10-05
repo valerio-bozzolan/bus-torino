@@ -207,6 +207,8 @@
     <string name="location_enabled">Location enabled</string>
     <string name="location_disabled">Location disabled</string>
     <string name="map_location_disabled_device">Location is disabled on device</string>
+    <string name="already_center_bottom_sheet_stop">Map already centered on stop</string>
+    <string name="already_center_bottom_sheet_vehicle">Map already centered on vehicle</string>
 
     <!--
     Arrival times sources

@@ -236,7 +236,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         mapView = rootView.findViewById(R.id.lineMap)
         mapView!!.getMapAsync(this)
 
-
+        //TODO: Unify in GeneralMapLibreFragment
         // Setup close button
         rootView.findViewById<View>(R.id.btnClose).setOnClickListener {
             hideStopOrBusBottomSheet()
