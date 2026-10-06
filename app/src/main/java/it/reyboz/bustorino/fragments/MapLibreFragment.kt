@@ -28,14 +28,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
-import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import androidx.room.concurrent.AtomicBoolean
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
@@ -252,17 +250,15 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         val builder = Style.Builder().fromJson(mjson!!)
 
         mapReady.setStyle(builder) { style ->
-
             mapStyle = style
             //setupLayers(style)
             addImagesStyle(style)
 
             //init stop layer with this
             val stopsInCache = stopsViewModel.stopsToShow.value
-            if(stopsInCache.isNullOrEmpty())
-                initStopsLayer(style, null)
-            else
-                displayStops(stopsInCache)
+            if(stopsInCache.isNullOrEmpty()) initStopsLayer(style, null)
+            else displayStops(stopsInCache)
+
             if(showBusLayer) setupBusLayer(style, withLabels = true, busIconsScale = 1.2f)
 
             // Start observing data now that everything is set up
@@ -275,12 +271,8 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         mapReady.addOnCameraIdleListener {
             map?.let {
                 val newBbox = it.projection.visibleRegion.latLngBounds
-
                 stopsViewModel.loadStopsInLatLngBounds(newBbox)
                 lastBBox = newBbox
-
-
-
             }
 
         }
@@ -326,8 +318,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             }
             if(!boundsRestored){
                 // we have not restored the bounds, open normally in target location
-                // TODO: check that the map is reopened in the same location
-                val lastLoc = mapStateViewModel.locationToShow
+                val lastLoc = mapStateViewModel.userLocationToShow
                 val defaultLoc = LatLng(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON)
                 val proposedLoc = lastLoc?.let{ LatLng(lastLoc.latitude, lastLoc.longitude)}
                 val targetLoc = if(proposedLoc == null || proposedLoc.distanceTo(defaultLoc) > MAX_DIST_KM*1000)
@@ -372,7 +363,6 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                         //isBottomSheetShowing = true
                         //move camera
                         if (newstop.latitude != null && newstop.longitude != null)
-                        //mapReady.cameraPosition = CameraPosition.Builder().target(LatLng(it.latitude!!, it.longitude!!)).build()
                             mapReady.animateCamera(
                                 CameraUpdateFactory.newLatLng(LatLng(newstop.latitude!!, newstop.longitude!!)),
                                 750
@@ -511,6 +501,10 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             )
         }
     }
+    private fun hasToShowInitialStop(): Boolean{
+        return if(initialStopToShow==null) false
+        else !initialStopShown
+    }
     private fun observeStops() {
         // Observe stops
         stopsViewModel.stopsToShow.observe(viewLifecycleOwner) { stops ->
@@ -608,13 +602,12 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                     res?.lastLocation?.let { loc ->
                         if(mapInitialized){
                             val newLocation = LatLng(loc.latitude, loc.longitude)
-                            //center the position only if it is close enough
-                            if(newLocation.distanceTo(DEFAULT_LATLNG) < MAX_DIST_KM * 1000)
+                            //center the position only if it is close enough and we are not showing a stop
+                            if(!showingBusStopOrVehicle() && newLocation.distanceTo(DEFAULT_LATLNG) < MAX_DIST_KM * 1000)
                                 map?.cameraPosition = CameraPosition.Builder().target(LatLng(loc.latitude, loc.longitude)).build()
-
                         }
                         else
-                           mapStateViewModel.locationToShow = loc
+                           mapStateViewModel.userLocationToShow = loc
                     }
                 }
 
@@ -628,7 +621,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             })
         }
         if(locationEnabledOnDevice){
-            if(shownStopInBottomSheet == null && vehShowing == null)
+            if(!showingBusStopOrVehicle() && !hasToShowInitialStop())
                 setFollowUserLocation(true)
         }
 
@@ -637,7 +630,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     override fun onMapLocationEnabled(active: Boolean) {
         //Extra stuff to do
         // this check should always pass
-        if(shownStopInBottomSheet == null && vehShowing == null)
+        if(!(showingBusStopOrVehicle()) || hasToShowInitialStop())
             setFollowUserLocation(active)
     }
 
@@ -645,7 +638,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     override fun onFirstReceivedLocation(location: Location) {
 
         val it = location
-        val notShowingStopOrVehicle = vehShowing.isNullOrEmpty() && shownStopInBottomSheet != null
+        //val notShowingStopOrVehicle = s//vehShowing.isNullOrEmpty() && shownStopInBottomSheet != null
         if(locationInitialized && !receivedFirstLocation) {
             //only zoom if the user position is close enough to the center
             val newPoint = LatLng(it.latitude, it.longitude)
@@ -659,7 +652,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 //Update UI Status
                 mapStateViewModel.locationUserActive.value = false
                 mapStateViewModel.followingUserPosition.value = false
-            } else if(notShowingStopOrVehicle) {
+            } else if(!(showingBusStopOrVehicle()||hasToShowInitialStop())) {
                 map?.apply {
                     animateCamera(
                         CameraUpdateFactory.newCameraPosition(
@@ -680,7 +673,7 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         }
         else{
             //check for this is when the map is used
-            mapStateViewModel.locationToShow = location
+            mapStateViewModel.userLocationToShow = location
         }
     }
 

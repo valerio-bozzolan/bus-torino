@@ -33,7 +33,7 @@ class MapStateViewModel : ViewModel() {
         return restoreMapState(map, this.savedCameraState)
     }
 
-    var locationToShow: Location? = null
+    var userLocationToShow: Location? = null
 
     val locationUserActive = MutableLiveData(false)
     val followingUserPosition = MutableLiveData(false)

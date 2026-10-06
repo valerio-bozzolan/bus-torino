@@ -106,9 +106,11 @@ import kotlin.time.Duration.Companion.milliseconds
 
 abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback {
     protected var map: MapLibreMap? = null
-    protected var shownStopInBottomSheet : Stop? = null
-    //protected var savedMapStateOnPause : Bundle? = null
 
+    /**
+     * Stop to show in Bottom Sheet, if it is null, no stop is shown
+     */
+    protected var shownStopInBottomSheet : Stop? = null
 
     protected var fragmentListener: CommonFragmentListener? = null
 
@@ -193,6 +195,9 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     //BUS POSITIONS
     protected val updatesByVehDict = HashMap<String, LivePositionTripPattern>(5)
     protected val animatorsByVeh = HashMap<String, ValueAnimator>()
+    /**
+     * Label of the vehicle to show in Bottom Sheet, if it is null, no vehicle is shown
+     */
     protected var vehShowing: String? = null
     protected var lastUpdateTime:Long = -2
     protected var jobUpdate: Job? = null
@@ -1194,6 +1199,9 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 else -> setBusPositionsIcon( true, error = true)
             }
         }
+    }
+    protected fun showingBusStopOrVehicle(): Boolean{
+        return !(shownStopInBottomSheet == null && vehShowing == null)
     }
 
     /**
