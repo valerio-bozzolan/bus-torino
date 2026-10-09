@@ -1,0 +1,5 @@
+- Redesigned the stop search to show autocomplete suggestions from the database: https://gitpull.it/D259
+- Added a button to center the map view on the selected stop or bus: https://gitpull.it/D262
+- Fixed a bug that moved the view to the user’s location when opening a stop: https://gitpull.it/D261
+- Updated libraries and Gradle
+- Improved Italian translation

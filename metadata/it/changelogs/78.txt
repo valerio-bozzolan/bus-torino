@@ -1,0 +1,5 @@
+- Rifatta ricerca delle fermate per mostrare suggerimenti di completamento dal database: https://gitpull.it/D259
+- Aggiunta pulsante per centrare la vista della mappa sulla fermata o sul bus selezionati: https://gitpull.it/D262
+- Risolto bug che all'apertura della fermata spostava la vista sulla posizione utente: https://gitpull.it/D261
+- Aggiornamento librerie e gradle
+- Migliorata traduzione italiana

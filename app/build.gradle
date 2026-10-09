@@ -15,8 +15,8 @@ android {
         //noinspection EditedTargetSdkVersion
         targetSdkVersion 36
         buildToolsVersion = '36.0.0'
-        versionCode 77
-        versionName "2.6.5"
+        versionCode 78
+        versionName "2.6.6"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
         javaCompileOptions {
