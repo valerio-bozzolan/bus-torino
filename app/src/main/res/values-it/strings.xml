@@ -9,7 +9,7 @@
     <string name="next">Prossimo</string>
     <string name="previous">Precedente</string>
     <string name="title_barcode_scanner_install">Necessaria app per leggere i codici QR</string>
-    <string name="message_install_barcode_scanner">Questa azione richiede un\'altra app per scansionare i codici QR, ma non è stata trovata sul dispositivo. Vuoi installare Binary Eye?</string>
+    <string name="message_install_barcode_scanner">Questa azione richiede un\'altra app per scansionare i codici QR, ma non è stata trovata sul dispositivo. Vuoi installare l\'app open source Binary Eye?</string>
     <string name="insert_bus_stop_number">Numero fermata</string>
     <string name="insert_bus_stop_name">Nome fermata</string>
     <string name="insert_bus_stop_number_error">Inserisci il numero della fermata</string>
@@ -65,7 +65,7 @@
     <string name="about_history_top"><![CDATA["<h1>Benvenuto!</h1>\n        \n        <p>Grazie per aver scelto BusTO, un\'app <b>open source</b> e <b>indipendente</b> da GTT/5T, per spostarsi a Torino attraverso <b>software libero</b>!</p>\n        <p>BusTO rispetta la tua <b>privacy</b> non raccogliendo nessun dato sull\'utilizzo, ed è <b>leggera</b> e senza <b>pubblicità</b>!</p>\n        <br>\n        <p>Qui puoi trovare più informazioni e link riguardo al progetto.</p>\n\t\t<br>\n        <h2>Schermata iniziale</h2>\n        <p>Se vuoi rivedere la schermata iniziale, usa il pulsante qui sotto:</b>"]]></string>
     <string name="about_channel"><![CDATA[
         <h2>Notizie e aggiornamenti</h2>
-        <p>Nel canale Telegram puoi trovare informazioni sugli ultimi aggiornamenti dell\'app</p>
+        <p>Nel canale Telegram puoi trovare informazioni sugli ultimi aggiornamenti dell'app</p>
         ]]></string>
     <string name="about_how"><![CDATA["<h2>Ma come funziona?</h2>\n        <p>Quest\'app ottiene i passaggi dei bus, le fermate e altre informazioni utili unendo dati forniti dal sito <b>www.gtt.to.it</b>, <i>www.5t.torino.it</i>, <b>muoversiatorino.it</b> \"per uso personale\" e altre fonti Open Data (aperto.comune.torino.it).</p>\n        <br>\n\t\t<p>Ingredienti:<br>\n\t\t- <b>Fabio Mazza</b> attuale rockstar developer anziano.<br>\n\t\t- <b>Andrea Ugo</b> attuale rockstar developer in formazione.<br>\n\t\t- <b>Silviu Chiriac</b> designer del logo 2021.<br>\n\t\t- <b>Marco M</b> formidabile tester e cacciatore di bug.<br>\n\t\t- <b>Ludovico Pavesi</b> ex rockstar developer anziano asd.<br>\n\t\t- <b>Valerio Bozzolan</b> attuale manutentore.<br>\n\t\t- <b>Marco Gagino</b> apprezzato ex collaboratore, ideatore icona e grafica.<br>\n\t\t- <b>JSoup</b> libreria per \"<i>web scaping</i>\".<br>\n\t\t- <b>Google</b> icone e librerie di supporto e design.<br>\n\t\t- Altre icone da <b>Bootstrap</b>, <b>Feather</b>, <b>Remix</b> e <b>Hero Icons</b><br>\n\t\t- Tutti i contributori e i beta tester!\n\t\t</p>
     \n<br><p>Se vuoi avere più informazioni o donare per supportare lo sviluppo dell\'app, usa i pulsanti qui sotto!</p>"]]></string>
@@ -137,14 +137,14 @@
     <string name="no_passages_title">Nessun passaggio per le linee:</string>
     <string name="default_notification_channel_description">Canale default delle notifiche</string>
     <string name="database_notification_channel">Operazioni sul database</string>
-    <string name="database_notification_channel_desc">Informazioni sul database (aggiornamento)</string>
+    <string name="database_notification_channel_desc">Aggiornamento del database app</string>
     <string name="live_position_service_name">BusTO - posizioni in tempo reale</string>
     <string name="live_positions_notification_channel">Posizioni in tempo reale</string>
     <string name="live_positions_notification_channel_desc">Attività del servizio delle posizioni in tempo reale</string>
     <string name="mqtt_notification_text">Servizio posizioni MaTO in tempo reale attivo</string>
     <string name="db_trips_download_message">Download dei trip dal server MaTO</string>
     <string name="too_many_permission_asks">Chiesto troppe volte per il permesso %1$s</string>
-    <string name="permission_storage_maps_msg">Non si può usare questa funzionalità senza il permesso di archivio!</string>
+    <string name="permission_storage_maps_msg">Non si può usare la mappa senza il permesso di archivio!</string>
     <string name="storage_permission">di archivio</string>
     <string name="message_crash">Un bug ha fatto crashare l\'app!
         \nPremi \"OK\" per inviare il report agli sviluppatori via email, così potranno scovare e risolvere il tuo bug!
@@ -264,9 +264,14 @@ Guarda nelle <b>Impostazioni</b> per personalizzare l\'app come preferisci, e su
     <string name="day_night_theme_set_dark">Scuro</string>
     <string name="day_night_theme_keep_system">Segui il sistema</string>
     <string name="pref_theme_day_night_title">Imposta tema scuro o chiaro</string>
-
     <string name="no_trip_info_warning">Nessuna informazione trasmessa sulla direzione o sul viaggio del veicolo.</string>
     <string name="downloading_trip_info">Download in corso delle informazioni sul viaggio</string>
     <string name="no_stop_found_search_name">Nessuna fermata trovata con questo nome</string>
     <string name="no_stop_found_search_number">Nessuna fermata trovata con questo numero</string>
+    <string name="searching_arrivals_indefinite">Ricerca orari d\'arrivo</string>
+    <string name="no_stops_nearby_arrivals">Nessuna fermata vicina di cui cercare passaggi</string>
+    <string name="already_center_bottom_sheet_stop">Mappa già centrata sulla fermata</string>
+    <string name="already_center_bottom_sheet_vehicle">Mappa già centrata sul veicolo</string>
+    <string name="nav_home_text">Home</string>
+    <string name="alert_stop_fill">Avvisi per la fermata %1$s:</string>
 </resources>
