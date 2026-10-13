@@ -45,7 +45,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -62,12 +61,12 @@ import it.reyboz.bustorino.BuildConfig;
 import it.reyboz.bustorino.R;
 import it.reyboz.bustorino.adapters.StopNearbyAdapter;
 import it.reyboz.bustorino.backend.*;
-import it.reyboz.bustorino.util.Permissions;
+import it.reyboz.bustorino.util.PermissionsHelper;
 import it.reyboz.bustorino.viewmodels.IntroViewModel;
 import it.reyboz.bustorino.viewmodels.SearchStopsDBViewModel;
 import org.jetbrains.annotations.NotNull;
 
-import static it.reyboz.bustorino.util.Permissions.LOCATION_PERMISSIONS;
+import static it.reyboz.bustorino.util.PermissionsHelper.LOCATION_PERMISSIONS;
 
 
 /**
@@ -679,7 +678,7 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
         final Context con = requireContext();
         Log.w(DEBUG_TAG, "OnResume called, setupOnStart: "+ setupOnStart);
         //recheck the introduction activity has been run
-        if(Permissions.bothLocationPermissionsGranted(con)){
+        if(PermissionsHelper.bothLocationPermissionsGranted(con)){
             Log.d(DEBUG_TAG, "Location permission OK");
 
         } //don't request permission

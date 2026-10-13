@@ -38,10 +38,8 @@ import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.Stop
 import it.reyboz.bustorino.backend.gtfs.LivePositionUpdate
 import it.reyboz.bustorino.backend.mato.MQTTMatoClient
-import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
 import it.reyboz.bustorino.map.MapLibreLocationEngine
-import it.reyboz.bustorino.map.MapLibreStyles
 import it.reyboz.bustorino.viewmodels.StopsMapViewModel
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
@@ -152,40 +150,29 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             }
         }
         centerUserButton.setOnClickListener {
-            if(context!=null && locationComponent.isLocationComponentEnabled) {
-                val location = locationComponent.lastKnownLocation
+            locationComponent?.let { if (context != null && it.isLocationComponentEnabled) {
+                    val location = it.lastKnownLocation
 
-                location?.let {
-                    mapView?.getMapAsync { map ->
-                        map.animateCamera(CameraUpdateFactory.newCameraPosition(
-                            CameraPosition.Builder().target(LatLng(location.latitude, location.longitude)).build()), 500)
+                    location?.let {
+                        mapView?.getMapAsync { map -> map.animateCamera(
+                                CameraUpdateFactory.newCameraPosition(
+                                    CameraPosition.Builder().target(LatLng(location.latitude, location.longitude))
+                                        .build()
+                                ), 500
+                            )
+                        }
                     }
                 }
             }
         }
         followUserButton.setOnClickListener {
             // onClick user following button
-            if(context!=null && locationInitialized && locationComponent.isLocationComponentEnabled){
+            if(context!=null && locationInitialized && (locationComponent?.isLocationComponentEnabled ?: false)){
 
                 // CameraMode.TRACKING makes the camera move and jump to the location
                setFollowUserLocation(!followingUserLocation)
             }
         }
-        //locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        /*
-        if (Permissions.bothLocationPermissionsGranted(requireContext()) && deviceHasGpsProvider()) {
-
-            requestInitialUserLocation()
-        } else{
-            if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                //TODO: show dialog for permission rationale
-                Toast.makeText(activity, R.string.enable_position_message_map, Toast.LENGTH_SHORT)
-                    .show()
-            }
-            // PERMISSIONS REQUESTED AFTER MAP SETUP
-        }
-
-         */
         // Setup close button
         rootView.findViewById<View>(R.id.btnClose).setOnClickListener {
             hideStopOrBusBottomSheet()
@@ -239,35 +226,18 @@ class MapLibreFragment : GeneralMapLibreFragment() {
 
     }
 
-    /**
-     * This method sets up the map and the layers
-     */
-    override fun onMapReady(mapReady: MapLibreMap) {
-        this.map = mapReady
-        val context = requireContext()
-        val mjson = MapLibreStyles.getJsonStyleFromAsset(context, PreferencesHolder.getMapLibreStyleFile(context))
+    override fun onStyleLoaded(mapReady: MapLibreMap,style: Style) {
+        //init stop layer with this
+        val stopsInCache = stopsViewModel.stopsToShow.value
+        if(stopsInCache.isNullOrEmpty()) initStopsLayer(style, null)
+        else displayStops(stopsInCache)
 
-        val builder = Style.Builder().fromJson(mjson!!)
+        if(showBusLayer) setupBusLayer(style, withLabels = true, busIconsScale = 1.2f)
 
-        mapReady.setStyle(builder) { style ->
-            mapStyle = style
-            //setupLayers(style)
-            addImagesStyle(style)
+        checkInitMapLocation(mapReady,style, requireContext())
+    }
 
-            //init stop layer with this
-            val stopsInCache = stopsViewModel.stopsToShow.value
-            if(stopsInCache.isNullOrEmpty()) initStopsLayer(style, null)
-            else displayStops(stopsInCache)
-
-            if(showBusLayer) setupBusLayer(style, withLabels = true, busIconsScale = 1.2f)
-
-            // Start observing data now that everything is set up
-            observeStops()
-
-            checkInitMapLocation(mapReady,style, context)
-        }
-
-
+    override fun setupMapListenersOnInit(mapReady: MapLibreMap) {
         mapReady.addOnCameraIdleListener {
             map?.let {
                 val newBbox = it.projection.visibleRegion.latLngBounds
@@ -285,12 +255,14 @@ class MapLibreFragment : GeneralMapLibreFragment() {
         }
 
         mapReady.addOnMapClickListener { point ->
-           onMapClickReact(point)
+            onMapClickReact(point)
         }
-        // we start requesting the bus positions now
-        observeBusPositionUpdates()
+    }
 
-        //Restoring data
+    override fun onMapLibreInitialized(mapReady: MapLibreMap) {
+        // Start observing data now that everything is set up
+        observeStops()
+        observeBusPositionUpdates()
 
         if (initialStopToShow!=null && initialStopToShow?.hasCoords() == true){
             val s = initialStopToShow!!
@@ -305,15 +277,15 @@ class MapLibreFragment : GeneralMapLibreFragment() {
             //restore the map state here
             map?.let{
                 boundsRestored = mapStateViewModel.restoreMapState(it)
-                 mapStateViewModel.lastOpenStopID.value?.let{ sID->
-                     val s= stopsViewModel.getStopByID(sID)
-                     if (s==null) {
-                         if(sID.isNotEmpty())
-                             Log.w(DEBUG_TAG,"Wanted to open stop $sID in map but it was not loaded!")
-                     }
-                     else{
-                         openStopInBottomSheet(s) }
-                 }
+                mapStateViewModel.lastOpenStopID.value?.let{ sID->
+                    val s= stopsViewModel.getStopByID(sID)
+                    if (s==null) {
+                        if(sID.isNotEmpty())
+                            Log.w(DEBUG_TAG,"Wanted to open stop $sID in map but it was not loaded!")
+                    }
+                    else{
+                        openStopInBottomSheet(s) }
+                }
 
             }
             if(!boundsRestored){
@@ -322,20 +294,14 @@ class MapLibreFragment : GeneralMapLibreFragment() {
                 val defaultLoc = LatLng(DEFAULT_CENTER_LAT, DEFAULT_CENTER_LON)
                 val proposedLoc = lastLoc?.let{ LatLng(lastLoc.latitude, lastLoc.longitude)}
                 val targetLoc = if(proposedLoc == null || proposedLoc.distanceTo(defaultLoc) > MAX_DIST_KM*1000)
-                        defaultLoc
-                    else proposedLoc
+                    defaultLoc
+                else proposedLoc
 
 
                 mapReady.cameraPosition = CameraPosition.Builder().target(targetLoc).zoom(DEFAULT_ZOOM).build()
             }
             restoredMapCamera.set(boundsRestored)
-
-
         }
-        mapInitialized = true
-
-        //pendingLocationActivation = true
-        //positionRequestLauncher.launch(Permissions.LOCATION_PERMISSIONS)
 
     }
 
@@ -592,36 +558,39 @@ class MapLibreFragment : GeneralMapLibreFragment() {
     @SuppressLint("MissingPermission")
     override fun onMapLocationComponentInitialized() {
         //locationComponent.cameraMode = CameraMode.TRACKING
+        locationComponent?.let { locComp ->
 
-        locationComponent.renderMode = RenderMode.COMPASS
-        locationComponent.locationEngine?.apply{
-            // this is only called once
-            getLastLocation(object : LocationEngineCallback<LocationEngineResult> {
-                override fun onSuccess(res: LocationEngineResult?) {
-                    Log.d(DEBUG_TAG, "Got the last location, ${res?.lastLocation}")
-                    res?.lastLocation?.let { loc ->
-                        if(mapInitialized){
-                            val newLocation = LatLng(loc.latitude, loc.longitude)
-                            //center the position only if it is close enough and we are not showing a stop
-                            if(!showingBusStopOrVehicle() && newLocation.distanceTo(DEFAULT_LATLNG) < MAX_DIST_KM * 1000)
-                                map?.cameraPosition = CameraPosition.Builder().target(LatLng(loc.latitude, loc.longitude)).build()
+            locComp.renderMode = RenderMode.COMPASS
+            locComp.locationEngine?.apply {
+                // this is only called once
+                getLastLocation(object : LocationEngineCallback<LocationEngineResult> {
+                    override fun onSuccess(res: LocationEngineResult?) {
+                        Log.d(DEBUG_TAG, "Got the last location, ${res?.lastLocation}")
+                        res?.lastLocation?.let { loc ->
+                            if (mapInitialized) {
+                                val newLocation = LatLng(loc.latitude, loc.longitude)
+                                //center the position only if it is close enough and we are not showing a stop
+                                if (!showingBusStopOrVehicle() && newLocation.distanceTo(DEFAULT_LATLNG) < MAX_DIST_KM * 1000)
+                                    map?.cameraPosition =
+                                        CameraPosition.Builder().target(LatLng(loc.latitude, loc.longitude)).build()
+                            } else
+                                mapStateViewModel.userLocationToShow = loc
                         }
-                        else
-                           mapStateViewModel.userLocationToShow = loc
                     }
-                }
 
-                override fun onFailure(p0: java.lang.Exception) {
-                    if( p0 is MapLibreLocationEngine.NoLocationException)
+                    override fun onFailure(p0: java.lang.Exception) {
+                        if (p0 is MapLibreLocationEngine.NoLocationException)
                             Log.d(DEBUG_TAG, "Cannot find location: ${p0.message}")
-                    else
-                        Log.w(DEBUG_TAG, "Failed to get the last location, error: ${p0.message}",)
-                }
+                        else
+                            Log.w(DEBUG_TAG, "Failed to get the last location, error: ${p0.message}",)
+                    }
 
-            })
+                })
+            }
+
         }
-        if(locationEnabledOnDevice){
-            if(!showingBusStopOrVehicle() && !hasToShowInitialStop())
+        if (locationEnabledOnDevice) {
+            if (!showingBusStopOrVehicle() && !hasToShowInitialStop())
                 setFollowUserLocation(true)
         }
 
@@ -698,9 +667,9 @@ class MapLibreFragment : GeneralMapLibreFragment() {
      */
     private fun setFollowUserLocation(enabled: Boolean){
         if(locationInitialized) {
-            if (enabled)
-                locationComponent.cameraMode = CameraMode.TRACKING
-            else locationComponent.cameraMode = CameraMode.NONE
+            locationComponent?.let{
+                it.cameraMode = if(enabled) CameraMode.TRACKING else CameraMode.NONE
+            }
         }
         //update the icon by updating the livedata
         mapStateViewModel.followingUserPosition.value = enabled

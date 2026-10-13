@@ -30,11 +30,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.backend.utils
-import it.reyboz.bustorino.util.Permissions
+import it.reyboz.bustorino.util.PermissionsHelper
 import it.reyboz.bustorino.util.ViewUtils
 import java.lang.IllegalStateException
 
@@ -52,7 +51,7 @@ class IntroFragment : Fragment() {
 
     private val locationRequestResLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){ res ->
         //onActivityResult(res: map<String,Boolean>)
-        if(res[Permissions.LOCATION_PERMISSIONS[0]] ==true || res[Permissions.LOCATION_PERMISSIONS[1]] ==true)
+        if(res[PermissionsHelper.LOCATION_PERMISSIONS[0]] ==true || res[PermissionsHelper.LOCATION_PERMISSIONS[1]] ==true)
             setInteractButtonState(ButtonState.LOCATION,false)
     }
     private val notificationsReqLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -107,11 +106,11 @@ class IntroFragment : Fragment() {
                 textView.text = utils.convertHtml(getString(R.string.tutorial_map))
                 if (Build.VERSION.SDK_INT >= 23) {
                     //only show if running on Android M or above
-                    val permGranted = (Permissions.anyLocationPermissionsGranted(requireContext()))
+                    val permGranted = (PermissionsHelper.anyLocationPermissionsGranted(requireContext()))
                     setInteractButtonState(ButtonState.LOCATION, !permGranted)
                     interactButton.setOnClickListener {
                         //ask location permission
-                        Permissions.getInstance(requireContext()).checkRequestLocationPermissions(requireActivity(), locationRequestResLauncher)
+                        PermissionsHelper.getInstance(requireContext()).checkRequestLocationPermissions(requireActivity(), locationRequestResLauncher)
                         //locationRequestResLauncher.launch(Permissions.LOCATION_PERMISSIONS)
                     }
                     interactButton.visibility = View.VISIBLE
@@ -126,7 +125,7 @@ class IntroFragment : Fragment() {
                 setImageBitmap(imageHolder,R.drawable.tuto_menu)
                 setTextHtmlDescription(R.string.tutorial_menu)
                 //this is the cheapest trick ever lol
-                if(!Permissions.isNotificationPermissionNeeded()){
+                if(!PermissionsHelper.isNotificationPermissionNeeded()){
                     //no other screen needed
                     val button = root.findViewById<Button>(R.id.closeAllButton)
                     button.visibility = View.VISIBLE
@@ -139,14 +138,14 @@ class IntroFragment : Fragment() {
             7 ->{
                 imageHolder.setImageDrawable(ContextCompat.getDrawable(requireContext(),R.drawable.megaphone))
                 setTextHtmlDescription(R.string.tutorial_permissions)
-                if(Permissions.isNotificationPermissionNeeded()) {
-                    val disabled = Permissions.isPermissionGranted(
+                if(PermissionsHelper.isNotificationPermissionNeeded()) {
+                    val disabled = PermissionsHelper.isPermissionGranted(
                         requireContext(),
                         android.Manifest.permission.POST_NOTIFICATIONS
                     )
                     setInteractButtonState(ButtonState.NOTIFICATIONS, !disabled)
                     interactButton.setOnClickListener {
-                        if (Permissions.isNotificationPermissionNeeded()) {
+                        if (PermissionsHelper.isNotificationPermissionNeeded()) {
                             notificationsReqLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
                         }
                     }

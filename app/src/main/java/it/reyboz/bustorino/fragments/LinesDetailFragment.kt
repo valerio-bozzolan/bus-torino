@@ -18,7 +18,6 @@
 package it.reyboz.bustorino.fragments
 
 
-import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
@@ -50,7 +49,7 @@ import it.reyboz.bustorino.data.MatoTripsDownloadWorker
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.MatoPatternWithStops
 import it.reyboz.bustorino.map.*
-import it.reyboz.bustorino.util.Permissions
+import it.reyboz.bustorino.util.PermissionsHelper
 import it.reyboz.bustorino.viewmodels.LinesViewModel
 import it.reyboz.bustorino.viewmodels.MapStateViewModel
 import it.reyboz.bustorino.viewmodels.ServiceAlertsViewModel
@@ -81,13 +80,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     private var patternsAdapter: ArrayAdapter<String>? = null
 
 
-    //private var isBottomSheetShowing = false
-    private var shouldMapLocationBeReactivated = true
-
     private var toRunWhenMapReady : Runnable? = null
-    //private var mapInitialized = AtomicBoolean(false)
-
-    //private var patternsSpinnerState: Parcelable? = null
 
     private lateinit var currentPatterns: List<MatoPatternWithStops>
 
@@ -168,15 +161,8 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     //style and sources are in GeneralMapLibreFragment
     private lateinit var polylineSource: GeoJsonSource
     private lateinit var polyArrowSource: GeoJsonSource
-
-    private var savedCameraPosition: CameraPosition? = null
-
     private var lastStopsSizeShown = 0
-
     //BUS POSITIONS
-
-    private var enablingPositionFromClick = false
-
     private var polyline: LineString? = null
 
     //private var stopPosList = ArrayList<GeoPoint>()
@@ -184,14 +170,10 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     //fragment actions
 
     private var showOnTopOfLine = false
-    private var recyclerInitDone = false
 
     private var usingMQTTPositions = true
     private var restoredCameraInMap = false
 
-    //position of live markers
-
-    private val tripMarkersAnimators = HashMap<String, ObjectAnimator>()
 
     //extra items to use the LibreMap
 
@@ -413,6 +395,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             descripTextView.visibility = View.VISIBLE
         }
         mapStateViewModel.locationUserActive.observe(viewLifecycleOwner) {
+            Log.d(DEBUG_TAG, "User location is enabled: $it")
             setLocationIconEnabled(it)
         }
         // enable info button if there are alerts on the line
@@ -446,11 +429,19 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
         hideStopOrBusBottomSheet()
 
-        if(locationComponent.isLocationComponentEnabled){
+        if(locationComponent?.isLocationComponentEnabled == true){
+            //disable location
+            setLocationComponentEnabled(false)
+            //shouldMapLocationBeReactivated = true
+        } //else
+            //shouldMapLocationBeReactivated = false
+
+        /*if(mapStateViewModel.locationUserActive.value == true) {
             setLocationComponentEnabled(false)
             shouldMapLocationBeReactivated = true
-        } else
-            shouldMapLocationBeReactivated = false
+        } else shouldMapLocationBeReactivated = false
+
+         */
     }
 
     private fun hideStopListAndShowMap(){
@@ -470,8 +461,10 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
 
         switchButton.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_list_30))
 
-        if(shouldMapLocationBeReactivated){
-            setLocationComponentEnabled(Permissions.bothLocationPermissionsGranted(requireContext()))
+        if(mapStateViewModel.locationUserActive.value == true){
+            val actual = (PermissionsHelper.bothLocationPermissionsGranted(requireContext()))
+            setLocationComponentEnabled(actual)
+            if (!actual) context?.let{ Toast.makeText(it, R.string.location_permission_not_granted, Toast.LENGTH_LONG).show() }
         }
     }
 
@@ -520,114 +513,93 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
     }
 
     // ------------- Map Code -------------------------
-    /**
-     * This method sets up the map and the layers
-     */
-    override fun onMapReady(mapReady: MapLibreMap) {
-        this.map = mapReady
-        var setViewAlready = false
 
-        val context = requireContext()
-        val mjson = MapLibreStyles.getJsonStyleFromAsset(context, PreferencesHolder.getMapLibreStyleFile(context))        //ViewUtils.loadJsonFromAsset(requireContext(),"map_style_good.json")
+    override fun onStyleLoaded(mapReady: MapLibreMap, style: Style) {
 
-        activity?.run {
-            val builder = Style.Builder().fromJson(mjson!!)
+        initPolylineStopsLayers(style, null)
 
-            mapReady.setStyle(builder) { style ->
-                addImagesStyle(style)
+        setupBusLayer(style)
 
-                mapStyle = style
-                //setupLayers(style)
+        initSymbolManager(mapReady, style)
+        if(!mapStateViewModel.mapInitOnce.get() || mapStateViewModel.locationUserActive.value == true)
+            checkInitMapLocation(mapReady, style, requireContext())
+    }
 
-                //checkInitMapLocation(mapReady, style,requireContext())
+    override fun setupMapListenersOnInit(mapReady: MapLibreMap) {
+        mapReady.addOnMapClickListener { point ->
+            val screenPoint = mapReady.projection.toScreenLocation(point)
+            val stopsNearby = mapReady.queryRenderedFeatures(screenPoint, STOPS_LAYER_ID)
+            val busNearby = mapReady.queryRenderedFeatures(screenPoint, BUSES_LAYER_ID)
+            //Log.d(DEBUG_TAG, "onMapClick, stopsNearby: $stopsNearby \nstopShown: $shownStopInBottomSheet \nbusNearby: $busNearby,")
 
-                //if(!stopsLayerStarted)
-                initPolylineStopsLayers(style, null)
-
-                setupBusLayer(style)
-
-                initSymbolManager(mapReady, style)
-                toRunWhenMapReady?.run()
-                toRunWhenMapReady = null
-                mapInitialized = true
-
-                if(patternShown!=null){
-                    viewModel.stopsForPatternLiveData.value?.let {
-                        Log.d(DEBUG_TAG, "Show stops from the cache")
-                        displayPatternWithStopsOnMap(patternShown!!, it, true)
-                        //Show stop from cache
-                        mapStateViewModel.lastOpenStopID.value?.let{ sID->
-                            val s= it.filter { stop -> stop.ID==sID }
-                                if (s.isEmpty()) {
-                                    if(sID.isNotEmpty())
-                                        Log.w(DEBUG_TAG,"Wanted to open stop $sID in map but it was not loaded!")
-                                }
-                                else openStopInBottomSheet(s[0])
-
-                        }
+            if (stopsNearby.isNotEmpty()) {
+                val feature = stopsNearby[0]
+                val id = feature.getStringProperty("id")
+                val stop = viewModel.getStopByID(id)
+                stop?.let {
+                    if (isBottomSheetShowing()) {
+                        hideStopOrBusBottomSheet()
                     }
+                    openStopInBottomSheet(it)
 
-
+                    //move camera
+                    if(it.latitude!=null && it.longitude!=null)
+                        mapReady.animateCamera(CameraUpdateFactory.newLatLng(LatLng(it.latitude!!,it.longitude!!)),750)
                 }
-                var restoredMapState = mapStateViewModel.restoreMapState(mapReady)
-                arguments?.let { args ->
-                    // if there is a Camera State in the arguments, set it for the new camera (doesn't work yet!)
-                    if (!restoredMapState && MapCameraState.checkInBundle(args)) {
-                        val initCamState = MapCameraState.fromBundle(args)
-                        //map?.let{
-                        MapStateViewModel.restoreMapState(mapReady, initCamState)
-                        setViewAlready = true
-                        restoredMapState = true
+                return@addOnMapClickListener true
+            } else if (busNearby.isNotEmpty()){
+                val feature = busNearby[0]
+                openBusFromMapClick(feature)
 
-                    }
-                }
-                restoredCameraInMap = restoredMapState
+                return@addOnMapClickListener true
             }
+            false
+        }
+    }
 
-            mapReady.addOnMapClickListener { point ->
-                val screenPoint = mapReady.projection.toScreenLocation(point)
-                val stopsNearby = mapReady.queryRenderedFeatures(screenPoint, STOPS_LAYER_ID)
-                val busNearby = mapReady.queryRenderedFeatures(screenPoint, BUSES_LAYER_ID)
-                //Log.d(DEBUG_TAG, "onMapClick, stopsNearby: $stopsNearby \nstopShown: $shownStopInBottomSheet \nbusNearby: $busNearby,")
+    override fun onMapLibreInitialized(mapReady: MapLibreMap) {
+        toRunWhenMapReady?.run()
+        toRunWhenMapReady = null
 
-                if (stopsNearby.isNotEmpty()) {
-                    val feature = stopsNearby[0]
-                    val id = feature.getStringProperty("id")
-                    val stop = viewModel.getStopByID(id)
-                    stop?.let {
-                        if (isBottomSheetShowing()) {
-                            hideStopOrBusBottomSheet()
-                        }
-                        openStopInBottomSheet(it)
+        observeBusPositionUpdates()
 
-                        //move camera
-                        if(it.latitude!=null && it.longitude!=null)
-                            mapReady.animateCamera(CameraUpdateFactory.newLatLng(LatLng(it.latitude!!,it.longitude!!)),750)
-                    }
-                    return@addOnMapClickListener true
-                } else if (busNearby.isNotEmpty()){
-                    val feature = busNearby[0]
-                    openBusFromMapClick(feature)
+        if(patternShown!=null){
+            viewModel.stopsForPatternLiveData.value?.let {
+                Log.d(DEBUG_TAG, "Show stops from the cache")
+                displayPatternWithStopsOnMap(patternShown!!, it, true)
+                //Show stop from cache
+                mapStateViewModel.lastOpenStopID.value?.let { sID ->
+                    val s = it.filter { stop -> stop.ID == sID }
+                    if (s.isEmpty()) {
+                        if (sID.isNotEmpty())
+                            Log.w(DEBUG_TAG, "Wanted to open stop $sID in map but it was not loaded!")
+                    } else openStopInBottomSheet(s[0])
 
-                    return@addOnMapClickListener true
                 }
-                false
             }
-
-            // we start requesting the bus positions now
-            observeBusPositionUpdates()
-
         }
 
-        val zoom = 12.0
-        val latlngTarget = LatLng(MapLibreFragment.DEFAULT_CENTER_LAT, MapLibreFragment.DEFAULT_CENTER_LON)
-        if(!setViewAlready)
-            mapReady.cameraPosition = savedCameraPosition ?:CameraPosition.Builder().target(latlngTarget).zoom(zoom).build()
+        var restoredMapState = false
 
-        savedCameraPosition = null
+        restoredMapState = mapStateViewModel.restoreMapState(mapReady)
+        arguments?.let { args ->
+            // if there is a Camera State in the arguments, set it for the new camera (doesn't work yet!)
+            if (!restoredMapState && MapCameraState.checkInBundle(args)) {
+                val initCamState = MapCameraState.fromBundle(args)
+                //map?.let{
+                MapStateViewModel.restoreMapState(mapReady, initCamState)
+                restoredMapState = true
 
-        if(shouldMapLocationBeReactivated)
-            mapReady.style?.let{ checkInitMapLocation(mapReady,it, context)}
+            }
+        }
+        restoredCameraInMap = restoredMapState
+        Log.d(DEBUG_TAG, "Restored map state: $restoredMapState")
+
+        if(!restoredMapState) {
+            val zoom = 12.0
+            val latlngTarget = LatLng(MapLibreFragment.DEFAULT_CENTER_LAT, MapLibreFragment.DEFAULT_CENTER_LON)
+            mapReady.cameraPosition = CameraPosition.Builder().target(latlngTarget).zoom(zoom).build()
+        }
     }
 
     override fun showOpenStopWithSymbolLayer(): Boolean {
@@ -1081,7 +1053,7 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
         mapStateViewModel.lastOpenStopID.postValue(shownStopInBottomSheet?.ID)
     }
 
-    override fun onStop() {
+    /*override fun onStop() {
         super.onStop()
         if(locationInitialized)
             shouldMapLocationBeReactivated = locationComponent.isLocationComponentEnabled
@@ -1089,10 +1061,13 @@ class LinesDetailFragment() : GeneralMapLibreFragment() {
             shouldMapLocationBeReactivated = false
     }
 
+     */
+
     override fun onDestroyView() {
-        map?.run {
+        map?.let {
             Log.d(DEBUG_TAG, "Saving camera position")
-            savedCameraPosition = cameraPosition
+            //savedCameraPosition = cameraPosition
+            mapStateViewModel.saveMapState(it)
         }
 
         super.onDestroyView()

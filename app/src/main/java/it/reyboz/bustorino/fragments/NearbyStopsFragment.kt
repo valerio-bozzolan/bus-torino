@@ -41,8 +41,8 @@ import it.reyboz.bustorino.data.DatabaseUpdate
 import it.reyboz.bustorino.middleware.AutoFitGridLayoutManager
 import it.reyboz.bustorino.middleware.FusedNativeLocationProvider
 import it.reyboz.bustorino.middleware.FusedNativeLocationProvider.LocationUpdateListener
-import it.reyboz.bustorino.util.Permissions
-import it.reyboz.bustorino.util.Permissions.Companion.bothLocationPermissionsGranted
+import it.reyboz.bustorino.util.PermissionsHelper
+import it.reyboz.bustorino.util.PermissionsHelper.Companion.bothLocationPermissionsGranted
 import it.reyboz.bustorino.util.StopSorterByDistance
 import it.reyboz.bustorino.viewmodels.NearbyStopsViewModel
 import java.util.*
@@ -236,7 +236,7 @@ class NearbyStopsFragment : ScreenBaseFragment() {
         locationProvider!!.addListener(locationUpdateListener)
 
         enableLocationButton.setOnClickListener {
-            locationPermissionLauncher.launch(Permissions.LOCATION_PERMISSIONS)
+            locationPermissionLauncher.launch(PermissionsHelper.LOCATION_PERMISSIONS)
         }
 
         return root

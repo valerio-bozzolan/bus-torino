@@ -6,25 +6,20 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Criteria
-import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.startActivity
 import it.reyboz.bustorino.R
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.concurrent.atomics.AtomicInt
 
-class Permissions private constructor(private val appContext: Context) {
+class PermissionsHelper private constructor(private val appContext: Context) {
 
     /*
     @get:RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
@@ -35,8 +30,10 @@ class Permissions private constructor(private val appContext: Context) {
      */
     private var askedTimesLocation = AtomicInteger(0)
 
-
-    fun checkRequestLocationPermissions(activity: Activity, launcher: ActivityResultLauncher<Array<String>>): Boolean {
+    /**
+     * Check if we launch the permission request or not
+     */
+    fun checkRequestLocationPermissions(activity: Activity, launcher: ActivityResultLauncher<Array<String>>, maxTimes:Int = 4): Boolean {
 
          //activity.getSharedPreferences(, Context.MODE_PRIVATE)
         var launched = false
@@ -49,7 +46,7 @@ class Permissions private constructor(private val appContext: Context) {
         */
         val reqTimes = askedTimesLocation.getAndIncrement()
         Log.d(DEBUG_TAG, "Requesting location permissions, asked ${reqTimes} times ")
-        if(reqTimes > 4){
+        if(reqTimes > maxTimes){
             openShowAppSettingsLocationDialog()
         } else{
             launcher.launch(LOCATION_PERMISSIONS)
@@ -136,11 +133,11 @@ class Permissions private constructor(private val appContext: Context) {
 
 
         @Volatile
-        private var instance: Permissions? = null
+        private var instance: PermissionsHelper? = null
 
         fun getInstance(context: Context) =
             instance ?: synchronized(this) {
-                instance ?: Permissions(context.applicationContext).also { instance = it }
+                instance ?: PermissionsHelper(context.applicationContext).also { instance = it }
             }
 
     }

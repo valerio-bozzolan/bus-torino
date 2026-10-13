@@ -646,7 +646,7 @@ class ArrivalsFragment : ResultBaseFragment(), LoaderManager.LoaderCallbacks<Cur
         messageTextView.visibility = View.VISIBLE
     }
 
-
+    //TODO: Remove all this loader stuff
     override fun onCreateLoader(id: Int, p1: Bundle?): Loader<Cursor> {
         val args = arguments
         //if (args?.getString(KEY_STOP_ID) == null) throw

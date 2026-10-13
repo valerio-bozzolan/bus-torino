@@ -65,9 +65,10 @@ import it.reyboz.bustorino.backend.utils
 import it.reyboz.bustorino.data.PreferencesHolder
 import it.reyboz.bustorino.data.gtfs.TripAndPatternWithStops
 import it.reyboz.bustorino.map.MapLibreLocationEngine
+import it.reyboz.bustorino.map.MapLibreStyles
 import it.reyboz.bustorino.map.MapLibreUtils
 import it.reyboz.bustorino.middleware.FusedNativeLocationProvider
-import it.reyboz.bustorino.util.Permissions
+import it.reyboz.bustorino.util.PermissionsHelper
 import it.reyboz.bustorino.util.ViewUtils
 import it.reyboz.bustorino.viewmodels.LivePositionsViewModel
 import it.reyboz.bustorino.viewmodels.MapStateViewModel
@@ -159,7 +160,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 if(mMap == null){
                     Log.w(DEBUG_TAG, "Location request completed, but map is null!")
                 }else{
-                    initializeMapLocationComponent(mMap,requireContext(), null)
+                    initializeMapLocationComponent(mMap,requireContext(), mMap.style!!)
                 }
             } else{
                 // PERMISSION DENIED
@@ -180,7 +181,7 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     protected lateinit var arrivalsCard: CardView
     protected lateinit var directionsCard: CardView
     protected lateinit var bottomrightImage: ImageView
-    protected lateinit var locationComponent: LocationComponent
+    protected var locationComponent: LocationComponent? = null
     protected lateinit var busPositionsIconButton: ImageButton
     protected lateinit var vehicleIcon: ImageView
     protected lateinit var warningTripIcon: ImageView
@@ -366,21 +367,51 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         }
     }
 
-    protected fun reloadMap(){
-        /*map?.let {
-            Log.d("GeneralMapFragment", "RELOADING MAP")
-            //save map state
-            savedMapStateOnPause = saveMapStateInBundle()
+    override fun onMapReady(mapReady: MapLibreMap) {
+        this.map = mapReady
+        val context = requireContext()
 
-            onMapDestroy()
-            //Destroy and recreate MAP
-            mapView.onDestroy()
-            mapView.onCreate(null)
-            mapView.getMapAsync(this)
+        // 1. Caricamento Stile (Comune)
+        val mjson = MapLibreStyles.getJsonStyleFromAsset(context, PreferencesHolder.getMapLibreStyleFile(context))
+        val builder = Style.Builder().fromJson(mjson!!)
+
+        mapReady.setStyle(builder) { style ->
+            mapStyle = style
+            addImagesStyle(style)
+
+            // Gancio per layer e configurazioni specifiche dello stile
+            onStyleLoaded(mapReady, style)
+
+            checkInitMapLocation(mapReady, style, context)
         }
 
-         */
+        // 2. Setup Listeners (Comune + Specifici)
+        setupMapListenersOnInit(mapReady)
+
+        // 4. Ripristino Camera / observe Buses
+
+        mapInitialized = true
+        mapStateViewModel.mapInitOnce.set(true)
+
+        onMapLibreInitialized(mapReady)
+
     }
+
+    // --- Methods to implement in subclasses ---
+    /**
+     * Called when the map is loaded and the style is ready
+     */
+    abstract fun onStyleLoaded(mapReady: MapLibreMap,style: Style)
+
+    /**
+     * Called during the init setup of the map, separate method to add listeners to the map
+     */
+    abstract fun setupMapListenersOnInit(mapReady: MapLibreMap)
+
+    /**
+     * All things to do on the map different from listeners: listen to bus stops, bus positions updates...
+     */
+    abstract fun onMapLibreInitialized(mapReady: MapLibreMap)
 
     //For extra stuff to do when the map is destroyed
     abstract fun onMapDestroy()
@@ -499,37 +530,39 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
         return changed
     }
 
+    /**
+     * Method to be called to start all the location stuff related to the map
+     * ONLY WHEN YOU HAVE THE LOCATION PERMISSION
+     */
     @SuppressLint("MissingPermission")
-    protected fun initializeMapLocationComponent(map: MapLibreMap, context: Context, style: Style?){
-        val mStyle = style ?: map.style
+    protected fun initializeMapLocationComponent(map: MapLibreMap, context: Context, style: Style){
         if(locationInitialized){
             Log.w(DEBUG_TAG, "trying to initialize Location Component, but it is already done")
             return
         }
-        mStyle?.let{ style ->
-            locationComponent = map.locationComponent
+        locationComponent = map.locationComponent
 
-            val locProvider = FusedNativeLocationProvider(context)
-            locProvider.addListener(deviceLocationStatusListener)
-            locationEngine = MapLibreLocationEngine(locProvider)
-            locationProvider = locProvider
-            val options = LocationComponentActivationOptions.builder(context, style)
-                .useDefaultLocationEngine(false)
-                .locationEngine(locationEngine)
-                .build()
-            locationComponent.activateLocationComponent(options)
+        val locProvider = FusedNativeLocationProvider(context)
+        locProvider.addListener(deviceLocationStatusListener)
+        locationEngine = MapLibreLocationEngine(locProvider)
+        locationProvider = locProvider
+        val options = LocationComponentActivationOptions.builder(context, style)
+            .useDefaultLocationEngine(false)
+            .locationEngine(locationEngine)
+            .build()
+        locationComponent!!.activateLocationComponent(options)
 
-            if(BuildConfig.DEBUG) Log.d(DEBUG_TAG, "Initializing location, request initial position")
-            startInitialPositionRequest()
+        if(BuildConfig.DEBUG) Log.d(DEBUG_TAG, "Initializing location, request initial position")
+        startInitialPositionRequest()
 
-            if(!locationEnabledOnDevice){
-                warnLocationNotEnabledOnDevice()
-            }else {
-                setLocationComponentEnabled(true)
-            }
-            locationInitialized = true
-            onMapLocationComponentInitialized()
+        if(!locationEnabledOnDevice){
+            warnLocationNotEnabledOnDevice()
+        }else {
+            setLocationComponentEnabled(true)
         }
+        locationInitialized = true
+        onMapLocationComponentInitialized()
+
     }
 
     @SuppressLint("MissingPermission")
@@ -1089,35 +1122,38 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     /**
      * Method used for enabling / disabling the location from the buttons
      */
-    protected fun switchUserLocationStatus(view: View?){
-        val enabled = if(locationInitialized) locationComponent.isLocationComponentEnabled else false
+    protected fun switchUserLocationStatus(view: View?) {
+
+        val enabled = locationInitialized && (locationComponent?.isLocationComponentEnabled == true)
         val context = context ?: return
-        if(enabled) {
-            if(!receivedFirstLocation){
+        if (enabled) {
+            if (!receivedFirstLocation) {
                 //use case: the user has decided to disable the location before the first position arrived
                 stopInitialPositionRequest()
             }
             // we have to disable it
             setMapLocationEnabled(false)
-        }
-        else if(deviceHasLocationProvider()) {
-            if(Permissions.bothLocationPermissionsGranted(context)){
-                if(!locationEnabledOnDevice){
+        } else if (deviceHasLocationProvider()) {
+            if (PermissionsHelper.bothLocationPermissionsGranted(context)) {
+                if (!locationEnabledOnDevice) {
                     warnLocationNotEnabledOnDevice()
-                } else{
+                } else {
                     setMapLocationEnabled(true)
                 }
-            } else{
+            } else {
                 Log.d(DEBUG_TAG, "Requesting permissions to show location")
-                Permissions.getInstance(context).checkRequestLocationPermissions(requireActivity(), positionRequestResponder)
+                PermissionsHelper.getInstance(context)
+                    .checkRequestLocationPermissions(requireActivity(), positionRequestResponder)
             }
-        } else{
+        } else {
             context.let {
                 Toast.makeText(it, R.string.no_gps_on_device, Toast.LENGTH_SHORT).show()
             }
-            //adjust ui
-            setLocationIconEnabled(false)
-        }
+            mapStateViewModel.locationUserActive.value = false
+            //adjust ui -  done in response to the above
+            //setLocationIconEnabled(false)
+
+    }
 
     }
 
@@ -1127,29 +1163,32 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
     @SuppressLint("MissingPermission")
     protected fun setMapLocationEnabled(enabled: Boolean){
         Log.d(DEBUG_TAG, "Setting map location enabled: $enabled")
-        map?.locationComponent?.isLocationComponentEnabled = enabled
-        //map?.cameraPosition =
+        val locCompo = map?.locationComponent
+        if (locCompo!=null)
+            locCompo.isLocationComponentEnabled = enabled
+        else Log.w(DEBUG_TAG, "Asked to set location to $enabled but locationComponent is null")
+
         mapStateViewModel.locationUserActive.value = enabled
         onMapLocationEnabled(enabled)
     }
 
     /**
-     * Function to run at the first time the fragment is opened
+     * Function to run at the first time the map is ready
      * Check if we have the permissions, and then initialize the map location component
      * If we don't have it, request the permission
      */
     protected fun checkInitMapLocation(mapReady: MapLibreMap,style: Style, context: Context) {
         //enable location
         val hasGps = deviceHasLocationProvider()
-        val permissions = Permissions.getInstance(context)
+        val permissionsHelper = PermissionsHelper.getInstance(context)
         if(hasGps) {
-            if (Permissions.bothLocationPermissionsGranted(context)) {
+            if (PermissionsHelper.bothLocationPermissionsGranted(context)) {
                 Log.d(DEBUG_TAG, "Have got the location permission, init location component")
                 initializeMapLocationComponent(mapReady, context, style)
             }else {
                 var req = false
                 activity?.let{
-                    req = permissions.checkRequestLocationPermissions(it, positionRequestResponder)
+                    req = permissionsHelper.checkRequestLocationPermissions(it, positionRequestResponder)
                 }
 
                 if(!req) {
@@ -1157,7 +1196,10 @@ abstract class GeneralMapLibreFragment: ScreenBaseFragment(), OnMapReadyCallback
                 }
 
             }
+        } else{
+            mapStateViewModel.setLocationNotAvailable()
         }
+
     }
 
     /**
