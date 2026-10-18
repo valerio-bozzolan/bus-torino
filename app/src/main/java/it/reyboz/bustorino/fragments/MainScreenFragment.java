@@ -881,10 +881,9 @@ public class MainScreenFragment extends BarcodeFragment implements  FragmentList
     @Override
     public void showFloatingActionButton(boolean yes) {
         //mListener.showFloatingActionButton(yes);
-        if(yes)
-            floatingActionButton.setVisibility(View.VISIBLE);
-        else
-            floatingActionButton.setVisibility(View.GONE);
+        var button = floatingActionButton;
+        if(button == null) return;
+        button.setVisibility(yes ? View.VISIBLE : View.GONE);
     }
 
     /**
