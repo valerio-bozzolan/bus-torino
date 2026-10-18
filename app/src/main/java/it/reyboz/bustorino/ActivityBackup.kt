@@ -1,13 +1,16 @@
 package it.reyboz.bustorino
 
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.widget.Toolbar
+import androidx.core.app.NavUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import it.reyboz.bustorino.fragments.BackupImportFragment
 import it.reyboz.bustorino.middleware.GeneralActivity
+
 
 class ActivityBackup : GeneralActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,10 +21,8 @@ class ActivityBackup : GeneralActivity() {
         setSupportActionBar(mToolbar)
 
         val actionBar = supportActionBar
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true)
-            //actionBar.setIcon(R.drawable.ic_launcher)
-        }
+        actionBar?.setDisplayHomeAsUpEnabled(true)
+
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .setReorderingAllowed(true)

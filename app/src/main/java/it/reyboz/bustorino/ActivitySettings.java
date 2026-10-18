@@ -1,7 +1,6 @@
 package it.reyboz.bustorino;
 
 import android.os.Bundle;
-import android.view.ViewGroup;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -9,7 +8,6 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import it.reyboz.bustorino.fragments.SettingsFragment;
 import it.reyboz.bustorino.middleware.GeneralActivity;

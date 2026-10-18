@@ -35,8 +35,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import it.reyboz.bustorino.backend.utils
 import it.reyboz.bustorino.middleware.BarcodeScanUtils
+import it.reyboz.bustorino.middleware.GeneralActivity
 
-class ActivityAbout : AppCompatActivity() {
+class ActivityAbout : GeneralActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_about)

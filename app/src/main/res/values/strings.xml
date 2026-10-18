@@ -381,14 +381,15 @@ Look in the <b>Settings</b> to customize the app behaviour, and in the <b>About 
     <string name="restore_title">Restore</string>
     <!-- String in the settings screen to describe the action that can be performed -->
     <string name="backup_restore_pref_description">Backup or restore data</string>
+    <string name="backup_description">Save all the application settings and favorites into a local zip file, to do a backup or share with others.</string>
     <string name="saved_data">Data saved</string>
     <string name="backup_completed_toast">Backup completed</string>
     <string name="btn_backup_message">Backup to file</string>
     <string name="btn_load_backup_message">Import data from backup</string>
     <string name="data_imported_backup">Backup has been imported</string>
     <string name="message_check_at_least_one">Check at least one item to import!</string>
-    <string name="load_file_favorites">Import favorites from backup</string>
-    <string name="load_preferences">Import preferences from backup</string>
+    <string name="load_file_favorites">Import favorites stops and lines from backup</string>
+    <string name="load_preferences">Import all preferences from backup</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 

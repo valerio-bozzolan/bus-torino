@@ -34,6 +34,7 @@ import de.siegmar.fastcsv.reader.CsvReader
 import de.siegmar.fastcsv.writer.CsvWriter
 import it.reyboz.bustorino.R
 import it.reyboz.bustorino.data.PreferencesHolder
+import it.reyboz.bustorino.data.PreferencesHolder.PREF_FAVORITE_LINES
 import it.reyboz.bustorino.data.UserDB
 import it.reyboz.bustorino.util.ImportExport
 import java.io.*
@@ -240,8 +241,12 @@ class BackupImportFragment : Fragment() {
                                 val pref = PreferencesHolder.getMainSharedPreferences(context)
                                 //In the future, if we move the favorite lines to a different file,
                                 // We should check here if the key is in the jsonObject, and copy it to the other file
-                                ImportExport.importJsonToSharedPreferences(pref, jsonString, PreferencesHolder.IGNORE_KEYS_LOAD_MAIN, null,
-                                    PreferencesHolder.KEYS_MERGE_SET)
+                                //ImportExport.importJsonToSharedPreferences(pref, jsonString, PreferencesHolder.IGNORE_KEYS_LOAD_MAIN, null,
+                                //    PreferencesHolder.KEYS_MERGE_SET)
+                                val mSet = setOf(PREF_FAVORITE_LINES)
+                                ImportExport.importJsonToPreferencesWhitelist(pref, jsonString,
+                                    mSet, null,mSet
+                                )
                             } catch (e: Exception){
                                 Log.e(DEBUG_TAG, "Cannot read main preferences from file")
                                 e.printStackTrace()

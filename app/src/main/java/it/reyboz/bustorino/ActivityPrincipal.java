@@ -119,6 +119,9 @@ public class ActivityPrincipal extends GeneralActivity implements FragmentListen
             R.id.drawer_action_info, () ->
                     startActivity(new Intent(this, ActivityAbout.class)),
             R.id.nav_nearby, this::openNearbyStopsFragment
+            /*R.id.drawer_action_backup, () -> //this was for another action
+                startActivity(new Intent(this, ActivityBackup.class))*/
+
     );
 
 

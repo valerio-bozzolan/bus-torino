@@ -122,7 +122,7 @@ class ImportExport {
                         is JSONArray -> { // Handle arrays
                             val set = mutableSetOf<String>()
                             if (mergeSetKeys.contains(key))
-                                sharedPreferences.getStringSet(key, mutableSetOf())?.let { set.addAll(it) }
+                                sharedPreferences.getStringSet(key, null)?.let { set.addAll(it) }
                             for (i in 0 until value.length()) {
                                 set.add(value.optString(i))
                             }
@@ -133,6 +133,57 @@ class ImportExport {
                 }
                 editor.apply()
             } catch (e: Exception){
+                Log.e(TAG, "Cannot write sharedPreferences")
+                e.printStackTrace()
+                return -1
+            }
+            return 0
+        }
+
+        fun importJsonToPreferencesWhitelist(sharedPreferences: SharedPreferences,
+                                          allJsonAsString: String,
+                                          desiredKeys: Set<String>?,
+                                          desiredKeyRegex: Regex?,
+                                          mergeSetKeys: Set<String>
+        ): Int {
+            val jsonObject = JSONObject(allJsonAsString)
+
+            try {
+                val editor = sharedPreferences.edit()
+                jsonObject.keys().forEach { key ->
+                    // Logica di inclusione:
+                    // Se entrambi i filtri sono null, consideriamo tutte le chiavi desiderate.
+                    // Altrimenti, la chiave deve trovarsi nel set oppure corrispondere alla regex.
+                    val isDesired = when {
+                        desiredKeys == null && desiredKeyRegex == null -> true
+                        desiredKeys?.contains(key) == true -> true
+                        desiredKeyRegex?.containsMatchIn(key) == true -> true
+                        else -> false
+                    }
+
+                    if (!isDesired) return@forEach
+
+                    val value = jsonObject.opt(key)
+                    when (value) {
+                        is Boolean -> editor.putBoolean(key, value)
+                        is Int -> editor.putInt(key, value)
+                        is Long -> editor.putLong(key, value)
+                        is Float -> editor.putFloat(key, value)
+                        is String -> editor.putString(key, value)
+                        is JSONArray -> {
+                            val set = mutableSetOf<String>()
+                            if (mergeSetKeys.contains(key)) {
+                                sharedPreferences.getStringSet(key, null)?.let { set.addAll(it) }
+                            }
+                            for (i in 0 until value.length()) {
+                                set.add(value.optString(i))
+                            }
+                            editor.putStringSet(key, set)
+                        }
+                    }
+                }
+                editor.apply()
+            } catch (e: Exception) {
                 Log.e(TAG, "Cannot write sharedPreferences")
                 e.printStackTrace()
                 return -1
