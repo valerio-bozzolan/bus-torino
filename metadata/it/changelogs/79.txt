@@ -1,0 +1,3 @@
+- Risolto crash nella schermata delle linee (https://gitpull.it/D264)
+- Migliorato design della schermata di backup (https://gitpull.it/D266)
+- Risolto crash cambiando tema da scuro a chiaro (https://gitpull.it/D267)

@@ -1,0 +1,3 @@
+- Fixed crash with map in Lines screen (https://gitpull.it/D264)
+- Improved design of backup screen (https://gitpull.it/D266)
+- Fix crash in switching from dark to light theme (https://gitpull.it/D267)
